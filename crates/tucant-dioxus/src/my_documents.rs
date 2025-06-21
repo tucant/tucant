@@ -11,7 +11,7 @@ pub fn MyDocuments() -> Element {
     let handler = async |tucan: Rc<DynTucan>, current_session, revalidation_strategy, _additional| tucan.my_documents(&current_session, revalidation_strategy).await;
 
     use_authenticated_data_loader(handler, (), 14 * 24 * 60 * 60, 60 * 60, |documents, reload| {
-        ::yew::html! {
+        rsx! {
             div {
                 h1 {
                     { "Meine Dokumente" }
@@ -47,7 +47,7 @@ pub fn MyDocuments() -> Element {
                                 .documents
                                 .iter()
                                 .map(|document| {
-                                    ::yew::html! {
+                                    rsx! {
                                         tr {
                                             th { scope: "row",
                                                 { &document.name }
@@ -65,7 +65,7 @@ pub fn MyDocuments() -> Element {
                                         }
                                     }
                                 })
-                                .collect::<Html>()
+                                
                         }
                     }
                 }

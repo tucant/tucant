@@ -23,7 +23,7 @@ pub fn MyModules(semester: SemesterId) -> Element {
                 navigator.push(&Route::MyModules { semester: SemesterId::from_str(&value).unwrap() });
             })
         };
-        ::yew::html! {
+        rsx! {
             div {
                 h1 {
                     { "Meine Module" }
@@ -45,13 +45,13 @@ pub fn MyModules(semester: SemesterId) -> Element {
                             .semester
                             .iter()
                             .map(|semester| {
-                                ::yew::html! {
+                                rsx! {
                                     option { selected: semester.selected, value: semester.value.inner().clone(),
                                         { &semester.name }
                                     }
                                 }
                             })
-                            .collect::<Html>()
+                            
                     }
                 }
                 table { class: "table",
@@ -77,7 +77,7 @@ pub fn MyModules(semester: SemesterId) -> Element {
                                 .modules
                                 .iter()
                                 .map(|module| {
-                                    ::yew::html! {
+                                    rsx! {
                                         tr {
                                             th { scope: "row",
                                                 { &module.nr }
@@ -96,7 +96,7 @@ pub fn MyModules(semester: SemesterId) -> Element {
                                         }
                                     }
                                 })
-                                .collect::<Html>()
+                                
                         }
                     }
                 }

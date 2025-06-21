@@ -17,11 +17,11 @@ pub fn Registration(registration: AnmeldungRequest) -> Element {
     use_authenticated_data_loader(handler, registration.to_owned(), 28 * 24 * 60 * 60, 24 * 60 * 60, |data, reload| {
         if data.submenus.len() == 1 && data.additional_information.is_empty() && data.entries.is_empty() {
             navigator.replace(&Route::Registration { registration: data.submenus[0].1.clone() });
-            return ::yew::html! {
+            return rsx! {
                 
             };
         }
-        ::yew::html! {
+        rsx! {
             div { class: "container",
                 h2 { class: "text-center",
                     { "Registration " }
@@ -42,7 +42,7 @@ pub fn Registration(registration: AnmeldungRequest) -> Element {
                             data.path
                                 .iter()
                                 .map(|entry| {
-                                    ::yew::html! {
+                                    rsx! {
                                         li { class: "breadcrumb-item",
                                             Link { to: Route::Registration { registration: entry.1.clone() },
                                                 { entry.0.clone() }
@@ -50,7 +50,7 @@ pub fn Registration(registration: AnmeldungRequest) -> Element {
                                         }
                                     }
                                 })
-                                .collect::<Html>()
+                                
                         }
                     }
                 }
@@ -65,13 +65,13 @@ pub fn Registration(registration: AnmeldungRequest) -> Element {
                         data.submenus
                             .iter()
                             .map(|entry| {
-                                ::yew::html! {
+                                rsx! {
                                     Link { to: Route::Registration { registration: entry.1.clone() }, class: "list-group-item list-group-item-action",
                                         { format!("{}", entry.0) }
                                     }
                                 }
                             })
-                            .collect::<Html>()
+                            
                     }
                 }
                 h2 { class: "text-center",
@@ -83,7 +83,7 @@ pub fn Registration(registration: AnmeldungRequest) -> Element {
                             .iter()
                             .map(|entry| {
                                 let module = entry.module.as_ref();
-                                ::yew::html! {
+                                rsx! {
                                     li { class: "list-group-item",
                                         div { class: "d-flex w-100 justify-content-between",
                                             h5 { class: "mb-1",
@@ -114,12 +114,12 @@ pub fn Registration(registration: AnmeldungRequest) -> Element {
                                         {
                                             module.map(|module| match &module.registration_state {
                                                 RegistrationState::Unknown => yew::html! {},
-                                                RegistrationState::Registered { unregister_link } => ::yew::html! {
+                                                RegistrationState::Registered { unregister_link } => rsx! {
                                                     a { class: "btn btn-danger mb-1" role: "button" href: format!("https://www.tucan.tu-darmstadt.de{}", unregister_link.clone()),
                                                         { "Vom Modul abmelden" }
                                                     }
                                                 },
-                                                RegistrationState::NotRegistered { register_link } => ::yew::html! {
+                                                RegistrationState::NotRegistered { register_link } => rsx! {
                                                     a { class: "btn btn-outline-success mb-1" role: "button" href: format!("https://www.tucan.tu-darmstadt.de{}", register_link.clone()),
                                                         { "Zum Modul anmelden" }
                                                     }
@@ -132,7 +132,7 @@ pub fn Registration(registration: AnmeldungRequest) -> Element {
                                                     .courses
                                                     .iter()
                                                     .map(|course| {
-                                                        ::yew::html! {
+                                                        rsx! {
                                                             li { class: "list-group-item",
                                                                 div { class: "d-flex w-100 justify-content-between",
                                                                     h5 { class: "mb-1",
@@ -164,12 +164,12 @@ pub fn Registration(registration: AnmeldungRequest) -> Element {
                                                                 {
                                                                     match &course.1.registration_button_link {
                                                                         RegistrationState::Unknown => yew::html! {},
-                                                                        RegistrationState::Registered { unregister_link } => ::yew::html! {
+                                                                        RegistrationState::Registered { unregister_link } => rsx! {
                                                                             a { class: "btn btn-danger mb-1" role: "button" href: format!("https://www.tucan.tu-darmstadt.de{}", unregister_link.clone()),
                                                                                 { "Vom Kurs abmelden" }
                                                                             }
                                                                         },
-                                                                        RegistrationState::NotRegistered { register_link } => ::yew::html! {
+                                                                        RegistrationState::NotRegistered { register_link } => rsx! {
                                                                             a { class: "btn btn-outline-success mb-1" role: "button" href: format!("https://www.tucan.tu-darmstadt.de{}", register_link.clone()),
                                                                                 { "Zum Kurs anmelden" }
                                                                             }
@@ -179,13 +179,13 @@ pub fn Registration(registration: AnmeldungRequest) -> Element {
                                                             }
                                                         }
                                                     })
-                                                    .collect::<Html>()
+                                                    
                                             }
                                         }
                                     }
                                 }
                             })
-                            .collect::<Html>()
+                            
                     }
                 }
             }

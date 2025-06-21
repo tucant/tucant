@@ -86,7 +86,7 @@ pub fn Navbar() -> Element {
                 match data.deref() {
                     Ok(_data) => yew::html! {},
                     Err(error) => {
-                        ::yew::html! {
+                        rsx! {
                             div { class: "container",
                                 div { class: "alert alert-danger d-flex align-items-center mt-2" role: "alert",
                                     // https://github.com/twbs/icons

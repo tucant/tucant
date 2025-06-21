@@ -21,7 +21,7 @@ pub fn StudentResult(course_of_study: String) -> Element {
                 navigator.push(&Route::StudentResult { course_of_study: value });
             })
         };
-        ::yew::html! {
+        rsx! {
                 h1 {
                     { "Leistungsspiegel" }
                     { " " }
@@ -42,13 +42,13 @@ pub fn StudentResult(course_of_study: String) -> Element {
                             .course_of_study
                             .iter()
                             .map(|course_of_study| {
-                                ::yew::html! {
+                                rsx! {
                                     option { selected: course_of_study.selected, value: course_of_study.value.clone(),
                                         { &course_of_study.name }
                                     }
                                 }
                             })
-                            .collect::<Html>()
+                            
                     }
                 }
                 StudentResultLevelComponent { level: student_result.level0, path: Vec::new() }
@@ -70,7 +70,7 @@ pub struct StudentResultLevelProps {
 
 #[function_component(StudentResultLevelComponent)]
 pub fn student_result_level<TucanType: Tucan + 'static>(StudentResultLevelProps { level, path }: &StudentResultLevelProps) -> Html {
-    ::yew::html! {
+    rsx! {
         <>
             if !level.entries.is_empty() {
                 h5 {
@@ -79,13 +79,13 @@ pub fn student_result_level<TucanType: Tucan + 'static>(StudentResultLevelProps 
                             {
                                 path.iter()
                                     .map(|item| {
-                                        ::yew::html! {
+                                        rsx! {
                                             li { class: "breadcrumb-item",
                                                 { item }
                                             }
                                         }
                                     })
-                                    .collect::<Html>()
+                                    
                             }
                             li { class: "breadcrumb-item",
                                 { &level.name }
@@ -119,7 +119,7 @@ pub fn student_result_level<TucanType: Tucan + 'static>(StudentResultLevelProps 
                                 .entries
                                 .iter()
                                 .map(|entry| {
-                                    ::yew::html! {
+                                    rsx! {
                                         tr {
                                             td {
                                                 { &entry.name }
@@ -139,7 +139,7 @@ pub fn student_result_level<TucanType: Tucan + 'static>(StudentResultLevelProps 
                                         }
                                     }
                                 })
-                                .collect::<Html>()
+                                
                         }
                     }
                 }
@@ -149,11 +149,11 @@ pub fn student_result_level<TucanType: Tucan + 'static>(StudentResultLevelProps 
                     .children
                     .iter()
                     .map(|child| {
-                        ::yew::html! {
+                        rsx! {
                             StudentResultLevelComponent { level: child.clone(), path: path.iter().cloned().chain(std::iter::once(level.name.clone())).collect::<Vec<_>>() }
                         }
                     })
-                    .collect::<Html>()
+                    
             }
     }
 }

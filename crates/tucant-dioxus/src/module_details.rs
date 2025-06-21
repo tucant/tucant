@@ -11,7 +11,7 @@ pub fn ModuleDetails(module_details: ModuleDetailsRequest) -> Element {
     let handler = async |tucan: Rc<DynTucan>, current_session, revalidation_strategy, additional| tucan.module_details(&current_session, revalidation_strategy, additional).await;
 
     use_authenticated_data_loader(handler, module_details.clone(), 14 * 24 * 60 * 60, 60 * 60, |module, reload| {
-        ::yew::html! {
+        rsx! {
             div {
                 h1 {
                     { &module.module_id }
@@ -48,13 +48,13 @@ pub fn ModuleDetails(module_details: ModuleDetailsRequest) -> Element {
                             .modulverantwortliche
                             .iter()
                             .map(|modulverantwortliche| {
-                                ::yew::html! {
+                                rsx! {
                                     li {
                                         { &modulverantwortliche.0 }
                                     }
                                 }
                             })
-                            .collect::<Html>()
+                            
                     }
                 }
                 h2 {
@@ -65,7 +65,7 @@ pub fn ModuleDetails(module_details: ModuleDetailsRequest) -> Element {
                         .kurskategorien
                         .iter()
                         .map(|kurskategorie| {
-                            ::yew::html! {
+                            rsx! {
                                     h3 {
                                         { &kurskategorie.course_no }
                                         { " " }
@@ -111,7 +111,7 @@ pub fn ModuleDetails(module_details: ModuleDetailsRequest) -> Element {
                                                     .kurse
                                                     .iter()
                                                     .map(|kurs| {
-                                                        ::yew::html! {
+                                                        rsx! {
                                                             tr {
                                                                 th { scope: "row",
                                                                     { &kurs.course_id }
@@ -125,13 +125,13 @@ pub fn ModuleDetails(module_details: ModuleDetailsRequest) -> Element {
                                                             }
                                                         }
                                                     })
-                                                    .collect::<Html>()
+                                                    
                                             }
                                         }
                                     }
                             }
                         })
-                        .collect::<Html>()
+                        
                 }
                 h2 {
                     { "Leistungen" }
@@ -141,7 +141,7 @@ pub fn ModuleDetails(module_details: ModuleDetailsRequest) -> Element {
                         .leistungen
                         .iter()
                         .map(|leistung| {
-                            ::yew::html! {
+                            rsx! {
                                     h3 {
                                         { &leistung.name }
                                         if leistung.compulsory {
@@ -163,7 +163,7 @@ pub fn ModuleDetails(module_details: ModuleDetailsRequest) -> Element {
                                     }
                             }
                         })
-                        .collect::<Html>()
+                        
                 }
                 h2 {
                     { "Pruefungen" }
@@ -173,7 +173,7 @@ pub fn ModuleDetails(module_details: ModuleDetailsRequest) -> Element {
                         .pruefungen
                         .iter()
                         .map(|pruefung| {
-                            ::yew::html! {
+                            rsx! {
                                     h3 {
                                         { &pruefung.name }
                                         if pruefung.compulsory {
@@ -203,7 +203,7 @@ pub fn ModuleDetails(module_details: ModuleDetailsRequest) -> Element {
                                                     .termine
                                                     .iter()
                                                     .map(|termin| {
-                                                        ::yew::html! {
+                                                        rsx! {
                                                             tr {
                                                                 th { scope: "row",
                                                                     { &termin.subname }
@@ -217,13 +217,13 @@ pub fn ModuleDetails(module_details: ModuleDetailsRequest) -> Element {
                                                             }
                                                         }
                                                     })
-                                                    .collect::<Html>()
+                                                    
                                             }
                                         }
                                     }
                             }
                         })
-                        .collect::<Html>()
+                        
                 }
                 h2 {
                     { "Beschreibung" }

@@ -10,7 +10,7 @@ pub fn VorlesungsverzeichnisComponent(vv: ActionRequest) -> Element {
     let handler = async |tucan: Rc<DynTucan>, current_session: Option<tucant_types::LoginResponse>, revalidation_strategy, additional| tucan.vv(current_session.as_ref(), revalidation_strategy, additional).await;
 
     use_unauthenticated_data_loader(handler, vv.to_owned(), 28 * 24 * 60 * 60, 24 * 60 * 60, |data, reload| {
-        ::yew::html! {
+        rsx! {
             div { class: "container",
                 h2 { class: "text-center",
                     { &data.title }
@@ -31,7 +31,7 @@ pub fn VorlesungsverzeichnisComponent(vv: ActionRequest) -> Element {
                             data.path
                                 .iter()
                                 .map(|entry| {
-                                    ::yew::html! {
+                                    rsx! {
                                         li { class: "breadcrumb-item",
                                             Link { to: Route::Vorlesungsverzeichnis { vv: entry.1.clone() },
                                                 { entry.0.clone() }
@@ -39,7 +39,7 @@ pub fn VorlesungsverzeichnisComponent(vv: ActionRequest) -> Element {
                                         }
                                     }
                                 })
-                                .collect::<Html>()
+                                
                         }
                     }
                 }
@@ -54,13 +54,13 @@ pub fn VorlesungsverzeichnisComponent(vv: ActionRequest) -> Element {
                         data.entries
                             .iter()
                             .map(|entry| {
-                                ::yew::html! {
+                                rsx! {
                                     Link { to: Route::Vorlesungsverzeichnis { vv: entry.1.clone() }, class: "list-group-item list-group-item-action",
                                         { format!("{}", entry.0) }
                                     }
                                 }
                             })
-                            .collect::<Html>()
+                            
                     }
                 }
                 h2 { class: "text-center",
@@ -71,7 +71,7 @@ pub fn VorlesungsverzeichnisComponent(vv: ActionRequest) -> Element {
                         data.veranstaltungen_or_module
                             .iter()
                             .map(|entry| {
-                                ::yew::html! {
+                                rsx! {
                                     li { class: "list-group-item",
                                         div { class: "d-flex w-100 justify-content-between",
                                             h5 { class: "mb-1",
@@ -91,7 +91,7 @@ pub fn VorlesungsverzeichnisComponent(vv: ActionRequest) -> Element {
                                     }
                                 }
                             })
-                            .collect::<Html>()
+                            
                     }
                 }
             }

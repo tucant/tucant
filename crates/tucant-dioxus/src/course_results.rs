@@ -22,7 +22,7 @@ pub fn CourseResults(semester: SemesterId) -> Element {
                 navigator.push(&Route::CourseResults { semester: SemesterId::from_str(&value).unwrap() });
             })
         };
-        ::yew::html! {
+        rsx! {
             div {
                 h1 {
                     { "Modulergebnisse" }
@@ -44,13 +44,13 @@ pub fn CourseResults(semester: SemesterId) -> Element {
                             .semester
                             .iter()
                             .map(|semester| {
-                                ::yew::html! {
+                                rsx! {
                                     option { selected: semester.selected, value: semester.value.inner().clone(),
                                         { &semester.name }
                                     }
                                 }
                             })
-                            .collect::<Html>()
+                            
                     }
                 }
                 table { class: "table",
@@ -85,7 +85,7 @@ pub fn CourseResults(semester: SemesterId) -> Element {
                                 .results
                                 .iter()
                                 .map(|exam| {
-                                    ::yew::html! {
+                                    rsx! {
                                         tr {
                                             th { scope: "row",
                                                 { &exam.nr }
@@ -119,7 +119,7 @@ pub fn CourseResults(semester: SemesterId) -> Element {
                                         }
                                     }
                                 })
-                                .collect::<Html>()
+                                
                         }
                     }
                 }

@@ -23,7 +23,7 @@ pub fn MyCourses(semester: SemesterId) -> Element {
                 navigator.push(&Route::MyCourses { semester: SemesterId::from_str(&value).unwrap() });
             })
         };
-        ::yew::html! {
+        rsx! {
             div {
                 h1 {
                     { "Meine Veranstaltungen" }
@@ -45,13 +45,13 @@ pub fn MyCourses(semester: SemesterId) -> Element {
                             .semester
                             .iter()
                             .map(|semester| {
-                                ::yew::html! {
+                                rsx! {
                                     option { selected: semester.selected, value: semester.value.inner().clone(),
                                         { &semester.name }
                                     }
                                 }
                             })
-                            .collect::<Html>()
+                            
                     }
                 }
                 {
@@ -59,7 +59,7 @@ pub fn MyCourses(semester: SemesterId) -> Element {
                         .sections
                         .iter()
                         .map(|section| {
-                            ::yew::html! {
+                            rsx! {
                                     h2 {
                                         { &section.0 }
                                     }
@@ -86,7 +86,7 @@ pub fn MyCourses(semester: SemesterId) -> Element {
                                                     .1
                                                     .iter()
                                                     .map(|course| {
-                                                        ::yew::html! {
+                                                        rsx! {
                                                             tr {
                                                                 th { scope: "row",
                                                                     { &course.nr }
@@ -105,13 +105,13 @@ pub fn MyCourses(semester: SemesterId) -> Element {
                                                             }
                                                         }
                                                     })
-                                                    .collect::<Html>()
+                                                    
                                             }
                                         }
                                     }
                             }
                         })
-                        .collect::<Html>()
+                        
                 }
             }
         }

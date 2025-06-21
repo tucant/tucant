@@ -10,7 +10,7 @@ pub fn CourseDetails(course_details: CourseDetailsRequest) -> Element {
     let handler = async |tucan: Rc<DynTucan>, current_session, revalidation_strategy, additional| tucan.course_details(&current_session, revalidation_strategy, additional).await;
 
     use_authenticated_data_loader(handler, course_details.to_owned(), 14 * 24 * 60 * 60, 60 * 60, |course, reload| {
-        ::yew::html! {
+        rsx! {
             div {
                 h1 {
                     { &course.name }
@@ -21,13 +21,13 @@ pub fn CourseDetails(course_details: CourseDetailsRequest) -> Element {
                         }
                     }
                     { " " }
-                    button { onclick: reload type: "button" class: "btn btn-light",
+                    button { onclick: reload, type: "button", class: "btn btn-light",
                         // https://github.com/twbs/icons
                         // The MIT License (MIT)
                         // Copyright (c) 2019-2024 The Bootstrap Authors
 
-                        svg { xmlns: "http://www.w3.org/2000/svg" width: "16" height: "16" fill: "currentColor" class: "bi bi-arrow-clockwise" viewBox: "0 0 16 16",
-                            path { fill-rule: "evenodd" d: "M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2z" }
+                        svg { xmlns: "http://www.w3.org/2000/svg", width: "16", height: "16", fill: "currentColor", class: "bi bi-arrow-clockwise", view_box: "0 0 16 16",
+                            path { "fill-rule": "evenodd", d: "M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2z" }
                             path { d: "M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466" }
                         }
                     }
@@ -42,13 +42,13 @@ pub fn CourseDetails(course_details: CourseDetailsRequest) -> Element {
                                 .instructors
                                 .iter()
                                 .map(|instructor| {
-                                    ::yew::html! {
+                                    rsx! {
                                         li {
                                             { &instructor.0 }
                                         }
                                     }
                                 })
-                                .collect::<Html>()
+                                
                         }
                     }
                 }
@@ -60,18 +60,18 @@ pub fn CourseDetails(course_details: CourseDetailsRequest) -> Element {
                 }
                 {
                     match (course.teilnehmer_min, course.teilnehmer_max) {
-                        (None, None) => yew::html! {},
-                        (None, Some(max)) => ::yew::html! {
+                        (None, None) => rsx! {},
+                        (None, Some(max)) => rsx! {
                             div {
                                 { format!("Maximal {max} Teilnehmende") }
                             }
                         },
-                        (Some(min), None) => ::yew::html! {
+                        (Some(min), None) => rsx! {
                             div {
                                 { format!("Mindestens {min} Teilnehmende",) }
                             }
                         },
-                        (Some(min), Some(max)) => ::yew::html! {
+                        (Some(min), Some(max)) => rsx! {
                             div {
                                 { format!("{min} - {max} Teilnehmende",) }
                             }
@@ -114,7 +114,7 @@ pub fn CourseDetails(course_details: CourseDetailsRequest) -> Element {
                                 .uebungsgruppen
                                 .iter()
                                 .map(|uebungsgruppe| {
-                                    ::yew::html! {
+                                    rsx! {
                                         tr { class: if uebungsgruppe.active { "table-primary" } else { "" },
                                             th { scope: "row",
                                                 Link { to: Route::CourseDetails { course: uebungsgruppe.url.clone() },
@@ -130,7 +130,7 @@ pub fn CourseDetails(course_details: CourseDetailsRequest) -> Element {
                                         }
                                     }
                                 })
-                                .collect::<Html>()
+                                
                         }
                     }
                 }
@@ -166,7 +166,7 @@ pub fn CourseDetails(course_details: CourseDetailsRequest) -> Element {
                                 .course_anmeldefristen
                                 .iter()
                                 .map(|anmeldefrist| {
-                                    ::yew::html! {
+                                    rsx! {
                                         tr {
                                             td {
                                                 { &anmeldefrist.zulassungstyp }
@@ -189,7 +189,7 @@ pub fn CourseDetails(course_details: CourseDetailsRequest) -> Element {
                                         }
                                     }
                                 })
-                                .collect::<Html>()
+                                
                         }
                     }
                 }
@@ -223,7 +223,7 @@ pub fn CourseDetails(course_details: CourseDetailsRequest) -> Element {
                                     .termine_kleingruppe
                                     .iter()
                                     .map(|termin| {
-                                        ::yew::html! {
+                                        rsx! {
                                             tr {
                                                 td {
                                                     { &termin.date }
@@ -244,20 +244,20 @@ pub fn CourseDetails(course_details: CourseDetailsRequest) -> Element {
                                                                 .rooms
                                                                 .iter()
                                                                 .map(|room| {
-                                                                    ::yew::html! {
+                                                                    rsx! {
                                                                         li {
                                                                             { &room.name }
                                                                         }
                                                                     }
                                                                 })
-                                                                .collect::<Html>()
+                                                                
                                                         }
                                                     }
                                                 }
                                             }
                                         }
                                     })
-                                    .collect::<Html>()
+                                    
                             }
                         }
                     }
@@ -291,7 +291,7 @@ pub fn CourseDetails(course_details: CourseDetailsRequest) -> Element {
                                 .termine
                                 .iter()
                                 .map(|termin| {
-                                    ::yew::html! {
+                                    rsx! {
                                         tr {
                                             td {
                                                 { &termin.date }
@@ -312,20 +312,20 @@ pub fn CourseDetails(course_details: CourseDetailsRequest) -> Element {
                                                             .rooms
                                                             .iter()
                                                             .map(|room| {
-                                                                ::yew::html! {
+                                                                rsx! {
                                                                     li {
                                                                         { &room.name }
                                                                     }
                                                                 }
                                                             })
-                                                            .collect::<Html>()
+                                                            
                                                     }
                                                 }
                                             }
                                         }
                                     }
                                 })
-                                .collect::<Html>()
+                                
                         }
                     }
                 }
@@ -334,7 +334,7 @@ pub fn CourseDetails(course_details: CourseDetailsRequest) -> Element {
                 }
                 // TODO FIXME this is dangerous
 
-                { Html::from_html_unchecked(course.description.join("\n").into()) }
+                div { dangerous_inner_html: course.description.join("\n") }
                 h2 {
                     { "Sonstige Informationen" }
                 }
@@ -361,13 +361,13 @@ pub fn CourseDetails(course_details: CourseDetailsRequest) -> Element {
                             .enhalten_in_modulen
                             .iter()
                             .map(|modul| {
-                                ::yew::html! {
+                                rsx! {
                                     li {
                                         { modul }
                                     }
                                 }
                             })
-                            .collect::<Html>()
+                            
                     }
                 }
             }
