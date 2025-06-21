@@ -47,7 +47,7 @@ pub fn MyExams(semester: SemesterId) -> Element {
                             .map(|semester| {
                                 rsx! {
                                     option { selected: semester.selected, value: semester.value.inner().clone(),
-                                        { &semester.name }
+                                        { semester.name.clone() }
                                     }
                                 }
                             })
@@ -80,32 +80,32 @@ pub fn MyExams(semester: SemesterId) -> Element {
                                     rsx! {
                                         tr {
                                             th { scope: "row",
-                                                { &exam.id }
+                                                { exam.id.clone() }
                                             }
                                             td {
                                                 if let Some(coursedetails_url) = &exam.coursedetails_url {
                                                     Link { to: Route::CourseDetails { course: coursedetails_url.clone() },
-                                                        { &exam.name }
+                                                        { exam.name.clone() }
                                                     }
                                                 }
                                                 if let Some(moduledetails_url) = &exam.moduledetails_url {
                                                     Link { to: Route::ModuleDetails { module: moduledetails_url.clone() },
-                                                        { &exam.name }
+                                                        { exam.name.clone() }
                                                     }
                                                 }
                                             }
                                             td {
                                                 a { href: format!("https://www.tucan.tu-darmstadt.de{}", exam.examdetail_url),
-                                                    { &exam.pruefungsart }
+                                                    { exam.pruefungsart.clone() }
                                                 }
                                             }
                                             td {
                                                 if let Some(courseprep_url) = &exam.courseprep_url {
                                                     a { href: format!("https://www.tucan.tu-darmstadt.de{}", courseprep_url),
-                                                        { &exam.date }
+                                                        { exam.date.clone() }
                                                     }
                                                 } else {
-                                                    { &exam.date }
+                                                    { exam.date.clone() }
                                                 }
                                             }
                                         }

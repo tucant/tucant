@@ -13,7 +13,7 @@ pub fn VorlesungsverzeichnisComponent(vv: ActionRequest) -> Element {
         rsx! {
             div { class: "container",
                 h2 { class: "text-center",
-                    { &data.title }
+                    { data.title.clone() }
                     button { onclick: reload, type: "button", class: "btn btn-light",
                         // https://github.com/twbs/icons
                         // The MIT License (MIT)
@@ -82,11 +82,11 @@ pub fn VorlesungsverzeichnisComponent(vv: ActionRequest) -> Element {
                                         }
                                         div { class: "d-flex w-100 justify-content-between",
                                             h6 { class: "mb-1",
-                                                { format!("{}", entry.lecturer_name.clone().unwrap_or_default()) }
+                                                { entry.lecturer_name.clone().unwrap_or_default().to_string() }
                                             }
                                         }
                                         h6 { class: "mb-1",
-                                            { format!("{}", entry.date_range.clone().unwrap_or_default()) }
+                                            { entry.date_range.clone().unwrap_or_default().to_string() }
                                         }
                                     }
                                 }

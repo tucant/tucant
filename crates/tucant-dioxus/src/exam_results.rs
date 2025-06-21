@@ -46,7 +46,7 @@ pub fn ExamResults(semester: SemesterId) -> Element {
                             .map(|semester| {
                                 rsx! {
                                     option { selected: semester.selected, value: semester.value.inner().clone(),
-                                        { &semester.name }
+                                        { semester.name.clone() }
                                     }
                                 }
                             })
@@ -82,16 +82,16 @@ pub fn ExamResults(semester: SemesterId) -> Element {
                                     rsx! {
                                         tr {
                                             th { scope: "row",
-                                                { &exam.name }
+                                                { exam.name.clone() }
                                             }
                                             td {
-                                                { &exam.exam_type }
+                                                { exam.exam_type.clone() }
                                             }
                                             td {
                                                 { exam.date.clone().unwrap_or_else(|| "-".to_owned()) }
                                             }
                                             td {
-                                                { &exam.grade }
+                                                { exam.grade.clone() }
                                             }
                                             td {
                                                 if let Some(average_url) = &exam.average_url {

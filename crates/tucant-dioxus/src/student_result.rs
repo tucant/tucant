@@ -44,7 +44,7 @@ pub fn StudentResult(course_of_study: String) -> Element {
                             .map(|course_of_study| {
                                 rsx! {
                                     option { selected: course_of_study.selected, value: course_of_study.value.clone(),
-                                        { &course_of_study.name }
+                                        { course_of_study.name.clone() }
                                     }
                                 }
                             })
@@ -67,21 +67,21 @@ pub fn StudentResultLevelComponent(level: StudentResultLevel, path: Vec<String>)
     rsx! {
             if !level.entries.is_empty() {
                 h5 {
-                    nav { aria-label: "breadcrumb",
+                    nav { "aria-label": "breadcrumb",
                         ol { class: "breadcrumb",
                             {
                                 path.iter()
                                     .map(|item| {
                                         rsx! {
                                             li { class: "breadcrumb-item",
-                                                { item }
+                                                { item.clone() }
                                             }
                                         }
                                     })
                                     
                             }
                             li { class: "breadcrumb-item",
-                                { &level.name }
+                                { level.name.clone() }
                             }
                         }
                     }
@@ -92,16 +92,16 @@ pub fn StudentResultLevelComponent(level: StudentResultLevel, path: Vec<String>)
                             th { scope: "col",
                                 { "Name" }
                             }
-                            th { scope: "col" class: "col-1",
+                            th { scope: "col", class: "col-1",
                                 { "CP" }
                             }
-                            th { scope: "col" class: "col-1",
+                            th { scope: "col", class: "col-1",
                                 { "eCP" }
                             }
-                            th { scope: "col" class: "col-1",
+                            th { scope: "col", class: "col-1",
                                 { "Note" }
                             }
-                            th { scope: "col" class: "col-1",
+                            th { scope: "col", class: "col-1",
                                 { "Status" }
                             }
                         }
@@ -115,7 +115,7 @@ pub fn StudentResultLevelComponent(level: StudentResultLevel, path: Vec<String>)
                                     rsx! {
                                         tr {
                                             td {
-                                                { &entry.name }
+                                                { entry.name.clone() }
                                             }
                                             td {
                                                 { entry.cp.clone().unwrap_or_default() }
@@ -124,10 +124,10 @@ pub fn StudentResultLevelComponent(level: StudentResultLevel, path: Vec<String>)
                                                 { entry.used_cp.clone().unwrap_or_default() }
                                             }
                                             td {
-                                                { &entry.grade.clone().unwrap_or_default() }
+                                                { entry.grade.clone().unwrap_or_default().clone() }
                                             }
                                             td {
-                                                { &entry.state }
+                                                { entry.state.clone() }
                                             }
                                         }
                                     }

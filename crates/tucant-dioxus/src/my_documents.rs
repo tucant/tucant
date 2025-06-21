@@ -50,12 +50,12 @@ pub fn MyDocuments() -> Element {
                                     rsx! {
                                         tr {
                                             th { scope: "row",
-                                                { &document.name }
+                                                { document.name.clone() }
                                             }
                                             td {
-                                                { &document.date }
+                                                { document.date.clone() }
                                                 { " " }
-                                                { &document.time }
+                                                { document.time.clone() }
                                             }
                                             td {
                                                 a { href: format!("https://www.tucan.tu-darmstadt.de{}", document.url),

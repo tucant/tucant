@@ -47,7 +47,7 @@ pub fn MyCourses(semester: SemesterId) -> Element {
                             .map(|semester| {
                                 rsx! {
                                     option { selected: semester.selected, value: semester.value.inner().clone(),
-                                        { &semester.name }
+                                        { semester.name.clone() }
                                     }
                                 }
                             })
@@ -61,7 +61,7 @@ pub fn MyCourses(semester: SemesterId) -> Element {
                         .map(|section| {
                             rsx! {
                                     h2 {
-                                        { &section.0 }
+                                        { section.0.clone() }
                                     }
                                     table { class: "table",
                                         thead {
@@ -89,18 +89,18 @@ pub fn MyCourses(semester: SemesterId) -> Element {
                                                         rsx! {
                                                             tr {
                                                                 th { scope: "row",
-                                                                    { &course.nr }
+                                                                    { course.nr.clone() }
                                                                 }
                                                                 td {
                                                                     Link { to: Route::CourseDetails { course: course.url.clone() },
-                                                                        { &course.title }
+                                                                        { course.title.clone() }
                                                                     }
                                                                 }
                                                                 td {
-                                                                    { &course.date_range }
+                                                                    { course.date_range.clone() }
                                                                 }
                                                                 td {
-                                                                    { &course.location }
+                                                                    { course.location.clone() }
                                                                 }
                                                             }
                                                         }

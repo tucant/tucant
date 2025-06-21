@@ -14,7 +14,7 @@ pub fn ModuleDetails(module_details: ModuleDetailsRequest) -> Element {
         rsx! {
             div {
                 h1 {
-                    { &module.module_id }
+                    { module.module_id.clone() }
                     if let Some(credits) = &module.credits {
                         { " " }
                         span { class: "badge text-bg-secondary",
@@ -50,7 +50,7 @@ pub fn ModuleDetails(module_details: ModuleDetailsRequest) -> Element {
                             .map(|modulverantwortliche| {
                                 rsx! {
                                     li {
-                                        { &modulverantwortliche.0 }
+                                        { modulverantwortliche.0.clone() }
                                     }
                                 }
                             })
@@ -67,9 +67,9 @@ pub fn ModuleDetails(module_details: ModuleDetailsRequest) -> Element {
                         .map(|kurskategorie| {
                             rsx! {
                                     h3 {
-                                        { &kurskategorie.course_no }
+                                        { kurskategorie.course_no.clone() }
                                         { " " }
-                                        { &kurskategorie.name }
+                                        { kurskategorie.name.clone() }
                                         if kurskategorie.credits != 0.0 {
                                             { " " }
                                             span { class: "badge text-bg-secondary",
@@ -114,13 +114,13 @@ pub fn ModuleDetails(module_details: ModuleDetailsRequest) -> Element {
                                                         rsx! {
                                                             tr {
                                                                 th { scope: "row",
-                                                                    { &kurs.course_id }
+                                                                    { kurs.course_id.clone() }
                                                                 }
                                                                 td {
-                                                                    { &kurs.name }
+                                                                    { kurs.name.clone() }
                                                                 }
                                                                 td {
-                                                                    { &kurs.semester }
+                                                                    { kurs.semester.clone() }
                                                                 }
                                                             }
                                                         }
@@ -143,7 +143,7 @@ pub fn ModuleDetails(module_details: ModuleDetailsRequest) -> Element {
                         .map(|leistung| {
                             rsx! {
                                     h3 {
-                                        { &leistung.name }
+                                        { leistung.name.clone() }
                                         if leistung.compulsory {
                                             { " " }
                                             span { class: "badge text-bg-secondary",
@@ -175,7 +175,7 @@ pub fn ModuleDetails(module_details: ModuleDetailsRequest) -> Element {
                         .map(|pruefung| {
                             rsx! {
                                     h3 {
-                                        { &pruefung.name }
+                                        { pruefung.name.clone() }
                                         if pruefung.compulsory {
                                             { " " }
                                             span { class: "badge text-bg-secondary",
@@ -206,13 +206,13 @@ pub fn ModuleDetails(module_details: ModuleDetailsRequest) -> Element {
                                                         rsx! {
                                                             tr {
                                                                 th { scope: "row",
-                                                                    { &termin.subname }
+                                                                    { termin.subname.clone() }
                                                                 }
                                                                 td {
-                                                                    { &termin.date }
+                                                                    { termin.date.clone() }
                                                                 }
                                                                 td {
-                                                                    { &termin.examiner }
+                                                                    { termin.examiner.clone() }
                                                                 }
                                                             }
                                                         }

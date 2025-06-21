@@ -63,7 +63,7 @@ pub fn MySemesterModules(semester: SemesterId) -> Element {
                             .map(|semester| {
                                 rsx! {
                                     option { selected: semester.selected, value: semester.value.inner().clone(),
-                                        { &semester.name }
+                                        { semester.name.clone() }
                                     }
                                 }
                             })
@@ -96,15 +96,15 @@ pub fn MySemesterModules(semester: SemesterId) -> Element {
                                     rsx! {
                                         tr {
                                             th { scope: "row",
-                                                { &module.nr }
+                                                { module.nr.clone() }
                                             }
                                             td {
                                                 Link { to: Route::ModuleDetails { module: module.url.clone() },
-                                                    { &module.title }
+                                                    { module.title.clone() }
                                                 }
                                             }
                                             td {
-                                                { &module.lecturer }
+                                                { module.lecturer.clone() }
                                             }
                                             td {
                                                 { module.credits.clone().unwrap_or_else(|| "-".to_owned()) }

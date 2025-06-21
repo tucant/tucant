@@ -13,7 +13,7 @@ pub fn CourseDetails(course_details: CourseDetailsRequest) -> Element {
         rsx! {
             div {
                 h1 {
-                    { &course.name }
+                    { course.name.clone() }
                     if let Some(credits) = course.credits {
                         { " " }
                         span { class: "badge text-bg-secondary",
@@ -44,7 +44,7 @@ pub fn CourseDetails(course_details: CourseDetailsRequest) -> Element {
                                 .map(|instructor| {
                                     rsx! {
                                         li {
-                                            { &instructor.0 }
+                                            { instructor.0.clone() }
                                         }
                                     }
                                 })
@@ -118,14 +118,14 @@ pub fn CourseDetails(course_details: CourseDetailsRequest) -> Element {
                                         tr { class: if uebungsgruppe.active { "table-primary" } else { "" },
                                             th { scope: "row",
                                                 Link { to: Route::CourseDetails { course: uebungsgruppe.url.clone() },
-                                                    { &uebungsgruppe.name }
+                                                    { uebungsgruppe.name.clone() }
                                                 }
                                             }
                                             td {
                                                 { uebungsgruppe.date_range.clone().unwrap_or_default() }
                                             }
                                             td {
-                                                { &uebungsgruppe.uebungsleiter }
+                                                { uebungsgruppe.uebungsleiter.clone() }
                                             }
                                         }
                                     }
@@ -169,22 +169,22 @@ pub fn CourseDetails(course_details: CourseDetailsRequest) -> Element {
                                     rsx! {
                                         tr {
                                             td {
-                                                { &anmeldefrist.zulassungstyp }
+                                                { anmeldefrist.zulassungstyp.clone() }
                                             }
                                             td {
-                                                { &anmeldefrist.block_type }
+                                                { anmeldefrist.block_type.clone() }
                                             }
                                             td {
                                                 { anmeldefrist.start.clone().unwrap_or_default() }
                                             }
                                             td {
-                                                { &anmeldefrist.ende_anmeldung.clone().unwrap_or_default() }
+                                                { anmeldefrist.ende_anmeldung.clone().unwrap_or_default().clone() }
                                             }
                                             td {
-                                                { &anmeldefrist.ende_abmeldung.clone().unwrap_or_default() }
+                                                { anmeldefrist.ende_abmeldung.clone().unwrap_or_default().clone() }
                                             }
                                             td {
-                                                { &anmeldefrist.ende_hoerer.clone().unwrap_or_default() }
+                                                { anmeldefrist.ende_hoerer.clone().unwrap_or_default().clone() }
                                             }
                                         }
                                     }
@@ -226,16 +226,16 @@ pub fn CourseDetails(course_details: CourseDetailsRequest) -> Element {
                                         rsx! {
                                             tr {
                                                 td {
-                                                    { &termin.date }
+                                                    { termin.date.clone() }
                                                 }
                                                 td {
-                                                    { &termin.time_start }
+                                                    { termin.time_start.clone() }
                                                 }
                                                 td {
-                                                    { &termin.time_end }
+                                                    { termin.time_end.clone() }
                                                 }
                                                 td {
-                                                    { &termin.instructors.clone().unwrap_or_default() }
+                                                    { termin.instructors.clone().unwrap_or_default().clone() }
                                                 }
                                                 td {
                                                     ul {
@@ -246,7 +246,7 @@ pub fn CourseDetails(course_details: CourseDetailsRequest) -> Element {
                                                                 .map(|room| {
                                                                     rsx! {
                                                                         li {
-                                                                            { &room.name }
+                                                                            { room.name.clone() }
                                                                         }
                                                                     }
                                                                 })
@@ -294,16 +294,16 @@ pub fn CourseDetails(course_details: CourseDetailsRequest) -> Element {
                                     rsx! {
                                         tr {
                                             td {
-                                                { &termin.date }
+                                                { termin.date.clone() }
                                             }
                                             td {
-                                                { &termin.time_start }
+                                                { termin.time_start.clone() }
                                             }
                                             td {
-                                                { &termin.time_end }
+                                                { termin.time_end.clone() }
                                             }
                                             td {
-                                                { &termin.instructors.clone().unwrap_or_default() }
+                                                { termin.instructors.clone().unwrap_or_default().clone() }
                                             }
                                             td {
                                                 ul {
@@ -314,7 +314,7 @@ pub fn CourseDetails(course_details: CourseDetailsRequest) -> Element {
                                                             .map(|room| {
                                                                 rsx! {
                                                                     li {
-                                                                        { &room.name }
+                                                                        { room.name.clone() }
                                                                     }
                                                                 }
                                                             })
@@ -363,7 +363,7 @@ pub fn CourseDetails(course_details: CourseDetailsRequest) -> Element {
                             .map(|modul| {
                                 rsx! {
                                     li {
-                                        { modul }
+                                        { modul.clone() }
                                     }
                                 }
                             })
