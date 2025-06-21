@@ -12,6 +12,8 @@ Replace `">` with `",`
 
 Replace `/>` with `}`
 
+Replace `classes` with `class`
+
 Replace `={` with `: `
 
 Replace `}>` with `,`
