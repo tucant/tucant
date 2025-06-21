@@ -10,7 +10,7 @@ use crate::{
 
 
 #[component]
-pub fn MyModules(semester: SemesterId) -> Element {
+pub fn MyModules(semester: ReadOnlySignal<SemesterId>) -> Element {
     let handler = async |tucan: Rc<DynTucan>, current_session, revalidation_strategy, additional| tucan.my_modules(&current_session, revalidation_strategy, additional).await;
 
     let navigator = use_navigator();

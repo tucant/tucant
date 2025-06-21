@@ -4,20 +4,20 @@ use dioxus::prelude::*;
 use crate::Route;
 
 #[component]
-pub fn Vorlesungsverzeichnisse(data: Option<MlsStart>) -> Element {
+pub fn Vorlesungsverzeichnisse(data: ReadOnlySignal<Option<MlsStart>>) -> Element {
     rsx! {
         {
-            data.iter()
+            data().iter()
                 .flat_map(|v| v.logged_in_head.vv.vvs.iter())
                 .map(|(name, url)| {
-                    let disabled = data.is_none().then_some("disabled").unwrap_or_default();
+                    let disabled = data().is_none().then_some("disabled").unwrap_or_default();
                     rsx! {
                         li {
                             Link {
                                 to: Route::Vorlesungsverzeichnis { vv: url.clone() },
                                 class: "dropdown-item bg-success-subtle {disabled}",
                                 "{name}"
-                                if data.is_none() {
+                                if data().is_none() {
                                     " "
                                     span { class: "spinner-grow spinner-grow-sm", "aria-hidden": "true" }
                                     span { class: "visually-hidden", role: "status",
@@ -33,8 +33,8 @@ pub fn Vorlesungsverzeichnisse(data: Option<MlsStart>) -> Element {
 }
 
 #[component]
-pub fn NavbarLoggedIn(current_session: LoginResponse, data: Option<MlsStart>) -> Element {
-    let disabled = data.is_none().then_some("disabled").unwrap_or_default();
+pub fn NavbarLoggedIn(current_session: ReadOnlySignal<LoginResponse>, data: ReadOnlySignal<Option<MlsStart>>) -> Element {
+    let disabled = data().is_none().then_some("disabled").unwrap_or_default();
     rsx! {
             li { class: "nav-item dropdown",
                 a { class: "nav-link dropdown-toggle", href: "#", role: "button", "data-bs-toggle": "dropdown", "aria-expanded": "false",
@@ -52,7 +52,7 @@ pub fn NavbarLoggedIn(current_session: LoginResponse, data: Option<MlsStart>) ->
                     li {
                         a { class: "dropdown-item {disabled}", href: data.as_ref().map(|v| format!("https://www.tucan.tu-darmstadt.de{}", v.logged_in_head.messages_url)),
                             "Nachrichten"
-                            if data.is_none() {
+                            if data().is_none() {
                                 " "
                                 span { class: "spinner-grow spinner-grow-sm", "aria-hidden": "true" }
                                 span { class: "visually-hidden", role: "status",
@@ -71,7 +71,7 @@ pub fn NavbarLoggedIn(current_session: LoginResponse, data: Option<MlsStart>) ->
                     li {
                         Link { to: data.as_ref().map(|d| Route::Vorlesungsverzeichnis { vv: d.logged_in_head.vorlesungsverzeichnis_url.clone() }).unwrap_or(Route::NotFound { route: vec!["not-found".to_string()] }), class: "dropdown-item bg-success-subtle {disabled}",
                             "Vorlesungsverzeichnis"
-                            if data.is_none() {
+                            if data().is_none() {
                                 " "
                                 span { class: "spinner-grow spinner-grow-sm", "aria-hidden": "true" }
                                 span { class: "visually-hidden", role: "status",
@@ -86,7 +86,7 @@ pub fn NavbarLoggedIn(current_session: LoginResponse, data: Option<MlsStart>) ->
                     li {
                         a { class: "dropdown-item {disabled}", href: data.as_ref().map(|v| format!("https://www.tucan.tu-darmstadt.de{}", v.logged_in_head.vv.lehrveranstaltungssuche_url)),
                             "Lehrveranstaltungssuche"
-                            if data.is_none() {
+                            if data().is_none() {
                                 " "
                                 span { class: "spinner-grow spinner-grow-sm", "aria-hidden": "true" }
                                 span { class: "visually-hidden", role: "status",
@@ -114,7 +114,7 @@ pub fn NavbarLoggedIn(current_session: LoginResponse, data: Option<MlsStart>) ->
                 }
                 ul { class: "dropdown-menu",
                     li {
-                        a { class: "dropdown-item", href: format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=SCHEDULER&ARGUMENTS=-N{:015},-N000268,-A,-A,-N1", current_session.id),
+                        a { class: "dropdown-item", href: format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=SCHEDULER&ARGUMENTS=-N{:015},-N000268,-A,-A,-N1", current_session().id),
                             "Stundenplan"
                         }
                     }
@@ -122,22 +122,22 @@ pub fn NavbarLoggedIn(current_session: LoginResponse, data: Option<MlsStart>) ->
                         hr { class: "dropdown-divider" }
                     }
                     li {
-                        a { class: "dropdown-item", href: format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=SCHEDULER&ARGUMENTS=-N{:015},-N000269,-A,-A,-N0", current_session.id),
+                        a { class: "dropdown-item", href: format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=SCHEDULER&ARGUMENTS=-N{:015},-N000269,-A,-A,-N0", current_session().id),
                             "Tagesansicht"
                         }
                     }
                     li {
-                        a { class: "dropdown-item", href: format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=SCHEDULER&ARGUMENTS=-N{:015},-N000270,-A,-A,-N1", current_session.id),
+                        a { class: "dropdown-item", href: format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=SCHEDULER&ARGUMENTS=-N{:015},-N000270,-A,-A,-N1", current_session().id),
                             "Wochenansicht"
                         }
                     }
                     li {
-                        a { class: "dropdown-item", href: format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MONTH&ARGUMENTS=-N{:015},-N000271,-A", current_session.id),
+                        a { class: "dropdown-item", href: format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MONTH&ARGUMENTS=-N{:015},-N000271,-A", current_session().id),
                             "Monatsansicht"
                         }
                     }
                     li {
-                        a { class: "dropdown-item", href: format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=SCHEDULER_EXPORT&ARGUMENTS=-N{:015},-N000272,", current_session.id),
+                        a { class: "dropdown-item", href: format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=SCHEDULER_EXPORT&ARGUMENTS=-N{:015},-N000272,", current_session().id),
                             "Export"
                         }
                     }
@@ -149,7 +149,7 @@ pub fn NavbarLoggedIn(current_session: LoginResponse, data: Option<MlsStart>) ->
                 }
                 ul { class: "dropdown-menu",
                     li {
-                        a { class: "dropdown-item", href: format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N{:015},-N000273,-Astudveranst%2Ehtml", current_session.id),
+                        a { class: "dropdown-item", href: format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N{:015},-N000273,-Astudveranst%2Ehtml", current_session().id),
                             { "Veranstaltungen" }
                         }
                     }
@@ -172,7 +172,7 @@ pub fn NavbarLoggedIn(current_session: LoginResponse, data: Option<MlsStart>) ->
                         }
                     }
                     li {
-                        a { class: "dropdown-item", href: format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STUDENTCHOICECOURSES&ARGUMENTS=-N{:015},-N000307,", current_session.id),
+                        a { class: "dropdown-item", href: format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STUDENTCHOICECOURSES&ARGUMENTS=-N{:015},-N000307,", current_session().id),
                             { "Meine Wahlbereiche" }
                         }
                     }
@@ -182,7 +182,7 @@ pub fn NavbarLoggedIn(current_session: LoginResponse, data: Option<MlsStart>) ->
                         }
                     }
                     li {
-                        a { class: "dropdown-item", href: format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MYREGISTRATIONS&ARGUMENTS=-N{:015},-N000308,-N000000000000000", current_session.id),
+                        a { class: "dropdown-item", href: format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MYREGISTRATIONS&ARGUMENTS=-N{:015},-N000308,-N000000000000000", current_session().id),
                             { "Mein aktueller Anmeldestatus" }
                         }
                     }
@@ -194,7 +194,7 @@ pub fn NavbarLoggedIn(current_session: LoginResponse, data: Option<MlsStart>) ->
                 }
                 ul { class: "dropdown-menu",
                     li {
-                        a { class: "dropdown-item", href: format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N{:015},-N000280,-Astudpruefungen%2Ehtml", current_session.id),
+                        a { class: "dropdown-item", href: format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N{:015},-N000280,-Astudpruefungen%2Ehtml", current_session().id),
                             { "Prüfungen" }
                         }
                     }
@@ -207,17 +207,17 @@ pub fn NavbarLoggedIn(current_session: LoginResponse, data: Option<MlsStart>) ->
                         }
                     }
                     li {
-                        a { class: "dropdown-item", href: format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=SCPCHOICE&ARGUMENTS=-N{:015},-N000389,", current_session.id),
+                        a { class: "dropdown-item", href: format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=SCPCHOICE&ARGUMENTS=-N{:015},-N000389,", current_session().id),
                             { "Mein Prüfungsplan" }
                         }
                     }
                     li {
-                        a { class: "dropdown-item", href: format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N{:015},-N000391,-Astudplan%2Ehtml", current_session.id),
+                        a { class: "dropdown-item", href: format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N{:015},-N000391,-Astudplan%2Ehtml", current_session().id),
                             { "Mein Prüfungsplan - Wichtige Hinweise" }
                         }
                     }
                     li {
-                        a { class: "dropdown-item", href: format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N{:015},-N000323,-Astudergebnis%2Ehtml", current_session.id),
+                        a { class: "dropdown-item", href: format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N{:015},-N000323,-Astudergebnis%2Ehtml", current_session().id),
                             { "Semesterergebnisse" }
                         }
                     }
@@ -244,7 +244,7 @@ pub fn NavbarLoggedIn(current_session: LoginResponse, data: Option<MlsStart>) ->
                 }
                 ul { class: "dropdown-menu",
                     li {
-                        a { class: "dropdown-item", href: format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N{:015},-N000337,-Aservice%2Ehtml", current_session.id),
+                        a { class: "dropdown-item", href: format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N{:015},-N000337,-Aservice%2Ehtml", current_session().id),
                             { "Service" }
                         }
                     }
@@ -252,7 +252,7 @@ pub fn NavbarLoggedIn(current_session: LoginResponse, data: Option<MlsStart>) ->
                         hr { class: "dropdown-divider" }
                     }
                     li {
-                        a { class: "dropdown-item", href: format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=PERSADDRESS&ARGUMENTS=-N{:015},-N000339,-A", current_session.id),
+                        a { class: "dropdown-item", href: format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=PERSADDRESS&ARGUMENTS=-N{:015},-N000339,-A", current_session().id),
                             { "Persönliche Daten" }
                         }
                     }
@@ -263,7 +263,7 @@ pub fn NavbarLoggedIn(current_session: LoginResponse, data: Option<MlsStart>) ->
                     }
                     a { class: "dropdown-item {disabled}", href: data.as_ref().map(|v| format!("https://www.tucan.tu-darmstadt.de{}", v.logged_in_head.antraege_url)),
                         "Anträge"
-                        if data.is_none() {
+                        if data().is_none() {
                             " "
                             span { class: "spinner-grow spinner-grow-sm", "aria-hidden": "true" }
                             span { class: "visually-hidden", role: "status",
@@ -272,7 +272,7 @@ pub fn NavbarLoggedIn(current_session: LoginResponse, data: Option<MlsStart>) ->
                         }
                     }
                     li {
-                        a { class: "dropdown-item", href: format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=HOLDINFO&ARGUMENTS=-N{:015},-N000652,", current_session.id),
+                        a { class: "dropdown-item", href: format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=HOLDINFO&ARGUMENTS=-N{:015},-N000652,", current_session().id),
                             { "Sperren" }
                         }
                     }
@@ -284,7 +284,7 @@ pub fn NavbarLoggedIn(current_session: LoginResponse, data: Option<MlsStart>) ->
                 }
                 ul { class: "dropdown-menu",
                     li {
-                        a { class: "dropdown-item", href: format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N{:015},-N000441,-Abewerbung", current_session.id),
+                        a { class: "dropdown-item", href: format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N{:015},-N000441,-Abewerbung", current_session().id),
                             { "Bewerbung" }
                         }
                     }
@@ -293,7 +293,7 @@ pub fn NavbarLoggedIn(current_session: LoginResponse, data: Option<MlsStart>) ->
                     }
                     a { class: "dropdown-item {disabled}", href: data.as_ref().map(|v| format!("https://www.tucan.tu-darmstadt.de{}", v.logged_in_head.meine_bewerbung_url)),
                         { "Meine Bewerbung" }
-                        if data.is_none() {
+                        if data().is_none() {
                             " "
                             span { class: "spinner-grow spinner-grow-sm", "aria-hidden": "true" }
                             span { class: "visually-hidden", role: "status",
@@ -309,7 +309,7 @@ pub fn NavbarLoggedIn(current_session: LoginResponse, data: Option<MlsStart>) ->
                 }
             }
             li { class: "nav-item",
-                a { class: "nav-link", href: format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N{:015},-N000340,-Ahilfe%2Ehtml", current_session.id),
+                a { class: "nav-link", href: format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N{:015},-N000340,-Ahilfe%2Ehtml", current_session().id),
                     { "Hilfe" }
                 }
             }

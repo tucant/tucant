@@ -8,12 +8,14 @@ use web_sys::HtmlSelectElement;
 use dioxus::prelude::*;
 
 #[component]
-pub fn StudentResult(course_of_study: String) -> Element {
+pub fn StudentResult(course_of_study: ReadOnlySignal<String>) -> Element {
     let handler = async |tucan: Rc<DynTucan>, current_session, revalidation_strategy, additional| tucan.student_result(&current_session, revalidation_strategy, additional).await;
 
     let navigator = use_navigator();
 
-    use_authenticated_data_loader(handler, if course_of_study == "default" { 0 } else { course_of_study.parse().unwrap() }, 14 * 24 * 60 * 60, 60 * 60, |student_result: StudentResultResponse, reload| {
+    let memo = use_memo(move || if course_of_study() == "default" { 0 } else { course_of_study().parse().unwrap() });
+
+    use_authenticated_data_loader(handler, memo.into(), 14 * 24 * 60 * 60, 60 * 60, |student_result: StudentResultResponse, reload| {
         let on_course_of_study_change = {
             let navigator = navigator.clone();
             Callback::new(move |e: Event<FormData>| {
@@ -63,9 +65,9 @@ pub fn StudentResult(course_of_study: String) -> Element {
 }
 
 #[component]
-pub fn StudentResultLevelComponent(level: StudentResultLevel, path: Vec<String>) -> Element {
+pub fn StudentResultLevelComponent(level: ReadOnlySignal<StudentResultLevel>, path: ReadOnlySignal<Vec<String>>) -> Element {
     rsx! {
-            if !level.entries.is_empty() {
+            if !level().entries.is_empty() {
                 h5 {
                     nav { "aria-label": "breadcrumb",
                         ol { class: "breadcrumb",
@@ -81,7 +83,7 @@ pub fn StudentResultLevelComponent(level: StudentResultLevel, path: Vec<String>)
                                     
                             }
                             li { class: "breadcrumb-item",
-                                { level.name.clone() }
+                                { level().name.clone() }
                             }
                         }
                     }
@@ -108,7 +110,7 @@ pub fn StudentResultLevelComponent(level: StudentResultLevel, path: Vec<String>)
                     }
                     tbody {
                         {
-                            level
+                            level()
                                 .entries
                                 .iter()
                                 .map(|entry| {
@@ -138,12 +140,12 @@ pub fn StudentResultLevelComponent(level: StudentResultLevel, path: Vec<String>)
                 }
             }
             {
-                level
+                level()
                     .children
                     .iter()
                     .map(|child| {
                         rsx! {
-                            StudentResultLevelComponent { level: child.clone(), path: path.iter().cloned().chain(std::iter::once(level.name.clone())).collect::<Vec<_>>() }
+                            StudentResultLevelComponent { level: child.clone(), path: path().iter().cloned().chain(std::iter::once(level().name.clone())).collect::<Vec<_>>() }
                         }
                     })
                     

@@ -9,7 +9,7 @@ use crate::{Route, common::use_authenticated_data_loader};
 
 
 #[component]
-pub fn ExamResults(semester: SemesterId) -> Element {
+pub fn ExamResults(semester: ReadOnlySignal<SemesterId>) -> Element {
     let handler = async |tucan: Rc<DynTucan>, current_session, revalidation_strategy, additional| tucan.exam_results(&current_session, revalidation_strategy, additional).await;
 
     let navigator = use_navigator();

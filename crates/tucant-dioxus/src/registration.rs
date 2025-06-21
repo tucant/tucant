@@ -8,7 +8,7 @@ use dioxus::prelude::*;
 use crate::{Route, common::use_authenticated_data_loader};
 
 #[component]
-pub fn Registration(registration: AnmeldungRequest) -> Element {
+pub fn Registration(registration: ReadOnlySignal<AnmeldungRequest>) -> Element {
     let handler = async |tucan: Rc<DynTucan>, current_session, revalidation_strategy, additional| tucan.anmeldung(current_session, revalidation_strategy, additional).await;
 
     let navigator = use_navigator();

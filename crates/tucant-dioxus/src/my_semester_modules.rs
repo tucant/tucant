@@ -13,7 +13,7 @@ use crate::{
 
 
 #[component]
-pub fn MySemesterModules(semester: SemesterId) -> Element {
+pub fn MySemesterModules(semester: ReadOnlySignal<SemesterId>) -> Element {
     let handler = async |tucan: Rc<DynTucan>, current_session, revalidation_strategy: RevalidationStrategy, additional: SemesterId| {
         let first = tucan.my_modules(&current_session, revalidation_strategy, additional.clone()).await?;
         let after = first.semester.iter().skip_while(|e| !e.selected).skip(1).next();

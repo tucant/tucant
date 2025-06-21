@@ -10,7 +10,7 @@ use crate::{
 pub fn MyDocuments() -> Element {
     let handler = async |tucan: Rc<DynTucan>, current_session, revalidation_strategy, _additional| tucan.my_documents(&current_session, revalidation_strategy).await;
 
-    use_authenticated_data_loader(handler, (), 14 * 24 * 60 * 60, 60 * 60, |documents, reload| {
+    use_authenticated_data_loader(handler, ReadOnlySignal::new(Signal::new(())), 14 * 24 * 60 * 60, 60 * 60, |documents, reload| {
         rsx! {
             div {
                 h1 {

@@ -6,7 +6,7 @@ use dioxus::prelude::*;
 
 
 #[component]
-pub fn CourseDetails(course: CourseDetailsRequest) -> Element {
+pub fn CourseDetails(course: ReadOnlySignal<CourseDetailsRequest>) -> Element {
     let handler = async |tucan: Rc<DynTucan>, current_session, revalidation_strategy, additional| tucan.course_details(&current_session, revalidation_strategy, additional).await;
 
     use_authenticated_data_loader(handler, course.to_owned(), 14 * 24 * 60 * 60, 60 * 60, |course, reload| {
