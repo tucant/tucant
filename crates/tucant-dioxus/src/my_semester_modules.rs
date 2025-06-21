@@ -6,18 +6,15 @@ use tucant_types::{
     mymodules::{Module, MyModulesResponse},
 };
 use web_sys::HtmlSelectElement;
-use yew::{Callback, Event, Html, Properties, TargetCast, function_component};
-use yew_router::{hooks::use_navigator, prelude::Link};
+use dioxus::prelude::*;
 
-use crate::{RcTucanType, Route, common::use_authenticated_data_loader};
 
-#[derive(Properties, PartialEq)]
-pub struct MySemesterModulesProps {
-    pub semester: SemesterId,
-}
+use crate::{
+    Route, common::use_authenticated_data_loader};
 
-#[function_component(MySemesterModules)]
-pub fn my_semester_modules<TucanType: Tucan + 'static>(MySemesterModulesProps { semester }: &MySemesterModulesProps) -> Html {
+
+#[component]
+pub fn MySemesterModules(semester: SemesterId) -> Element {
     let handler = async |tucan: RcTucanType<TucanType>, current_session, revalidation_strategy: RevalidationStrategy, additional: SemesterId| {
         let first = tucan.0.my_modules(&current_session, revalidation_strategy, additional.clone()).await?;
         let after = first.semester.iter().skip_while(|e| !e.selected).skip(1).next();

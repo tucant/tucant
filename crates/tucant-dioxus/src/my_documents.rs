@@ -1,10 +1,11 @@
 use tucant_types::Tucan;
-use yew::{Html, function_component};
+use dioxus::prelude::*;
 
-use crate::{RcTucanType, common::use_authenticated_data_loader};
+use crate::{
+    common::use_authenticated_data_loader};
 
-#[function_component(MyDocuments)]
-pub fn my_documents<TucanType: Tucan + 'static>() -> Html {
+#[component]
+pub fn MyDocuments() -> Element {
     let handler = async |tucan: RcTucanType<TucanType>, current_session, revalidation_strategy, _additional| tucan.0.my_documents(&current_session, revalidation_strategy).await;
 
     use_authenticated_data_loader(handler, (), 14 * 24 * 60 * 60, 60 * 60, |documents, reload| {

@@ -2,18 +2,13 @@ use tucant_types::{
     Tucan,
     registration::{AnmeldungRequest, RegistrationState},
 };
-use yew::{Html, Properties, function_component};
-use yew_router::{hooks::use_navigator, prelude::Link};
+use dioxus::prelude::*;
 
-use crate::{RcTucanType, Route, common::use_authenticated_data_loader};
 
-#[derive(Properties, PartialEq)]
-pub struct AnmeldungRequestProps {
-    pub registration: AnmeldungRequest,
-}
+use crate::{Route, common::use_authenticated_data_loader};
 
-#[function_component(Registration)]
-pub fn registration<TucanType: Tucan + 'static>(AnmeldungRequestProps { registration }: &AnmeldungRequestProps) -> Html {
+#[component]
+pub fn Registration(registration: AnmeldungRequest) -> Element {
     let handler = async |tucan: RcTucanType<TucanType>, current_session, revalidation_strategy, additional| tucan.0.anmeldung(current_session, revalidation_strategy, additional).await;
 
     let navigator = use_navigator().unwrap();

@@ -1,19 +1,13 @@
-use crate::{RcTucanType, Route, common::use_authenticated_data_loader};
+use crate::{Route, common::use_authenticated_data_loader};
 use tucant_types::{
     LoginResponse, Tucan,
     student_result::{StudentResultLevel, StudentResultResponse},
 };
 use web_sys::HtmlSelectElement;
-use yew::{Callback, Event, Html, Properties, TargetCast, function_component};
-use yew_router::hooks::use_navigator;
+use dioxus::prelude::*;
 
-#[derive(Properties, PartialEq)]
-pub struct StudentResultProps {
-    pub course_of_study: String,
-}
-
-#[function_component(StudentResult)]
-pub fn student_result<TucanType: Tucan + 'static>(StudentResultProps { course_of_study }: &StudentResultProps) -> Html {
+#[component]
+pub fn StudentResult(course_of_study: String) -> Element {
     let handler = async |tucan: RcTucanType<TucanType>, current_session, revalidation_strategy, additional| tucan.0.student_result(&current_session, revalidation_strategy, additional).await;
 
     let navigator = use_navigator().unwrap();

@@ -2,18 +2,14 @@ use std::str::FromStr;
 
 use tucant_types::{SemesterId, Tucan, examresults::ExamResultsResponse};
 use web_sys::HtmlSelectElement;
-use yew::{Callback, Event, Html, Properties, TargetCast, function_component};
-use yew_router::hooks::use_navigator;
+use dioxus::prelude::*;
 
-use crate::{RcTucanType, Route, common::use_authenticated_data_loader};
 
-#[derive(Properties, PartialEq)]
-pub struct ExamResultsProps {
-    pub semester: SemesterId,
-}
+use crate::{Route, common::use_authenticated_data_loader};
 
-#[function_component(ExamResults)]
-pub fn exam_results<TucanType: Tucan + 'static>(ExamResultsProps { semester }: &ExamResultsProps) -> Html {
+
+#[component]
+pub fn ExamResults(semester: SemesterId) -> Element {
     let handler = async |tucan: RcTucanType<TucanType>, current_session, revalidation_strategy, additional| tucan.0.exam_results(&current_session, revalidation_strategy, additional).await;
 
     let navigator = use_navigator().unwrap();

@@ -1,15 +1,11 @@
 use tucant_types::{Tucan, moduledetails::ModuleDetailsRequest};
-use yew::{Html, Properties, function_component};
+use dioxus::prelude::*;
 
-use crate::{RcTucanType, common::use_authenticated_data_loader};
+use crate::{
+    common::use_authenticated_data_loader};
 
-#[derive(Properties, PartialEq)]
-pub struct ModuleDetailsProps {
-    pub module_details: ModuleDetailsRequest,
-}
-
-#[function_component(ModuleDetails)]
-pub fn module_details<TucanType: Tucan + 'static>(ModuleDetailsProps { module_details }: &ModuleDetailsProps) -> Html {
+#[component]
+pub fn ModuleDetails(module_details: ModuleDetailsRequest) -> Element {
     let handler = async |tucan: RcTucanType<TucanType>, current_session, revalidation_strategy, additional| tucan.0.module_details(&current_session, revalidation_strategy, additional).await;
 
     use_authenticated_data_loader(handler, module_details.clone(), 14 * 24 * 60 * 60, 60 * 60, |module, reload| {

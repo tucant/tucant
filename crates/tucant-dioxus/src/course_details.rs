@@ -1,14 +1,10 @@
-use crate::{RcTucanType, Route, common::use_authenticated_data_loader};
+use crate::{ Route, common::use_authenticated_data_loader};
 use tucant_types::{Tucan, coursedetails::CourseDetailsRequest};
 use dioxus::prelude::*;
 
-#[derive(Properties, PartialEq)]
-pub struct CourseDetailsProps {
-    pub course_details: CourseDetailsRequest,
-}
 
-#[function_component(CourseDetails)]
-pub fn course_details<TucanType: Tucan + 'static>(CourseDetailsProps { course_details }: &CourseDetailsProps) -> Html {
+#[component]
+pub fn CourseDetails(course_details: CourseDetailsRequest) -> Element {
     let handler = async |tucan: RcTucanType<TucanType>, current_session, revalidation_strategy, additional| tucan.0.course_details(&current_session, revalidation_strategy, additional).await;
 
     use_authenticated_data_loader(handler, course_details.to_owned(), 14 * 24 * 60 * 60, 60 * 60, |course, reload| {

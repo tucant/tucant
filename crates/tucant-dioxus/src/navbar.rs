@@ -106,6 +106,6 @@ pub fn Navbar() -> Element {
                     }
                 }
             }*/
-        Outlet:: {}
+        Outlet::<Route> {}
     }
 }
