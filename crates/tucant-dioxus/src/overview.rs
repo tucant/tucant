@@ -6,7 +6,7 @@ use dioxus::prelude::*;
 use crate::{Route, common::use_authenticated_data_loader};
 
 #[component]
-pub fn Mlsstart() -> Element {
+pub fn Overview() -> Element {
     let handler = async |tucan: Rc<DynTucan>, current_session, revalidation_strategy, _additional| tucan.after_login(&current_session, revalidation_strategy).await;
 
     use_authenticated_data_loader(handler, (), 14 * 24 * 60 * 60, 60 * 60, |mlsstart: MlsStart, reload| {

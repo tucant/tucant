@@ -4,13 +4,14 @@ pub mod login_component;
 pub mod rc_tucan_type;
 pub mod api_server;
 pub mod navbar_logged_in;
-pub mod mlsstart;
+pub mod overview;
 pub mod common;
 
 use dioxus::prelude::*;
 use tucant_types::{coursedetails::CourseDetailsRequest, moduledetails::ModuleDetailsRequest, registration::AnmeldungRequest, vv::ActionRequest, SemesterId, Tucan};
 
 use crate::navbar::Navbar;
+use crate::overview::Overview;
 
 #[derive(Clone, Routable, PartialEq)]
 pub enum Route {
@@ -76,11 +77,6 @@ fn Registration(registration: AnmeldungRequest) -> Element {
 
 #[component]
 fn RootRegistration() -> Element {
-    rsx! { }
-}
-
-#[component]
-fn Overview() -> Element {
     rsx! { }
 }
 
