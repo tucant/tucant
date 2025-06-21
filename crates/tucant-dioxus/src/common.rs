@@ -23,10 +23,11 @@ fn use_data_loader<I: Clone + PartialEq + 'static, O: Clone + 'static>(authentic
     let loading = use_signal(|| false);
     let current_session_handle = use_context::<Signal<Option<LoginResponse>>>();
     {
-        let data = data.clone();
-        let loading = loading.clone();
+        let mut data = data.clone();
+        let mut loading = loading.clone();
         let current_session_handle = current_session_handle.clone();
         let tucan = tucan.clone();
+        let request = request.clone();
         use_effect( move || {
             if authentication_required && current_session_handle().is_none() {
                 data.set(Err("Not logged in".to_owned()));
@@ -34,9 +35,9 @@ fn use_data_loader<I: Clone + PartialEq + 'static, O: Clone + 'static>(authentic
             }
             loading.set(true);
             let request = request.clone();
-            let data = data.clone();
+            let mut data = data.clone();
             let tucan = tucan.clone();
-            let current_session_handle = current_session_handle.to_owned();
+            let mut current_session_handle = current_session_handle.to_owned();
             spawn(async move {
                 match handler(tucan.clone(), current_session_handle(), RevalidationStrategy { max_age: cache_age_seconds, invalidate_dependents: Some(true) }, request.clone()).await {
                     Ok(response) => {
@@ -74,8 +75,8 @@ fn use_data_loader<I: Clone + PartialEq + 'static, O: Clone + 'static>(authentic
     let reload = {
         let current_session_handle = current_session_handle.clone();
         let course_details = request.clone();
-        let data = data.clone();
-        let loading = loading.clone();
+        let mut data = data.clone();
+        let mut loading = loading.clone();
         let tucan = tucan.clone();
         Callback::new(move |_e: MouseEvent| {
             if authentication_required && current_session_handle().is_none() {
@@ -84,10 +85,10 @@ fn use_data_loader<I: Clone + PartialEq + 'static, O: Clone + 'static>(authentic
             }
             loading.set(true);
             let course_details = course_details.clone();
-            let data = data.clone();
+            let mut data = data.clone();
             let tucan = tucan.clone();
-            let loading = loading.clone();
-            let current_session_handle = current_session_handle.clone();
+            let mut loading = loading.clone();
+            let mut current_session_handle = current_session_handle.clone();
             spawn(async move {
                 match handler(tucan.clone(), current_session_handle(), RevalidationStrategy { max_age: 0, invalidate_dependents: Some(true) }, course_details.clone()).await {
                     Ok(response) => {
