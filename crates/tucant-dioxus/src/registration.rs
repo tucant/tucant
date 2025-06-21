@@ -5,7 +5,6 @@ use tucant_types::{
 };
 use dioxus::prelude::*;
 
-
 use crate::{Route, common::use_authenticated_data_loader};
 
 #[component]

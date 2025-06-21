@@ -73,7 +73,18 @@ pub async fn api_login_response() -> Option<tucant_types::LoginResponse> {
         })?,
     })
 }
-
+use crate::module_details::ModuleDetails;
+use crate::course_details::CourseDetails;
+use crate::registration::Registration;
+use crate::my_modules::MyModules;
+use crate::my_semester_modules::MySemesterModules;
+use crate::my_courses::MyCourses;
+use crate::my_exams::MyExams;
+use crate::exam_results::ExamResults;
+use crate::course_results::CourseResults;
+use crate::my_documents::MyDocuments;
+use crate::student_result::StudentResult;
+use crate::vv::Vorlesungsverzeichnis;
 #[derive(Clone, Routable, PartialEq)]
 pub enum Route {
     #[layout(Navbar)]
@@ -109,79 +120,4 @@ pub enum Route {
     MyDocuments {},
     #[route("/student-result/:course_of_study")]
     StudentResult { course_of_study: String },
-}
-
-#[component]
-fn Root() -> Element {
-    rsx! { }
-}
-
-#[component]
-fn NotFound(route: Vec<String>) -> Element {
-    rsx! { }
-}
-
-#[component]
-fn ModuleDetails(module: ModuleDetailsRequest) -> Element {
-    rsx! { }
-}
-
-#[component]
-fn CourseDetails(course: CourseDetailsRequest) -> Element {
-    rsx! { }
-}
-
-#[component]
-fn Registration(registration: AnmeldungRequest) -> Element {
-    rsx! { }
-}
-
-#[component]
-fn RootRegistration() -> Element {
-    rsx! { }
-}
-
-#[component]
-fn Vorlesungsverzeichnis(vv: ActionRequest) -> Element {
-    rsx! { }
-}
-
-#[component]
-fn MyModules(semester: SemesterId) -> Element {
-    rsx! { }
-}
-
-#[component]
-fn MySemesterModules(semester: SemesterId) -> Element {
-    rsx! { }
-}
-
-#[component]
-fn MyCourses(semester: SemesterId) -> Element {
-    rsx! { }
-}
-
-#[component]
-fn MyExams(semester: SemesterId) -> Element {
-    rsx! { }
-}
-
-#[component]
-fn ExamResults(semester: SemesterId) -> Element {
-    rsx! { }
-}
-
-#[component]
-fn CourseResults(semester: SemesterId) -> Element {
-    rsx! { }
-}
-
-#[component]
-fn MyDocuments() -> Element {
-    rsx! { }
-}
-
-#[component]
-fn StudentResult(course_of_study: String) -> Element {
-    rsx! { }
 }

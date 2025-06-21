@@ -2,7 +2,7 @@ use std::{panic, rc::Rc};
 
 use dioxus::prelude::*;
 use log::warn;
-use tucant_dioxus::{api_server::ApiServerTucan, navbar::Navbar, rc_tucan_type::RcTucanType, Route};
+use tucant_dioxus::{api_server::ApiServerTucan, navbar::Navbar, Route};
 use tucant_types::{DynTucan, LoginRequest, LoginResponse, Tucan};
 use wasm_bindgen::prelude::*;
 
@@ -73,7 +73,7 @@ fn App() -> Element {
 
     rsx! {
         document::Link { rel: "stylesheet", href: BOOTSTRAP_CSS }
-        Router:: {}
+        Router::<Route> {}
         script { src: BOOTSTRAP_JS }
     }
 }
