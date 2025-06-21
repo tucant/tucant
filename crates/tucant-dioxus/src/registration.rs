@@ -1,6 +1,7 @@
+use std::rc::Rc;
+
 use tucant_types::{
-    Tucan,
-    registration::{AnmeldungRequest, RegistrationState},
+    registration::{AnmeldungRequest, RegistrationState}, DynTucan, Tucan
 };
 use dioxus::prelude::*;
 
@@ -9,7 +10,7 @@ use crate::{Route, common::use_authenticated_data_loader};
 
 #[component]
 pub fn Registration(registration: AnmeldungRequest) -> Element {
-    let handler = async |tucan: RcTucanType<TucanType>, current_session, revalidation_strategy, additional| tucan.0.anmeldung(current_session, revalidation_strategy, additional).await;
+    let handler = async |tucan: Rc<DynTucan>, current_session, revalidation_strategy, additional| tucan.anmeldung(current_session, revalidation_strategy, additional).await;
 
     let navigator = use_navigator().unwrap();
 

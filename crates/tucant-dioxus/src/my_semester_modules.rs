@@ -1,9 +1,8 @@
-use std::{collections::HashSet, str::FromStr};
+use std::{collections::HashSet, rc::Rc, str::FromStr};
 
 use log::warn;
 use tucant_types::{
-    RevalidationStrategy, SemesterId, Tucan,
-    mymodules::{Module, MyModulesResponse},
+    mymodules::{Module, MyModulesResponse}, DynTucan, RevalidationStrategy, SemesterId, Tucan
 };
 use web_sys::HtmlSelectElement;
 use dioxus::prelude::*;
@@ -15,7 +14,7 @@ use crate::{
 
 #[component]
 pub fn MySemesterModules(semester: SemesterId) -> Element {
-    let handler = async |tucan: RcTucanType<TucanType>, current_session, revalidation_strategy: RevalidationStrategy, additional: SemesterId| {
+    let handler = async |tucan: Rc<DynTucan>, current_session, revalidation_strategy: RevalidationStrategy, additional: SemesterId| {
         let first = tucan.0.my_modules(&current_session, revalidation_strategy, additional.clone()).await?;
         let after = first.semester.iter().skip_while(|e| !e.selected).skip(1).next();
         warn!("after {additional} comes {after:?}");

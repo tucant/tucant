@@ -1,6 +1,6 @@
-use std::str::FromStr;
+use std::{rc::Rc, str::FromStr};
 
-use tucant_types::{SemesterId, Tucan, mymodules::MyModulesResponse};
+use tucant_types::{mymodules::MyModulesResponse, DynTucan, SemesterId, Tucan};
 use web_sys::HtmlSelectElement;
 use dioxus::prelude::*;
 
@@ -11,7 +11,7 @@ use crate::{
 
 #[component]
 pub fn MyModules(semester: SemesterId) -> Element {
-    let handler = async |tucan: RcTucanType<TucanType>, current_session, revalidation_strategy, additional| tucan.0.my_modules(&current_session, revalidation_strategy, additional).await;
+    let handler = async |tucan: Rc<DynTucan>, current_session, revalidation_strategy, additional| tucan.my_modules(&current_session, revalidation_strategy, additional).await;
 
     let navigator = use_navigator().unwrap();
 

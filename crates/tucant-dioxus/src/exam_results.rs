@@ -1,6 +1,6 @@
-use std::str::FromStr;
+use std::{rc::Rc, str::FromStr};
 
-use tucant_types::{SemesterId, Tucan, examresults::ExamResultsResponse};
+use tucant_types::{examresults::ExamResultsResponse, DynTucan, SemesterId, Tucan};
 use web_sys::HtmlSelectElement;
 use dioxus::prelude::*;
 
@@ -10,7 +10,7 @@ use crate::{Route, common::use_authenticated_data_loader};
 
 #[component]
 pub fn ExamResults(semester: SemesterId) -> Element {
-    let handler = async |tucan: RcTucanType<TucanType>, current_session, revalidation_strategy, additional| tucan.0.exam_results(&current_session, revalidation_strategy, additional).await;
+    let handler = async |tucan: Rc<DynTucan>, current_session, revalidation_strategy, additional| tucan.exam_results(&current_session, revalidation_strategy, additional).await;
 
     let navigator = use_navigator().unwrap();
 

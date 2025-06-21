@@ -1,11 +1,13 @@
+use std::rc::Rc;
+
 use crate::{ Route, common::use_authenticated_data_loader};
-use tucant_types::{Tucan, coursedetails::CourseDetailsRequest};
+use tucant_types::{coursedetails::CourseDetailsRequest, DynTucan, Tucan};
 use dioxus::prelude::*;
 
 
 #[component]
 pub fn CourseDetails(course_details: CourseDetailsRequest) -> Element {
-    let handler = async |tucan: RcTucanType<TucanType>, current_session, revalidation_strategy, additional| tucan.0.course_details(&current_session, revalidation_strategy, additional).await;
+    let handler = async |tucan: Rc<DynTucan>, current_session, revalidation_strategy, additional| tucan.course_details(&current_session, revalidation_strategy, additional).await;
 
     use_authenticated_data_loader(handler, course_details.to_owned(), 14 * 24 * 60 * 60, 60 * 60, |course, reload| {
         ::yew::html! {

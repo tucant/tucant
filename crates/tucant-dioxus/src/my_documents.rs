@@ -1,4 +1,6 @@
-use tucant_types::Tucan;
+use std::rc::Rc;
+
+use tucant_types::{DynTucan, Tucan};
 use dioxus::prelude::*;
 
 use crate::{
@@ -6,7 +8,7 @@ use crate::{
 
 #[component]
 pub fn MyDocuments() -> Element {
-    let handler = async |tucan: RcTucanType<TucanType>, current_session, revalidation_strategy, _additional| tucan.0.my_documents(&current_session, revalidation_strategy).await;
+    let handler = async |tucan: Rc<DynTucan>, current_session, revalidation_strategy, _additional| tucan.my_documents(&current_session, revalidation_strategy).await;
 
     use_authenticated_data_loader(handler, (), 14 * 24 * 60 * 60, 60 * 60, |documents, reload| {
         ::yew::html! {

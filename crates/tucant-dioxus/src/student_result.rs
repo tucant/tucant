@@ -1,14 +1,15 @@
+use std::rc::Rc;
+
 use crate::{Route, common::use_authenticated_data_loader};
 use tucant_types::{
-    LoginResponse, Tucan,
-    student_result::{StudentResultLevel, StudentResultResponse},
+    student_result::{StudentResultLevel, StudentResultResponse}, DynTucan, LoginResponse, Tucan
 };
 use web_sys::HtmlSelectElement;
 use dioxus::prelude::*;
 
 #[component]
 pub fn StudentResult(course_of_study: String) -> Element {
-    let handler = async |tucan: RcTucanType<TucanType>, current_session, revalidation_strategy, additional| tucan.0.student_result(&current_session, revalidation_strategy, additional).await;
+    let handler = async |tucan: Rc<DynTucan>, current_session, revalidation_strategy, additional| tucan.student_result(&current_session, revalidation_strategy, additional).await;
 
     let navigator = use_navigator().unwrap();
 
