@@ -2,11 +2,11 @@
 
 Replace `="` with `: "`
 
-Replace ` <([A-Za-z]+)>` with ` $1 {`
+Replace ` <([A-Za-z0-9]+)>` with ` $1 {`
 
-Replace `</([A-Za-z]+)>` with `}`
+Replace `</([A-Za-z0-9]+)>` with `}`
 
-Replace ` <([A-Za-z]+)` with ` $1 {`
+Replace ` <([A-Za-z0-9]+)` with ` $1 {`
 
 Replace `">` with `",`
 
