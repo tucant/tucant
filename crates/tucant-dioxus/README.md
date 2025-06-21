@@ -1,5 +1,7 @@
 # Migration
 
+Replace `<Route>` with ``
+
 Replace `="` with `: "`
 
 Replace ` <([A-Za-z0-9]+)>` with ` $1 {`

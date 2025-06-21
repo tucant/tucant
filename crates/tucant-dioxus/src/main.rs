@@ -73,7 +73,7 @@ fn App() -> Element {
 
     rsx! {
         document::Link { rel: "stylesheet", href: BOOTSTRAP_CSS }
-        Router::<Route> {}
+        Router:: {}
         script { src: BOOTSTRAP_JS }
     }
 }
