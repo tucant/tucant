@@ -70,24 +70,3 @@ fn logout<TucanType: Tucan + 'static>() -> HtmlResult {
         </form>
     })
 }
-
-fn switch<TucanType: Tucan + 'static>(routes: Route) -> Html {
-    match routes {
-        Route::Registration { registration } => {
-            ::yew::html! {
-                <Registration<TucanType> registration={registration} />
-            }
-        }
-        Route::RootRegistration => {
-            ::yew::html! {
-                <Registration<TucanType> registration={AnmeldungRequest::default()} />
-            }
-        }
-        Route::NotFound => ::yew::html! {
-            <div>
-                { "404" }
-            </div>
-        },
-        
-    }
-}
