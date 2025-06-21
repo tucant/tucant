@@ -1,3 +1,21 @@
+# Migration
+
+Replace `="` with `: "`
+
+Replace ` <([A-Za-z]+)>` with ` $1 {`
+
+Replace `</([A-Za-z]+)>` with `}`
+
+Replace ` <([A-Za-z]+)` with ` $1 {`
+
+Replace `">` with `",`
+
+Replace `/>` with `}`
+
+Replace `={` with `: `
+
+Replace `}>` with `,`
+
 # Development
 
 Your new bare-bones project includes minimal organization with a single `main.rs` file and a few assets.
