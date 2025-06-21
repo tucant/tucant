@@ -1,15 +1,16 @@
-use tucant_types::{Tucan, mlsstart::MlsStart};
-use yew::{Html, function_component};
-use yew_router::prelude::Link;
+use std::rc::Rc;
 
-use crate::{RcTucanType, Route, common::use_authenticated_data_loader};
+use tucant_types::{mlsstart::MlsStart, DynTucan, Tucan};
+use dioxus::prelude::*;
 
-#[function_component(Mlsstart)]
-pub fn mlsstart<TucanType: Tucan + 'static>() -> Html {
-    let handler = async |tucan: RcTucanType<TucanType>, current_session, revalidation_strategy, _additional| tucan.0.after_login(&current_session, revalidation_strategy).await;
+use crate::{Route, common::use_authenticated_data_loader};
+
+#[component]
+pub fn Mlsstart() -> Element {
+    let handler = async |tucan: Rc<DynTucan>, current_session, revalidation_strategy, _additional| tucan.after_login(&current_session, revalidation_strategy).await;
 
     use_authenticated_data_loader(handler, (), 14 * 24 * 60 * 60, 60 * 60, |mlsstart: MlsStart, reload| {
-        ::yew::html! {
+        rsx! {
             <div>
                 <h1>
                     { "Übersicht" }

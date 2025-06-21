@@ -1,39 +1,34 @@
-use crate::RcTucanType;
+use dioxus::prelude::*;
 use log::info;
 use std::ops::Deref;
-use tucant_types::Tucan;
+use std::rc::Rc;
+use tucant_types::{DynTucan, Tucan};
 use tucant_types::{LoginResponse, RevalidationStrategy, TucanError};
-use yew::Html;
-use yew::use_context;
-use yew::{Callback, MouseEvent, UseStateHandle, hook};
-use yew::{platform::spawn_local, use_effect_with, use_state};
 
-#[hook]
-pub fn use_authenticated_data_loader<TucanType: Tucan + 'static, I: Clone + PartialEq + 'static, O: Clone + 'static>(handler: impl AsyncFn(RcTucanType<TucanType>, LoginResponse, RevalidationStrategy, I) -> Result<O, TucanError> + Copy + 'static, request: I, cache_age_seconds: i64, max_stale_age_seconds: i64, render: impl Fn(O, Callback<MouseEvent>) -> Html) -> Html {
-    use_data_loader(true, async move |tucan: RcTucanType<TucanType>, current_session: Option<LoginResponse>, revalidation_strategy, additional| handler(tucan, current_session.unwrap(), revalidation_strategy, additional).await, request, cache_age_seconds, max_stale_age_seconds, render)
+
+pub fn use_authenticated_data_loader<I: Clone + PartialEq + 'static, O: Clone + 'static>(handler: impl AsyncFn(Rc<DynTucan>, LoginResponse, RevalidationStrategy, I) -> Result<O, TucanError> + Copy + 'static, request: I, cache_age_seconds: i64, max_stale_age_seconds: i64, render: impl Fn(O, Callback<MouseEvent>) -> Element) -> Element {
+    use_data_loader(true, async move |tucan: Rc<DynTucan>, current_session: Option<LoginResponse>, revalidation_strategy, additional| handler(tucan, current_session.unwrap(), revalidation_strategy, additional).await, request, cache_age_seconds, max_stale_age_seconds, render)
 }
 
-#[hook]
-pub fn use_unauthenticated_data_loader<TucanType: Tucan + 'static, I: Clone + PartialEq + 'static, O: Clone + 'static>(handler: impl AsyncFn(RcTucanType<TucanType>, Option<LoginResponse>, RevalidationStrategy, I) -> Result<O, TucanError> + Copy + 'static, request: I, cache_age_seconds: i64, max_stale_age_seconds: i64, render: impl Fn(O, Callback<MouseEvent>) -> Html) -> Html {
+pub fn use_unauthenticated_data_loader<I: Clone + PartialEq + 'static, O: Clone + 'static>(handler: impl AsyncFn(Rc<DynTucan>, Option<LoginResponse>, RevalidationStrategy, I) -> Result<O, TucanError> + Copy + 'static, request: I, cache_age_seconds: i64, max_stale_age_seconds: i64, render: impl Fn(O, Callback<MouseEvent>) -> Element) -> Element {
     use_data_loader(false, handler, request, cache_age_seconds, max_stale_age_seconds, render)
 }
 
-#[hook]
-fn use_data_loader<TucanType: Tucan + 'static, I: Clone + PartialEq + 'static, O: Clone + 'static>(authentication_required: bool, handler: impl AsyncFn(RcTucanType<TucanType>, Option<LoginResponse>, RevalidationStrategy, I) -> Result<O, TucanError> + Copy + 'static, request: I, cache_age_seconds: i64, max_stale_age_seconds: i64, render: impl Fn(O, Callback<MouseEvent>) -> Html) -> Html {
+fn use_data_loader<I: Clone + PartialEq + 'static, O: Clone + 'static>(authentication_required: bool, handler: impl AsyncFn(Rc<DynTucan>, Option<LoginResponse>, RevalidationStrategy, I) -> Result<O, TucanError> + Copy + 'static, request: I, cache_age_seconds: i64, max_stale_age_seconds: i64, render: impl Fn(O, Callback<MouseEvent>) -> Element) -> Element {
     use reqwest::StatusCode;
 
-    let tucan: RcTucanType<TucanType> = use_context().expect("no ctx found");
+    let tucan: Rc<DynTucan> = use_context();
 
-    let data = use_state(|| Ok(None));
-    let loading = use_state(|| false);
-    let current_session_handle = use_context::<UseStateHandle<Option<LoginResponse>>>().expect("no ctx found");
+    let data = use_signal(|| Ok(None));
+    let loading = use_signal(|| false);
+    let current_session_handle = use_context::<Signal<Option<LoginResponse>>>();
     {
         let data = data.clone();
         let loading = loading.clone();
         let current_session_handle = current_session_handle.clone();
         let tucan = tucan.clone();
-        use_effect_with((request.to_owned(), current_session_handle.clone()), move |(request, current_session_handle)| {
-            if authentication_required && (**current_session_handle).is_none() {
+        use_effect( move || {
+            if authentication_required && current_session_handle().is_none() {
                 data.set(Err("Not logged in".to_owned()));
                 return;
             }
@@ -43,12 +38,12 @@ fn use_data_loader<TucanType: Tucan + 'static, I: Clone + PartialEq + 'static, O
             let tucan = tucan.clone();
             let current_session_handle = current_session_handle.to_owned();
             spawn_local(async move {
-                match handler(tucan.clone(), (*current_session_handle).clone(), RevalidationStrategy { max_age: cache_age_seconds, invalidate_dependents: Some(true) }, request.clone()).await {
+                match handler(tucan.clone(), current_session_handle(), RevalidationStrategy { max_age: cache_age_seconds, invalidate_dependents: Some(true) }, request.clone()).await {
                     Ok(response) => {
                         data.set(Ok(Some(response)));
                         loading.set(false);
 
-                        match handler(tucan.clone(), (*current_session_handle).clone(), RevalidationStrategy { max_age: max_stale_age_seconds, invalidate_dependents: Some(true) }, request).await {
+                        match handler(tucan.clone(), current_session_handle(), RevalidationStrategy { max_age: max_stale_age_seconds, invalidate_dependents: Some(true) }, request).await {
                             Ok(response) => data.set(Ok(Some(response))),
                             Err(error) => {
                                 info!("ignoring error when refetching: {}", error)
@@ -82,8 +77,8 @@ fn use_data_loader<TucanType: Tucan + 'static, I: Clone + PartialEq + 'static, O
         let data = data.clone();
         let loading = loading.clone();
         let tucan = tucan.clone();
-        Callback::from(move |_e: MouseEvent| {
-            if authentication_required && (*current_session_handle).is_none() {
+        Callback::new(move |_e: MouseEvent| {
+            if authentication_required && current_session_handle().is_none() {
                 data.set(Err("Not logged in".to_owned()));
                 return;
             }
@@ -94,7 +89,7 @@ fn use_data_loader<TucanType: Tucan + 'static, I: Clone + PartialEq + 'static, O
             let loading = loading.clone();
             let current_session_handle = current_session_handle.clone();
             spawn_local(async move {
-                match handler(tucan.clone(), (*current_session_handle).clone(), RevalidationStrategy { max_age: 0, invalidate_dependents: Some(true) }, course_details.clone()).await {
+                match handler(tucan.clone(), current_session_handle(), RevalidationStrategy { max_age: 0, invalidate_dependents: Some(true) }, course_details.clone()).await {
                     Ok(response) => {
                         data.set(Ok(Some(response)));
                         loading.set(false);
@@ -120,10 +115,10 @@ fn use_data_loader<TucanType: Tucan + 'static, I: Clone + PartialEq + 'static, O
         })
     };
 
-    let data = match data.deref() {
+    let data = match data() {
         Ok(data) => data,
         Err(error) => {
-            return ::yew::html! {
+            return rsx! {
                 <div class="container">
                     <div class="alert alert-danger d-flex align-items-center mt-2" role="alert">
                         // https://github.com/twbs/icons
@@ -143,7 +138,7 @@ fn use_data_loader<TucanType: Tucan + 'static, I: Clone + PartialEq + 'static, O
         }
     };
 
-    ::yew::html! {
+    rsx! {
         <div class="container">
             if *loading {
                 <div style="z-index: 10000" class="position-fixed top-50 start-50 translate-middle">
