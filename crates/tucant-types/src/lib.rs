@@ -163,7 +163,7 @@ pub struct Semesterauswahl {
 }
 
 #[dynosaur::dynosaur(pub DynTucan)]
-pub trait Tucan {
+pub trait Tucan: Send {
     fn login(&self, request: LoginRequest) -> impl std::future::Future<Output = Result<LoginResponse, TucanError>>;
 
     fn welcome(&self) -> impl std::future::Future<Output = Result<LoggedOutHead, TucanError>>;

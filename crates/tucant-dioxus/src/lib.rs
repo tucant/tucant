@@ -1,6 +1,7 @@
 pub mod navbar;
 pub mod navbar_logged_out;
 pub mod login_component;
+#[cfg(feature = "api")]
 pub mod api_server;
 pub mod navbar_logged_in;
 pub mod overview;
@@ -26,7 +27,7 @@ use crate::navbar::Navbar;
 use crate::overview::Overview;
 
 #[cfg(feature = "direct")]
-pub async fn direct_login_response() -> Option<LoginResponse> {
+pub async fn direct_login_response() -> Option<tucant_types::LoginResponse> {
     let session_id = web_extensions_sys::chrome()
         .cookies()
         .get(web_extensions_sys::CookieDetails {
@@ -49,7 +50,7 @@ pub async fn direct_login_response() -> Option<LoginResponse> {
         .await?
         .value;
 
-    Some(LoginResponse { id: session_id.parse().unwrap(), cookie_cnsc: cnsc })
+    Some(tucant_types::LoginResponse { id: session_id.parse().unwrap(), cookie_cnsc: cnsc })
 }
 
 #[cfg(feature = "api")]
@@ -86,6 +87,7 @@ use crate::course_results::CourseResults;
 use crate::my_documents::MyDocuments;
 use crate::student_result::StudentResult;
 use crate::vv::Vorlesungsverzeichnis;
+
 #[derive(Clone, Routable, PartialEq)]
 pub enum Route {
     #[layout(Navbar)]

@@ -2,7 +2,7 @@ use std::{panic, rc::Rc};
 
 use dioxus::prelude::*;
 use log::warn;
-use tucant_dioxus::{api_server::ApiServerTucan, navbar::Navbar, Route};
+use tucant_dioxus::{navbar::Navbar, Route};
 use tucant_types::{DynTucan, LoginRequest, LoginResponse, Tucan};
 use wasm_bindgen::prelude::*;
 
@@ -45,12 +45,15 @@ async fn main() {
 
     #[cfg(feature = "direct")]
     if js_sys::Reflect::get(&js_sys::global(), &wasm_bindgen::JsValue::from_str("chrome")).is_ok() {
-        let login_response = tucant_yew::direct_login_response().await;
-        yew::Renderer::<tucant_yew::App<tucan_connector::TucanConnector>>::with_props(tucant_yew::AppProps {
-            initial_session: login_response,
-            tucan: tucant_yew::RcTucanType(std::rc::Rc::new(tucan_connector::TucanConnector::new().await.unwrap())),
-        })
-        .render();
+        use std::sync::{Arc, Mutex};
+
+        let login_response = tucant_dioxus::direct_login_response().await;
+        let connector = Arc::new(Mutex::new(DynTucan::new_box(tucan_connector::TucanConnector::new().await.unwrap())));
+
+        dioxus::LaunchBuilder::new()
+            .with_context_provider(move || Box::new(login_response.clone()))
+            .with_context(connector)
+            .launch(App);
     }
     #[cfg(feature = "api")]
     {
@@ -58,7 +61,7 @@ async fn main() {
 
         dioxus::LaunchBuilder::new()
             .with_context_provider(move || Box::new(login_response.clone()))
-            .with_context_provider(|| Box::new(DynTucan::new_rc(ApiServerTucan::new())))
+            .with_context_provider(|| Box::new(DynTucan::new_rc(tucant_dioxus::api_server::ApiServerTucan::new())))
             .launch(App);
     }
     #[cfg(not(any(feature = "direct", feature = "api")))]

@@ -4391,6 +4391,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "serde_derive_internals"
+version = "0.29.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "18d26a20a969b9e3fdf2fc2d9f21eda6c40e2de84c9408bb5d3b05d499aae711"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.104",
+]
+
+[[package]]
 name = "serde_json"
 version = "1.0.140"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5410,6 +5421,32 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e421abadd41a4225275504ea4d6566923418b7f05506fbc9c0fe86ba7396114b"
 
 [[package]]
+name = "tsify-next"
+version = "0.5.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7d0f2208feeb5f7a6edb15a2389c14cd42480ef6417318316bb866da5806a61d"
+dependencies = [
+ "gloo-utils",
+ "serde",
+ "serde-wasm-bindgen",
+ "serde_json",
+ "tsify-next-macros",
+ "wasm-bindgen",
+]
+
+[[package]]
+name = "tsify-next-macros"
+version = "0.5.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f81253930d0d388a3ab8fa4ae56da9973ab171ef833d1be2e9080fc3ce502bd6"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "serde_derive_internals",
+ "syn 2.0.104",
+]
+
+[[package]]
 name = "tucan-connector"
 version = "0.1.2"
 dependencies = [
@@ -5467,10 +5504,12 @@ dependencies = [
  "log",
  "reqwest",
  "serde_json",
+ "tucan-connector",
  "tucant-types",
  "url",
  "wasm-bindgen",
  "wasm-bindgen-futures",
+ "web-extensions-sys",
  "web-sys",
 ]
 
@@ -5835,6 +5874,18 @@ dependencies = [
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
+]
+
+[[package]]
+name = "web-extensions-sys"
+version = "0.4.1"
+source = "git+https://github.com/mohe2015/web-extensions-sys?branch=cookies#03c3cd1121f6e02672277238fe463b6af286f0b2"
+dependencies = [
+ "js-sys",
+ "serde",
+ "tsify-next",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
 ]
 
 [[package]]
