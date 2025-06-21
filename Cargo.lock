@@ -544,6 +544,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "console_log"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "be8aed40e4edbf4d3b4431ab260b63fdc40f5780a4766824329ea0f1eefe3c0f"
+dependencies = [
+ "log",
+ "wasm-bindgen",
+ "web-sys",
+]
+
+[[package]]
 name = "const-serialize"
 version = "0.7.0-alpha.1"
 source = "git+https://github.com/mohe2015/dioxus.git?branch=hash-history#1264ec54bb5fba492d0e1f5c7026cbf0c6099b46"
@@ -5449,13 +5460,17 @@ dependencies = [
 name = "tucant-dioxus"
 version = "0.1.0"
 dependencies = [
+ "console_log",
  "dioxus",
+ "js-sys",
  "log",
  "reqwest",
  "serde_json",
  "tucant-types",
  "url",
+ "wasm-bindgen",
  "wasm-bindgen-futures",
+ "web-sys",
 ]
 
 [[package]]
