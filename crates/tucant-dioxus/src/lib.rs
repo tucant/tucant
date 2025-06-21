@@ -17,6 +17,7 @@ pub mod my_semester_modules;
 pub mod registration;
 pub mod student_result;
 pub mod vv;
+pub mod logout_component;
 
 use dioxus::prelude::*;
 use tucant_types::{coursedetails::CourseDetailsRequest, moduledetails::ModuleDetailsRequest, registration::AnmeldungRequest, vv::ActionRequest, SemesterId, Tucan};

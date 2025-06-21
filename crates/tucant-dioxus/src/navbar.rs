@@ -6,7 +6,7 @@ use tucant_types::{DynTucan, LoginResponse, RevalidationStrategy, Tucan, TucanEr
 use wasm_bindgen_futures::spawn_local;
 use dioxus::prelude::*;
 
-use crate::{login_component::LoginComponent, navbar_logged_in::NavbarLoggedIn, navbar_logged_out::NavbarLoggedOut, Route};
+use crate::{login_component::LoginComponent, logout_component::LogoutComponent, navbar_logged_in::NavbarLoggedIn, navbar_logged_out::NavbarLoggedOut, Route};
 
 //use crate::{LoginComponent, LogoutComponent, RcTucanType, navbar_logged_in::NavbarLoggedIn, navbar_logged_out::NavbarLoggedOut};
 
@@ -74,6 +74,7 @@ pub fn Navbar() -> Element {
                             if let Some(Ok(data)) = data() {
                                 NavbarLoggedIn { current_session: current_session, data: data }
                             }
+                            LogoutComponent {}
                         } else {
                             NavbarLoggedOut {}
                             LoginComponent {}
