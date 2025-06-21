@@ -3,8 +3,6 @@ use std::rc::Rc;
 use dioxus::prelude::*;
 use tucant_types::{DynTucan, LoginRequest, LoginResponse, Tucan};
 
-use crate::rc_tucan_type::RcTucanType;
-
 #[component]
 pub fn LoginComponent() -> Element {
     let tucan: Rc<DynTucan> = use_context();

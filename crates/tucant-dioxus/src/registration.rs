@@ -12,7 +12,7 @@ use crate::{Route, common::use_authenticated_data_loader};
 pub fn Registration(registration: AnmeldungRequest) -> Element {
     let handler = async |tucan: Rc<DynTucan>, current_session, revalidation_strategy, additional| tucan.anmeldung(current_session, revalidation_strategy, additional).await;
 
-    let navigator = use_navigator().unwrap();
+    let navigator = use_navigator();
 
     use_authenticated_data_loader(handler, registration.to_owned(), 28 * 24 * 60 * 60, 24 * 60 * 60, |data, reload| {
         if data.submenus.len() == 1 && data.additional_information.is_empty() && data.entries.is_empty() {

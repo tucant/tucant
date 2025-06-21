@@ -1,7 +1,6 @@
 pub mod navbar;
 pub mod navbar_logged_out;
 pub mod login_component;
-pub mod rc_tucan_type;
 pub mod api_server;
 pub mod navbar_logged_in;
 pub mod overview;

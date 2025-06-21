@@ -13,12 +13,12 @@ use crate::{
 pub fn MyExams(semester: SemesterId) -> Element {
     let handler = async |tucan: Rc<DynTucan>, current_session, revalidation_strategy, additional| tucan.my_exams(&current_session, revalidation_strategy, additional).await;
 
-    let navigator = use_navigator().unwrap();
+    let navigator = use_navigator();
 
     use_authenticated_data_loader(handler, semester.clone(), 14 * 24 * 60 * 60, 60 * 60, |exams: MyExamsResponse, reload| {
         let on_semester_change = {
             let navigator = navigator.clone();
-            Callback::from(move |e: Event| {
+            Callback::new(move |e: Event| {
                 let value = e.target_dyn_into::<HtmlSelectElement>().unwrap().value();
                 navigator.push(&Route::MyExams { semester: SemesterId::from_str(&value).unwrap() });
             })

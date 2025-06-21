@@ -11,12 +11,12 @@ use dioxus::prelude::*;
 pub fn StudentResult(course_of_study: String) -> Element {
     let handler = async |tucan: Rc<DynTucan>, current_session, revalidation_strategy, additional| tucan.student_result(&current_session, revalidation_strategy, additional).await;
 
-    let navigator = use_navigator().unwrap();
+    let navigator = use_navigator();
 
     use_authenticated_data_loader(handler, if course_of_study == "default" { 0 } else { course_of_study.parse().unwrap() }, 14 * 24 * 60 * 60, 60 * 60, |student_result: StudentResultResponse, reload| {
         let on_course_of_study_change = {
             let navigator = navigator.clone();
-            Callback::from(move |e: Event| {
+            Callback::new(move |e: Event| {
                 let value = e.target_dyn_into::<HtmlSelectElement>().unwrap().value();
                 navigator.push(&Route::StudentResult { course_of_study: value });
             })
