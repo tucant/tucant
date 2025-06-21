@@ -1,5 +1,9 @@
 # Migration
 
+Replace `<>` with ``
+
+Replace `</>` with ``
+
 Replace `<Route>` with ``
 
 Replace `="` with `: "`

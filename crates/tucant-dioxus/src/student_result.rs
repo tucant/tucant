@@ -27,11 +27,10 @@ pub fn student_result<TucanType: Tucan + 'static>(StudentResultProps { course_of
             })
         };
         ::yew::html! {
-            <>
                 h1 {
                     { "Leistungsspiegel" }
                     { " " }
-                    button { onclick: reload} type: "button" class: "btn btn-light",
+                    button { onclick: reload, type: "button" class: "btn btn-light",
                         // https://github.com/twbs/icons
                         // The MIT License (MIT)
                         // Copyright (c) 2019-2024 The Bootstrap Authors
@@ -42,14 +41,14 @@ pub fn student_result<TucanType: Tucan + 'static>(StudentResultProps { course_of
                         }
                     }
                 }
-                select { onchange: on_course_of_study_change} class: "form-select mb-1" aria-label: "Select course of study",
+                select { onchange: on_course_of_study_change, class: "form-select mb-1" aria-label: "Select course of study",
                     {
                         student_result
                             .course_of_study
                             .iter()
                             .map(|course_of_study| {
                                 ::yew::html! {
-                                    option { selected: course_of_study.selected} value: course_of_study.value.clone(),
+                                    option { selected: course_of_study.selected, value: course_of_study.value.clone(),
                                         { &course_of_study.name }
                                     }
                                 }
@@ -57,13 +56,13 @@ pub fn student_result<TucanType: Tucan + 'static>(StudentResultProps { course_of
                             .collect::<Html>()
                     }
                 }
-                StudentResultLevelComponent {<TucanType> level: student_result.level0} path: Vec::new()} }
+                StudentResultLevelComponent { level: student_result.level0, path: Vec::new() }
                 div {
                     { format!("Gesamt-GPA: {}", student_result.total_gpa) }
                 }
                 div {
                     { format!("Hauptfach-GPA: {}", student_result.main_gpa) }
-                }<}
+                }
         }
     })
 }
@@ -156,10 +155,10 @@ pub fn student_result_level<TucanType: Tucan + 'static>(StudentResultLevelProps 
                     .iter()
                     .map(|child| {
                         ::yew::html! {
-                            StudentResultLevelComponent {<TucanType> level: child.clone()} path: path.iter().cloned().chain(std::iter::once(level.name.clone())).collect::<Vec<_>>()} }
+                            StudentResultLevelComponent { level: child.clone(), path: path.iter().cloned().chain(std::iter::once(level.name.clone())).collect::<Vec<_>>() }
                         }
                     })
                     .collect::<Html>()
-            }<}
+            }
     }
 }

@@ -31,7 +31,7 @@ pub fn my_courses<TucanType: Tucan + 'static>(MyCoursesProps { semester }: &MyCo
                 h1 {
                     { "Meine Veranstaltungen" }
                     { " " }
-                    button { onclick: reload} type: "button" class: "btn btn-light",
+                    button { onclick: reload, type: "button" class: "btn btn-light",
                         // https://github.com/twbs/icons
                         // The MIT License (MIT)
                         // Copyright (c) 2019-2024 The Bootstrap Authors
@@ -42,14 +42,14 @@ pub fn my_courses<TucanType: Tucan + 'static>(MyCoursesProps { semester }: &MyCo
                         }
                     }
                 }
-                select { onchange: on_semester_change} class: "form-select mb-1" aria-label: "Select semester",
+                select { onchange: on_semester_change, class: "form-select mb-1" aria-label: "Select semester",
                     {
                         my_modules
                             .semester
                             .iter()
                             .map(|semester| {
                                 ::yew::html! {
-                                    option { selected: semester.selected} value: semester.value.inner().clone(),
+                                    option { selected: semester.selected, value: semester.value.inner().clone(),
                                         { &semester.name }
                                     }
                                 }
@@ -63,7 +63,6 @@ pub fn my_courses<TucanType: Tucan + 'static>(MyCoursesProps { semester }: &MyCo
                         .iter()
                         .map(|section| {
                             ::yew::html! {
-                                <>
                                     h2 {
                                         { &section.0 }
                                     }
@@ -112,7 +111,7 @@ pub fn my_courses<TucanType: Tucan + 'static>(MyCoursesProps { semester }: &MyCo
                                                     .collect::<Html>()
                                             }
                                         }
-                                    }<}
+                                    }
                             }
                         })
                         .collect::<Html>()

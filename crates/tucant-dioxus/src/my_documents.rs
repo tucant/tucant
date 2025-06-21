@@ -13,7 +13,7 @@ pub fn my_documents<TucanType: Tucan + 'static>() -> Html {
                 h1 {
                     { "Meine Dokumente" }
                     { " " }
-                    button { onclick: reload} type: "button" class: "btn btn-light",
+                    button { onclick: reload, type: "button" class: "btn btn-light",
                         // https://github.com/twbs/icons
                         // The MIT License (MIT)
                         // Copyright (c) 2019-2024 The Bootstrap Authors

@@ -18,7 +18,7 @@ pub fn vorlesungsverzeichnis<TucanType: Tucan + 'static>(VorlesungsverzeichnisPr
             div { class: "container",
                 h2 { class: "text-center",
                     { &data.title }
-                    button { onclick: reload} type: "button" class: "btn btn-light",
+                    button { onclick: reload, type: "button" class: "btn btn-light",
                         // https://github.com/twbs/icons
                         // The MIT License (MIT)
                         // Copyright (c) 2019-2024 The Bootstrap Authors
@@ -59,7 +59,7 @@ pub fn vorlesungsverzeichnis<TucanType: Tucan + 'static>(VorlesungsverzeichnisPr
                             .iter()
                             .map(|entry| {
                                 ::yew::html! {
-                                    Link { to: Route::Vorlesungsverzeichnis { vv: entry.1.clone() }} class: "list-group-item list-group-item-action",
+                                    Link { to: Route::Vorlesungsverzeichnis { vv: entry.1.clone() }, class: "list-group-item list-group-item-action",
                                         { format!("{}", entry.0) }
                                     }
                                 }

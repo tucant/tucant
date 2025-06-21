@@ -31,7 +31,7 @@ pub fn my_exams<TucanType: Tucan + 'static>(MyExamsProps { semester }: &MyExamsP
                 h1 {
                     { "Prüfungen" }
                     { " " }
-                    button { onclick: reload} type: "button" class: "btn btn-light",
+                    button { onclick: reload, type: "button" class: "btn btn-light",
                         // https://github.com/twbs/icons
                         // The MIT License (MIT)
                         // Copyright (c) 2019-2024 The Bootstrap Authors
@@ -42,14 +42,14 @@ pub fn my_exams<TucanType: Tucan + 'static>(MyExamsProps { semester }: &MyExamsP
                         }
                     }
                 }
-                select { onchange: on_semester_change} class: "form-select mb-1" aria-label: "Select semester",
+                select { onchange: on_semester_change, class: "form-select mb-1" aria-label: "Select semester",
                     {
                         exams
                             .semester
                             .iter()
                             .map(|semester| {
                                 ::yew::html! {
-                                    option { selected: semester.selected} value: semester.value.inner().clone(),
+                                    option { selected: semester.selected, value: semester.value.inner().clone(),
                                         { &semester.name }
                                     }
                                 }

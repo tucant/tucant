@@ -22,14 +22,14 @@ pub fn registration<TucanType: Tucan + 'static>(AnmeldungRequestProps { registra
         if data.submenus.len() == 1 && data.additional_information.is_empty() && data.entries.is_empty() {
             navigator.replace(&Route::Registration { registration: data.submenus[0].1.clone() });
             return ::yew::html! {
-                <><}
+                
             };
         }
         ::yew::html! {
             div { class: "container",
                 h2 { class: "text-center",
                     { "Registration " }
-                    button { onclick: reload} type: "button" class: "btn btn-light",
+                    button { onclick: reload, type: "button" class: "btn btn-light",
                         // https://github.com/twbs/icons
                         // The MIT License (MIT)
                         // Copyright (c) 2019-2024 The Bootstrap Authors
@@ -70,7 +70,7 @@ pub fn registration<TucanType: Tucan + 'static>(AnmeldungRequestProps { registra
                             .iter()
                             .map(|entry| {
                                 ::yew::html! {
-                                    Link { to: Route::Registration { registration: entry.1.clone() }} class: "list-group-item list-group-item-action",
+                                    Link { to: Route::Registration { registration: entry.1.clone() }, class: "list-group-item list-group-item-action",
                                         { format!("{}", entry.0) }
                                     }
                                 }

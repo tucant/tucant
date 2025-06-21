@@ -30,7 +30,7 @@ pub fn module_details<TucanType: Tucan + 'static>(ModuleDetailsProps { module_de
                         }
                     }
                     { " " }
-                    button { onclick: reload} type: "button" class: "btn btn-light",
+                    button { onclick: reload, type: "button" class: "btn btn-light",
                         // https://github.com/twbs/icons
                         // The MIT License (MIT)
                         // Copyright (c) 2019-2024 The Bootstrap Authors
@@ -68,7 +68,6 @@ pub fn module_details<TucanType: Tucan + 'static>(ModuleDetailsProps { module_de
                         .iter()
                         .map(|kurskategorie| {
                             ::yew::html! {
-                                <>
                                     h3 {
                                         { &kurskategorie.course_no }
                                         { " " }
@@ -131,7 +130,7 @@ pub fn module_details<TucanType: Tucan + 'static>(ModuleDetailsProps { module_de
                                                     .collect::<Html>()
                                             }
                                         }
-                                    }<}
+                                    }
                             }
                         })
                         .collect::<Html>()
@@ -145,7 +144,6 @@ pub fn module_details<TucanType: Tucan + 'static>(ModuleDetailsProps { module_de
                         .iter()
                         .map(|leistung| {
                             ::yew::html! {
-                                <>
                                     h3 {
                                         { &leistung.name }
                                         if leistung.compulsory {
@@ -164,7 +162,7 @@ pub fn module_details<TucanType: Tucan + 'static>(ModuleDetailsProps { module_de
                                                 { format!("Zusatzinfo {weight_more}") }
                                             }
                                         }
-                                    }<}
+                                    }
                             }
                         })
                         .collect::<Html>()
@@ -178,7 +176,6 @@ pub fn module_details<TucanType: Tucan + 'static>(ModuleDetailsProps { module_de
                         .iter()
                         .map(|pruefung| {
                             ::yew::html! {
-                                <>
                                     h3 {
                                         { &pruefung.name }
                                         if pruefung.compulsory {
@@ -225,7 +222,7 @@ pub fn module_details<TucanType: Tucan + 'static>(ModuleDetailsProps { module_de
                                                     .collect::<Html>()
                                             }
                                         }
-                                    }<}
+                                    }
                             }
                         })
                         .collect::<Html>()
