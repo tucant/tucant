@@ -6,6 +6,18 @@ pub mod api_server;
 pub mod navbar_logged_in;
 pub mod overview;
 pub mod common;
+pub mod course_details;
+pub mod course_results;
+pub mod exam_results;
+pub mod module_details;
+pub mod my_courses;
+pub mod my_documents;
+pub mod my_exams;
+pub mod my_modules;
+pub mod my_semester_modules;
+pub mod registration;
+pub mod student_result;
+pub mod vv;
 
 use dioxus::prelude::*;
 use tucant_types::{coursedetails::CourseDetailsRequest, moduledetails::ModuleDetailsRequest, registration::AnmeldungRequest, vv::ActionRequest, SemesterId, Tucan};

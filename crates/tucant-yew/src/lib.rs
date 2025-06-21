@@ -178,33 +178,3 @@ fn switch<TucanType: Tucan + 'static>(routes: Route) -> Html {
         }
     }
 }
-
-#[derive(Properties)]
-pub struct AppProps<TucanType: Tucan + 'static> {
-    pub initial_session: Option<LoginResponse>,
-    pub tucan: RcTucanType<TucanType>,
-}
-
-impl<TucanType: Tucan + 'static> PartialEq for AppProps<TucanType> {
-    fn eq(&self, other: &Self) -> bool {
-        self.initial_session == other.initial_session && self.tucan == other.tucan
-    }
-}
-
-#[function_component(App)]
-pub fn app<TucanType: Tucan + 'static>(AppProps { initial_session, tucan }: &AppProps<TucanType>) -> HtmlResult {
-    let ctx = use_state(|| initial_session.clone());
-
-    Ok(html! {
-        <>
-            <ContextProvider<RcTucanType<TucanType>> context={tucan.clone()}>
-                <ContextProvider<UseStateHandle<Option<LoginResponse>>> context={ctx.clone()}>
-                    <HashRouter>
-                        <Navbar<TucanType> />
-                        <Switch<Route> render={switch::<TucanType>} />
-                    </HashRouter>
-                </ContextProvider<UseStateHandle<Option<LoginResponse>>>>
-            </ContextProvider<RcTucanType<TucanType>>>
-        </>
-    })
-}
