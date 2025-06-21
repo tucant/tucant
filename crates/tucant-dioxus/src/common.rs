@@ -28,17 +28,17 @@ fn use_data_loader<I: Clone + PartialEq + 'static, O: Clone + 'static>(authentic
         let current_session_handle = current_session_handle.clone();
         let tucan = tucan.clone();
         let request = request.clone();
-        use_effect( move || {
-            if authentication_required && current_session_handle().is_none() {
-                data.set(Err("Not logged in".to_owned()));
-                return;
-            }
-            loading.set(true);
+        let _ =  use_resource( move || {
             let request = request.clone();
             let mut data = data.clone();
             let tucan = tucan.clone();
             let mut current_session_handle = current_session_handle.to_owned();
-            spawn(async move {
+            async move {
+                if authentication_required && current_session_handle().is_none() {
+                    data.set(Err("Not logged in".to_owned()));
+                    return;
+                }
+                loading.set(true);
                 match handler(tucan.clone(), current_session_handle(), RevalidationStrategy { max_age: cache_age_seconds, invalidate_dependents: Some(true) }, request()).await {
                     Ok(response) => {
                         data.set(Ok(Some(response)));
@@ -68,7 +68,7 @@ fn use_data_loader<I: Clone + PartialEq + 'static, O: Clone + 'static>(authentic
                         loading.set(false);
                     }
                 }
-            });
+            }
         });
     }
 
