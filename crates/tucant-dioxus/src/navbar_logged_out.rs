@@ -3,14 +3,14 @@ use dioxus::prelude::*;
 
 use crate::Route;
 
-
+#[component]
 pub fn NavbarLoggedOut() -> Element {
     rsx! {
             li { class: "nav-item",
                 a {
                     class: "nav-link",
                     href:"https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N000000000000001,-N000344,-Awelcome",
-                    { "Startseite" }
+                    "Startseite",
                 }
             }
             li { class: "nav-item dropdown",

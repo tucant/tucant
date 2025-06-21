@@ -7,7 +7,7 @@
         "editor.formatOnSave": false
     },
     "terminal.integrated.scrollback": 100000,
-    //"rust-analyzer.cargo.target": "wasm32-unknown-unknown",
+    "rust-analyzer.cargo.target": "wasm32-unknown-unknown",
     "rust-analyzer.cargo.features": [
         //"authenticated_tests",
     ],
