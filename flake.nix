@@ -104,10 +104,8 @@
           (craneNightlyLib.fileset.commonCargoSources ./crates/tucan-connector)
           (craneNightlyLib.fileset.commonCargoSources ./crates/tucant-dioxus)
           (craneNightlyLib.fileset.commonCargoSources ./crates/html-handler)
-          ./tucant-extension/bootstrap.bundle.min.js
-          ./tucant-extension/bootstrap.min.css
-          ./tucant-extension/helper.js
-          ./tucant-extension/open-in-tucan.js
+          ./crates/tucant-dioxus/assets/bootstrap.min.css
+          ./crates/tucant-dioxus/assets/bootstrap.bundle.min.js
         ];
 
         wasmArgs = commonArgs // {
@@ -124,16 +122,11 @@
           doCheck = false;
         });
 
-        client = craneNightlyLib.buildTrunkPackage (wasmArgs // {
-          trunkExtraBuildArgs = "--features direct --public-url /dist";
+        client = craneNightlyLib.buildPackage (wasmArgs // {
           pname = "tucant-workspace-tucant-dioxus";
           cargoArtifacts = cargoArtifactsWasm;
           preBuild = ''
             cd ./crates/tucant-dioxus
-          '';
-          postBuild = ''
-            mv ./dist ..
-            cd ..
           '';
           wasm-bindgen-cli = pkgs.wasm-bindgen-cli_0_2_100;
         });
@@ -313,7 +306,6 @@
           '';
 
           packages = [
-            pkgs.trunk
             rustfmt
             pkgs.bashInteractive
             pkgs.diffoscope
