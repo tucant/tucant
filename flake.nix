@@ -24,10 +24,10 @@
 
         inherit (pkgs) lib;
 
-        rustToolchainFor = p: p.rust-bin.stable.latest.minimal.override {
+        rustToolchainFor = p: p.rust-bin.selectLatestNightlyWith (toolchain: toolchain.default.override {
           targets = [ "wasm32-unknown-unknown" ];
           extensions = [ "rustfmt" ];
-        };
+        });
         craneLib = (crane.mkLib pkgs).overrideToolchain rustToolchainFor;
 
         commonArgs = {

@@ -5,6 +5,7 @@ use log::warn;
 use tucant_dioxus::{RcTucanType, Route, navbar::Navbar};
 use tucant_types::{DynTucan, LoginRequest, LoginResponse, Tucan};
 use wasm_bindgen::prelude::*;
+use web_sys::*;
 
 const BOOTSTRAP_CSS: Asset = asset!("/assets/bootstrap.min.css");
 const BOOTSTRAP_JS: Asset = asset!("/assets/bootstrap.bundle.min.js");
