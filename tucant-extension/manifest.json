@@ -80,7 +80,7 @@
     "web_accessible_resources": [
         {
             "resources": [
-                "dist/index.html"
+                "public/index.html"
             ],
             "matches": [
                 "<all_urls>"
@@ -88,7 +88,7 @@
         },
         {
             "resources": [
-                "dist/*.wasm"
+                "public/*.wasm"
             ],
             "extension_ids": [
                 "*"
