@@ -47,29 +47,30 @@ async fn main() {
     if js_sys::Reflect::get(&js_sys::global(), &wasm_bindgen::JsValue::from_str("chrome")).is_ok() {
         use std::sync::{Arc, Mutex};
 
-        let login_response = tucant_dioxus::direct_login_response().await;
-        let connector = Arc::new(Mutex::new(DynTucan::new_box(tucan_connector::TucanConnector::new().await.unwrap())));
+        use dioxus::web::Config;
 
-        dioxus::LaunchBuilder::new()
-            .with_context_provider(move || Box::new(login_response.clone()))
-            .with_context(connector)
-            .launch(App);
+        let login_response = tucant_dioxus::direct_login_response().await;
+        let connector = DynTucan::new_rc(tucan_connector::TucanConnector::new().await.unwrap());
+
+        let vdom = VirtualDom::new_with_props(App, AppProps { login_response, connector });
+        dioxus::web::launch::launch_virtual_dom(vdom, Config::new());
     }
     #[cfg(feature = "api")]
     {
-        let login_response = tucant_dioxus::api_login_response().await;
+        use dioxus::web::Config;
 
-        dioxus::LaunchBuilder::new()
-            .with_context_provider(move || Box::new(login_response.clone()))
-            .with_context_provider(|| Box::new(DynTucan::new_rc(tucant_dioxus::api_server::ApiServerTucan::new())))
-            .launch(App);
+        let login_response = tucant_dioxus::api_login_response().await;
+        let connector = DynTucan::new_rc(tucant_dioxus::api_server::ApiServerTucan::new());
+
+        let vdom = VirtualDom::new_with_props(App, AppProps { login_response, connector });
+        dioxus::web::launch::launch_virtual_dom(vdom, Config::new());
     }
     #[cfg(not(any(feature = "direct", feature = "api")))]
     panic!("must activate at least feature `direct` or `api`");
 }
 
 #[component]
-fn App() -> Element {
+fn App(login_response: Option<LoginResponse>, connector: Rc<DynTucan<'static>>) -> Element {
     let session = use_context::<Option<LoginResponse>>();
     let mut session = use_signal(|| session);
     provide_context(session);

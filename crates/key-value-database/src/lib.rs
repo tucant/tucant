@@ -3,7 +3,7 @@ use std::sync::{Arc, Mutex};
 
 pub struct Database {
     #[cfg(target_arch = "wasm32")]
-    database: Arc<Mutex<indexed_db::Database<std::io::Error>>>,
+    database: indexed_db::Database<std::io::Error>,
     #[cfg(not(target_arch = "wasm32"))]
     database: sqlx::Pool<sqlx::Sqlite>,
 }
@@ -26,7 +26,7 @@ impl Database {
                 .await
                 .unwrap();
 
-            Database { database: Arc::new(Mutex::new(database)) }
+            Self { database }
         }
         #[cfg(not(target_arch = "wasm32"))]
         {
