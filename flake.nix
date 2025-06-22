@@ -24,13 +24,22 @@
 
         inherit (pkgs) lib;
 
-        rustNightlyToolchainFor = p: p.rust-bin.nightly."2025-04-02".minimal.override {
-          extensions = [ "rust-docs" "clippy" "rust-src" "rustc-dev" "llvm-tools-preview" ];
+        rustToolchainFor = p: p.rust-bin.stable.latest.minimal.override {
           targets = [ "wasm32-unknown-unknown" ];
         };
-        craneNightlyLib = (crane.mkLib pkgs).overrideToolchain rustNightlyToolchainFor;
+        craneLib = (crane.mkLib pkgs).overrideToolchain rustToolchainFor;
 
         commonArgs = {
+          strictDeps = true;
+        };
+
+        dioxus-cli = craneLib.buildPackage {
+          src = pkgs.fetchFromGitHub {
+            owner = "mohe2015";
+            repo = "dioxus";
+            rev = "f8e7c38af8e214683252e5b4f12c062f7cf017bb";
+            hash = "sha256-rO5wdigjsN4DOuM+3fo9rK24hLkKfpClBZC0eEAdBh0=";
+          };
           strictDeps = true;
         };
 
@@ -38,7 +47,7 @@
           src = lib.fileset.toSource {
             root = ./.;
             fileset = lib.fileset.unions [
-              (craneNightlyLib.fileset.commonCargoSources ./crates)
+              (craneLib.fileset.commonCargoSources ./crates)
               ./Cargo.toml
               ./Cargo.lock
               (lib.fileset.fileFilter
@@ -53,16 +62,16 @@
           pname = "tucant-workspace-native";
         };
 
-        cargoArtifacts = craneNightlyLib.buildDepsOnly nativeArgs;
+        cargoArtifacts = craneLib.buildDepsOnly nativeArgs;
 
-        tests = craneNightlyLib.buildPackage (commonArgs // {
+        tests = craneLib.buildPackage (commonArgs // {
           pname = "tucant-workspace-native-tests";
           src = lib.fileset.toSource {
             root = ./.;
             fileset = lib.fileset.unions [
               ./Cargo.toml
               ./Cargo.lock
-              (craneNightlyLib.fileset.commonCargoSources ./crates/tucant-tests)
+              (craneLib.fileset.commonCargoSources ./crates/tucant-tests)
             ];
           };
           cargoTestExtraArgs = "--no-run";
@@ -70,19 +79,19 @@
           inherit cargoArtifacts;
         });
 
-        api = craneNightlyLib.buildPackage (commonArgs // {
+        api = craneLib.buildPackage (commonArgs // {
           pname = "tucant-workspace-native-api";
           src = lib.fileset.toSource {
             root = ./.;
             fileset = lib.fileset.unions [
               ./Cargo.toml
               ./Cargo.lock
-              (craneNightlyLib.fileset.commonCargoSources ./crates/tucant-types)
-              (craneNightlyLib.fileset.commonCargoSources ./crates/key-value-database)
-              (craneNightlyLib.fileset.commonCargoSources ./crates/html-extractor)
-              (craneNightlyLib.fileset.commonCargoSources ./crates/tucan-connector)
-              (craneNightlyLib.fileset.commonCargoSources ./crates/tucant-api)
-              (craneNightlyLib.fileset.commonCargoSources ./crates/html-handler)
+              (craneLib.fileset.commonCargoSources ./crates/tucant-types)
+              (craneLib.fileset.commonCargoSources ./crates/key-value-database)
+              (craneLib.fileset.commonCargoSources ./crates/html-extractor)
+              (craneLib.fileset.commonCargoSources ./crates/tucan-connector)
+              (craneLib.fileset.commonCargoSources ./crates/tucant-api)
+              (craneLib.fileset.commonCargoSources ./crates/html-handler)
             ];
           };
           cargoTestExtraArgs = "--no-run";
@@ -98,12 +107,12 @@
         fileset-wasm = lib.fileset.unions [
           ./Cargo.toml
           ./Cargo.lock
-          (craneNightlyLib.fileset.commonCargoSources ./crates/tucant-types)
-          (craneNightlyLib.fileset.commonCargoSources ./crates/key-value-database)
-          (craneNightlyLib.fileset.commonCargoSources ./crates/html-extractor)
-          (craneNightlyLib.fileset.commonCargoSources ./crates/tucan-connector)
-          (craneNightlyLib.fileset.commonCargoSources ./crates/tucant-dioxus)
-          (craneNightlyLib.fileset.commonCargoSources ./crates/html-handler)
+          (craneLib.fileset.commonCargoSources ./crates/tucant-types)
+          (craneLib.fileset.commonCargoSources ./crates/key-value-database)
+          (craneLib.fileset.commonCargoSources ./crates/html-extractor)
+          (craneLib.fileset.commonCargoSources ./crates/tucan-connector)
+          (craneLib.fileset.commonCargoSources ./crates/tucant-dioxus)
+          (craneLib.fileset.commonCargoSources ./crates/html-handler)
           ./crates/tucant-dioxus/assets/bootstrap.min.css
           ./crates/tucant-dioxus/assets/bootstrap.bundle.min.js
         ];
@@ -118,11 +127,11 @@
           CARGO_BUILD_TARGET = "wasm32-unknown-unknown";
         };
 
-        cargoArtifactsWasm = craneNightlyLib.buildDepsOnly (wasmArgs // {
+        cargoArtifactsWasm = craneLib.buildDepsOnly (wasmArgs // {
           doCheck = false;
         });
 
-        client = craneNightlyLib.buildPackage (wasmArgs // {
+        client = craneLib.buildPackage (wasmArgs // {
           pname = "tucant-workspace-tucant-dioxus";
           cargoArtifacts = cargoArtifactsWasm;
           preBuild = ''
@@ -130,6 +139,8 @@
           '';
           wasm-bindgen-cli = pkgs.wasm-bindgen-cli_0_2_100;
         });
+        
+
 
         fileset-extension = lib.fileset.unions [
           ./tucant-extension/background.js
@@ -196,31 +207,18 @@
         source-unpacked = pkgs.runCommand "tucant-extension-source.zip" { } ''
           cp -r ${source-with-build-instructions} $out
         '';
-
-        rustfmt = craneNightlyLib.buildPackage {
-          pname = "rustfmt";
-          doNotRemoveReferencesToRustToolchain = true;
-          src = pkgs.fetchFromGitHub {
-            owner = "tucant";
-            repo = "rustfmt";
-            rev = "a385d03d387388bbd645a498fa946c9ff203e4dd";
-            hash = "sha256-Zii39Um2aeiV0lnVrDTzDplRnJqJdcKFljFuI1ur/as=";
-          };
-          doCheck = false;
-        };
       in
       {
         checks = {
           inherit api schema client;
 
           # todo also clippy the frontend
-          my-app-clippy = craneNightlyLib.cargoClippy (nativeArgs // {
+          my-app-clippy = craneLib.cargoClippy (nativeArgs // {
             inherit cargoArtifacts;
             cargoClippyExtraArgs = "--all-targets -- --deny warnings";
           });
 
-          my-app-fmt = craneNightlyLib.cargoFmt.override { rustfmt = rustfmt; } (nativeArgs // {
-            RUSTFMT = "${rustfmt}/bin/rustfmt";
+          my-app-fmt = craneLib.cargoFmt (nativeArgs // {
             src = source-with-build-instructions;
           });
         };
@@ -233,7 +231,7 @@
         packages.extension-unpacked = extension-unpacked;
         packages.extension-source = source;
         packages.extension-source-unpacked = source-unpacked;
-        packages.rustfmt = rustfmt;
+        packages.dioxus-cli = dioxus-cli;
 
         apps.server = flake-utils.lib.mkApp {
           name = "server";
@@ -306,7 +304,6 @@
           '';
 
           packages = [
-            rustfmt
             pkgs.bashInteractive
             pkgs.diffoscope
             pkgs.bacon
