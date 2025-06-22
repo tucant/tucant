@@ -138,7 +138,10 @@
             export HOME=$(mktemp -d)
             ${dioxus-cli}/bin/dx bundle --out-dir $out --base-path public --features direct
           '';
+          installPhaseCommand = ''
+          '';
           nativeBuildInputs = [ pkgs.wasm-bindgen-cli_0_2_100 ];
+          doNotPostBuildInstallCargoBinaries = true;
         });
 
         fileset-extension = lib.fileset.unions [
