@@ -6,7 +6,7 @@ import { asyncClosure } from "./utils.js";
     })
 });
 
-const EXT_PAGE_INDEX_HTML = chrome.runtime.getURL('/dist/index.html');
+const EXT_PAGE_INDEX_HTML = chrome.runtime.getURL('/public/index.html');
 
 /** @type {HTMLElement} */ (document.querySelector('#open-custom-ui')).addEventListener('click', function () {
     asyncClosure(async () => {

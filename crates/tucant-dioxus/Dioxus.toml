@@ -1,0 +1,24 @@
+[application]
+
+[web.app]
+
+# HTML title tag content
+title = "tucant-dioxus"
+
+# include `assets` in web platform
+[web.resource]
+
+# Additional CSS style files
+style = []
+
+# Additional JavaScript files
+script = []
+
+[web.resource.dev]
+
+# Javascript code file
+# serve: [dev-server] only
+script = []
+
+[[web.proxy]]
+backend = "http://127.0.0.1:3000/api/"

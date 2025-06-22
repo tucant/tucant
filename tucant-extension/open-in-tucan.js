@@ -1,4 +1,4 @@
-const EXT_PAGE_INDEX_HTML = chrome.runtime.getURL('/dist/index.html');
+const EXT_PAGE_INDEX_HTML = chrome.runtime.getURL('/public/index.html');
 
 export async function getCurrentTab() {
     let queryOptions = { active: true, lastFocusedWindow: true };

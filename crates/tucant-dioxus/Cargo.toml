@@ -1,0 +1,31 @@
+[package]
+name = "tucant-dioxus"
+version = "0.1.0"
+authors = ["Moritz Hedtke <Moritz.Hedtke@t-online.de>"]
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+dioxus = { git = "https://github.com/mohe2015/dioxus.git", branch = "hash-history", features = ["router"] }
+tucant-types = { path = "../tucant-types" }
+log = { version = "0.4", features = ["max_level_debug", "release_max_level_warn"] }
+reqwest = { version = "0.12.9", default-features = false, features = ["rustls-tls", "http2", "charset", "json"] }
+wasm-bindgen-futures = "0.4"
+serde_json = "1"
+url = "2"
+console_log = { version = "1", features = ["color"] }
+js-sys = "0.3"
+wasm-bindgen = "0.2"
+web-sys = { version = "0.3", features = ["Document", "Window", "HtmlDocument", "NodeList", "HtmlSelectElement"] }
+cookie = "0.18"
+web-extensions-sys = { optional = true, git = "https://github.com/mohe2015/web-extensions-sys", branch = "cookies" }
+tucan-connector = { optional = true, path = "../tucan-connector" }
+
+[features]
+direct = ["dep:tucan-connector", "dep:web-extensions-sys"]
+api = []
+default = ["web"]
+web = ["dioxus/web"]
+desktop = ["dioxus/desktop"]
+mobile = ["dioxus/mobile"]

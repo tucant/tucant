@@ -1,3 +1,6 @@
+#[cfg(target_arch = "wasm32")]
+use std::sync::{Arc, Mutex};
+
 pub struct Database {
     #[cfg(target_arch = "wasm32")]
     database: indexed_db::Database<std::io::Error>,
@@ -23,7 +26,7 @@ impl Database {
                 .await
                 .unwrap();
 
-            Database { database }
+            Self { database }
         }
         #[cfg(not(target_arch = "wasm32"))]
         {

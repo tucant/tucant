@@ -49,21 +49,22 @@ cargo +nightly-2025-04-02 fmt
 ### Running as local webserver
 
 ```bash
-cd crates/tucant-yew/
-mkdir ../../tucant-extension/dist
-trunk serve --features api
+cargo +nightly install --git https://github.com/mohe2015/dioxus --branch hash-history dioxus-cli --locked
+
+cd crates/tucant-dioxus/
+dx serve --hotpatch
 
 # in second tab
 bacon tucant-api
 
-# http://localhost:1420/#/
+# http://localhost:8080/#/
 ```
 
 ### Developing the extension
 
 ```
 cd tucant-extension/
-./watch.sh
+dx bundle --out-dir ../../tucant-extension/ --base-path public --features direct
 ```
 
 Go to Firefox Extensions, click settings, debug addons. Then click load temporary add-on and select ./tucant-extension/manifest.json
