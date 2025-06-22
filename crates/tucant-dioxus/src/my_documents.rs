@@ -4,11 +4,11 @@ use tucant_types::{DynTucan, Tucan};
 use dioxus::prelude::*;
 
 use crate::{
-    common::use_authenticated_data_loader};
+    common::use_authenticated_data_loader, RcTucanType};
 
 #[component]
 pub fn MyDocuments() -> Element {
-    let handler = async |tucan: Rc<DynTucan>, current_session, revalidation_strategy, _additional| tucan.my_documents(&current_session, revalidation_strategy).await;
+    let handler = async |tucan: RcTucanType, current_session, revalidation_strategy, _additional| tucan.my_documents(&current_session, revalidation_strategy).await;
 
     use_authenticated_data_loader(handler, ReadOnlySignal::new(Signal::new(())), 14 * 24 * 60 * 60, 60 * 60, |documents, reload| {
         rsx! {

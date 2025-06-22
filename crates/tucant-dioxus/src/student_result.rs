@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use crate::{Route, common::use_authenticated_data_loader};
+use crate::{common::use_authenticated_data_loader, RcTucanType, Route};
 use tucant_types::{
     student_result::{StudentResultLevel, StudentResultResponse}, DynTucan, LoginResponse, Tucan
 };
@@ -9,7 +9,7 @@ use dioxus::prelude::*;
 
 #[component]
 pub fn StudentResult(course_of_study: ReadOnlySignal<String>) -> Element {
-    let handler = async |tucan: Rc<DynTucan>, current_session, revalidation_strategy, additional| tucan.student_result(&current_session, revalidation_strategy, additional).await;
+    let handler = async |tucan: RcTucanType, current_session, revalidation_strategy, additional| tucan.student_result(&current_session, revalidation_strategy, additional).await;
 
     let navigator = use_navigator();
 

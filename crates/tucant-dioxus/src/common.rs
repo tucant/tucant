@@ -5,19 +5,21 @@ use std::rc::Rc;
 use tucant_types::{DynTucan, Tucan};
 use tucant_types::{LoginResponse, RevalidationStrategy, TucanError};
 
+use crate::RcTucanType;
 
-pub fn use_authenticated_data_loader<I: Clone + PartialEq + 'static, O: Clone + 'static>(handler: impl AsyncFn(Rc<DynTucan>, LoginResponse, RevalidationStrategy, I) -> Result<O, TucanError> + Copy + 'static, request: ReadOnlySignal<I>, cache_age_seconds: i64, max_stale_age_seconds: i64, render: impl Fn(O, Callback<MouseEvent>) -> Element) -> Element {
-    use_data_loader(true, async move |tucan: Rc<DynTucan>, current_session: Option<LoginResponse>, revalidation_strategy, additional| handler(tucan, current_session.unwrap(), revalidation_strategy, additional).await, request, cache_age_seconds, max_stale_age_seconds, render)
+
+pub fn use_authenticated_data_loader<I: Clone + PartialEq + 'static, O: Clone + 'static>(handler: impl AsyncFn(RcTucanType, LoginResponse, RevalidationStrategy, I) -> Result<O, TucanError> + Copy + 'static, request: ReadOnlySignal<I>, cache_age_seconds: i64, max_stale_age_seconds: i64, render: impl Fn(O, Callback<MouseEvent>) -> Element) -> Element {
+    use_data_loader(true, async move |tucan: RcTucanType, current_session: Option<LoginResponse>, revalidation_strategy, additional| handler(tucan, current_session.unwrap(), revalidation_strategy, additional).await, request, cache_age_seconds, max_stale_age_seconds, render)
 }
 
-pub fn use_unauthenticated_data_loader<I: Clone + PartialEq + 'static, O: Clone + 'static>(handler: impl AsyncFn(Rc<DynTucan>, Option<LoginResponse>, RevalidationStrategy, I) -> Result<O, TucanError> + Copy + 'static, request: ReadOnlySignal<I>, cache_age_seconds: i64, max_stale_age_seconds: i64, render: impl Fn(O, Callback<MouseEvent>) -> Element) -> Element {
+pub fn use_unauthenticated_data_loader<I: Clone + PartialEq + 'static, O: Clone + 'static>(handler: impl AsyncFn(RcTucanType, Option<LoginResponse>, RevalidationStrategy, I) -> Result<O, TucanError> + Copy + 'static, request: ReadOnlySignal<I>, cache_age_seconds: i64, max_stale_age_seconds: i64, render: impl Fn(O, Callback<MouseEvent>) -> Element) -> Element {
     use_data_loader(false, handler, request, cache_age_seconds, max_stale_age_seconds, render)
 }
 
-fn use_data_loader<I: Clone + PartialEq + 'static, O: Clone + 'static>(authentication_required: bool, handler: impl AsyncFn(Rc<DynTucan>, Option<LoginResponse>, RevalidationStrategy, I) -> Result<O, TucanError> + Copy + 'static, request: ReadOnlySignal<I>, cache_age_seconds: i64, max_stale_age_seconds: i64, render: impl Fn(O, Callback<MouseEvent>) -> Element) -> Element {
+fn use_data_loader<I: Clone + PartialEq + 'static, O: Clone + 'static>(authentication_required: bool, handler: impl AsyncFn(RcTucanType, Option<LoginResponse>, RevalidationStrategy, I) -> Result<O, TucanError> + Copy + 'static, request: ReadOnlySignal<I>, cache_age_seconds: i64, max_stale_age_seconds: i64, render: impl Fn(O, Callback<MouseEvent>) -> Element) -> Element {
     use reqwest::StatusCode;
 
-    let tucan: Rc<DynTucan> = use_context();
+    let tucan: RcTucanType = use_context();
 
     let data = use_signal(|| Ok(None));
     let loading = use_signal(|| false);

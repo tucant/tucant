@@ -3,9 +3,11 @@ use std::rc::Rc;
 use dioxus::prelude::*;
 use tucant_types::{DynTucan, LoginResponse, Tucan};
 
+use crate::RcTucanType;
+
 #[component]
 pub fn LogoutComponent() -> Element {
-    let tucan: Rc<DynTucan> = use_context();
+    let tucan: RcTucanType = use_context();
 
     let current_session_handle = use_context::<Signal<Option<LoginResponse>>>();
 

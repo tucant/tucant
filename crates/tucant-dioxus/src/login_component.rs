@@ -3,9 +3,11 @@ use std::rc::Rc;
 use dioxus::prelude::*;
 use tucant_types::{DynTucan, LoginRequest, LoginResponse, Tucan};
 
+use crate::RcTucanType;
+
 #[component]
 pub fn LoginComponent() -> Element {
-    let tucan: Rc<DynTucan> = use_context();
+    let tucan: RcTucanType = use_context();
 
     let mut username = use_signal(|| "".to_string());
     let mut password = use_signal(|| "".to_string());

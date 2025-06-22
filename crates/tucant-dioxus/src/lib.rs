@@ -20,7 +20,11 @@ pub mod student_result;
 pub mod vv;
 pub mod logout_component;
 
+use std::ops::Deref;
+use std::rc::Rc;
+
 use dioxus::prelude::*;
+use tucant_types::DynTucan;
 use tucant_types::{coursedetails::CourseDetailsRequest, moduledetails::ModuleDetailsRequest, registration::AnmeldungRequest, vv::ActionRequest, SemesterId, Tucan};
 
 use crate::navbar::Navbar;
@@ -159,5 +163,27 @@ pub fn Root() -> Element {
                 { "." }
             }
         }
+    }
+}
+
+pub struct RcTucanType(pub Rc<DynTucan<'static>>);
+
+impl Clone for RcTucanType {
+    fn clone(&self) -> Self {
+        Self(self.0.clone())
+    }
+}
+
+impl PartialEq for RcTucanType {
+    fn eq(&self, other: &RcTucanType) -> bool {
+        Rc::ptr_eq(&self.0, &other.0)
+    }
+}
+
+impl Deref for RcTucanType {
+    type Target = Rc<DynTucan<'static>>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
     }
 }

@@ -9,12 +9,12 @@ use dioxus::prelude::*;
 
 
 use crate::{
-    Route, common::use_authenticated_data_loader};
+    common::use_authenticated_data_loader, RcTucanType, Route};
 
 
 #[component]
 pub fn MySemesterModules(semester: ReadOnlySignal<SemesterId>) -> Element {
-    let handler = async |tucan: Rc<DynTucan>, current_session, revalidation_strategy: RevalidationStrategy, additional: SemesterId| {
+    let handler = async |tucan: RcTucanType, current_session, revalidation_strategy: RevalidationStrategy, additional: SemesterId| {
         let first = tucan.my_modules(&current_session, revalidation_strategy, additional.clone()).await?;
         let after = first.semester.iter().skip_while(|e| !e.selected).skip(1).next();
         warn!("after {additional} comes {after:?}");

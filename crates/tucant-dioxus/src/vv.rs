@@ -3,11 +3,11 @@ use std::rc::Rc;
 use tucant_types::{vv::ActionRequest, DynTucan, Tucan};
 use dioxus::prelude::*;
 
-use crate::{Route, common::use_unauthenticated_data_loader};
+use crate::{common::use_unauthenticated_data_loader, RcTucanType, Route};
 
 #[component]
 pub fn Vorlesungsverzeichnis(vv: ReadOnlySignal<ActionRequest>) -> Element {
-    let handler = async |tucan: Rc<DynTucan>, current_session: Option<tucant_types::LoginResponse>, revalidation_strategy, additional| tucan.vv(current_session.as_ref(), revalidation_strategy, additional).await;
+    let handler = async |tucan: RcTucanType, current_session: Option<tucant_types::LoginResponse>, revalidation_strategy, additional| tucan.vv(current_session.as_ref(), revalidation_strategy, additional).await;
 
     use_unauthenticated_data_loader(handler, vv.to_owned(), 28 * 24 * 60 * 60, 24 * 60 * 60, |data, reload| {
         rsx! {

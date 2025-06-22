@@ -2,26 +2,12 @@ use std::{panic, rc::Rc};
 
 use dioxus::prelude::*;
 use log::warn;
-use tucant_dioxus::{navbar::Navbar, Route};
+use tucant_dioxus::{navbar::Navbar, RcTucanType, Route};
 use tucant_types::{DynTucan, LoginRequest, LoginResponse, Tucan};
 use wasm_bindgen::prelude::*;
 
 const BOOTSTRAP_CSS: Asset = asset!("/assets/bootstrap.min.css");
 const BOOTSTRAP_JS: Asset = asset!("/assets/bootstrap.bundle.min.js");
-
-pub struct RcTucanType(pub Rc<DynTucan<'static>>);
-
-impl Clone for RcTucanType {
-    fn clone(&self) -> Self {
-        Self(self.0.clone())
-    }
-}
-
-impl PartialEq for RcTucanType {
-    fn eq(&self, other: &RcTucanType) -> bool {
-        Rc::ptr_eq(&self.0, &other.0)
-    }
-}
 
 #[wasm_bindgen]
 extern "C" {
@@ -85,9 +71,9 @@ async fn main() {
 
 #[component]
 fn App(login_response: Option<LoginResponse>, connector: RcTucanType) -> Element {
-    let session = use_context::<Option<LoginResponse>>();
-    let mut session = use_signal(|| session);
+    let mut session = use_signal(|| login_response);
     provide_context(session);
+    provide_context(connector);
 
     rsx! {
         document::Link { rel: "stylesheet", href: BOOTSTRAP_CSS }

@@ -6,12 +6,12 @@ use dioxus::prelude::*;
 
 
 use crate::{
-    Route, common::use_authenticated_data_loader};
+    common::use_authenticated_data_loader, RcTucanType, Route};
 
 
 #[component]
 pub fn MyExams(semester: ReadOnlySignal<SemesterId>) -> Element {
-    let handler = async |tucan: Rc<DynTucan>, current_session, revalidation_strategy, additional| tucan.my_exams(&current_session, revalidation_strategy, additional).await;
+    let handler = async |tucan: RcTucanType, current_session, revalidation_strategy, additional| tucan.my_exams(&current_session, revalidation_strategy, additional).await;
 
     let navigator = use_navigator();
 

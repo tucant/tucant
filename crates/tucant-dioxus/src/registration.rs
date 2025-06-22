@@ -5,11 +5,11 @@ use tucant_types::{
 };
 use dioxus::prelude::*;
 
-use crate::{Route, common::use_authenticated_data_loader};
+use crate::{common::use_authenticated_data_loader, RcTucanType, Route};
 
 #[component]
 pub fn Registration(registration: ReadOnlySignal<AnmeldungRequest>) -> Element {
-    let handler = async |tucan: Rc<DynTucan>, current_session, revalidation_strategy, additional| tucan.anmeldung(current_session, revalidation_strategy, additional).await;
+    let handler = async |tucan: RcTucanType, current_session, revalidation_strategy, additional| tucan.anmeldung(current_session, revalidation_strategy, additional).await;
 
     let navigator = use_navigator();
 
