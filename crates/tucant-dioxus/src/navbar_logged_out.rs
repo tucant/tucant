@@ -1,5 +1,5 @@
-use tucant_types::vv::ActionRequest;
 use dioxus::prelude::*;
+use tucant_types::vv::ActionRequest;
 
 use crate::Route;
 
@@ -15,7 +15,7 @@ pub fn NavbarLoggedOut() -> Element {
             }
             li { class: "nav-item dropdown",
                 a { class: "nav-link dropdown-toggle", href:"#", role:"button", "data-bs-toggle": "dropdown", "aria-expanded": "false",
-                    "VV" 
+                    "VV"
                 }
                 ul { class:"dropdown-menu",
                     li {

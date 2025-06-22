@@ -1,12 +1,10 @@
 use std::{rc::Rc, str::FromStr};
 
-use tucant_types::{examresults::ExamResultsResponse, DynTucan, SemesterId, Tucan};
-use web_sys::HtmlSelectElement;
 use dioxus::prelude::*;
+use tucant_types::{DynTucan, SemesterId, Tucan, examresults::ExamResultsResponse};
+use web_sys::HtmlSelectElement;
 
-
-use crate::{common::use_authenticated_data_loader, RcTucanType, Route};
-
+use crate::{RcTucanType, Route, common::use_authenticated_data_loader};
 
 #[component]
 pub fn ExamResults(semester: ReadOnlySignal<SemesterId>) -> Element {
@@ -50,7 +48,7 @@ pub fn ExamResults(semester: ReadOnlySignal<SemesterId>) -> Element {
                                     }
                                 }
                             })
-                            
+
                     }
                 }
                 table { class: "table",
@@ -103,7 +101,7 @@ pub fn ExamResults(semester: ReadOnlySignal<SemesterId>) -> Element {
                                         }
                                     }
                                 })
-                                
+
                         }
                     }
                 }

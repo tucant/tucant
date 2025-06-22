@@ -1,10 +1,9 @@
 use std::rc::Rc;
 
-use tucant_types::{DynTucan, Tucan};
 use dioxus::prelude::*;
+use tucant_types::{DynTucan, Tucan};
 
-use crate::{
-    common::use_authenticated_data_loader, RcTucanType};
+use crate::{RcTucanType, common::use_authenticated_data_loader};
 
 #[component]
 pub fn MyDocuments() -> Element {
@@ -65,7 +64,7 @@ pub fn MyDocuments() -> Element {
                                         }
                                     }
                                 })
-                                
+
                         }
                     }
                 }

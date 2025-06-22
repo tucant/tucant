@@ -1,9 +1,9 @@
 use std::rc::Rc;
 
-use tucant_types::{mlsstart::MlsStart, DynTucan, Tucan};
 use dioxus::prelude::*;
+use tucant_types::{DynTucan, Tucan, mlsstart::MlsStart};
 
-use crate::{common::use_authenticated_data_loader, RcTucanType, Route};
+use crate::{RcTucanType, Route, common::use_authenticated_data_loader};
 
 #[component]
 pub fn Overview() -> Element {

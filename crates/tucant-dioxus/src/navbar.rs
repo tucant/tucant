@@ -1,11 +1,11 @@
 use std::{ops::Deref, rc::Rc};
 
+use dioxus::prelude::*;
 use log::error;
 use reqwest::StatusCode;
 use tucant_types::{DynTucan, LoginResponse, RevalidationStrategy, Tucan, TucanError};
-use dioxus::prelude::*;
 
-use crate::{login_component::LoginComponent, logout_component::LogoutComponent, navbar_logged_in::NavbarLoggedIn, navbar_logged_out::NavbarLoggedOut, RcTucanType, Route};
+use crate::{RcTucanType, Route, login_component::LoginComponent, logout_component::LogoutComponent, navbar_logged_in::NavbarLoggedIn, navbar_logged_out::NavbarLoggedOut};
 
 //use crate::{LoginComponent, LogoutComponent, RcTucanType, navbar_logged_in::NavbarLoggedIn, navbar_logged_out::NavbarLoggedOut};
 
@@ -16,38 +16,39 @@ pub fn Navbar() -> Element {
     let tucan: RcTucanType = use_context();
 
     let mut current_session = use_context::<Signal<Option<LoginResponse>>>();
-    
+
     let data = use_resource(move || {
         let tucan = tucan.clone();
         async move {
-        if let Some(the_current_session) = current_session() {
-            match tucan.after_login(&the_current_session, RevalidationStrategy::cache()).await {
-                Ok(response) => {
-                    return Ok(Some(response));
-                }
-                Err(error) => {
-                    // TODO pass through tucanerror from server
-                    error!("{}", error);
-                    match error {
-                        TucanError::Http(ref req) if req.status() == Some(StatusCode::UNAUTHORIZED) => {
-                            current_session.set(None);
-                            return Err("Unauthorized".to_owned())
-                        }
-                        TucanError::Timeout | TucanError::AccessDenied => {
-                            current_session.set(None);
-                            return Ok(None); // TODO FIXME
-                        }
-                        _ => {
-                            return Err(error.to_string());
+            if let Some(the_current_session) = current_session() {
+                match tucan.after_login(&the_current_session, RevalidationStrategy::cache()).await {
+                    Ok(response) => {
+                        return Ok(Some(response));
+                    }
+                    Err(error) => {
+                        // TODO pass through tucanerror from server
+                        error!("{}", error);
+                        match error {
+                            TucanError::Http(ref req) if req.status() == Some(StatusCode::UNAUTHORIZED) => {
+                                current_session.set(None);
+                                return Err("Unauthorized".to_owned());
+                            }
+                            TucanError::Timeout | TucanError::AccessDenied => {
+                                current_session.set(None);
+                                return Ok(None); // TODO FIXME
+                            }
+                            _ => {
+                                return Err(error.to_string());
+                            }
                         }
                     }
                 }
+            } else {
+                return Ok(None);
             }
-        } else {
-            return Ok(None);
         }
-    }});
-             
+    });
+
     rsx! {
         nav { class: "navbar navbar-expand-xl bg-body-tertiary",
             div { class: "container-fluid",

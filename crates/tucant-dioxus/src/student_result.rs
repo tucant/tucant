@@ -1,11 +1,12 @@
 use std::rc::Rc;
 
-use crate::{common::use_authenticated_data_loader, RcTucanType, Route};
+use crate::{RcTucanType, Route, common::use_authenticated_data_loader};
+use dioxus::prelude::*;
 use tucant_types::{
-    student_result::{StudentResultLevel, StudentResultResponse}, DynTucan, LoginResponse, Tucan
+    DynTucan, LoginResponse, Tucan,
+    student_result::{StudentResultLevel, StudentResultResponse},
 };
 use web_sys::HtmlSelectElement;
-use dioxus::prelude::*;
 
 #[component]
 pub fn StudentResult(course_of_study: ReadOnlySignal<String>) -> Element {
@@ -50,7 +51,7 @@ pub fn StudentResult(course_of_study: ReadOnlySignal<String>) -> Element {
                                     }
                                 }
                             })
-                            
+
                     }
                 }
                 StudentResultLevelComponent { level: student_result.level0, path: Vec::new() }
@@ -80,7 +81,7 @@ pub fn StudentResultLevelComponent(level: ReadOnlySignal<StudentResultLevel>, pa
                                             }
                                         }
                                     })
-                                    
+
                             }
                             li { class: "breadcrumb-item",
                                 { level().name.clone() }
@@ -134,7 +135,7 @@ pub fn StudentResultLevelComponent(level: ReadOnlySignal<StudentResultLevel>, pa
                                         }
                                     }
                                 })
-                                
+
                         }
                     }
                 }
@@ -148,7 +149,7 @@ pub fn StudentResultLevelComponent(level: ReadOnlySignal<StudentResultLevel>, pa
                             StudentResultLevelComponent { level: child.clone(), path: path().iter().cloned().chain(std::iter::once(level().name.clone())).collect::<Vec<_>>() }
                         }
                     })
-                    
+
             }
     }
 }

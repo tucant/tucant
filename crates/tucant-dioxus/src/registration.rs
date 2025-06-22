@@ -1,11 +1,12 @@
 use std::rc::Rc;
 
-use tucant_types::{
-    registration::{AnmeldungRequest, RegistrationState}, DynTucan, Tucan
-};
 use dioxus::prelude::*;
+use tucant_types::{
+    DynTucan, Tucan,
+    registration::{AnmeldungRequest, RegistrationState},
+};
 
-use crate::{common::use_authenticated_data_loader, RcTucanType, Route};
+use crate::{RcTucanType, Route, common::use_authenticated_data_loader};
 
 #[component]
 pub fn Registration(registration: ReadOnlySignal<AnmeldungRequest>) -> Element {
@@ -16,9 +17,7 @@ pub fn Registration(registration: ReadOnlySignal<AnmeldungRequest>) -> Element {
     use_authenticated_data_loader(handler, registration.to_owned(), 28 * 24 * 60 * 60, 24 * 60 * 60, |data, reload| {
         if data.submenus.len() == 1 && data.additional_information.is_empty() && data.entries.is_empty() {
             navigator.replace(Route::Registration { registration: data.submenus[0].1.clone() });
-            return rsx! {
-                
-            };
+            return rsx! {};
         }
         rsx! {
             div { class: "container",
@@ -49,7 +48,7 @@ pub fn Registration(registration: ReadOnlySignal<AnmeldungRequest>) -> Element {
                                         }
                                     }
                                 })
-                                
+
                         }
                     }
                 }
@@ -70,7 +69,7 @@ pub fn Registration(registration: ReadOnlySignal<AnmeldungRequest>) -> Element {
                                     }
                                 }
                             })
-                            
+
                     }
                 }
                 h2 { class: "text-center",
@@ -178,13 +177,13 @@ pub fn Registration(registration: ReadOnlySignal<AnmeldungRequest>) -> Element {
                                                             }
                                                         }
                                                     })
-                                                    
+
                                             }
                                         }
                                     }
                                 }
                             })
-                            
+
                     }
                 }
             }

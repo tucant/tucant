@@ -1,31 +1,31 @@
-pub mod navbar;
-pub mod navbar_logged_out;
-pub mod login_component;
 #[cfg(feature = "api")]
 pub mod api_server;
-pub mod navbar_logged_in;
-pub mod overview;
 pub mod common;
 pub mod course_details;
 pub mod course_results;
 pub mod exam_results;
+pub mod login_component;
+pub mod logout_component;
 pub mod module_details;
 pub mod my_courses;
 pub mod my_documents;
 pub mod my_exams;
 pub mod my_modules;
 pub mod my_semester_modules;
+pub mod navbar;
+pub mod navbar_logged_in;
+pub mod navbar_logged_out;
+pub mod overview;
 pub mod registration;
 pub mod student_result;
 pub mod vv;
-pub mod logout_component;
 
 use std::ops::Deref;
 use std::rc::Rc;
 
 use dioxus::prelude::*;
 use tucant_types::DynTucan;
-use tucant_types::{coursedetails::CourseDetailsRequest, moduledetails::ModuleDetailsRequest, registration::AnmeldungRequest, vv::ActionRequest, SemesterId, Tucan};
+use tucant_types::{SemesterId, Tucan, coursedetails::CourseDetailsRequest, moduledetails::ModuleDetailsRequest, registration::AnmeldungRequest, vv::ActionRequest};
 
 use crate::navbar::Navbar;
 use crate::overview::Overview;
@@ -79,16 +79,16 @@ pub async fn api_login_response() -> Option<tucant_types::LoginResponse> {
         })?,
     })
 }
-use crate::module_details::ModuleDetails;
 use crate::course_details::CourseDetails;
-use crate::registration::Registration;
+use crate::course_results::CourseResults;
+use crate::exam_results::ExamResults;
+use crate::module_details::ModuleDetails;
+use crate::my_courses::MyCourses;
+use crate::my_documents::MyDocuments;
+use crate::my_exams::MyExams;
 use crate::my_modules::MyModules;
 use crate::my_semester_modules::MySemesterModules;
-use crate::my_courses::MyCourses;
-use crate::my_exams::MyExams;
-use crate::exam_results::ExamResults;
-use crate::course_results::CourseResults;
-use crate::my_documents::MyDocuments;
+use crate::registration::Registration;
 use crate::student_result::StudentResult;
 use crate::vv::Vorlesungsverzeichnis;
 

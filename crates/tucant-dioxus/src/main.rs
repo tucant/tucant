@@ -2,7 +2,7 @@ use std::{panic, rc::Rc};
 
 use dioxus::{prelude::*, web::HashHistory};
 use log::warn;
-use tucant_dioxus::{navbar::Navbar, RcTucanType, Route};
+use tucant_dioxus::{RcTucanType, Route, navbar::Navbar};
 use tucant_types::{DynTucan, LoginRequest, LoginResponse, Tucan};
 use wasm_bindgen::prelude::*;
 

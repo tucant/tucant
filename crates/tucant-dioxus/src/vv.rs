@@ -1,9 +1,9 @@
 use std::rc::Rc;
 
-use tucant_types::{vv::ActionRequest, DynTucan, Tucan};
 use dioxus::prelude::*;
+use tucant_types::{DynTucan, Tucan, vv::ActionRequest};
 
-use crate::{common::use_unauthenticated_data_loader, RcTucanType, Route};
+use crate::{RcTucanType, Route, common::use_unauthenticated_data_loader};
 
 #[component]
 pub fn Vorlesungsverzeichnis(vv: ReadOnlySignal<ActionRequest>) -> Element {
@@ -39,7 +39,7 @@ pub fn Vorlesungsverzeichnis(vv: ReadOnlySignal<ActionRequest>) -> Element {
                                         }
                                     }
                                 })
-                                
+
                         }
                     }
                 }
@@ -60,7 +60,7 @@ pub fn Vorlesungsverzeichnis(vv: ReadOnlySignal<ActionRequest>) -> Element {
                                     }
                                 }
                             })
-                            
+
                     }
                 }
                 h2 { class: "text-center",
@@ -91,7 +91,7 @@ pub fn Vorlesungsverzeichnis(vv: ReadOnlySignal<ActionRequest>) -> Element {
                                     }
                                 }
                             })
-                            
+
                     }
                 }
             }

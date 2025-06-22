@@ -16,36 +16,36 @@ pub fn LoginComponent() -> Element {
 
     let on_submit = move |e: FormEvent| {
         let tucan = tucan.clone();
-        async move  {
-        let tucan = tucan.clone();
+        async move {
+            let tucan = tucan.clone();
 
-        
-        let password_string = password();
-        password.set("".to_owned());
+            let password_string = password();
+            password.set("".to_owned());
 
-        // TODO don't unwrap here but handle error
-        let response = tucan.login(LoginRequest { username: username(), password: password_string}).await.unwrap();
+            // TODO don't unwrap here but handle error
+            let response = tucan.login(LoginRequest { username: username(), password: password_string }).await.unwrap();
 
-        #[cfg(feature = "direct")]
-        web_extensions_sys::chrome()
-            .cookies()
-            .set(web_extensions_sys::SetCookieDetails {
-                name: Some("id".to_owned()),
-                partition_key: None,
-                store_id: None,
-                url: "https://www.tucan.tu-darmstadt.de/scripts/".to_owned(),
-                domain: None,
-                path: None,
-                value: Some(response.id.to_string()),
-                expiration_date: None,
-                http_only: None,
-                secure: Some(true),
-                same_site: None,
-            })
-            .await;
+            #[cfg(feature = "direct")]
+            web_extensions_sys::chrome()
+                .cookies()
+                .set(web_extensions_sys::SetCookieDetails {
+                    name: Some("id".to_owned()),
+                    partition_key: None,
+                    store_id: None,
+                    url: "https://www.tucan.tu-darmstadt.de/scripts/".to_owned(),
+                    domain: None,
+                    path: None,
+                    value: Some(response.id.to_string()),
+                    expiration_date: None,
+                    http_only: None,
+                    secure: Some(true),
+                    same_site: None,
+                })
+                .await;
 
-        current_session.set(Some(response.clone()));
-    }};
+            current_session.set(Some(response.clone()));
+        }
+    };
 
     rsx! {
         form { onsubmit: on_submit, class: "d-flex",

@@ -1,9 +1,8 @@
 use std::rc::Rc;
 
-use crate::{ common::use_authenticated_data_loader, RcTucanType, Route};
-use tucant_types::{coursedetails::CourseDetailsRequest, DynTucan, Tucan};
+use crate::{RcTucanType, Route, common::use_authenticated_data_loader};
 use dioxus::prelude::*;
-
+use tucant_types::{DynTucan, Tucan, coursedetails::CourseDetailsRequest};
 
 #[component]
 pub fn CourseDetails(course: ReadOnlySignal<CourseDetailsRequest>) -> Element {
@@ -48,7 +47,7 @@ pub fn CourseDetails(course: ReadOnlySignal<CourseDetailsRequest>) -> Element {
                                         }
                                     }
                                 })
-                                
+
                         }
                     }
                 }
@@ -130,7 +129,7 @@ pub fn CourseDetails(course: ReadOnlySignal<CourseDetailsRequest>) -> Element {
                                         }
                                     }
                                 })
-                                
+
                         }
                     }
                 }
@@ -189,7 +188,7 @@ pub fn CourseDetails(course: ReadOnlySignal<CourseDetailsRequest>) -> Element {
                                         }
                                     }
                                 })
-                                
+
                         }
                     }
                 }
@@ -250,14 +249,14 @@ pub fn CourseDetails(course: ReadOnlySignal<CourseDetailsRequest>) -> Element {
                                                                         }
                                                                     }
                                                                 })
-                                                                
+
                                                         }
                                                     }
                                                 }
                                             }
                                         }
                                     })
-                                    
+
                             }
                         }
                     }
@@ -318,14 +317,14 @@ pub fn CourseDetails(course: ReadOnlySignal<CourseDetailsRequest>) -> Element {
                                                                     }
                                                                 }
                                                             })
-                                                            
+
                                                     }
                                                 }
                                             }
                                         }
                                     }
                                 })
-                                
+
                         }
                     }
                 }
@@ -367,7 +366,7 @@ pub fn CourseDetails(course: ReadOnlySignal<CourseDetailsRequest>) -> Element {
                                     }
                                 }
                             })
-                            
+
                     }
                 }
             }

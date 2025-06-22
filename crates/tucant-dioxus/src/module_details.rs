@@ -1,10 +1,9 @@
 use std::rc::Rc;
 
-use tucant_types::{moduledetails::ModuleDetailsRequest, DynTucan, Tucan};
 use dioxus::prelude::*;
+use tucant_types::{DynTucan, Tucan, moduledetails::ModuleDetailsRequest};
 
-use crate::{
-    common::use_authenticated_data_loader, RcTucanType};
+use crate::{RcTucanType, common::use_authenticated_data_loader};
 
 #[component]
 pub fn ModuleDetails(module: ReadOnlySignal<ModuleDetailsRequest>) -> Element {
@@ -54,7 +53,7 @@ pub fn ModuleDetails(module: ReadOnlySignal<ModuleDetailsRequest>) -> Element {
                                     }
                                 }
                             })
-                            
+
                     }
                 }
                 h2 {
@@ -125,13 +124,13 @@ pub fn ModuleDetails(module: ReadOnlySignal<ModuleDetailsRequest>) -> Element {
                                                             }
                                                         }
                                                     })
-                                                    
+
                                             }
                                         }
                                     }
                             }
                         })
-                        
+
                 }
                 h2 {
                     { "Leistungen" }
@@ -163,7 +162,7 @@ pub fn ModuleDetails(module: ReadOnlySignal<ModuleDetailsRequest>) -> Element {
                                     }
                             }
                         })
-                        
+
                 }
                 h2 {
                     { "Pruefungen" }
@@ -217,13 +216,13 @@ pub fn ModuleDetails(module: ReadOnlySignal<ModuleDetailsRequest>) -> Element {
                                                             }
                                                         }
                                                     })
-                                                    
+
                                             }
                                         }
                                     }
                             }
                         })
-                        
+
                 }
                 h2 {
                     { "Beschreibung" }
