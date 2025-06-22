@@ -1,6 +1,6 @@
 use std::{panic, rc::Rc};
 
-use dioxus::prelude::*;
+use dioxus::{prelude::*, web::HashHistory};
 use log::warn;
 use tucant_dioxus::{navbar::Navbar, RcTucanType, Route};
 use tucant_types::{DynTucan, LoginRequest, LoginResponse, Tucan};
@@ -43,6 +43,8 @@ async fn main() {
 
     warn!("main");
 
+    let history_provider: Rc<dyn History> = Rc::new(HashHistory::default());
+
     #[cfg(feature = "direct")]
     if js_sys::Reflect::get(&js_sys::global(), &wasm_bindgen::JsValue::from_str("chrome")).is_ok() {
         use std::sync::{Arc, Mutex};
@@ -53,6 +55,7 @@ async fn main() {
         let connector = RcTucanType(DynTucan::new_rc(tucan_connector::TucanConnector::new().await.unwrap()));
 
         let vdom = VirtualDom::new_with_props(App, AppProps { login_response, connector });
+        vdom.provide_root_context(history_provider);
         dioxus::web::launch::launch_virtual_dom(vdom, Config::new());
     }
     #[cfg(feature = "api")]
@@ -63,6 +66,7 @@ async fn main() {
         let connector = RcTucanType(DynTucan::new_rc(tucant_dioxus::api_server::ApiServerTucan::new()));
 
         let vdom = VirtualDom::new_with_props(App, AppProps { login_response, connector });
+        vdom.provide_root_context(history_provider);
         dioxus::web::launch::launch_virtual_dom(vdom, Config::new());
     }
     #[cfg(not(any(feature = "direct", feature = "api")))]
