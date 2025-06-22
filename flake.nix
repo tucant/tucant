@@ -177,7 +177,7 @@
           installPhase = ''
             mkdir $out
             cp -r $src/. $out/
-            cp -r ${client}/. $out/public/
+            cp -r ${client}/public/. $out/public/
           '';
         };
 
