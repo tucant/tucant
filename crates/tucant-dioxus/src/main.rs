@@ -9,6 +9,20 @@ use wasm_bindgen::prelude::*;
 const BOOTSTRAP_CSS: Asset = asset!("/assets/bootstrap.min.css");
 const BOOTSTRAP_JS: Asset = asset!("/assets/bootstrap.bundle.min.js");
 
+pub struct RcTucanType(pub Rc<DynTucan<'static>>);
+
+impl Clone for RcTucanType {
+    fn clone(&self) -> Self {
+        Self(self.0.clone())
+    }
+}
+
+impl PartialEq for RcTucanType {
+    fn eq(&self, other: &RcTucanType) -> bool {
+        Rc::ptr_eq(&self.0, &other.0)
+    }
+}
+
 #[wasm_bindgen]
 extern "C" {
     #[wasm_bindgen(js_namespace = console)]
@@ -50,7 +64,7 @@ async fn main() {
         use dioxus::web::Config;
 
         let login_response = tucant_dioxus::direct_login_response().await;
-        let connector = DynTucan::new_rc(tucan_connector::TucanConnector::new().await.unwrap());
+        let connector = RcTucanType(DynTucan::new_rc(tucan_connector::TucanConnector::new().await.unwrap()));
 
         let vdom = VirtualDom::new_with_props(App, AppProps { login_response, connector });
         dioxus::web::launch::launch_virtual_dom(vdom, Config::new());
@@ -60,7 +74,7 @@ async fn main() {
         use dioxus::web::Config;
 
         let login_response = tucant_dioxus::api_login_response().await;
-        let connector = DynTucan::new_rc(tucant_dioxus::api_server::ApiServerTucan::new());
+        let connector = RcTucanType(DynTucan::new_rc(tucant_dioxus::api_server::ApiServerTucan::new()));
 
         let vdom = VirtualDom::new_with_props(App, AppProps { login_response, connector });
         dioxus::web::launch::launch_virtual_dom(vdom, Config::new());
@@ -70,7 +84,7 @@ async fn main() {
 }
 
 #[component]
-fn App(login_response: Option<LoginResponse>, connector: Rc<DynTucan<'static>>) -> Element {
+fn App(login_response: Option<LoginResponse>, connector: RcTucanType) -> Element {
     let session = use_context::<Option<LoginResponse>>();
     let mut session = use_signal(|| session);
     provide_context(session);
