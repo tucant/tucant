@@ -26,6 +26,7 @@
 
         rustToolchainFor = p: p.rust-bin.stable.latest.minimal.override {
           targets = [ "wasm32-unknown-unknown" ];
+          extensions = [ "rustfmt" ];
         };
         craneLib = (crane.mkLib pkgs).overrideToolchain rustToolchainFor;
 
@@ -139,8 +140,7 @@
           '';
           buildPhaseCargoCommand = ''
             export HOME=$(mktemp -d)
-            # ${pkgs.strace}/bin/strace -f 
-            ${dioxus-cli}/bin/dx bundle --out-dir $out --trace --base-path public --features direct
+            ${dioxus-cli}/bin/dx bundle --out-dir $out --base-path public --features direct
           '';
           nativeBuildInputs = [ pkgs.wasm-bindgen-cli_0_2_100 ];
         });
