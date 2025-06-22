@@ -40,6 +40,7 @@
             rev = "f8e7c38af8e214683252e5b4f12c062f7cf017bb";
             hash = "sha256-rO5wdigjsN4DOuM+3fo9rK24hLkKfpClBZC0eEAdBh0=";
           };
+          doCheck = false;
           strictDeps = true;
           pname = "dioxus-cli";
           cargoExtraArgs = "-p dioxus-cli";
@@ -131,20 +132,16 @@
           CARGO_BUILD_TARGET = "wasm32-unknown-unknown";
         };
 
-        cargoArtifactsWasm = craneLib.buildDepsOnly (wasmArgs // {
-          doCheck = false;
-        });
-
         client = craneLib.buildPackage (wasmArgs // {
           pname = "tucant-workspace-tucant-dioxus";
-          cargoArtifacts = cargoArtifactsWasm;
           preBuild = ''
             cd ./crates/tucant-dioxus
           '';
-          wasm-bindgen-cli = pkgs.wasm-bindgen-cli_0_2_100;
+          buildPhaseCargoCommand = ''
+            export HOME=$(mktmp -d)
+            ${pkgs.strace}/bin/strace -f ${dioxus-cli}/bin/dx bundle --out-dir $out --trace --base-path public --features direct
+          '';
         });
-        
-
 
         fileset-extension = lib.fileset.unions [
           ./tucant-extension/background.js
