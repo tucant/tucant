@@ -43,7 +43,7 @@
           doCheck = false;
           strictDeps = true;
           pname = "dioxus-cli";
-          cargoExtraArgs = "-p dioxus-cli";
+          cargoExtraArgs = "-p dioxus-cli --features no-downloads";
           nativeBuildInputs = [ pkgs.pkg-config ];
           buildInputs = [ pkgs.openssl ];
         };
@@ -138,9 +138,11 @@
             cd ./crates/tucant-dioxus
           '';
           buildPhaseCargoCommand = ''
-            export HOME=$(mktmp -d)
-            ${pkgs.strace}/bin/strace -f ${dioxus-cli}/bin/dx bundle --out-dir $out --trace --base-path public --features direct
+            export HOME=$(mktemp -d)
+            # ${pkgs.strace}/bin/strace -f 
+            ${dioxus-cli}/bin/dx bundle --out-dir $out --trace --base-path public --features direct
           '';
+          nativeBuildInputs = [ pkgs.wasm-bindgen-cli_0_2_100 ];
         });
 
         fileset-extension = lib.fileset.unions [
