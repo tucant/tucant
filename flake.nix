@@ -47,7 +47,6 @@
               )
               ./tucant-extension/bootstrap.bundle.min.js
               ./tucant-extension/bootstrap.min.css
-              ./crates/tucant-yew/fixup.sh
               ./rustfmt.toml
             ];
           };
@@ -103,14 +102,12 @@
           (craneNightlyLib.fileset.commonCargoSources ./crates/key-value-database)
           (craneNightlyLib.fileset.commonCargoSources ./crates/html-extractor)
           (craneNightlyLib.fileset.commonCargoSources ./crates/tucan-connector)
-          (craneNightlyLib.fileset.commonCargoSources ./crates/tucant-yew)
+          (craneNightlyLib.fileset.commonCargoSources ./crates/tucant-dioxus)
           (craneNightlyLib.fileset.commonCargoSources ./crates/html-handler)
-          ./crates/tucant-yew/index.html
           ./tucant-extension/bootstrap.bundle.min.js
           ./tucant-extension/bootstrap.min.css
           ./tucant-extension/helper.js
           ./tucant-extension/open-in-tucan.js
-          ./crates/tucant-yew/fixup.sh
         ];
 
         wasmArgs = commonArgs // {
@@ -119,7 +116,7 @@
             fileset = fileset-wasm;
           };
           pname = "tucant-workspace-wasm";
-          cargoExtraArgs = "--package=tucant-yew";
+          cargoExtraArgs = "--package=tucant-dioxus";
           CARGO_BUILD_TARGET = "wasm32-unknown-unknown";
         };
 
@@ -129,10 +126,10 @@
 
         client = craneNightlyLib.buildTrunkPackage (wasmArgs // {
           trunkExtraBuildArgs = "--features direct --public-url /dist";
-          pname = "tucant-workspace-tucant-yew";
+          pname = "tucant-workspace-tucant-dioxus";
           cargoArtifacts = cargoArtifactsWasm;
           preBuild = ''
-            cd ./crates/tucant-yew
+            cd ./crates/tucant-dioxus
           '';
           postBuild = ''
             mv ./dist ..
