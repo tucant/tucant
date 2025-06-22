@@ -147,6 +147,7 @@
         fileset-extension = lib.fileset.unions [
           ./tucant-extension/background.js
           ./tucant-extension/fix-session-id-in-url.js
+          ./tucant-extension/context-menu.js
           ./tucant-extension/content-script.js
           ./tucant-extension/content-script-redirect.js
           ./tucant-extension/open-in-tucan.js
