@@ -41,6 +41,10 @@
             hash = "sha256-rO5wdigjsN4DOuM+3fo9rK24hLkKfpClBZC0eEAdBh0=";
           };
           strictDeps = true;
+          pname = "dioxus-cli";
+          cargoExtraArgs = "-p dioxus-cli";
+          nativeBuildInputs = [ pkgs.pkg-config ];
+          buildInputs = [ pkgs.openssl ];
         };
 
         nativeArgs = commonArgs // {
