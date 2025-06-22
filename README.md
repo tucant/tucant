@@ -64,7 +64,7 @@ bacon tucant-api
 
 ```
 cd tucant-extension/
-./watch.sh
+dx bundle --out-dir ../../tucant-extension/ --release --base-path public/
 ```
 
 Go to Firefox Extensions, click settings, debug addons. Then click load temporary add-on and select ./tucant-extension/manifest.json
