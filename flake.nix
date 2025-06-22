@@ -123,17 +123,13 @@
           ./crates/tucant-dioxus/assets/bootstrap.bundle.min.js
         ];
 
-        wasmArgs = commonArgs // {
+        client = craneLib.buildPackage (commonArgs // {
+          cargoArtifacts = null; # building deps only does not work with the default stub entrypoint
           src = lib.fileset.toSource {
             root = ./.;
             fileset = fileset-wasm;
           };
-          pname = "tucant-workspace-wasm";
           cargoExtraArgs = "--package=tucant-dioxus";
-          CARGO_BUILD_TARGET = "wasm32-unknown-unknown";
-        };
-
-        client = craneLib.buildPackage (wasmArgs // {
           pname = "tucant-workspace-tucant-dioxus";
           preBuild = ''
             cd ./crates/tucant-dioxus
