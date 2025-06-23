@@ -52,7 +52,17 @@ export function handleOpenInTucan(id, tabId, url) {
 
     match = new RegExp("^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=MYEXAMS&ARGUMENTS=-N\\d+,-N\\d+,$", "g").exec(url)
     if (match) {
-        return `${EXT_PAGE_INDEX_HTML}#/my-exams`
+        return `${EXT_PAGE_INDEX_HTML}#/my-exams/current`
+    }
+
+    match = new RegExp("^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=MYEXAMS&ARGUMENTS=-N\\d+,-N\\d+,-N999$", "g").exec(url)
+    if (match) {
+        return `${EXT_PAGE_INDEX_HTML}#/my-exams/all`
+    }
+
+    match = new RegExp("^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=MYEXAMS&ARGUMENTS=-N\\d+,-N\\d+,-N(\\d+)$", "g").exec(url)
+    if (match) {
+        return `${EXT_PAGE_INDEX_HTML}#/my-exams/${match[1]}`
     }
 
     match = new RegExp("^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=EXAMRESULTS&ARGUMENTS=-N\\d+,-N\\d+,$", "g").exec(url)
@@ -122,9 +132,19 @@ export function handleOpenInTucan(id, tabId, url) {
         return `https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=PROFCOURSES&ARGUMENTS=-N${id},-N000274,`
     }
 
-    match = new RegExp(`^${EXT_PAGE_INDEX_HTML}#/my-exams$`, "g").exec(url)
+    match = new RegExp(`^${EXT_PAGE_INDEX_HTML}#/my-exams/current$`, "g").exec(url)
     if (id && match) {
         return `https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MYEXAMS&ARGUMENTS=-N${id},-N000318,`
+    }
+
+    match = new RegExp(`^${EXT_PAGE_INDEX_HTML}#/my-exams/all$`, "g").exec(url)
+    if (id && match) {
+        return `https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MYEXAMS&ARGUMENTS=-N${id},-N000318,-N999`
+    }
+
+    match = new RegExp(`^${EXT_PAGE_INDEX_HTML}#/my-exams/(\\d+$)`, "g").exec(url)
+    if (id && match) {
+        return `https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MYEXAMS&ARGUMENTS=-N${id},-N000318,-N${match[1]}`
     }
 
     match = new RegExp(`^${EXT_PAGE_INDEX_HTML}#/exam-results$`, "g").exec(url)
