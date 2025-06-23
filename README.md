@@ -67,13 +67,6 @@ cd tucant-extension/
 dx bundle --out-dir ../../tucant-extension/ --base-path public --features direct --release
 cargo run --manifest-path /home/moritz/Documents/dioxus/packages/cli/Cargo.toml bundle --out-dir ../../tucant-extension/ --base-path public --features direct --release
 llvm-dwarfdump --all --verify tucant-extension/public/assets/tucant-dioxus_bg-dxh4bb37ef8c3ffabdf.wasm
-wasm-opt tucant-extension/public/assets/tucant-dioxus_bg-dxh4bb37ef8c3ffabdf.wasm -o /tmp/a.wasm
-wasm-reduce --timeout 20 tucant-extension/public/assets/tucant-dioxus_bg-dxh4bb37ef8c3ffabdf.wasm "--command=wasm-opt test.wasm -o /tmp/a.was
-m" -t test.wasm -w work.wasm
-
-wasm-reduce -f --timeout 20 tucant-extension/public/assets/tucant-dioxus_bg-dxh4bb37ef8c3ffabdf.wasm "--command=wasm-opt -all -O2 test.wasm" -t test.wasm -w work.wasm
-
-cargo run --manifest-path /home/moritz/Documents/dioxus/packages/cli/Cargo.toml build --release
 ```
 
 Go to Firefox Extensions, click settings, debug addons. Then click load temporary add-on and select ./tucant-extension/manifest.json
