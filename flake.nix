@@ -124,6 +124,7 @@
         ];
 
         client = craneLib.buildPackage (commonArgs // {
+          doCheck = false;
           cargoArtifacts = null; # building deps only does not work with the default stub entrypoint
           src = lib.fileset.toSource {
             root = ./.;
@@ -136,11 +137,11 @@
           '';
           buildPhaseCargoCommand = ''
             export HOME=$(mktemp -d)
-            ${dioxus-cli}/bin/dx bundle --out-dir $out --base-path public --features direct
+            ${dioxus-cli}/bin/dx bundle --trace --release --out-dir $out --base-path public --features direct
           '';
           installPhaseCommand = ''
           '';
-          nativeBuildInputs = [ pkgs.wasm-bindgen-cli_0_2_100 ];
+          nativeBuildInputs = [ pkgs.wasm-bindgen-cli_0_2_100 pkgs.binaryen ];
           doNotPostBuildInstallCargoBinaries = true;
         });
 
