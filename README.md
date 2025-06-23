@@ -52,7 +52,7 @@ cargo +nightly-2025-04-02 fmt
 cargo +nightly install --git https://github.com/mohe2015/dioxus --branch hash-history dioxus-cli --locked
 
 cd crates/tucant-dioxus/
-dx serve --hotpatch
+dx serve --features api --hotpatch
 
 # in second tab
 bacon tucant-api
