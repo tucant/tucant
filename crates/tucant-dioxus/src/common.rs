@@ -71,10 +71,6 @@ fn use_data_loader<I: Clone + PartialEq + 'static, O: Clone + 'static>(authentic
     }
 
     let reload = {
-        let current_session_handle = current_session_handle;
-        let request = request;
-        let mut data = data;
-        let mut loading = loading;
         let tucan = tucan.clone();
         Callback::new(move |_e: MouseEvent| {
             if authentication_required && current_session_handle().is_none() {

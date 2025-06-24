@@ -341,7 +341,7 @@ mod authenticated_tests {
     use tucant_types::{LoginRequest, LoginResponse, RevalidationStrategy, SemesterId, registration::AnmeldungRequest};
 
     use crate::{
-        Tucan, TucanConnector,
+        Tucan,
         courseresults::courseresults,
         examresults::examresults,
         login::login,
@@ -349,7 +349,6 @@ mod authenticated_tests {
         mycourses::mycourses,
         mydocuments::my_documents,
         myexams::my_exams,
-        mymodules::mymodules,
         registration::anmeldung,
         startpage_dispatch::after_login::redirect_after_login,
         student_result::student_result,
@@ -397,7 +396,7 @@ mod authenticated_tests {
             dotenvy::dotenv().unwrap();
             let tucan = get_tucan_connector().await;
             let login_response = get_login_session().await;
-            after_login(&tucan, &login_response, RevalidationStrategy::default()).await.unwrap();
+            after_login(&tucan, login_response, RevalidationStrategy::default()).await.unwrap();
         });
     }
 
@@ -407,7 +406,7 @@ mod authenticated_tests {
             dotenvy::dotenv().unwrap();
             let tucan = get_tucan_connector().await;
             let login_response = get_login_session().await;
-            let _response = anmeldung(&tucan, &login_response, RevalidationStrategy::default(), AnmeldungRequest::default()).await.unwrap();
+            let _response = anmeldung(&tucan, login_response, RevalidationStrategy::default(), AnmeldungRequest::default()).await.unwrap();
         });
     }
 
@@ -417,8 +416,8 @@ mod authenticated_tests {
             dotenvy::dotenv().unwrap();
             let tucan = get_tucan_connector().await;
             let login_response = get_login_session().await;
-            let action = tucan.after_login(&login_response, RevalidationStrategy::default()).await.unwrap().logged_in_head.vorlesungsverzeichnis_url;
-            let _result = tucan.vv(Some(&login_response), RevalidationStrategy::default(), action).await.unwrap();
+            let action = tucan.after_login(login_response, RevalidationStrategy::default()).await.unwrap().logged_in_head.vorlesungsverzeichnis_url;
+            let _result = tucan.vv(Some(login_response), RevalidationStrategy::default(), action).await.unwrap();
         });
     }
 
@@ -428,9 +427,9 @@ mod authenticated_tests {
             dotenvy::dotenv().unwrap();
             let tucan = get_tucan_connector().await;
             let login_response = get_login_session().await;
-            let action = tucan.after_login(&login_response, RevalidationStrategy::default()).await.unwrap().logged_in_head.vorlesungsverzeichnis_url;
-            let result = tucan.vv(Some(&login_response), RevalidationStrategy::default(), action).await.unwrap().entries[0].clone().1;
-            let _result = tucan.vv(Some(&login_response), RevalidationStrategy::default(), result).await.unwrap();
+            let action = tucan.after_login(login_response, RevalidationStrategy::default()).await.unwrap().logged_in_head.vorlesungsverzeichnis_url;
+            let result = tucan.vv(Some(login_response), RevalidationStrategy::default(), action).await.unwrap().entries[0].clone().1;
+            let _result = tucan.vv(Some(login_response), RevalidationStrategy::default(), result).await.unwrap();
         });
     }
 
@@ -440,9 +439,9 @@ mod authenticated_tests {
             dotenvy::dotenv().unwrap();
             let tucan = get_tucan_connector().await;
             let login_response = get_login_session().await;
-            let action = tucan.after_login(&login_response, RevalidationStrategy::default()).await.unwrap().logged_in_head.vorlesungsverzeichnis_url;
-            let result = tucan.vv(Some(&login_response), RevalidationStrategy::default(), action).await.unwrap().entries[4].clone().1;
-            let _result = tucan.vv(Some(&login_response), RevalidationStrategy::default(), result).await.unwrap();
+            let action = tucan.after_login(login_response, RevalidationStrategy::default()).await.unwrap().logged_in_head.vorlesungsverzeichnis_url;
+            let result = tucan.vv(Some(login_response), RevalidationStrategy::default(), action).await.unwrap().entries[4].clone().1;
+            let _result = tucan.vv(Some(login_response), RevalidationStrategy::default(), result).await.unwrap();
         });
     }
 
@@ -452,9 +451,9 @@ mod authenticated_tests {
             dotenvy::dotenv().unwrap();
             let tucan = get_tucan_connector().await;
             let login_response = get_login_session().await;
-            let action = tucan.after_login(&login_response, RevalidationStrategy::default()).await.unwrap().logged_in_head.vorlesungsverzeichnis_url;
-            for (_title, action) in tucan.vv(Some(&login_response), RevalidationStrategy::default(), action).await.unwrap().entries {
-                let _result = tucan.vv(Some(&login_response), RevalidationStrategy::default(), action).await.unwrap();
+            let action = tucan.after_login(login_response, RevalidationStrategy::default()).await.unwrap().logged_in_head.vorlesungsverzeichnis_url;
+            for (_title, action) in tucan.vv(Some(login_response), RevalidationStrategy::default(), action).await.unwrap().entries {
+                let _result = tucan.vv(Some(login_response), RevalidationStrategy::default(), action).await.unwrap();
             }
         });
     }
@@ -465,10 +464,10 @@ mod authenticated_tests {
             dotenvy::dotenv().unwrap();
             let tucan = get_tucan_connector().await;
             let login_response = get_login_session().await;
-            tucan.my_modules(&login_response, RevalidationStrategy::default(), SemesterId::all()).await.unwrap();
-            let semesters = tucan.my_modules(&login_response, RevalidationStrategy::default(), SemesterId::current()).await.unwrap().semester;
+            tucan.my_modules(login_response, RevalidationStrategy::default(), SemesterId::all()).await.unwrap();
+            let semesters = tucan.my_modules(login_response, RevalidationStrategy::default(), SemesterId::current()).await.unwrap().semester;
             for semester in semesters {
-                tucan.my_modules(&login_response, RevalidationStrategy::default(), semester.value).await.unwrap();
+                tucan.my_modules(login_response, RevalidationStrategy::default(), semester.value).await.unwrap();
             }
         });
     }
@@ -479,10 +478,10 @@ mod authenticated_tests {
             dotenvy::dotenv().unwrap();
             let tucan = get_tucan_connector().await;
             let login_response = get_login_session().await;
-            mycourses(&tucan, &login_response, RevalidationStrategy::default(), SemesterId::all()).await.unwrap();
-            let semesters = mycourses(&tucan, &login_response, RevalidationStrategy::default(), SemesterId::current()).await.unwrap().semester;
+            mycourses(&tucan, login_response, RevalidationStrategy::default(), SemesterId::all()).await.unwrap();
+            let semesters = mycourses(&tucan, login_response, RevalidationStrategy::default(), SemesterId::current()).await.unwrap().semester;
             for semester in semesters {
-                mycourses(&tucan, &login_response, RevalidationStrategy::default(), semester.value).await.unwrap();
+                mycourses(&tucan, login_response, RevalidationStrategy::default(), semester.value).await.unwrap();
             }
         });
     }
@@ -493,10 +492,10 @@ mod authenticated_tests {
             dotenvy::dotenv().unwrap();
             let tucan = get_tucan_connector().await;
             let login_response = get_login_session().await;
-            my_exams(&tucan, &login_response, RevalidationStrategy::default(), SemesterId::all()).await.unwrap();
-            let semesters = my_exams(&tucan, &login_response, RevalidationStrategy::default(), SemesterId::current()).await.unwrap().semester;
+            my_exams(&tucan, login_response, RevalidationStrategy::default(), SemesterId::all()).await.unwrap();
+            let semesters = my_exams(&tucan, login_response, RevalidationStrategy::default(), SemesterId::current()).await.unwrap().semester;
             for semester in semesters {
-                my_exams(&tucan, &login_response, RevalidationStrategy::default(), semester.value).await.unwrap();
+                my_exams(&tucan, login_response, RevalidationStrategy::default(), semester.value).await.unwrap();
             }
         });
     }
@@ -507,9 +506,9 @@ mod authenticated_tests {
             dotenvy::dotenv().unwrap();
             let tucan = get_tucan_connector().await;
             let login_response = get_login_session().await;
-            let semesters = courseresults(&tucan, &login_response, RevalidationStrategy::default(), SemesterId::current()).await.unwrap().semester;
+            let semesters = courseresults(&tucan, login_response, RevalidationStrategy::default(), SemesterId::current()).await.unwrap().semester;
             for semester in semesters {
-                courseresults(&tucan, &login_response, RevalidationStrategy::default(), semester.value).await.unwrap();
+                courseresults(&tucan, login_response, RevalidationStrategy::default(), semester.value).await.unwrap();
             }
         });
     }
@@ -520,10 +519,10 @@ mod authenticated_tests {
             dotenvy::dotenv().unwrap();
             let tucan = get_tucan_connector().await;
             let login_response = get_login_session().await;
-            examresults(&tucan, &login_response, RevalidationStrategy::default(), SemesterId::all()).await.unwrap();
-            let semesters = examresults(&tucan, &login_response, RevalidationStrategy::default(), SemesterId::current()).await.unwrap().semester;
+            examresults(&tucan, login_response, RevalidationStrategy::default(), SemesterId::all()).await.unwrap();
+            let semesters = examresults(&tucan, login_response, RevalidationStrategy::default(), SemesterId::current()).await.unwrap().semester;
             for semester in semesters {
-                examresults(&tucan, &login_response, RevalidationStrategy::default(), semester.value).await.unwrap();
+                examresults(&tucan, login_response, RevalidationStrategy::default(), semester.value).await.unwrap();
             }
         });
     }
@@ -534,7 +533,7 @@ mod authenticated_tests {
             dotenvy::dotenv().unwrap();
             let tucan = get_tucan_connector().await;
             let login_response = get_login_session().await;
-            my_documents(&tucan, &login_response, RevalidationStrategy::default()).await.unwrap();
+            my_documents(&tucan, login_response, RevalidationStrategy::default()).await.unwrap();
         });
     }
 
@@ -544,10 +543,10 @@ mod authenticated_tests {
             dotenvy::dotenv().unwrap();
             let tucan = get_tucan_connector().await;
             let login_response = get_login_session().await;
-            let response = student_result(&tucan, &login_response, RevalidationStrategy::default(), 0).await.unwrap();
+            let response = student_result(&tucan, login_response, RevalidationStrategy::default(), 0).await.unwrap();
             for course_of_study in response.course_of_study {
-                let response = student_result(&tucan, &login_response, RevalidationStrategy::default(), course_of_study.value.parse().unwrap()).await.unwrap();
-                println!("{:#?}", response);
+                let response = student_result(&tucan, login_response, RevalidationStrategy::default(), course_of_study.value.parse().unwrap()).await.unwrap();
+                println!("{response:#?}");
             }
         });
     }

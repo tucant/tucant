@@ -13,7 +13,6 @@ pub fn ExamResults(semester: ReadOnlySignal<SemesterId>) -> Element {
 
     use_authenticated_data_loader(handler, semester, 14 * 24 * 60 * 60, 60 * 60, |exam_results: ExamResultsResponse, reload| {
         let on_semester_change = {
-            let navigator = navigator;
             Callback::new(move |e: Event<FormData>| {
                 let value = e.value();
                 navigator.push(Route::ExamResults { semester: SemesterId::from_str(&value).unwrap() });
