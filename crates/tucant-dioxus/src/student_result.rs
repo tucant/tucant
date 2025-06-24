@@ -16,7 +16,6 @@ pub fn StudentResult(course_of_study: ReadOnlySignal<String>) -> Element {
 
     use_authenticated_data_loader(handler, memo.into(), 14 * 24 * 60 * 60, 60 * 60, |student_result: StudentResultResponse, reload| {
         let on_course_of_study_change = {
-            let navigator = navigator;
             Callback::new(move |e: Event<FormData>| {
                 let value = e.value();
                 navigator.push(Route::StudentResult { course_of_study: value });
