@@ -22,7 +22,7 @@ pub async fn welcome(connector: &TucanConnector) -> Result<LoggedOutHead, TucanE
                     </style>
                 </head>
                 <body class="external_pages">
-                    let vv = logged_out_head(html_handler, 344);
+                    let vv = logged_out_head(html_handler);
                     <script type="text/javascript">
                     </script>
                     <meta http-equiv="content-type" content="text/html; charset=windows-1252"></meta>

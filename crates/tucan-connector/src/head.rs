@@ -585,7 +585,7 @@ pub fn logged_in_head<'a>(html_handler: InElement<'a, InElement<'a, InRoot<'a, R
 }
 
 #[must_use]
-pub fn logged_out_head<'a>(html_handler: InElement<'a, InElement<'a, InRoot<'a, Root<'a>>>>, menuno: u64) -> (InElement5<'a, InElement<'a, InRoot<'a, Root<'a>>>>, LoggedOutHead) {
+pub fn logged_out_head<'a>(html_handler: InElement<'a, InElement<'a, InRoot<'a, Root<'a>>>>) -> (InElement5<'a, InElement<'a, InRoot<'a, Root<'a>>>>, LoggedOutHead) {
     html_extractor::html! {
                     use page_start(html_handler);
                     <li class="intern depth_1 linkItem " title="Startseite" id="link000344">
@@ -655,7 +655,7 @@ pub fn logged_out_head<'a>(html_handler: InElement<'a, InElement<'a, InRoot<'a, 
                         <input name="PRGNAME" type="hidden" value="LOGINCHECK"></input>
                         <input name="ARGUMENTS" type="hidden" value="clino,usrname,pass,menuno,menu_type,browser,platform"></input>
                         <input name="clino" type="hidden" value="000000000000001"></input>
-                        <input name="menuno" type="hidden" value={|v| assert_eq!(v, format!("{menuno:0>6}"))}></input>
+                        <input name="menuno" type="hidden" value=_value></input>
                         <input name="menu_type" type="hidden" value="classic"></input>
                         <input name="browser" type="hidden" value=""></input>
                         <input name="platform" type="hidden" value=""></input>

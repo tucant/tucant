@@ -67,7 +67,7 @@ fn month_internal(login_response: &LoginResponse, content: &str) -> Result<Vec<(
                 </style>
             </head>
             <body class="month">
-                use if login_response.id == 1 { logged_out_head(html_handler, 311).0 } else { logged_in_head(html_handler, login_response.id).0 };
+                use if login_response.id == 1 { logged_out_head(html_handler).0 } else { logged_in_head(html_handler, login_response.id).0 };
                 <script type="text/javascript">
                 </script>
                 <h1>

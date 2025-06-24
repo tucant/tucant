@@ -62,7 +62,7 @@ fn vv_internal(login_response: Option<&LoginResponse>, content: &str) -> Result<
                     } => ();
                 </head>
                 <body class="registration_auditor">
-                    use if let Some(login_response) = login_response { logged_in_head(html_handler, login_response.id).0 } else { logged_out_head(html_handler, 334).0 };
+                    use if let Some(login_response) = login_response { logged_in_head(html_handler, login_response.id).0 } else { logged_out_head(html_handler).0 };
                     <script type="text/javascript">
                     </script>
                     <h1>
