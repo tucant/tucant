@@ -11,7 +11,7 @@ pub fn LogoutComponent() -> Element {
     let current_session_handle = use_context::<Signal<Option<LoginResponse>>>();
 
     // https://github.com/DioxusLabs/dioxus/issues/4303
-    let on_submit = move |e: FormEvent| {
+    let on_submit = move |_: FormEvent| {
         let mut current_session_handle = current_session_handle;
         let tucan = tucan.clone();
 

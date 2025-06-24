@@ -17,15 +17,11 @@ fn use_data_loader<I: Clone + PartialEq + 'static, O: Clone + 'static>(authentic
 
     let tucan: RcTucanType = use_context();
 
-    let data = use_signal(|| Ok(None));
-    let loading = use_signal(|| false);
-    let current_session_handle = use_context::<Signal<Option<LoginResponse>>>();
+    let mut data = use_signal(|| Ok(None));
+    let mut loading = use_signal(|| false);
+    let mut current_session_handle = use_context::<Signal<Option<LoginResponse>>>();
     {
-        let data = data;
-        let mut loading = loading;
-        let current_session_handle = current_session_handle;
         let tucan = tucan.clone();
-        let request = request;
         let _ = use_resource(move || {
             let request = request;
             let mut data = data;
@@ -78,11 +74,7 @@ fn use_data_loader<I: Clone + PartialEq + 'static, O: Clone + 'static>(authentic
                 return;
             }
             loading.set(true);
-            let request = request;
-            let mut data = data;
             let tucan = tucan.clone();
-            let mut loading = loading;
-            let mut current_session_handle = current_session_handle;
             spawn(async move {
                 match handler(tucan.clone(), current_session_handle(), RevalidationStrategy { max_age: 0, invalidate_dependents: Some(true) }, request()).await {
                     Ok(response) => {

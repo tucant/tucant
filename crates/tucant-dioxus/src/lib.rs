@@ -25,7 +25,7 @@ use std::rc::Rc;
 
 use dioxus::prelude::*;
 use tucant_types::DynTucan;
-use tucant_types::{SemesterId, Tucan, coursedetails::CourseDetailsRequest, moduledetails::ModuleDetailsRequest, registration::AnmeldungRequest, vv::ActionRequest};
+use tucant_types::{SemesterId, coursedetails::CourseDetailsRequest, moduledetails::ModuleDetailsRequest, registration::AnmeldungRequest, vv::ActionRequest};
 
 use crate::navbar::Navbar;
 use crate::overview::Overview;

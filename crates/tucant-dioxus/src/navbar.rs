@@ -77,7 +77,7 @@ pub fn Navbar() -> Element {
                             NavbarLoggedOut {}
                         }
                     }
-                    if let Some(current_session) = current_session() {
+                    if let Some(_current_session) = current_session() {
                         LogoutComponent {}
                     } else {
                         LoginComponent {}

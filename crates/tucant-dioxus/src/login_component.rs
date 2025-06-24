@@ -13,7 +13,7 @@ pub fn LoginComponent() -> Element {
 
     let mut current_session = use_context::<Signal<Option<LoginResponse>>>();
 
-    let on_submit = move |e: FormEvent| {
+    let on_submit = move |_: FormEvent| {
         let tucan = tucan.clone();
         async move {
             let tucan = tucan.clone();
