@@ -148,11 +148,10 @@ pub fn Registration(registration: ReadOnlySignal<AnmeldungRequest>) -> Element {
                                                                     h6 { class: "mb-1",
                                                                         { format!("{}", course.1.lecturers.clone().unwrap_or_default()) }
                                                                     }
-                                                                    // needing the parentheses is a yew bug
 
                                                                     if let Some(limit_and_size) = &course.1.limit_and_size {
                                                                         small { class: "text-body-secondary",
-                                                                            { ("Teilnehmerlimit ".to_owned() + limit_and_size) }
+                                                                            { "Teilnehmerlimit ".to_owned() + limit_and_size }
                                                                         }
                                                                     }
                                                                 }

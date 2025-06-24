@@ -88,7 +88,7 @@ pub fn Navbar() -> Element {
         }
             /*{
                 match data.deref() {
-                    Ok(_data) => yew::html! {},
+                    Ok(_data) => rsx! {},
                     Err(error) => {
                         rsx! {
                             div { class: "container",
