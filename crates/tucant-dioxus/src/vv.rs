@@ -8,6 +8,7 @@ use crate::{RcTucanType, Route, common::use_unauthenticated_data_loader};
 pub fn Vorlesungsverzeichnis(vv: ReadOnlySignal<ActionRequest>) -> Element {
     let handler = async |tucan: RcTucanType, current_session: Option<tucant_types::LoginResponse>, revalidation_strategy, additional| tucan.vv(current_session.as_ref(), revalidation_strategy, additional).await;
 
+    // this is not fully correct as some urls are only available authenticated
     use_unauthenticated_data_loader(handler, vv.to_owned(), 28 * 24 * 60 * 60, 24 * 60 * 60, |data, reload| {
         rsx! {
             div { class: "container",

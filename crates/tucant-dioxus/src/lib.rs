@@ -38,7 +38,7 @@ pub async fn direct_login_response() -> Option<tucant_types::LoginResponse> {
             name: "id".to_owned(),
             partition_key: None,
             store_id: None,
-            url: "https://www.tucan.tu-darmstadt.de/scripts/".to_owned(),
+            url: "https://www.tucan.tu-darmstadt.de/scripts".to_owned(),
         })
         .await?
         .value;
@@ -47,7 +47,7 @@ pub async fn direct_login_response() -> Option<tucant_types::LoginResponse> {
         .cookies()
         .get(web_extensions_sys::CookieDetails {
             name: "cnsc".to_owned(),
-            url: "https://www.tucan.tu-darmstadt.de/scripts/".to_owned(),
+            url: "https://www.tucan.tu-darmstadt.de/scripts".to_owned(),
             partition_key: None,
             store_id: None,
         })

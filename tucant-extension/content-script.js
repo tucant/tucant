@@ -71,7 +71,7 @@ loginForm.addEventListener("submit", async event => {
             const sessionId = match[1]
 
             //chrome.cookies.set({
-            //    url: "https://www.tucan.tu-darmstadt.de/scripts/",
+            //    url: "https://www.tucan.tu-darmstadt.de/scripts",
             //    name: "id",
             //    value: sessionId,
             //    secure: true

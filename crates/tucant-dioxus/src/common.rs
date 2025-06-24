@@ -53,7 +53,48 @@ fn use_data_loader<I: Clone + PartialEq + 'static, O: Clone + 'static>(authentic
                                 data.set(Err("Unauthorized".to_owned()))
                             }
                             TucanError::Timeout | TucanError::AccessDenied => {
-                                current_session_handle.set(None);
+                                #[cfg(feature = "direct")]
+                                web_extensions_sys::chrome()
+                                    .cookies()
+                                    .set(web_extensions_sys::SetCookieDetails {
+                                        name: Some("id".to_owned()),
+                                        partition_key: None,
+                                        store_id: None,
+                                        url: "https://www.tucan.tu-darmstadt.de".to_owned(),
+                                        domain: None,
+                                        path: Some("/scripts".to_owned()),
+                                        value: None,
+                                        expiration_date: Some(0),
+                                        http_only: None,
+                                        secure: Some(true),
+                                        same_site: None,
+                                    })
+                                    .await;
+
+                                #[cfg(feature = "direct")]
+                                web_extensions_sys::chrome()
+                                    .cookies()
+                                    .set(web_extensions_sys::SetCookieDetails {
+                                        name: Some("cnsc".to_owned()),
+                                        partition_key: None,
+                                        store_id: None,
+                                        url: "https://www.tucan.tu-darmstadt.de".to_owned(),
+                                        domain: None,
+                                        path: Some("/scripts".to_owned()),
+                                        value: None,
+                                        expiration_date: Some(0),
+                                        http_only: None,
+                                        secure: Some(true),
+                                        same_site: None,
+                                    })
+                                    .await;
+
+                                if current_session_handle().is_some() {
+                                    current_session_handle.set(None);
+                                } else {
+                                    // some vv urls are not available without authentication
+                                    data.set(Err("Not accessible without authentication".to_owned()));
+                                }
                             }
                             _ => {
                                 data.set(Err(error.to_string()));

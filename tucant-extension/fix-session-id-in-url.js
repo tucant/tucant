@@ -5,7 +5,7 @@ chrome.webRequest.onBeforeRequest.addListener((details) => {
         if (details.url === "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll" && details.method === "POST") {
             console.log("login attempt")
             await chrome.cookies.remove({
-                url: "https://www.tucan.tu-darmstadt.de/scripts/",
+                url: "https://www.tucan.tu-darmstadt.de/scripts",
                 name: "id",
             })
         }
@@ -21,7 +21,7 @@ chrome.webRequest.onHeadersReceived.addListener((details) => {
                 const sessionId = match[1]
 
                 await chrome.cookies.set({
-                    url: "https://www.tucan.tu-darmstadt.de/scripts/",
+                    url: "https://www.tucan.tu-darmstadt.de/scripts",
                     name: "id",
                     value: sessionId,
                     secure: true
@@ -32,7 +32,7 @@ chrome.webRequest.onHeadersReceived.addListener((details) => {
         const logoutMatch = new RegExp("^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=LOGOUT&.*$", "g").exec(details.url);
         if (logoutMatch !== null) {
             await chrome.cookies.remove({
-                url: "https://www.tucan.tu-darmstadt.de/scripts/",
+                url: "https://www.tucan.tu-darmstadt.de/scripts",
                 name: "id",
             })
         }
@@ -43,7 +43,7 @@ chrome.cookies.onChanged.addListener((changeInfo) => {
     asyncClosure(async () => {
         if (changeInfo.cookie.name === "cnsc" && changeInfo.removed) {
             await chrome.cookies.remove({
-                url: "https://www.tucan.tu-darmstadt.de/scripts/",
+                url: "https://www.tucan.tu-darmstadt.de/scripts",
                 name: "id",
             })
         } else if (changeInfo.cookie.name === "id") {
@@ -144,7 +144,7 @@ chrome.storage.sync.onChanged.addListener((changes) => {
             if (key === "fixSessionIdInUrl") {
                 if (newValue) {
                     const id = await chrome.cookies.get({
-                        url: "https://www.tucan.tu-darmstadt.de/scripts/",
+                        url: "https://www.tucan.tu-darmstadt.de/scripts",
                         name: "id",
                     })
                     if (id) {
@@ -172,7 +172,7 @@ chrome.storage.sync.onChanged.addListener((changes) => {
 // ensure state is set on extension enable
 asyncClosure(async () => {
     const idCookie = await chrome.cookies.get({
-        url: "https://www.tucan.tu-darmstadt.de/scripts/",
+        url: "https://www.tucan.tu-darmstadt.de/scripts",
         name: "id",
     })
     if (idCookie) {

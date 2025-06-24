@@ -25,7 +25,7 @@ chrome.runtime.onMessage.addListener((message, sender) => {
 
         if (message === "open-in-tucan-page") {
             const id = await chrome.cookies.get({
-                url: "https://www.tucan.tu-darmstadt.de/scripts/",
+                url: "https://www.tucan.tu-darmstadt.de/scripts",
                 name: "id",
             })
 
@@ -40,7 +40,7 @@ chrome.runtime.onMessage.addListener((message, sender) => {
 chrome.commands.onCommand.addListener((command) => {
     asyncClosure(async () => {
         const id = await chrome.cookies.get({
-            url: "https://www.tucan.tu-darmstadt.de/scripts/",
+            url: "https://www.tucan.tu-darmstadt.de/scripts",
             name: "id",
         })
 

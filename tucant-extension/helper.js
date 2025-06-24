@@ -5,7 +5,7 @@ import { asyncClosure } from "./utils.js";
 window.sayHello = () => {
     asyncClosure(async () => {
         const id = await chrome.cookies.get({
-            url: "https://www.tucan.tu-darmstadt.de/scripts/",
+            url: "https://www.tucan.tu-darmstadt.de/scripts",
             name: "id",
         })
 
