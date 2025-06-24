@@ -1,7 +1,8 @@
 use std::sync::LazyLock;
 
+use itertools::Either;
 use regex::Regex;
-use tucant_types::{LoggedInHead, LoggedOutHead, TucanError, VorlesungsverzeichnisUrls, vv::ActionRequest};
+use tucant_types::{vv::ActionRequest, LoggedInHead, LoggedOutHead, LoginResponse, TucanError, VorlesungsverzeichnisUrls};
 
 use html_handler::{InElement, InRoot, Root};
 
@@ -241,12 +242,22 @@ pub fn vv_something<'a>(html_handler: InElement5<'a, InElement<'a, InElement<'a,
     (html_handler, VorlesungsverzeichnisUrls { lehrveranstaltungssuche_url, vvs, archiv_links })
 }
 
-#[expect(clippy::too_many_lines)]
+
 #[must_use]
 pub fn logged_in_head<'a>(html_handler: InElement<'a, InElement<'a, InRoot<'a, Root<'a>>>>, id: u64) -> (InElement5<'a, InElement<'a, InRoot<'a, Root<'a>>>>, LoggedInHead) {
     assert_ne!(id, 1);
     html_extractor::html! {
-                    use page_start(html_handler);
+        use page_start(html_handler);
+        let result = logged_in_head_internal(html_handler, id);
+    }
+    (html_handler, result)
+}
+
+#[expect(clippy::too_many_lines)]
+#[must_use]
+fn logged_in_head_internal<'a>(html_handler: InElement5<'a, InElement<'a, InRoot<'a, Root<'a>>>>, id: u64) -> (InElement5<'a, InElement<'a, InRoot<'a, Root<'a>>>>, LoggedInHead) {
+    assert_ne!(id, 1);
+    html_extractor::html! {
                     <li class="tree depth_1 linkItem branchLinkItem " title="Aktuelles" id="link000019">
                         <a class="depth_1 link000019 navLink branchLink " href=_aktuelles_url>
                             "Aktuelles"
@@ -587,7 +598,15 @@ pub fn logged_in_head<'a>(html_handler: InElement<'a, InElement<'a, InRoot<'a, R
 #[must_use]
 pub fn logged_out_head<'a>(html_handler: InElement<'a, InElement<'a, InRoot<'a, Root<'a>>>>) -> (InElement5<'a, InElement<'a, InRoot<'a, Root<'a>>>>, LoggedOutHead) {
     html_extractor::html! {
-                    use page_start(html_handler);
+        use page_start(html_handler);
+        let result = logged_out_head_internal(html_handler);
+    }
+    (html_handler, result)
+}
+
+#[must_use]
+fn logged_out_head_internal<'a>(html_handler: InElement5<'a, InElement<'a, InRoot<'a, Root<'a>>>>) -> (InElement5<'a, InElement<'a, InRoot<'a, Root<'a>>>>, LoggedOutHead) {
+    html_extractor::html! {
                     <li class="intern depth_1 linkItem " title="Startseite" id="link000344">
                         <a class="depth_1 link000344 navLink " href="/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N000000000000001,-N000344,-Awelcome">
                             "Startseite"
@@ -678,6 +697,19 @@ pub fn logged_out_head<'a>(html_handler: InElement<'a, InElement<'a, InRoot<'a, 
                 <div id="contentSpacer_IE" class="pageElementTop">
     }
     (html_handler, LoggedOutHead { vorlesungsverzeichnis_url: ActionRequest::parse(&ACTION_REGEX.replace(&vorlesungsverzeichnis_url, "")), vv })
+}
+
+#[must_use]
+pub fn logged_in_or_out_head<'a>(html_handler: InElement<'a, InElement<'a, InRoot<'a, Root<'a>>>>, login_response: Option<&LoginResponse>) -> (InElement5<'a, InElement<'a, InRoot<'a, Root<'a>>>>, Either<LoggedOutHead, LoggedInHead>) {
+    html_extractor::html! {
+        use page_start(html_handler);
+        let result = if html_handler.peek().unwrap().value().as_element().unwrap().attr("title") == Some("Startseite") {
+            let a = logged_out_head_internal(html_handler);
+        } => a else {
+            let b = logged_in_head_internal(html_handler, login_response.unwrap().id);
+        } => b;
+    }
+    (html_handler, result)
 }
 
 #[must_use]

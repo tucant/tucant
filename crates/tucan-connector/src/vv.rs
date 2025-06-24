@@ -7,9 +7,7 @@ use tucant_types::{
 };
 
 use crate::{
-    COURSEDETAILS_REGEX, TucanConnector, authenticated_retryable_get,
-    head::{ACTION_REGEX, footer, html_head, logged_in_head, logged_out_head},
-    retryable_get,
+    authenticated_retryable_get, head::{footer, html_head, logged_in_head, logged_in_or_out_head, logged_out_head, ACTION_REGEX}, retryable_get, TucanConnector, COURSEDETAILS_REGEX
 };
 use html_handler::{MyElementRef, MyNode, Root, parse_document};
 
@@ -62,7 +60,7 @@ fn vv_internal(login_response: Option<&LoginResponse>, content: &str) -> Result<
                     } => ();
                 </head>
                 <body class="registration_auditor">
-                    use if let Some(login_response) = login_response { logged_in_head(html_handler, login_response.id).0 } else { logged_out_head(html_handler).0 };
+                    let a = logged_in_or_out_head(html_handler, login_response);
                     <script type="text/javascript">
                     </script>
                     <h1>
