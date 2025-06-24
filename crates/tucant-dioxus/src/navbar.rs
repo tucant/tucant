@@ -1,9 +1,8 @@
-use std::{ops::Deref, rc::Rc};
 
 use dioxus::prelude::*;
 use log::error;
 use reqwest::StatusCode;
-use tucant_types::{DynTucan, LoginResponse, RevalidationStrategy, Tucan, TucanError};
+use tucant_types::{LoginResponse, RevalidationStrategy, Tucan, TucanError};
 
 use crate::{RcTucanType, Route, login_component::LoginComponent, logout_component::LogoutComponent, navbar_logged_in::NavbarLoggedIn, navbar_logged_out::NavbarLoggedOut};
 
@@ -23,7 +22,7 @@ pub fn Navbar() -> Element {
             if let Some(the_current_session) = current_session() {
                 match tucan.after_login(&the_current_session, RevalidationStrategy::cache()).await {
                     Ok(response) => {
-                        return Ok(Some(response));
+                        Ok(Some(response))
                     }
                     Err(error) => {
                         // TODO pass through tucanerror from server
@@ -31,20 +30,20 @@ pub fn Navbar() -> Element {
                         match error {
                             TucanError::Http(ref req) if req.status() == Some(StatusCode::UNAUTHORIZED) => {
                                 current_session.set(None);
-                                return Err("Unauthorized".to_owned());
+                                Err("Unauthorized".to_owned())
                             }
                             TucanError::Timeout | TucanError::AccessDenied => {
                                 current_session.set(None);
-                                return Ok(None); // TODO FIXME
+                                Ok(None)// TODO FIXME
                             }
                             _ => {
-                                return Err(error.to_string());
+                                Err(error.to_string())
                             }
                         }
                     }
                 }
             } else {
-                return Ok(None);
+                Ok(None)
             }
         }
     });

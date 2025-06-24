@@ -2,8 +2,8 @@ use std::{panic, rc::Rc};
 
 use dioxus::{prelude::*, web::HashHistory};
 use log::warn;
-use tucant_dioxus::{RcTucanType, Route, navbar::Navbar};
-use tucant_types::{DynTucan, LoginRequest, LoginResponse, Tucan};
+use tucant_dioxus::{RcTucanType, Route};
+use tucant_types::LoginResponse;
 use wasm_bindgen::prelude::*;
 
 const BOOTSTRAP_CSS: Asset = asset!("/assets/bootstrap.min.css");
@@ -75,7 +75,7 @@ async fn main() {
 
 #[component]
 fn App(login_response: Option<LoginResponse>, connector: RcTucanType) -> Element {
-    let mut session = use_signal(|| login_response);
+    let session = use_signal(|| login_response);
     provide_context(session);
     provide_context(connector);
 

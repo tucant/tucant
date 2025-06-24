@@ -1,7 +1,6 @@
-use std::rc::Rc;
 
 use dioxus::prelude::*;
-use tucant_types::{DynTucan, Tucan, vv::ActionRequest};
+use tucant_types::{Tucan, vv::ActionRequest};
 
 use crate::{RcTucanType, Route, common::use_unauthenticated_data_loader};
 
@@ -56,7 +55,7 @@ pub fn Vorlesungsverzeichnis(vv: ReadOnlySignal<ActionRequest>) -> Element {
                             .map(|entry| {
                                 rsx! {
                                     Link { to: Route::Vorlesungsverzeichnis { vv: entry.1.clone() }, class: "list-group-item list-group-item-action",
-                                        { format!("{}", entry.0) }
+                                        { entry.0.to_string() }
                                     }
                                 }
                             })

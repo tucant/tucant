@@ -1,6 +1,5 @@
-use axum::http::Method;
 use tower::ServiceBuilder;
-use tower_http::cors::{Any, CorsLayer};
+use tower_http::cors::CorsLayer;
 use tucant_api::router;
 use utoipa_swagger_ui::SwaggerUi;
 

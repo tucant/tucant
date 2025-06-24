@@ -1,8 +1,7 @@
-use std::{rc::Rc, str::FromStr};
+use std::str::FromStr;
 
 use dioxus::prelude::*;
-use tucant_types::{DynTucan, SemesterId, Tucan, mymodules::MyModulesResponse};
-use web_sys::HtmlSelectElement;
+use tucant_types::{SemesterId, Tucan, mymodules::MyModulesResponse};
 
 use crate::{RcTucanType, Route, common::use_authenticated_data_loader};
 
@@ -12,9 +11,9 @@ pub fn MyModules(semester: ReadOnlySignal<SemesterId>) -> Element {
 
     let navigator = use_navigator();
 
-    use_authenticated_data_loader(handler, semester.clone(), 14 * 24 * 60 * 60, 60 * 60, |my_modules: MyModulesResponse, reload| {
+    use_authenticated_data_loader(handler, semester, 14 * 24 * 60 * 60, 60 * 60, |my_modules: MyModulesResponse, reload| {
         let on_semester_change = {
-            let navigator = navigator.clone();
+            let navigator = navigator;
             Callback::new(move |e: Event<FormData>| {
                 let value = e.value();
                 navigator.push(Route::MyModules { semester: SemesterId::from_str(&value).unwrap() });

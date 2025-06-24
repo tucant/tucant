@@ -1,7 +1,6 @@
-use std::rc::Rc;
 
 use dioxus::prelude::*;
-use tucant_types::{DynTucan, LoginRequest, LoginResponse, Tucan};
+use tucant_types::{LoginRequest, LoginResponse, Tucan};
 
 use crate::RcTucanType;
 

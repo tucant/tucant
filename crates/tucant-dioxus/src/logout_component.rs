@@ -1,7 +1,6 @@
-use std::rc::Rc;
 
 use dioxus::prelude::*;
-use tucant_types::{DynTucan, LoginResponse, Tucan};
+use tucant_types::{LoginResponse, Tucan};
 
 use crate::RcTucanType;
 
@@ -13,7 +12,7 @@ pub fn LogoutComponent() -> Element {
 
     // https://github.com/DioxusLabs/dioxus/issues/4303
     let on_submit = move |e: FormEvent| {
-        let mut current_session_handle = current_session_handle.clone();
+        let mut current_session_handle = current_session_handle;
         let tucan = tucan.clone();
 
         async move {

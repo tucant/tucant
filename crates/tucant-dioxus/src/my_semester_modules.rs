@@ -1,12 +1,11 @@
-use std::{collections::HashSet, rc::Rc, str::FromStr};
+use std::{collections::HashSet, str::FromStr};
 
 use dioxus::prelude::*;
 use log::warn;
 use tucant_types::{
-    DynTucan, RevalidationStrategy, SemesterId, Tucan,
+    RevalidationStrategy, SemesterId, Tucan,
     mymodules::{Module, MyModulesResponse},
 };
-use web_sys::HtmlSelectElement;
 
 use crate::{RcTucanType, Route, common::use_authenticated_data_loader};
 
@@ -14,7 +13,7 @@ use crate::{RcTucanType, Route, common::use_authenticated_data_loader};
 pub fn MySemesterModules(semester: ReadOnlySignal<SemesterId>) -> Element {
     let handler = async |tucan: RcTucanType, current_session, revalidation_strategy: RevalidationStrategy, additional: SemesterId| {
         let first = tucan.my_modules(&current_session, revalidation_strategy, additional.clone()).await?;
-        let after = first.semester.iter().skip_while(|e| !e.selected).skip(1).next();
+        let after = first.semester.iter().skip_while(|e| !e.selected).nth(1);
         warn!("after {additional} comes {after:?}");
         if let Some(after) = after {
             let second = tucan.my_modules(&current_session, revalidation_strategy, after.value.clone()).await?;
@@ -29,9 +28,9 @@ pub fn MySemesterModules(semester: ReadOnlySignal<SemesterId>) -> Element {
 
     let navigator = use_navigator();
 
-    use_authenticated_data_loader(handler, semester.clone(), 14 * 24 * 60 * 60, 60 * 60, |my_modules: MyModulesResponse, reload| {
+    use_authenticated_data_loader(handler, semester, 14 * 24 * 60 * 60, 60 * 60, |my_modules: MyModulesResponse, reload| {
         let on_semester_change = {
-            let navigator = navigator.clone();
+            let navigator = navigator;
             Callback::new(move |e: Event<FormData>| {
                 let value = e.value();
                 navigator.push(Route::MySemesterModules { semester: SemesterId::from_str(&value).unwrap() });
