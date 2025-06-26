@@ -11,7 +11,7 @@ chrome.runtime.onMessage.addListener((message, sender) => {
     asyncClosure(async () => {
         console.log("onMessage", message, sender)
 
-        chrome.notifications.create({
+        await chrome.notifications.create({
             type: "basic",
             iconUrl: chrome.runtime.getURL("/icon-512.png"),
             title: "TUCaN't extension message",
@@ -30,7 +30,7 @@ chrome.runtime.onMessage.addListener((message, sender) => {
             })
 
             await chrome.tabs.update(sender.tab.id, {
-                url: handleOpenInTucan(id?.value, sender.tab.id, sender.tab.url)
+                url: await handleOpenInTucan(id?.value, sender.tab.id, sender.tab.url)
             })
             return;
         }
@@ -53,7 +53,7 @@ chrome.commands.onCommand.addListener((command) => {
 
         if (command === "open-in-tucan-page") {
             await chrome.tabs.update(tab.id, {
-                url: handleOpenInTucan(id?.value, tab.id, tab.url)
+                url: await handleOpenInTucan(id?.value, tab.id, tab.url)
             })
         }
     })

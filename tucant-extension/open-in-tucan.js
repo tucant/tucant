@@ -12,9 +12,9 @@ export async function getCurrentTab() {
  * @param {string | undefined} id
  * @param {number} tabId
  * @param {string} url
- * @returns {string|undefined}
+ * @returns {Promise<string|undefined>}
  */
-export function handleOpenInTucan(id, tabId, url) {
+export async function handleOpenInTucan(id, tabId, url) {
     let match = new RegExp("^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=-N\\d+,-N\\d+,(.*)$", "g").exec(url)
     if (match) {
         return `${EXT_PAGE_INDEX_HTML}#/module-details/${match[1]}`
@@ -179,8 +179,15 @@ export function handleOpenInTucan(id, tabId, url) {
         return `https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N000000000000001,-N000344,-Awelcome`
     }
 
+    // ---------------------------------
+
+    match = new RegExp(`^${EXT_PAGE_INDEX_HTML}#/vv/(.*)$`, "g").exec(url)
+    if (match) {
+        return `https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=ACTION&ARGUMENTS=${match[1]}`
+    }
+
     if (!id) {
-        chrome.notifications.create({
+        await chrome.notifications.create({
             type: "basic",
             iconUrl: chrome.runtime.getURL("/icon-512.png"),
             title: "Not logged in",
@@ -189,7 +196,7 @@ export function handleOpenInTucan(id, tabId, url) {
         return undefined;
     }
 
-    chrome.notifications.create({
+    await chrome.notifications.create({
         type: "basic",
         iconUrl: chrome.runtime.getURL("/icon-512.png"),
         title: "URL not supported",
