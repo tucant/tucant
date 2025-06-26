@@ -122,9 +122,20 @@ export async function handleOpenInTucan(id, tabId, url) {
         return `https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MLSSTART&ARGUMENTS=-N${id},-N000019,`
     }
 
-    match = new RegExp(`^${EXT_PAGE_INDEX_HTML}#/my-modules$`, "g").exec(url)
+    // TODO FIXME this is actually not current but recent as it remembers last navigation
+    match = new RegExp(`^${EXT_PAGE_INDEX_HTML}#/my-modules/current$`, "g").exec(url)
     if (id && match) {
         return `https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MYMODULES&ARGUMENTS=-N${id},-N000275,`
+    }
+
+    match = new RegExp(`^${EXT_PAGE_INDEX_HTML}#/my-modules/all$`, "g").exec(url)
+    if (id && match) {
+        return `https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MYMODULES&ARGUMENTS=-N${id},-N000275,-N999`
+    }
+
+    match = new RegExp(`^${EXT_PAGE_INDEX_HTML}#/my-modules/(\\d+$)$`, "g").exec(url)
+    if (id && match) {
+        return `https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MYMODULES&ARGUMENTS=-N${id},-N000275,-N${match[1]}`
     }
 
     match = new RegExp(`^${EXT_PAGE_INDEX_HTML}#/my-courses$`, "g").exec(url)
