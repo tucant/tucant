@@ -49,7 +49,7 @@ cargo +nightly-2025-04-02 fmt
 ### Running as local webserver
 
 ```bash
-cargo +nightly install --git https://github.com/mohe2015/dioxus --branch hash-history dioxus-cli --locked
+cargo +nightly install --git https://github.com/mohe2015/dioxus --branch my dioxus-cli --locked
 
 cd crates/tucant-dioxus/
 dx serve --features api --hotpatch
