@@ -33,13 +33,10 @@ export async function handleOpenInTucan(id, tabId, url) {
                 ? `${curr}${substitution.to ?? `$${(replacementIdx++).toString()}`}`
                 : curr);
         }, `${EXT_PAGE_INDEX_HTML}#/`);
-        console.log(regex)
-        console.log(replacement)
 
         let match = regex.exec(url)
         if (match) {
             let result = url.replace(regex, replacement)
-            console.log("result ", result)
             return result
         }
     }
@@ -58,13 +55,10 @@ export async function handleOpenInTucan(id, tabId, url) {
                 ? `${curr}${substitution.to ?? `$${(replacementIdx++).toString()}`}`
                 : curr);
         }, `https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&`);
-        console.log(regex)
-        console.log(replacement)
 
         let match = regex.exec(url)
         if (match) {
             let result = url.replace(regex, replacement)
-            console.log("result ", result)
             return result
         }
     }

@@ -20,6 +20,7 @@ const rules = [...mappings].map((mapping, index) => {
             : curr);
     }, `${EXT_PAGE_INDEX_HTML}#/`);
 
+    // excludedTabIds
     return {
         id: 201 + index,
         priority: 3,
@@ -55,5 +56,3 @@ export const customUiRules = [{
         redirect: { regexSubstitution: EXT_PAGE_INDEX_HTML + '#/' },
     },
 }, ...rules];
-
-console.log(customUiRules)

@@ -1,5 +1,6 @@
 import { asyncClosure } from "./utils.js";
 import { handleOpenInTucan } from "./open-in-tucan.js"
+import { customUiRules } from "./custom-ui.js";
 
 chrome.contextMenus.onClicked.addListener((info, tab) => {
     asyncClosure(async () => {
@@ -16,19 +17,56 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
         }
 
         if (info.menuItemId === "open-in-tucan" || info.menuItemId === "open-in-tucant" || info.menuItemId === "open-in-tucan-page" || info.menuItemId === "open-in-tucant-page") {
-            await chrome.tabs.update(tabId, {
-                url: await handleOpenInTucan(id?.value, tabId, url)
-            })
+            let result = await handleOpenInTucan(id?.value, tabId, url);
+            if (result !== undefined) {
+                await chrome.tabs.update(tabId, {
+                    url: result
+                })
+            }
             return;
         }
 
         if (info.menuItemId === "open-in-tucan-new-tab" || info.menuItemId === "open-in-tucant-new-tab" || info.menuItemId === "open-in-tucan-page-new-tab" || info.menuItemId === "open-in-tucant-page-new-tab") {
-            await chrome.tabs.create({
-                url: await handleOpenInTucan(id?.value, tabId, url)
-            })
+            let result = await handleOpenInTucan(id?.value, tabId, url);
+            if (result !== undefined) {
+                let newTab = await chrome.tabs.create({
+                    url: result
+                })
+
+                const newTabId = newTab.id;
+                if (newTabId === undefined) {
+                    return;
+                }
+
+                /** @type {{ excludedTabIds: number[];  }} */
+                const settings = (await chrome.storage.session.get(
+                    { excludedTabIds: [] },
+                ))
+                const updatedExludedTabIds = [newTabId, ...settings.excludedTabIds]
+                await chrome.storage.session.set({
+                    excludedTabIds: updatedExludedTabIds
+                })
+                console.log(updatedExludedTabIds)
+                await chrome.declarativeNetRequest.updateSessionRules({
+                    removeRuleIds: customUiRules.map(r => r.id),
+                    addRules: customUiRules.map(rule => {
+                        return {
+                            ...rule,
+                            condition: {
+                                excludedTabIds: updatedExludedTabIds,
+                                ...rule.condition
+                            },
+                        }
+                    }),
+                })
+                console.log(chrome.runtime.lastError)
+                await chrome.declarativeNetRequest.updateDynamicRules({
+                    removeRuleIds: customUiRules.map(r => r.id),
+                })
+                console.log(chrome.runtime.lastError)
+            }
             return;
         }
-
 
         if (info.menuItemId === "shareable-link-page" || info.menuItemId === "shareable-link") {
             await chrome.notifications.create({

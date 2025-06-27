@@ -15,7 +15,7 @@ pub fn Vorlesungsverzeichnisse(data: ReadOnlySignal<Option<MlsStart>>) -> Elemen
                         li {
                             Link {
                                 to: Route::Vorlesungsverzeichnis { vv: url.clone() },
-                                class: "dropdown-item bg-success-subtle {disabled}",
+                                class: "dropdown-item bg-success {disabled}",
                                 "{name}"
                                 if data().is_none() {
                                     " "
@@ -42,7 +42,7 @@ pub fn NavbarLoggedIn(current_session: ReadOnlySignal<LoginResponse>, data: Read
                 }
                 ul { class: "dropdown-menu",
                     li {
-                        Link { to: Route::Overview {}, class: "dropdown-item bg-success-subtle",
+                        Link { to: Route::Overview {}, class: "dropdown-item bg-success",
                             "Aktuelles"
                         }
                     }
@@ -69,7 +69,7 @@ pub fn NavbarLoggedIn(current_session: ReadOnlySignal<LoginResponse>, data: Read
                 }
                 ul { class: "dropdown-menu",
                     li {
-                        Link { to: data.as_ref().map(|d| Route::Vorlesungsverzeichnis { vv: d.logged_in_head.vorlesungsverzeichnis_url.clone() }).unwrap_or(Route::NotFound { route: vec!["not-found".to_string()] }), class: "dropdown-item bg-success-subtle {disabled}",
+                        Link { to: data.as_ref().map(|d| Route::Vorlesungsverzeichnis { vv: d.logged_in_head.vorlesungsverzeichnis_url.clone() }).unwrap_or(Route::NotFound { route: vec!["not-found".to_string()] }), class: "dropdown-item bg-success {disabled}",
                             "Vorlesungsverzeichnis"
                             if data().is_none() {
                                 " "
@@ -157,17 +157,17 @@ pub fn NavbarLoggedIn(current_session: ReadOnlySignal<LoginResponse>, data: Read
                         hr { class: "dropdown-divider"}
                     }
                     li {
-                        Link { to: Route::MySemesterModules { semester: SemesterId::current() }, class: "dropdown-item bg-success-subtle",
+                        Link { to: Route::MySemesterModules { semester: SemesterId::current() }, class: "dropdown-item bg-success",
                             { "Meine Semestermodule" }
                         }
                     }
                     li {
-                        Link { to: Route::MyModules { semester: SemesterId::current() }, class: "dropdown-item bg-success-subtle",
+                        Link { to: Route::MyModules { semester: SemesterId::current() }, class: "dropdown-item bg-success",
                             { "Meine Module" }
                         }
                     }
                     li {
-                        Link { to: Route::MyCourses { semester: SemesterId::current() }, class: "dropdown-item bg-success-subtle",
+                        Link { to: Route::MyCourses { semester: SemesterId::current() }, class: "dropdown-item bg-success",
                             { "Meine Veranstaltungen" }
                         }
                     }
@@ -177,7 +177,7 @@ pub fn NavbarLoggedIn(current_session: ReadOnlySignal<LoginResponse>, data: Read
                         }
                     }
                     li {
-                        Link { to: Route::Registration { registration: AnmeldungRequest::default() }, class: "dropdown-item bg-success-subtle",
+                        Link { to: Route::Registration { registration: AnmeldungRequest::default() }, class: "dropdown-item bg-success",
                             { "Anmeldung" }
                         }
                     }
@@ -202,7 +202,7 @@ pub fn NavbarLoggedIn(current_session: ReadOnlySignal<LoginResponse>, data: Read
                         hr { class: "dropdown-divider" }
                     }
                     li {
-                        Link { to: Route::MyExams { semester: SemesterId::current() }, class: "dropdown-item bg-success-subtle",
+                        Link { to: Route::MyExams { semester: SemesterId::current() }, class: "dropdown-item bg-success",
                             { "Meine Prüfungen" }
                         }
                     }
@@ -222,17 +222,17 @@ pub fn NavbarLoggedIn(current_session: ReadOnlySignal<LoginResponse>, data: Read
                         }
                     }
                     li {
-                        Link { to: Route::CourseResults { semester: SemesterId::current() }, class: "dropdown-item bg-success-subtle",
+                        Link { to: Route::CourseResults { semester: SemesterId::current() }, class: "dropdown-item bg-success",
                             { "Modulergebnisse" }
                         }
                     }
                     li {
-                        Link { to: Route::ExamResults { semester: SemesterId::current() }, class: "dropdown-item bg-success-subtle",
+                        Link { to: Route::ExamResults { semester: SemesterId::current() }, class: "dropdown-item bg-success",
                             { "Prüfungsergebnisse" }
                         }
                     }
                     li {
-                        Link { to: Route::StudentResult { course_of_study: "default".to_owned() }, class: "dropdown-item bg-success-subtle",
+                        Link { to: Route::StudentResult { course_of_study: "default".to_owned() }, class: "dropdown-item bg-success",
                             { "Leistungsspiegel" }
                         }
                     }
@@ -257,7 +257,7 @@ pub fn NavbarLoggedIn(current_session: ReadOnlySignal<LoginResponse>, data: Read
                         }
                     }
                     li {
-                        Link { to: Route::MyDocuments {}, class: "dropdown-item bg-success-subtle",
+                        Link { to: Route::MyDocuments {}, class: "dropdown-item bg-success",
                             { "Meine Dokumente" }
                         }
                     }
@@ -302,7 +302,7 @@ pub fn NavbarLoggedIn(current_session: ReadOnlySignal<LoginResponse>, data: Read
                         }
                     }
                     li {
-                        Link { to: Route::MyDocuments {}, class: "dropdown-item bg-success-subtle",
+                        Link { to: Route::MyDocuments {}, class: "dropdown-item bg-success",
                             { "Meine Dokumente" }
                         }
                     }

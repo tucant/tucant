@@ -61,7 +61,7 @@
                 ./.
               )
               ./tucant-extension/bootstrap.bundle.min.js
-              ./tucant-extension/bootstrap.min.css
+              ./tucant-extension/bootstrap.css
               ./rustfmt.toml
             ];
           };
@@ -119,7 +119,7 @@
           (craneLib.fileset.commonCargoSources ./crates/tucan-connector)
           (craneLib.fileset.commonCargoSources ./crates/tucant-dioxus)
           (craneLib.fileset.commonCargoSources ./crates/html-handler)
-          ./crates/tucant-dioxus/assets/bootstrap.min.css
+          ./crates/tucant-dioxus/assets/bootstrap.css
           ./crates/tucant-dioxus/assets/bootstrap.bundle.min.js
         ];
 
@@ -153,7 +153,7 @@
           ./tucant-extension/content-script-redirect.js
           ./tucant-extension/open-in-tucan.js
           ./tucant-extension/bootstrap.bundle.min.js
-          ./tucant-extension/bootstrap.min.css
+          ./tucant-extension/bootstrap.css
           ./tucant-extension/icon.png
           ./tucant-extension/manifest.json
           ./tucant-extension/mobile.css

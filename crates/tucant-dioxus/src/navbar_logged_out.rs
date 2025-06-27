@@ -23,7 +23,7 @@ pub fn NavbarLoggedOut() -> Element {
                             to: Route::Vorlesungsverzeichnis {
                                 vv: ActionRequest::parse("-AN07PBvMn59bWIkwI5kPIrV6ttS-nQO52gY48WnmIDWTv9PQsRceJIEekBMsiG7XrGxJxL6WmWMRCgv6ZdqcqJvgDTJ41d1yHBN12FkxT2-2R1XLasNa7As0AF4mdh2AohuT~wrzHUbQsFAkJJF23tlDnGaVBwg3B7S2UW-GrR0DSb24IOCR8EhR1~A__")
                             },
-                            class: "dropdown-item bg-success-subtle",
+                            class: "dropdown-item bg-success",
                             "Vorlesungsverzeichnis"
                         }
                     }
@@ -45,7 +45,7 @@ pub fn NavbarLoggedOut() -> Element {
                             to: Route::Vorlesungsverzeichnis {
                                 vv: ActionRequest::parse("-AEv3p-ixRiFiH8xo86RrKK9uf72StPaSd2hoHwg~OCNTRSPUhnJzdfm2ekgyicwVEYv0sluY-Xc02k-Ok9YzmHJMN~8ZC5XqBZRJWAgaUOXj0O99z7w1fzIT-9l2n08Ivm2cZlRYRW-OLNzyzfekzeBlJcHKHIyvLHyZM1Gw7U0RN428Qtt79KAuiKQ__")
                             },
-                            class: "dropdown-item bg-success-subtle",
+                            class: "dropdown-item bg-success",
                             "Aktuell - Sommersemester 2025"
                         }
                     }
@@ -53,7 +53,7 @@ pub fn NavbarLoggedOut() -> Element {
                         Link {
                             to: Route::Vorlesungsverzeichnis {
                                 vv: ActionRequest::parse("-AV49BnEx08lkzBuUkpL1OiPOiy3h-IQL20ziRJFpOsEY2DC1~UykqG1eQ8bvz68jeZWo2btN4wItUnwQLaiKvRjVeU-HLKg-t83hCL4AmQ3H2Cn-as8NQ7ITOtoJXIQoEFvGuq6fgf7itKqWJGnHUuKsH5k3PgoK~dcpAqk7jG2vRTR7jTf6iDg8GoQ__")
-                            }, class:"dropdown-item bg-success-subtle",
+                            }, class:"dropdown-item bg-success",
                             "Vorlesungsverzeichnis des WiSe 2024/25"
                         }
                     }
@@ -61,7 +61,7 @@ pub fn NavbarLoggedOut() -> Element {
                         Link {
                             to: Route::Vorlesungsverzeichnis {
                                 vv: ActionRequest::parse("-Avn07o4KNB3FseLBaQAymKF-c26tMa37alo49WaWmPNAs6c~eB~9eUKwhY254n8VlPObojuspLhwsEVitzdGci5tybqHGcovSsTvIbYZMNs1-6N8WKN6ieWGsv4ScDLXw~hThHy7imvWnzEqAY-6kee5lmdm8GhDxStGxy5AwNpGJW73ftfmIvUZlgQ__")
-                            }, class: "dropdown-item bg-success-subtle",
+                            }, class: "dropdown-item bg-success",
                             "Vorlesungsverzeichnis des SoSe2024"
                         }
                     }

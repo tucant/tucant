@@ -1,3 +1,4 @@
+import { recoverTabs } from "./recover-tabs.js";
 import { asyncClosure } from "./utils.js";
 
 /** @type {HTMLElement} */ (document.querySelector('#go-to-options')).addEventListener('click', function () {
@@ -66,7 +67,9 @@ document.querySelector("#update-extension")?.addEventListener('click', function 
 
         await new Promise(r => setTimeout(r, 2000));
 
+        console.log("calling reload")
         chrome.runtime.reload();
+        console.log("reload called")
     })
 });
 

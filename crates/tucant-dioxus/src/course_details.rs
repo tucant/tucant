@@ -17,8 +17,8 @@ pub fn CourseDetails(course: ReadOnlySignal<CourseDetailsRequest>) -> Element {
                             { format!("{} CP", credits) }
                         }
                     }
-                    { " " }
-                    button { onclick: reload, type: "button", class: "btn btn-light",
+                    " "
+                    button { onclick: reload, type: "button", class: "btn btn-secondary",
                         // https://github.com/twbs/icons
                         // The MIT License (MIT)
                         // Copyright (c) 2019-2024 The Bootstrap Authors

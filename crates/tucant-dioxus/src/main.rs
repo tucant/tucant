@@ -6,7 +6,7 @@ use tucant_dioxus::{RcTucanType, Route};
 use tucant_types::LoginResponse;
 use wasm_bindgen::prelude::*;
 
-const BOOTSTRAP_CSS: Asset = asset!("/assets/bootstrap.min.css");
+const BOOTSTRAP_CSS: Asset = asset!("/assets/bootstrap.css");
 const BOOTSTRAP_JS: Asset = asset!("/assets/bootstrap.bundle.min.js");
 
 #[wasm_bindgen]
@@ -84,6 +84,7 @@ fn App(login_response: Option<LoginResponse>, connector: RcTucanType) -> Element
     provide_context(connector);
 
     rsx! {
+        // TODO move this into index.html to prevent flash of unstyled content
         document::Link { rel: "stylesheet", href: BOOTSTRAP_CSS }
         Router::<Route> {}
         script { src: BOOTSTRAP_JS }
