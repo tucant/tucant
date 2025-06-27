@@ -178,7 +178,9 @@ mod tests {
                 panic!();
             };
 
+            println!("before sendMessage");
             session.script_evaluate(EvaluateParameters::new(r#"chrome.runtime.sendMessage("open-in-tucan-page")"#.to_owned(), Target::ContextTarget(ContextTarget::new(browsing_context.clone(), None)), false, None, None, Some(true))).await?;
+            println!("after sendMessage");
 
             sleep(Duration::from_secs(5)).await;
 
@@ -188,7 +190,9 @@ mod tests {
             let contexts = session.browsing_context_get_tree(GetTreeParameters { max_depth: None, root: Some(browsing_context.clone()) }).await?;
             println!("{contexts:?}");
 
+            println!("before dispatchEvent");
             session.script_evaluate(EvaluateParameters::new(r#"window.dispatchEvent(new CustomEvent('tucant', { detail: "open-in-tucan-page" }));"#.to_owned(), Target::ContextTarget(ContextTarget::new(browsing_context.clone(), None)), false, None, None, Some(true))).await?;
+            println!("after dispatchEvent");
 
             sleep(Duration::from_secs(5)).await;
 
