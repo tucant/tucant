@@ -35,3 +35,8 @@ impl GradeOverviewRequest {
         self.0.as_str()
     }
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, ToSchema)]
+pub struct GradeOverviewResponse {
+
+}

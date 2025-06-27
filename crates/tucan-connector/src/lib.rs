@@ -522,10 +522,10 @@ mod authenticated_tests {
             dotenvy::dotenv().unwrap();
             let tucan = get_tucan_connector().await;
             let login_response = get_login_session().await;
-            let result = examresults(&tucan, login_response, RevalidationStrategy::default(), SemesterId::all()).await.unwrap();
+            let result = examresults(&tucan, login_response, RevalidationStrategy::cache(), SemesterId::all()).await.unwrap();
             for result in result.results {
                 if let Some(average_url) = result.average_url {
-                    gradeoverview(&tucan, login_response, RevalidationStrategy::default(), average_url).await.unwrap();
+                    gradeoverview(&tucan, login_response, RevalidationStrategy::cache(), average_url).await.unwrap();
                 }
             }
             let semesters = examresults(&tucan, login_response, RevalidationStrategy::default(), SemesterId::current()).await.unwrap().semester;
