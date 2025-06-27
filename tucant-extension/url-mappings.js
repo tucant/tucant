@@ -24,15 +24,15 @@ export const bidirectionalMappings = (/** @type {number} */ id) => [
         "tucant": t`module-details/${"(.*)"}`,
     },
     {
-        "tucan": t`PRGNAME=COURSEDETAILS&ARGUMENTS=-N${num(id)},-N${num(275)},${"(.*)"}`,
+        "tucan": t`PRGNAME=COURSEDETAILS&ARGUMENTS=-N${num(id)},-N${num(274)},${"(.*)"}`,
         "tucant": t`course-details/${"(.*)"}`,
     },
     {
-        "tucan": t`PRGNAME=REGISTRATION&ARGUMENTS=-N${num(id)},-N${num(275)},${"(.*)"}`,
+        "tucan": t`PRGNAME=REGISTRATION&ARGUMENTS=-N${num(id)},-N${num(311)},${"(.*)"}`,
         "tucant": t`registration/${"(.*)"}`,
     },
     {
-        "tucan": t`PRGNAME=MLSSTART&ARGUMENTS=-N${num(id)},-N${num(275)},`,
+        "tucan": t`PRGNAME=MLSSTART&ARGUMENTS=-N${num(id)},-N${num(19)},`,
         "tucant": t`overview`,
     },
     {
@@ -41,22 +41,38 @@ export const bidirectionalMappings = (/** @type {number} */ id) => [
     },
     {
         "tucan": t`PRGNAME=MYMODULES&ARGUMENTS=-N${num(id)},-N${num(275)},`,
-        "tucant": t`my-modules`,
+        "tucant": t`my-modules/current`,
     },
     {
-        "tucan": t`PRGNAME=PROFCOURSES&ARGUMENTS=-N${num(id)},-N${num(275)},`,
-        "tucant": t`my-courses`,
+        "tucan": t`PRGNAME=MYMODULES&ARGUMENTS=-N${num(id)},-N${num(275)},-N999`,
+        "tucant": t`my-modules/all`,
     },
     {
-        "tucan": t`PRGNAME=MYEXAMS&ARGUMENTS=-N${num(id)},-N${num(275)},`,
+        "tucan": t`PRGNAME=MYMODULES&ARGUMENTS=-N${num(id)},-N${num(275)},-N${"(\\d+)"}`,
+        "tucant": t`my-modules/${"(\\d+)"}`,
+    },
+    {
+        "tucan": t`PRGNAME=PROFCOURSES&ARGUMENTS=-N${num(id)},-N${num(274)},`,
+        "tucant": t`my-courses/current`,
+    },
+    {
+        "tucan": t`PRGNAME=PROFCOURSES&ARGUMENTS=-N${num(id)},-N${num(274)},-N999`,
+        "tucant": t`my-courses/all`,
+    },
+    {
+        "tucan": t`PRGNAME=PROFCOURSES&ARGUMENTS=-N${num(id)},-N${num(274)},-N${"(\\d+)"}`,
+        "tucant": t`my-courses/${"(\\d+)"}`,
+    },
+    {
+        "tucan": t`PRGNAME=MYEXAMS&ARGUMENTS=-N${num(id)},-N${num(318)},`,
         "tucant": t`my-exams/current`,
     },
     {
-        "tucan": t`PRGNAME=MYEXAMS&ARGUMENTS=-N${num(id)},-N${num(275)},-N999`,
+        "tucan": t`PRGNAME=MYEXAMS&ARGUMENTS=-N${num(id)},-N${num(318)},-N999`,
         "tucant": t`my-exams/all`,
     },
     {
-        "tucan": t`PRGNAME=MYEXAMS&ARGUMENTS=-N${num(id)},-N${num(275)},-N${"(\\d+)"}`,
+        "tucan": t`PRGNAME=MYEXAMS&ARGUMENTS=-N${num(id)},-N${num(318)},-N${"(\\d+)"}`,
         "tucant": t`my-exams/${"(\\d+)"}`,
     },
     {
