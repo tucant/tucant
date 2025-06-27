@@ -7,7 +7,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-dioxus = { git = "https://github.com/mohe2015/dioxus.git", branch = "my", features = ["router"] }
+dioxus = { git = "https://github.com/mohe2015/dioxus.git", branch = "my", features = ["router", "logger"] }
 tucant-types = { path = "../tucant-types" }
 log = { version = "0.4", features = ["max_level_debug", "release_max_level_warn"] }
 reqwest = { version = "0.12.9", default-features = false, features = ["rustls-tls", "http2", "charset", "json"] }
@@ -22,6 +22,7 @@ cookie = "0.18"
 web-extensions-sys = { optional = true, git = "https://github.com/mohe2015/web-extensions-sys", branch = "cookies" }
 tucan-connector = { optional = true, path = "../tucan-connector" }
 tokio = { features = ["full"], version = "1" }
+tracing = "0.1.41"
 
 [features]
 direct = ["web", "dep:tucan-connector", "dep:web-extensions-sys"]

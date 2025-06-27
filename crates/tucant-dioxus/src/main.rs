@@ -1,6 +1,6 @@
 use std::panic;
 
-use dioxus::prelude::*;
+use dioxus::{prelude::*};
 use log::warn;
 use tucant_dioxus::{RcTucanType, Route};
 use tucant_types::LoginResponse;
@@ -25,8 +25,20 @@ extern "C" {
     fn stack(error: &Error) -> String;
 }
 
+// https://github.com/tauri-apps/wry
+// https://github.com/tauri-apps/tao/blob/5ac00b57ad3f5c5c7135dde626cb90bc1ad469dc/src/platform_impl/android/ndk_glue.rs#L236
+
 pub fn main() {
-    panic!();
+    // because tao::android_binding is not called here yet the logging does not work yet etc.
+    // so this likely panics and then there is no response
+    // the JNI_OnLoad trick is actually not nice
+
+    // report issue for panicking here and report issue for making this async?
+
+
+    // logging in here does not work?
+    //dioxus::logger::initialize_default();
+    //tracing::error!("start of main");
     // From https://github.com/rustwasm/console_error_panic_hook, licensed under MIT and Apache 2.0
     /*panic::set_hook(Box::new(|info| {
         let mut msg = info.to_string();
@@ -40,10 +52,10 @@ pub fn main() {
     }));
 */
     //console_log::init().unwrap();
-    //dioxus::mobile::launch_cfg(App, vec![], vec![]);
+    dioxus::mobile::launch_cfg(App, vec![], vec![]);
 
     // maybe this code panics before?
-
+/*
     let launcher = dioxus::LaunchBuilder::mobile();
 
     #[cfg(feature = "web")]
@@ -55,7 +67,7 @@ pub fn main() {
     launcher
         .with_context(login_response)
         //.with_context(RcTucanType(tucant_types::DynTucan::new_arc(tucan_connector::TucanConnector::new().await.unwrap())))
-        .launch(App);
+        .launch(App);*/
 
     //let connector = RcTucanType(DynTucan::new_rc(tucant_dioxus::api_server::ApiServerTucan::new()));
 }

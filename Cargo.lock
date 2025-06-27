@@ -5509,6 +5509,7 @@ dependencies = [
  "reqwest",
  "serde_json",
  "tokio",
+ "tracing",
  "tucan-connector",
  "tucant-types",
  "url",
