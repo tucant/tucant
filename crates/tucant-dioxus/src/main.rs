@@ -28,7 +28,7 @@ extern "C" {
 #[tokio::main]
 async fn main() {
     // From https://github.com/rustwasm/console_error_panic_hook, licensed under MIT and Apache 2.0
-    panic::set_hook(Box::new(|info| {
+    /*panic::set_hook(Box::new(|info| {
         let mut msg = info.to_string();
         msg.push_str("\n\nStack:\n\n");
         let e = Error::new();
@@ -38,19 +38,21 @@ async fn main() {
         error(msg.clone());
         alert(msg.as_str());
     }));
-
-    console_log::init().unwrap();
+*/
+    //console_log::init().unwrap();
 
     let launcher = dioxus::LaunchBuilder::new();
 
     #[cfg(feature = "web")]
     let launcher = launcher.with_cfg(dioxus::web::Config::new().history(std::rc::Rc::new(dioxus::web::HashHistory::new(false))));
 
-/*with_context(tucant_dioxus::login_response().await)
-        .with_context(RcTucanType(tucant_types::DynTucan::new_arc(tucan_connector::TucanConnector::new().await.unwrap())))
-         */
+    let login_response = tucant_dioxus::login_response().await;
+    let login_response = SyncSignal::new_maybe_sync(|| login_response);
 
-    launcher.launch(App);
+    launcher
+        .with_context(login_response)
+        .with_context(RcTucanType(tucant_types::DynTucan::new_arc(tucan_connector::TucanConnector::new().await.unwrap())))
+        .launch(App);
 
     //let connector = RcTucanType(DynTucan::new_rc(tucant_dioxus::api_server::ApiServerTucan::new()));
 }
