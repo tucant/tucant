@@ -6,7 +6,6 @@ use tucant_dioxus::{RcTucanType, Route};
 use tucant_types::LoginResponse;
 use wasm_bindgen::prelude::*;
 
-const BOOTSTRAP_CSS: Asset = asset!("/assets/bootstrap.scss");
 const BOOTSTRAP_JS: Asset = asset!("/assets/bootstrap.bundle.min.js");
 
 #[wasm_bindgen]
@@ -84,7 +83,6 @@ fn App(login_response: Option<LoginResponse>, connector: RcTucanType) -> Element
     provide_context(connector);
 
     rsx! {
-        document::Link { rel: "stylesheet", href: BOOTSTRAP_CSS }
         Router::<Route> {}
         script { src: BOOTSTRAP_JS }
     }
