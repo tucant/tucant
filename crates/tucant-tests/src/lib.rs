@@ -118,7 +118,7 @@ mod tests {
 
             session
                 .register_event_handler(EventType::LogEntryAdded, async |event| {
-                    println!("{event}");
+                    println!("{}", event.as_object().unwrap().get_key_value("params").unwrap().1.as_object().unwrap().get_key_value("args").unwrap().1);
                 })
                 .await;
 
@@ -180,7 +180,7 @@ mod tests {
 
             session.script_evaluate(EvaluateParameters::new(r#"chrome.runtime.sendMessage("open-in-tucan-page")"#.to_owned(), Target::ContextTarget(ContextTarget::new(browsing_context.clone(), None)), false, None, None, Some(true))).await?;
 
-            sleep(Duration::from_secs(50)).await;
+            sleep(Duration::from_secs(5)).await;
 
             let realms = session.script_get_realms(GetRealmsParameters::new(Some(browsing_context.clone()), None)).await?;
             println!("{realms:?}");
