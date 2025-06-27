@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "css": "sass bootstrap.scss ../crates/tucant-dioxus/assets/bootstrap.css",
+    "css": "sass bootstrap.scss ../crates/tucant-dioxus/assets/bootstrap.css && sass bootstrap.scss bootstrap.css",
     "build": "tsc -p ./jsconfig.json"
   },
   "license": "AGPL-3.0-or-later",

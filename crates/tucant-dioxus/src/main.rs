@@ -83,9 +83,9 @@ fn App(login_response: Option<LoginResponse>, connector: RcTucanType) -> Element
     provide_context(session);
     provide_context(connector);
 
-    println!("{}", BOOTSTRAP_CSS);
-
     rsx! {
+        // TODO move this into index.html to prevent flash of unstyled content
+        document::Link { rel: "stylesheet", href: BOOTSTRAP_CSS }
         Router::<Route> {}
         script { src: BOOTSTRAP_JS }
     }
