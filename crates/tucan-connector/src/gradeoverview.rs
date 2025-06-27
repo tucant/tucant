@@ -109,17 +109,17 @@ fn gradeoverview_internal(login_response: &LoginResponse, content: &str) -> Resu
                                                             
                                         <tr>
                                             <td class="tbdata">"Anzahl"</td>
-                                                                                                        <td class="tbdata">"684"</td>
-                                                                                                                                    <td class="tbdata">"---"</td>
+                                                                                                        <td class="tbdata">count</td>
+                                                                                                                                    <td class="tbdata">second_column_count</td>
                                                                                             </tr>
                                     </tbody></table>
                                 
                                             
                                 <div class="tbdata">"Durchschnitt:    1,0"</div>
-                            <div class="tbdata">"Vorliegende Ergebnisse:  684"</div>
+                            <div class="tbdata">vorliegende_ergebnisse</div>
                             <div class="tbdata">"Ergebnisse mit abweichendem BWS:    0"</div>
 
-                                                        <div class="tbdata">"Fehlend (Noch nicht erbracht):    97"</div>
+                                                        <div class="tbdata">fehlend</div>
             
                     </div>
                 </div>
