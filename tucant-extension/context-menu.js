@@ -51,6 +51,10 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
                     }),
                 })
                 console.log(chrome.runtime.lastError)
+                await chrome.declarativeNetRequest.updateDynamicRules({
+                    removeRuleIds: customUiRules.map(r => r.id),
+                })
+                console.log(chrome.runtime.lastError)
             }
             return;
         }
