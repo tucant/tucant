@@ -2,6 +2,7 @@ import "./fix-session-id-in-url.js"
 import "./context-menu.js"
 import { handleOpenInTucan, getCurrentTab } from "./open-in-tucan.js"
 import { asyncClosure } from "./utils.js";
+import { customUiRules } from "./custom-ui.js";
 
 console.log("background script")
 
@@ -148,25 +149,6 @@ chrome.declarativeNetRequest.onRuleMatchedDebug.addListener(
 */
 
 // https://groups.google.com/a/chromium.org/g/chromium-extensions/c/v3yrOjZIDJc
-const EXT_PAGE = chrome.runtime.getURL('/public/index.html');
-console.log(EXTENSION_DOMAIN.slice(0, -1).replace("moz-extension://", "").replace("chrome-extension://", ""))
-/** @type {chrome.declarativeNetRequest.Rule[]} */
-const customUiRules = [{
-    id: 200,
-    priority: 3,
-    condition: {
-        isUrlFilterCaseSensitive: true,
-        resourceTypes: [
-            /** @type {chrome.declarativeNetRequest.ResourceType} */ ("main_frame")
-        ],
-        regexFilter: "^https://www\\.tucan\\.tu-darmstadt\\.de/$",
-        excludedInitiatorDomains: [EXTENSION_DOMAIN.slice(0, -1).replace("moz-extension://", "").replace("chrome-extension://", "")]
-    },
-    action: {
-        type: /** @type {chrome.declarativeNetRequest.RuleActionType} */ ('redirect'),
-        redirect: { regexSubstitution: EXT_PAGE + '#/' },
-    },
-},];
 
 async function enableCustomUi() {
     await chrome.declarativeNetRequest.updateDynamicRules({

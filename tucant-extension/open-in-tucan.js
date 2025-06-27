@@ -22,14 +22,14 @@ export async function handleOpenInTucan(id, tabId, url) {
     for (const mapping of mappings) {
         const regex = new RegExp(mapping.tucan.strings.reduce((acc, curr, i) => {
             const substitution = mapping.tucan.args[i];
-            return (acc += substitution
+            return (acc += i < mapping.tucan.args.length
                 ? `${RegExp.escape(curr)}${substitution.from}`
                 : RegExp.escape(curr));
         }, '^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&') + '$', "g");
         let replacementIdx = 1;
         const replacement = mapping.tucant.strings.reduce((acc, curr, i) => {
             const substitution = mapping.tucant.args[i];
-            return (acc += substitution
+            return (acc += i < mapping.tucant.args.length
                 ? `${curr}${substitution.to ?? `$${(replacementIdx++).toString()}`}`
                 : curr);
         }, `${EXT_PAGE_INDEX_HTML}#/`);
@@ -47,14 +47,14 @@ export async function handleOpenInTucan(id, tabId, url) {
     for (const mapping of mappings) {
         const regex = new RegExp(mapping.tucant.strings.reduce((acc, curr, i) => {
             const substitution = mapping.tucant.args[i];
-            return (acc += substitution
+            return (acc += i < mapping.tucant.args.length
                 ? `${RegExp.escape(curr)}${substitution.from}`
                 : RegExp.escape(curr));
         }, `^${EXT_PAGE_INDEX_HTML}#/`) + '$', "g");
         let replacementIdx = 1;
         const replacement = mapping.tucan.strings.reduce((acc, curr, i) => {
             const substitution = mapping.tucan.args[i];
-            return (acc += substitution
+            return (acc += i < mapping.tucan.args.length
                 ? `${curr}${substitution.to ?? `$${(replacementIdx++).toString()}`}`
                 : curr);
         }, `https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&`);

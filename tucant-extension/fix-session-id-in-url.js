@@ -10,6 +10,7 @@ chrome.webRequest.onBeforeRequest.addListener((details) => {
             })
         }
     });
+    return undefined
 }, { urls: ["https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll"] })
 
 chrome.webRequest.onHeadersReceived.addListener((details) => {
@@ -37,6 +38,7 @@ chrome.webRequest.onHeadersReceived.addListener((details) => {
             })
         }
     });
+    return undefined
 }, { urls: ["https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll", "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=LOGOUT&*"] }, ["responseHeaders"]);
 
 chrome.cookies.onChanged.addListener((changeInfo) => {
