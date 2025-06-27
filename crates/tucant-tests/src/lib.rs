@@ -122,7 +122,7 @@ mod tests {
                 })
                 .await;
 
-             session
+            session
                 .register_event_handler(EventType::BrowsingContextUserPromptOpened, async |event| {
                     println!("user prompt {}", event);
                 })

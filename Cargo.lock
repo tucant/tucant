@@ -5461,6 +5461,7 @@ dependencies = [
  "html-extractor",
  "html-handler",
  "itertools",
+ "js-sys",
  "key-value-database",
  "log",
  "regex",
@@ -5474,6 +5475,8 @@ dependencies = [
  "tokio-util",
  "tucant-types",
  "utoipa",
+ "wasm-bindgen-futures",
+ "web-sys",
 ]
 
 [[package]]

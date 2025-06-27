@@ -20,7 +20,7 @@ use registration::anmeldung;
 use reqwest::header;
 use student_result::student_result;
 use time::{OffsetDateTime, format_description::well_known::Rfc2822};
-use tokio::{sync::Semaphore, time::sleep};
+use tokio::sync::Semaphore;
 use tucant_types::{
     LoginResponse, RevalidationStrategy, SemesterId, Tucan, TucanError,
     courseresults::ModuleResultsResponse,
@@ -54,6 +54,20 @@ pub mod root;
 pub mod startpage_dispatch;
 pub mod student_result;
 pub mod vv;
+
+#[cfg(target_arch = "wasm32")]
+pub async fn sleep(duration: Duration) {
+    let mut cb = |resolve: js_sys::Function, reject: js_sys::Function| {
+        web_sys::window().unwrap().set_timeout_with_callback_and_timeout_and_arguments_0(&resolve, duration.as_millis().try_into().unwrap());
+    };
+
+    let p = js_sys::Promise::new(&mut cb);
+
+    wasm_bindgen_futures::JsFuture::from(p).await.unwrap();
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+use tokio::time::sleep;
 
 static COURSEDETAILS_REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=COURSEDETAILS&ARGUMENTS=-N\\d+,-N\\d+,").unwrap());
 
@@ -89,7 +103,6 @@ pub async fn retryable_get(connector: &TucanConnector, url: &str) -> Result<(Str
         i += 1;
     }
 }
-
 pub async fn authenticated_retryable_get(connector: &TucanConnector, url: &str, cookie_cnsc: &str) -> Result<(String, OffsetDateTime), TucanError> {
     let mut i = 0;
     loop {
