@@ -22,6 +22,7 @@ pub mod vv;
 
 use std::ops::Deref;
 use std::rc::Rc;
+use std::sync::Arc;
 
 use dioxus::prelude::*;
 use tucant_types::DynTucan;
@@ -31,12 +32,12 @@ use crate::navbar::Navbar;
 use crate::overview::Overview;
 
 #[cfg(feature = "mobile")]
-pub async fn mobile_login_response() -> Option<tucant_types::LoginResponse> {
+pub async fn login_response() -> Option<tucant_types::LoginResponse> {
     None
 }
 
 #[cfg(feature = "direct")]
-pub async fn direct_login_response() -> Option<tucant_types::LoginResponse> {
+pub async fn login_response() -> Option<tucant_types::LoginResponse> {
     let session_id = web_extensions_sys::chrome()
         .cookies()
         .get(web_extensions_sys::CookieDetails {
@@ -63,7 +64,7 @@ pub async fn direct_login_response() -> Option<tucant_types::LoginResponse> {
 }
 
 #[cfg(feature = "api")]
-pub async fn api_login_response() -> Option<tucant_types::LoginResponse> {
+pub async fn login_response() -> Option<tucant_types::LoginResponse> {
     use wasm_bindgen::JsCast;
     let window = web_sys::window().unwrap();
     let document = window.document().unwrap();
@@ -171,7 +172,7 @@ pub fn Root() -> Element {
     }
 }
 
-pub struct RcTucanType(pub Rc<DynTucan<'static>>);
+pub struct RcTucanType(pub Arc<DynTucan<'static>>);
 
 impl Clone for RcTucanType {
     fn clone(&self) -> Self {
@@ -181,12 +182,12 @@ impl Clone for RcTucanType {
 
 impl PartialEq for RcTucanType {
     fn eq(&self, other: &RcTucanType) -> bool {
-        Rc::ptr_eq(&self.0, &other.0)
+        Arc::ptr_eq(&self.0, &other.0)
     }
 }
 
 impl Deref for RcTucanType {
-    type Target = Rc<DynTucan<'static>>;
+    type Target = Arc<DynTucan<'static>>;
 
     fn deref(&self) -> &Self::Target {
         &self.0
