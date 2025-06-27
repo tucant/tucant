@@ -18,7 +18,7 @@ use html_handler::{MyElementRef, MyNode, Root, parse_document};
 //                                                                                                                             full site?
 
 pub async fn gradeoverview(tucan: &TucanConnector, login_response: &LoginResponse, revalidation_strategy: RevalidationStrategy, request: GradeOverviewRequest) -> Result<GradeOverviewResponse, TucanError> {
-    let key = format!("unparsed_gradeoverview.{}", login_response.id);
+    let key = format!("unparsed_gradeoverview.{request}");
 
     let old_content_and_date = tucan.database.get::<(String, OffsetDateTime)>(&key).await;
     if revalidation_strategy.max_age != 0 {

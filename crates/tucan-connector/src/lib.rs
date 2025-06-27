@@ -525,7 +525,9 @@ mod authenticated_tests {
             let result = examresults(&tucan, login_response, RevalidationStrategy::cache(), SemesterId::all()).await.unwrap();
             for result in result.results {
                 if let Some(average_url) = result.average_url {
-                    gradeoverview(&tucan, login_response, RevalidationStrategy::cache(), average_url).await.unwrap();
+                    println!("{average_url}");
+                    let overview = gradeoverview(&tucan, login_response, RevalidationStrategy::cache(), average_url).await.unwrap();
+                    println!("{overview:?}")
                 }
             }
             let semesters = examresults(&tucan, login_response, RevalidationStrategy::default(), SemesterId::current()).await.unwrap().semester;
