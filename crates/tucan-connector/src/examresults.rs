@@ -1,10 +1,10 @@
-use std::str::FromStr;
+use std::{str::FromStr, sync::LazyLock};
 
 use html_handler::{Root, parse_document};
+use regex::Regex;
 use time::{Duration, OffsetDateTime};
 use tucant_types::{
-    LoginResponse, RevalidationStrategy, SemesterId, Semesterauswahl, TucanError,
-    examresults::{ExamResult, ExamResultsResponse},
+    examresults::{ExamResult, ExamResultsResponse}, gradeoverview::GradeOverviewRequest, LoginResponse, RevalidationStrategy, SemesterId, Semesterauswahl, TucanError
 };
 
 use crate::{
@@ -53,6 +53,7 @@ pub async fn examresults(tucan: &TucanConnector, login_response: &LoginResponse,
 
 #[expect(clippy::too_many_lines)]
 fn examresults_internal(login_response: &LoginResponse, content: &str) -> Result<ExamResultsResponse, TucanError> {
+    static GRADEOVERVIEW_REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=GRADEOVERVIEW&ARGUMENTS=-N\\d+,-N000325,").unwrap());
     let document = parse_document(content);
     let html_handler = Root::new(document.root());
     let html_handler = html_handler.document_start();
@@ -183,7 +184,7 @@ fn examresults_internal(login_response: &LoginResponse, content: &str) -> Result
                                                 <script type="text/javascript">
                                                     _popup_script
                                                 </script>
-                                            } => average_url;
+                                            } => GradeOverviewRequest::parse(&GRADEOVERVIEW_REGEX.replace(&average_url, ""));
                                         </td>
                                     </tr>
                                 } => {

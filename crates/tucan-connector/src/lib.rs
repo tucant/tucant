@@ -54,6 +54,7 @@ pub mod root;
 pub mod startpage_dispatch;
 pub mod student_result;
 pub mod vv;
+pub mod gradeoverview;
 
 #[cfg(target_arch = "wasm32")]
 pub async fn sleep(duration: Duration) {
@@ -354,18 +355,7 @@ mod authenticated_tests {
     use tucant_types::{LoginRequest, LoginResponse, RevalidationStrategy, SemesterId, registration::AnmeldungRequest};
 
     use crate::{
-        Tucan,
-        courseresults::courseresults,
-        examresults::examresults,
-        login::login,
-        mlsstart::after_login,
-        mycourses::mycourses,
-        mydocuments::my_documents,
-        myexams::my_exams,
-        registration::anmeldung,
-        startpage_dispatch::after_login::redirect_after_login,
-        student_result::student_result,
-        tests::{get_tucan_connector, runtime},
+        courseresults::courseresults, examresults::examresults, gradeoverview::gradeoverview, login::login, mlsstart::after_login, mycourses::mycourses, mydocuments::my_documents, myexams::my_exams, registration::anmeldung, startpage_dispatch::after_login::redirect_after_login, student_result::student_result, tests::{get_tucan_connector, runtime}, Tucan
     };
 
     static ONCE: OnceCell<LoginResponse> = OnceCell::const_new();
@@ -532,7 +522,12 @@ mod authenticated_tests {
             dotenvy::dotenv().unwrap();
             let tucan = get_tucan_connector().await;
             let login_response = get_login_session().await;
-            examresults(&tucan, login_response, RevalidationStrategy::default(), SemesterId::all()).await.unwrap();
+            let result = examresults(&tucan, login_response, RevalidationStrategy::default(), SemesterId::all()).await.unwrap();
+            for result in result.results {
+                if let Some(average_url) = result.average_url {
+                    gradeoverview(&tucan, login_response, RevalidationStrategy::default(), average_url).await.unwrap();
+                }
+            }
             let semesters = examresults(&tucan, login_response, RevalidationStrategy::default(), SemesterId::current()).await.unwrap().semester;
             for semester in semesters {
                 examresults(&tucan, login_response, RevalidationStrategy::default(), semester.value).await.unwrap();

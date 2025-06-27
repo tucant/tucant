@@ -11,6 +11,7 @@ pub mod mymodules;
 pub mod registration;
 pub mod student_result;
 pub mod vv;
+pub mod gradeoverview;
 
 use std::{convert::Infallible, str::FromStr};
 
