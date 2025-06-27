@@ -18,6 +18,28 @@ export async function getCurrentTab() {
  */
 export async function handleOpenInTucan(id, tabId, url) {
     const mappings = bidirectionalMappings(id);
+    mappings.forEach(mapping => {
+        const regex = mapping.tucan.strings.reduce((acc, curr, i) => {
+            const substitution = mapping.tucan.args[i];
+            return (acc += substitution
+                ? `${RegExp.escape(curr)}${substitution.from}`
+                : curr);
+        }, '^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&') + '$';
+        let replacementIdx = 1;
+        const replacement = mapping.tucan.strings.reduce((acc, curr, i) => {
+            const substitution = mapping.tucan.args[i];
+            return (acc += substitution
+                ? `${RegExp.escape(curr)}${substitution.to ?? (replacementIdx++).toString()}`
+                : curr);
+        }, `${EXT_PAGE_INDEX_HTML}#/`) + '$';
+        console.log(regex)
+        console.log(replacement)
+
+        let match = new RegExp(regex, "g").exec(url)
+        if (match) {
+            return url.replace(regex, replacement)
+        }
+    })
 
     if (!id) {
         await chrome.notifications.create({
