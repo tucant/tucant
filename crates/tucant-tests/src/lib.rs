@@ -39,7 +39,6 @@ mod tests {
             (
                 "goog:chromeOptions".to_owned(),
                 json!({
-                    "binary": "/home/moritz/Downloads/chrome-linux64/chrome-linux64/chrome",
                     "args": ["--enable-unsafe-extension-debugging", "--remote-debugging-pipe"],
                 }),
             ),
@@ -99,16 +98,11 @@ mod tests {
 
         env_logger::init();
 
-        // https://github.com/SeleniumHQ/selenium/issues/15585#issuecomment-2782657812
         // Firefox 138 is required
-        // geckodriver --binary /home/moritz/Downloads/firefox-138.0b6/firefox/firefox-bin
+        // geckodriver
 
-        // Download beta (>= 136.0.7103.25) chrome and chromedriver from https://googlechromelabs.github.io/chrome-for-testing/#beta
-        // /home/moritz/Downloads/chromedriver-linux64/chromedriver-linux64/chromedriver --port=4444 --enable-chrome-logs
-        // https://github.com/GoogleChromeLabs/chromium-bidi/issues/2849
-
-        // https://groups.google.com/a/chromium.org/g/chromium-extensions/c/aEHdhDZ-V0E/m/WvvehPqKAwAJ
-        // seems like context menu clicking etc may happen at some point in webdriver bidi
+        // Chrome >= 136.0.7103.25 is required
+        // chromedriver --port=4444 --enable-chrome-logs
 
         let mut session = get_session().await;
 
@@ -196,7 +190,7 @@ mod tests {
 
             session.script_evaluate(EvaluateParameters::new(r#"window.dispatchEvent(new CustomEvent('tucant', { detail: "open-in-tucan-page" }));"#.to_owned(), Target::ContextTarget(ContextTarget::new(browsing_context.clone(), None)), false, None, None, Some(true))).await?;
 
-            sleep(Duration::from_secs(50)).await;
+            sleep(Duration::from_secs(5)).await;
 
             // driver.query(By::XPath(r#"//div/ul/li/a[text()="Veranstaltungen"]"#)).single().await?.click().await?;
 
