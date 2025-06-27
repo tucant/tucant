@@ -39,7 +39,9 @@ pub fn main() {
     }));
 */
     //console_log::init().unwrap();
-    let launcher = dioxus::LaunchBuilder::mobile();
+    dioxus::mobile::launch_cfg(App, vec![], vec![]);
+
+    /*let launcher = dioxus::LaunchBuilder::mobile();
 
     #[cfg(feature = "web")]
     let launcher = launcher.with_cfg(dioxus::web::Config::new().history(std::rc::Rc::new(dioxus::web::HashHistory::new(false))));
@@ -50,7 +52,7 @@ pub fn main() {
     launcher
         .with_context(login_response)
         //.with_context(RcTucanType(tucant_types::DynTucan::new_arc(tucan_connector::TucanConnector::new().await.unwrap())))
-        .launch(App);
+        .launch(App);*/
 
     //let connector = RcTucanType(DynTucan::new_rc(tucant_dioxus::api_server::ApiServerTucan::new()));
 }
