@@ -25,8 +25,10 @@ extern "C" {
     fn stack(error: &Error) -> String;
 }
 
-#[tokio::main]
-async fn main() {
+// main can't be async on android...
+pub fn main() {
+    dioxus::mobile::launch(App);
+
     // From https://github.com/rustwasm/console_error_panic_hook, licensed under MIT and Apache 2.0
     /*panic::set_hook(Box::new(|info| {
         let mut msg = info.to_string();
@@ -40,20 +42,22 @@ async fn main() {
     }));
 */
     //console_log::init().unwrap();
-
+/* 
     let launcher = dioxus::LaunchBuilder::new();
 
     #[cfg(feature = "web")]
     let launcher = launcher.with_cfg(dioxus::web::Config::new().history(std::rc::Rc::new(dioxus::web::HashHistory::new(false))));
 
-    let login_response = tucant_dioxus::login_response().await;
+    let login_response = tucant_dioxus::login_response();
     let login_response = SyncSignal::new_maybe_sync(|| login_response);
 
     launcher
         .with_context(login_response)
-        .with_context(RcTucanType(tucant_types::DynTucan::new_arc(tucan_connector::TucanConnector::new().await.unwrap())))
+        //.with_context(RcTucanType(tucant_types::DynTucan::new_arc(tucan_connector::TucanConnector::new().await.unwrap())))
         .launch(App);
 
+    
+*/
     //let connector = RcTucanType(DynTucan::new_rc(tucant_dioxus::api_server::ApiServerTucan::new()));
 }
 
