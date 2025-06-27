@@ -16,3 +16,4 @@ result*
 target
 tucant-tauri/gen
 .env
+node_modules

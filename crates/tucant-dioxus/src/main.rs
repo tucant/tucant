@@ -6,7 +6,7 @@ use tucant_dioxus::{RcTucanType, Route};
 use tucant_types::LoginResponse;
 use wasm_bindgen::prelude::*;
 
-const BOOTSTRAP_CSS: Asset = asset!("/assets/bootstrap.min.css");
+const BOOTSTRAP_CSS: Asset = asset!("/assets/bootstrap.scss");
 const BOOTSTRAP_JS: Asset = asset!("/assets/bootstrap.bundle.min.js");
 
 #[wasm_bindgen]
