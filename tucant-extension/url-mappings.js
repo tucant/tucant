@@ -76,27 +76,27 @@ export const bidirectionalMappings = (/** @type {number} */ id) => [
         "tucant": t`my-exams/${"(\\d+)"}`,
     },
     {
-        "tucan": t`PRGNAME=EXAMRESULTS&ARGUMENTS=-N${num(id)},-N${num(275)},`,
+        "tucan": t`PRGNAME=EXAMRESULTS&ARGUMENTS=-N${num(id)},-N${num(325)},`,
         "tucant": t`exam-results/current`,
     },
     {
-        "tucan": t`PRGNAME=EXAMRESULTS&ARGUMENTS=-N${num(id)},-N${num(275)},-N999`,
+        "tucan": t`PRGNAME=EXAMRESULTS&ARGUMENTS=-N${num(id)},-N${num(325)},-N999`,
         "tucant": t`exam-results/all`,
     },
     {
-        "tucan": t`PRGNAME=EXAMRESULTS&ARGUMENTS=-N${num(id)},-N${num(275)},-N${"(\\d+)"}`,
+        "tucan": t`PRGNAME=EXAMRESULTS&ARGUMENTS=-N${num(id)},-N${num(325)},-N${"(\\d+)"}`,
         "tucant": t`exam-results/${"(\\d+)"}`,
     },
     {
-        "tucan": t`PRGNAME=COURSERESULTS&ARGUMENTS=-N${num(id)},-N${num(275)},`,
+        "tucan": t`PRGNAME=COURSERESULTS&ARGUMENTS=-N${num(id)},-N${num(324)},`,
         "tucant": t`course-results/current`,
     },
     {
-        "tucan": t`PRGNAME=COURSERESULTS&ARGUMENTS=-N${num(id)},-N${num(275)},-N${"(\\d+)"}`,
+        "tucan": t`PRGNAME=COURSERESULTS&ARGUMENTS=-N${num(id)},-N${num(324)},-N${"(\\d+)"}`,
         "tucant": t`course-results/${"(\\d+)"}`,
     },
     {
-        "tucan": t`PRGNAME=CREATEDOCUMENT&ARGUMENTS=-N${num(id)},-N${num(275)},`,
+        "tucan": t`PRGNAME=CREATEDOCUMENT&ARGUMENTS=-N${num(id)},-N${num(557)},`,
         "tucant": t`my-documents`,
     },
     {
