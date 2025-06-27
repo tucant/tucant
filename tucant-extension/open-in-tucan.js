@@ -30,7 +30,7 @@ export async function handleOpenInTucan(id, tabId, url) {
         const replacement = mapping.tucant.strings.reduce((acc, curr, i) => {
             const substitution = mapping.tucant.args[i];
             return (acc += substitution
-                ? `${curr}${substitution.to ?? (replacementIdx++).toString()}`
+                ? `${curr}${substitution.to ?? `$${(replacementIdx++).toString()}`}`
                 : curr);
         }, `${EXT_PAGE_INDEX_HTML}#/`);
         console.log(regex)
@@ -55,7 +55,7 @@ export async function handleOpenInTucan(id, tabId, url) {
         const replacement = mapping.tucan.strings.reduce((acc, curr, i) => {
             const substitution = mapping.tucan.args[i];
             return (acc += substitution
-                ? `${curr}${substitution.to ?? (replacementIdx++).toString()}`
+                ? `${curr}${substitution.to ?? `$${(replacementIdx++).toString()}`}`
                 : curr);
         }, `https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&`);
         console.log(regex)
