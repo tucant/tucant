@@ -20,13 +20,20 @@ function t(strings, ...args) {
 
 /**
  * 
- * @param {number} number
+ * @param {string|number|undefined} number
  * @returns {MappingType} 
  */
 function num(number) {
-    return {
-        from: "\\d+",
-        to: number.toString()
+    if (number === undefined) {
+        return {
+            from: "DONTMATCH",
+            to: "DONTMATCH"
+        }
+    } else {
+        return {
+            from: "\\d+",
+            to: number.toString()
+        }
     }
 }
 
@@ -42,7 +49,7 @@ function s(string) {
     }
 }
 
-export const bidirectionalMappings = (/** @type {number} */ id) => [
+export const bidirectionalMappings = (/** @type {string|number|undefined} */ id) => [
     {
         "tucan": t`PRGNAME=MODULEDETAILS&ARGUMENTS=-N${num(id)},-N${num(275)},${s("(.*)")}`,
         "tucant": t`module-details/${s("(.*)")}`,
