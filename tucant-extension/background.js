@@ -146,6 +146,9 @@ chrome.declarativeNetRequest.onRuleMatchedDebug.addListener(
     }
 )
 */
+
+// TODO use the generalized stuff here too
+
 // https://groups.google.com/a/chromium.org/g/chromium-extensions/c/v3yrOjZIDJc
 const EXT_PAGE = chrome.runtime.getURL('/public/index.html');
 console.log(EXTENSION_DOMAIN.slice(0, -1).replace("moz-extension://", "").replace("chrome-extension://", ""))

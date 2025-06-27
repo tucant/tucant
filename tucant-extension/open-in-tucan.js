@@ -16,34 +16,6 @@ export async function getCurrentTab() {
  */
 export async function handleOpenInTucan(id, tabId, url) {
     let match = new RegExp("^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=-N\\d+,-N\\d+,(.*)$", "g").exec(url)
-    if (match) {
-        return `${EXT_PAGE_INDEX_HTML}#/module-details/${match[1]}`
-    }
-
-    match = new RegExp("^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=COURSEDETAILS&ARGUMENTS=-N\\d+,-N\\d+,(.*)$", "g").exec(url)
-    if (match) {
-        return `${EXT_PAGE_INDEX_HTML}#/course-details/${match[1]}`
-    }
-
-    match = new RegExp("^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N\\d+,-N\\d+,(.*)$", "g").exec(url)
-    if (match) {
-        return `${EXT_PAGE_INDEX_HTML}#/registration/${match[1]}`
-    }
-
-    match = new RegExp("^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=MLSSTART&ARGUMENTS=-N\\d+,-N\\d+,$", "g").exec(url)
-    if (match) {
-        return `${EXT_PAGE_INDEX_HTML}#/overview`
-    }
-
-    match = new RegExp("^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=ACTION&ARGUMENTS=(.*)$", "g").exec(url)
-    if (match) {
-        return `${EXT_PAGE_INDEX_HTML}#/vv/${match[1]}`
-    }
-
-    match = new RegExp("^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=MYMODULES&ARGUMENTS=-N\\d+,-N\\d+,$", "g").exec(url)
-    if (match) {
-        return `${EXT_PAGE_INDEX_HTML}#/my-modules`
-    }
 
     match = new RegExp("^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=PROFCOURSES&ARGUMENTS=-N\\d+,-N\\d+,$", "g").exec(url)
     if (match) {
