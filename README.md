@@ -149,3 +149,10 @@ llvm-cov show -Xdemangler=/home/moritz/.cargo/bin/rustfilt /home/moritz/Document
 
 xdg-open target/coverage/index.html 
 ```
+
+## Android
+
+```
+adb shell run-as com.example.TucantDioxus logcat
+# grep for RustStdoutStderr
+```

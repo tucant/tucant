@@ -30,6 +30,11 @@ use tucant_types::{SemesterId, coursedetails::CourseDetailsRequest, moduledetail
 use crate::navbar::Navbar;
 use crate::overview::Overview;
 
+#[cfg(feature = "mobile")]
+pub async fn mobile_login_response() -> Option<tucant_types::LoginResponse> {
+    None
+}
+
 #[cfg(feature = "direct")]
 pub async fn direct_login_response() -> Option<tucant_types::LoginResponse> {
     let session_id = web_extensions_sys::chrome()

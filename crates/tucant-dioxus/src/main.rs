@@ -41,8 +41,26 @@ async fn main() {
 
     console_log::init().unwrap();
 
-    warn!("main");
+     dioxus::LaunchBuilder::new()
+        .with_context(1234u32)
+        .launch(app);
 
+    #[cfg(feature = "mobile")]
+    {
+        use std::rc::Rc;
+        use dioxus::mobile::Config;
+
+        use tucant_types::DynTucan;
+
+        let login_response = tucant_dioxus::mobile_login_response().await;
+        let connector = RcTucanType(DynTucan::new_rc(tucan_connector::TucanConnector::new().await.unwrap()));
+
+        dioxus::mobile::launch_bindings::launch_cfg(|| {
+            rsx! { 
+                App { login_response, connector }
+            }
+        }, vec![], vec![]);
+    }
     #[cfg(feature = "direct")]
     if js_sys::Reflect::get(&js_sys::global(), &wasm_bindgen::JsValue::from_str("chrome")).is_ok() {
         use std::rc::Rc;
