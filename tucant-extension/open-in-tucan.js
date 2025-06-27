@@ -1,4 +1,4 @@
-import { bidirectionalMappings } from "./url-mappings";
+import { bidirectionalMappings } from "./url-mappings.js";
 
 const EXT_PAGE_INDEX_HTML = chrome.runtime.getURL('/public/index.html');
 
@@ -18,16 +18,16 @@ export async function getCurrentTab() {
  */
 export async function handleOpenInTucan(id, tabId, url) {
     const mappings = bidirectionalMappings(id);
-    mappings.forEach(mapping => {
-        const regex = mapping.tucan.strings.reduce((acc, curr, i) => {
+    for (const mapping of mappings) {
+        const regex = new RegExp(mapping.tucan.strings.reduce((acc, curr, i) => {
             const substitution = mapping.tucan.args[i];
             return (acc += substitution
                 ? `${RegExp.escape(curr)}${substitution.from}`
                 : curr);
-        }, '^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&') + '$';
+        }, '^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&') + '$', "g");
         let replacementIdx = 1;
-        const replacement = mapping.tucan.strings.reduce((acc, curr, i) => {
-            const substitution = mapping.tucan.args[i];
+        const replacement = mapping.tucant.strings.reduce((acc, curr, i) => {
+            const substitution = mapping.tucant.args[i];
             return (acc += substitution
                 ? `${RegExp.escape(curr)}${substitution.to ?? (replacementIdx++).toString()}`
                 : curr);
@@ -35,11 +35,13 @@ export async function handleOpenInTucan(id, tabId, url) {
         console.log(regex)
         console.log(replacement)
 
-        let match = new RegExp(regex, "g").exec(url)
+        let match = regex.exec(url)
         if (match) {
-            return url.replace(regex, replacement)
+            let result = url.replace(regex, replacement)
+            console.log("result ", result)
+            return result
         }
-    })
+    }
 
     if (!id) {
         await chrome.notifications.create({
