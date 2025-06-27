@@ -38,13 +38,22 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
                     return;
                 }
 
+                /** @type {{ excludedTabIds: number[];  }} */
+                const settings = (await chrome.storage.session.get(
+                    { excludedTabIds: [] },
+                ))
+                const updatedExludedTabIds = [newTabId, ...settings.excludedTabIds]
+                await chrome.storage.session.set({
+                    excludedTabIds: updatedExludedTabIds
+                })
+                console.log(updatedExludedTabIds)
                 await chrome.declarativeNetRequest.updateSessionRules({
                     removeRuleIds: customUiRules.map(r => r.id),
                     addRules: customUiRules.map(rule => {
                         return {
                             ...rule,
                             condition: {
-                                excludedTabIds: [newTabId], // TODO add existing
+                                excludedTabIds: updatedExludedTabIds,
                                 ...rule.condition
                             },
                         }
