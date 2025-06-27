@@ -122,7 +122,15 @@ mod tests {
                 })
                 .await;
 
+             session
+                .register_event_handler(EventType::BrowsingContextUserPromptOpened, async |event| {
+                    println!("user prompt {}", event);
+                })
+                .await;
+
             session.session_subscribe(SubscriptionRequest::new(vec!["log.entryAdded".to_owned()], Some(vec![browsing_context.clone()]), None)).await?;
+
+            session.session_subscribe(SubscriptionRequest::new(vec!["browsingContext.userPromptOpened".to_owned()], Some(vec![browsing_context.clone()]), None)).await?;
 
             session
                 .browsing_context_set_viewport(SetViewportParameters {
@@ -143,6 +151,8 @@ mod tests {
             let node = session.browsing_context_locate_nodes(LocateNodesParameters::new(browsing_context.clone(), Locator::CssLocator(CssLocator::new("#login-button".to_owned())), None, None, None)).await?;
             let node = &node.nodes[0];
             click_element(&mut session, browsing_context.clone(), node).await?;
+
+            // time not implemented on this platform
 
             session
                 .script_evaluate(EvaluateParameters::new(
