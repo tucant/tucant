@@ -1,4 +1,3 @@
-
 use dioxus::prelude::*;
 use tucant_types::{LoginResponse, Tucan};
 

@@ -255,7 +255,7 @@ fn codegen_type(r#type: &Type) -> proc_macro2::TokenStream {
 fn codegen_group(group: &(Option<Occur>, Group)) -> proc_macro2::TokenStream {
     // TODO occur
     let group = &group.1;
-    
+
     match group {
         Group::And(items) => {
             let items = items.iter().map(codegen_group);

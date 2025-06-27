@@ -1,4 +1,3 @@
-
 use crate::{RcTucanType, Route, common::use_authenticated_data_loader};
 use dioxus::prelude::*;
 use tucant_types::{Tucan, coursedetails::CourseDetailsRequest};

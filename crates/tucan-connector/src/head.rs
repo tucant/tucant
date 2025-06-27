@@ -2,7 +2,7 @@ use std::sync::LazyLock;
 
 use itertools::Either;
 use regex::Regex;
-use tucant_types::{vv::ActionRequest, LoggedInHead, LoggedOutHead, LoginResponse, TucanError, VorlesungsverzeichnisUrls};
+use tucant_types::{LoggedInHead, LoggedOutHead, LoginResponse, TucanError, VorlesungsverzeichnisUrls, vv::ActionRequest};
 
 use html_handler::{InElement, InRoot, Root};
 
@@ -241,7 +241,6 @@ pub fn vv_something<'a>(html_handler: InElement5<'a, InElement<'a, InElement<'a,
     vvs.insert(2, (vv_2_title, ActionRequest::parse(&ACTION_REGEX.replace(&vv_2_url, ""))));
     (html_handler, VorlesungsverzeichnisUrls { lehrveranstaltungssuche_url, vvs, archiv_links })
 }
-
 
 #[must_use]
 pub fn logged_in_head<'a>(html_handler: InElement<'a, InElement<'a, InRoot<'a, Root<'a>>>>, id: u64) -> (InElement5<'a, InElement<'a, InRoot<'a, Root<'a>>>>, LoggedInHead) {

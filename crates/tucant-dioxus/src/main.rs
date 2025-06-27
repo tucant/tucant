@@ -1,6 +1,6 @@
 use std::panic;
 
-use dioxus::{prelude::*};
+use dioxus::prelude::*;
 use log::warn;
 use tucant_dioxus::{RcTucanType, Route};
 use tucant_types::LoginResponse;
@@ -42,7 +42,6 @@ async fn main() {
     console_log::init().unwrap();
 
     warn!("main");
-
 
     #[cfg(feature = "direct")]
     if js_sys::Reflect::get(&js_sys::global(), &wasm_bindgen::JsValue::from_str("chrome")).is_ok() {

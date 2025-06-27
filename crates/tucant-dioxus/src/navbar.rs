@@ -1,4 +1,3 @@
-
 use dioxus::prelude::*;
 use log::error;
 use reqwest::StatusCode;
@@ -21,9 +20,7 @@ pub fn Navbar() -> Element {
         async move {
             if let Some(the_current_session) = current_session() {
                 match tucan.after_login(&the_current_session, RevalidationStrategy::cache()).await {
-                    Ok(response) => {
-                        Ok(Some(response))
-                    }
+                    Ok(response) => Ok(Some(response)),
                     Err(error) => {
                         // TODO pass through tucanerror from server
                         error!("{}", error);
@@ -34,11 +31,9 @@ pub fn Navbar() -> Element {
                             }
                             TucanError::Timeout | TucanError::AccessDenied => {
                                 current_session.set(None);
-                                Ok(None)// TODO FIXME
+                                Ok(None) // TODO FIXME
                             }
-                            _ => {
-                                Err(error.to_string())
-                            }
+                            _ => Err(error.to_string()),
                         }
                     }
                 }

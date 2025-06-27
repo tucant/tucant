@@ -7,7 +7,9 @@ use tucant_types::{
 };
 
 use crate::{
-    authenticated_retryable_get, head::{footer, html_head, logged_in_head, logged_in_or_out_head, logged_out_head, ACTION_REGEX}, retryable_get, TucanConnector, COURSEDETAILS_REGEX
+    COURSEDETAILS_REGEX, TucanConnector, authenticated_retryable_get,
+    head::{ACTION_REGEX, footer, html_head, logged_in_head, logged_in_or_out_head, logged_out_head},
+    retryable_get,
 };
 use html_handler::{MyElementRef, MyNode, Root, parse_document};
 
