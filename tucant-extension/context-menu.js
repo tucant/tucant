@@ -28,9 +28,10 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
         if (info.menuItemId === "open-in-tucan-new-tab" || info.menuItemId === "open-in-tucant-new-tab" || info.menuItemId === "open-in-tucan-page-new-tab" || info.menuItemId === "open-in-tucant-page-new-tab") {
             let result = await handleOpenInTucan(id?.value, tabId, url);
             if (result !== undefined) {
-                await chrome.tabs.create({
+                let newTab = await chrome.tabs.create({
                     url: result
                 })
+                console.log("newtabid ", newTab.id)
             }
             return;
         }
