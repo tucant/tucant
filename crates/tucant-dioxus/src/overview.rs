@@ -13,7 +13,7 @@ pub fn Overview() -> Element {
                 h1 {
                     { "Übersicht" }
                     { " " }
-                    button { onclick: reload, type: "button", class: "btn btn-light",
+                    button { onclick: reload, type: "button", class: "btn btn-secondary",
                         // https://github.com/twbs/icons
                         // The MIT License (MIT)
                         // Copyright (c) 2019-2024 The Bootstrap Authors

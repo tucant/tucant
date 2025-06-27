@@ -40,7 +40,7 @@ pub fn MySemesterModules(semester: ReadOnlySignal<SemesterId>) -> Element {
                 h1 {
                     { "Meine Semestermodule" }
                     { " " }
-                    button { onclick: reload, type: "button", class: "btn btn-light",
+                    button { onclick: reload, type: "button", class: "btn btn-secondary",
                         // https://github.com/twbs/icons
                         // The MIT License (MIT)
                         // Copyright (c) 2019-2024 The Bootstrap Authors
