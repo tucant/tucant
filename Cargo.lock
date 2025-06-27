@@ -5508,6 +5508,7 @@ dependencies = [
  "log",
  "reqwest",
  "serde_json",
+ "tokio",
  "tucan-connector",
  "tucant-types",
  "url",

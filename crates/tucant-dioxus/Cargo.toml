@@ -21,11 +21,12 @@ web-sys = { version = "0.3", features = ["Document", "Window", "HtmlDocument", "
 cookie = "0.18"
 web-extensions-sys = { optional = true, git = "https://github.com/mohe2015/web-extensions-sys", branch = "cookies" }
 tucan-connector = { optional = true, path = "../tucan-connector" }
+tokio = { features = ["full"], version = "1" }
 
 [features]
-direct = ["dep:tucan-connector", "dep:web-extensions-sys"]
-api = []
-default = ["web"]
+direct = ["web", "dep:tucan-connector", "dep:web-extensions-sys"]
+api = ["web"]
+default = []
 web = ["dioxus/web"]
 desktop = ["dioxus/desktop"]
 mobile = ["dioxus/mobile", "dep:tucan-connector"]
