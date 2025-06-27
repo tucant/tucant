@@ -100,7 +100,7 @@ pub fn NavbarLoggedIn(current_session: ReadOnlySignal<LoginResponse>, data: Read
                             "Raumsuche"
                         }
                     }
-                    Vorlesungsverzeichnisse { data: data.clone() }
+                    Vorlesungsverzeichnisse { data: data }
                     li {
                         a { class: "dropdown-item", href: "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N588840428781170,-N000464,-Avvarchivstart%2Ehtml",
                             "Archiv"

@@ -2,6 +2,7 @@ import "./fix-session-id-in-url.js"
 import "./context-menu.js"
 import { handleOpenInTucan, getCurrentTab } from "./open-in-tucan.js"
 import { asyncClosure } from "./utils.js";
+import { customUiRules } from "./custom-ui.js";
 
 console.log("background script")
 
@@ -11,7 +12,7 @@ chrome.runtime.onMessage.addListener((message, sender) => {
     asyncClosure(async () => {
         console.log("onMessage", message, sender)
 
-        chrome.notifications.create({
+        await chrome.notifications.create({
             type: "basic",
             iconUrl: chrome.runtime.getURL("/icon-512.png"),
             title: "TUCaN't extension message",
@@ -25,12 +26,12 @@ chrome.runtime.onMessage.addListener((message, sender) => {
 
         if (message === "open-in-tucan-page") {
             const id = await chrome.cookies.get({
-                url: "https://www.tucan.tu-darmstadt.de/scripts/",
+                url: "https://www.tucan.tu-darmstadt.de/scripts",
                 name: "id",
             })
 
             await chrome.tabs.update(sender.tab.id, {
-                url: handleOpenInTucan(id?.value, sender.tab.id, sender.tab.url)
+                url: await handleOpenInTucan(id?.value, sender.tab.id, sender.tab.url)
             })
             return;
         }
@@ -40,7 +41,7 @@ chrome.runtime.onMessage.addListener((message, sender) => {
 chrome.commands.onCommand.addListener((command) => {
     asyncClosure(async () => {
         const id = await chrome.cookies.get({
-            url: "https://www.tucan.tu-darmstadt.de/scripts/",
+            url: "https://www.tucan.tu-darmstadt.de/scripts",
             name: "id",
         })
 
@@ -53,7 +54,7 @@ chrome.commands.onCommand.addListener((command) => {
 
         if (command === "open-in-tucan-page") {
             await chrome.tabs.update(tab.id, {
-                url: handleOpenInTucan(id?.value, tab.id, tab.url)
+                url: await handleOpenInTucan(id?.value, tab.id, tab.url)
             })
         }
     })
@@ -146,202 +147,8 @@ chrome.declarativeNetRequest.onRuleMatchedDebug.addListener(
     }
 )
 */
-// https://groups.google.com/a/chromium.org/g/chromium-extensions/c/v3yrOjZIDJc
-const EXT_PAGE = chrome.runtime.getURL('/public/index.html');
-console.log(EXTENSION_DOMAIN.slice(0, -1).replace("moz-extension://", "").replace("chrome-extension://", ""))
-/** @type {chrome.declarativeNetRequest.Rule[]} */
-const customUiRules = [{
-    id: 200,
-    priority: 3,
-    condition: {
-        isUrlFilterCaseSensitive: true,
-        resourceTypes: [
-            /** @type {chrome.declarativeNetRequest.ResourceType} */ ("main_frame")
-        ],
-        regexFilter: "^https://www\\.tucan\\.tu-darmstadt\\.de/$",
-        excludedInitiatorDomains: [EXTENSION_DOMAIN.slice(0, -1).replace("moz-extension://", "").replace("chrome-extension://", "")]
-    },
-    action: {
-        type: /** @type {chrome.declarativeNetRequest.RuleActionType} */ ('redirect'),
-        redirect: { regexSubstitution: EXT_PAGE + '#/' },
-    },
-}, {
-    // TODO normalize all the urls below, see AnmeldungRequest etc
-    id: 201,
-    priority: 3,
-    condition: {
-        isUrlFilterCaseSensitive: true,
-        resourceTypes: [
-            /** @type {chrome.declarativeNetRequest.ResourceType} */ ("main_frame")
-        ],
-        regexFilter: "^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N\\d+,-N\\d+,(.*)$",
-        excludedInitiatorDomains: [EXTENSION_DOMAIN.slice(0, -1).replace("moz-extension://", "").replace("chrome-extension://", "")]
-    },
-    action: {
-        type: /** @type {chrome.declarativeNetRequest.RuleActionType} */ ('redirect'),
-        redirect: { regexSubstitution: EXT_PAGE + '#/registration/\\1' },
-    },
-}, {
-    id: 202,
-    priority: 3,
-    condition: {
-        isUrlFilterCaseSensitive: true,
-        resourceTypes: [
-            /** @type {chrome.declarativeNetRequest.ResourceType} */ ("main_frame")
-        ],
-        regexFilter: "^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=COURSEDETAILS&ARGUMENTS=-N\\d+,-N\\d+,(.*)$",
-        excludedInitiatorDomains: [EXTENSION_DOMAIN.slice(0, -1).replace("moz-extension://", "").replace("chrome-extension://", "")]
-    },
-    action: {
-        type: /** @type {chrome.declarativeNetRequest.RuleActionType} */ ('redirect'),
-        redirect: { regexSubstitution: EXT_PAGE + '#/course-details/\\1' },
-    },
-}, {
-    id: 203,
-    priority: 3,
-    condition: {
-        isUrlFilterCaseSensitive: true,
-        resourceTypes: [
-            /** @type {chrome.declarativeNetRequest.ResourceType} */ ("main_frame")
-        ],
-        regexFilter: "^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=-N\\d+,-N\\d+,(.*)$",
-        excludedInitiatorDomains: [EXTENSION_DOMAIN.slice(0, -1).replace("moz-extension://", "").replace("chrome-extension://", "")]
-    },
-    action: {
-        type: /** @type {chrome.declarativeNetRequest.RuleActionType} */ ('redirect'),
-        redirect: { regexSubstitution: EXT_PAGE + '#/module-details/\\1' },
-    },
-}, {
-    id: 204,
-    priority: 3,
-    condition: {
-        isUrlFilterCaseSensitive: true,
-        resourceTypes: [
-            /** @type {chrome.declarativeNetRequest.ResourceType} */ ("main_frame")
-        ],
-        regexFilter: "^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=MLSSTART&ARGUMENTS=-N\\d+,-N\\d+,$",
-        excludedInitiatorDomains: [EXTENSION_DOMAIN.slice(0, -1).replace("moz-extension://", "").replace("chrome-extension://", "")]
-    },
-    action: {
-        type: /** @type {chrome.declarativeNetRequest.RuleActionType} */ ('redirect'),
-        redirect: { regexSubstitution: EXT_PAGE + '#/overview' },
-    },
-},
-// TODO how do we handle ACTION urls that are not clearly detectable?
 
-// TODO selected semester
-{
-    id: 205,
-    priority: 3,
-    condition: {
-        isUrlFilterCaseSensitive: true,
-        resourceTypes: [
-            /** @type {chrome.declarativeNetRequest.ResourceType} */ ("main_frame")
-        ],
-        regexFilter: "^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=MYMODULES&ARGUMENTS=-N\\d+,-N\\d+,$",
-        excludedInitiatorDomains: [EXTENSION_DOMAIN.slice(0, -1).replace("moz-extension://", "").replace("chrome-extension://", "")]
-    },
-    action: {
-        type: /** @type {chrome.declarativeNetRequest.RuleActionType} */ ('redirect'),
-        redirect: { regexSubstitution: EXT_PAGE + '#/my-modules/current' },
-    },
-},
-{
-    id: 206,
-    priority: 3,
-    condition: {
-        isUrlFilterCaseSensitive: true,
-        resourceTypes: [
-            /** @type {chrome.declarativeNetRequest.ResourceType} */ ("main_frame")
-        ],
-        regexFilter: "^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=PROFCOURSES&ARGUMENTS=-N\\d+,-N\\d+,$",
-        excludedInitiatorDomains: [EXTENSION_DOMAIN.slice(0, -1).replace("moz-extension://", "").replace("chrome-extension://", "")]
-    },
-    action: {
-        type: /** @type {chrome.declarativeNetRequest.RuleActionType} */ ('redirect'),
-        redirect: { regexSubstitution: EXT_PAGE + '#/my-courses/current' },
-    },
-},
-{
-    id: 207,
-    priority: 3,
-    condition: {
-        isUrlFilterCaseSensitive: true,
-        resourceTypes: [
-            /** @type {chrome.declarativeNetRequest.ResourceType} */ ("main_frame")
-        ],
-        regexFilter: "^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=MYEXAMS&ARGUMENTS=-N\\d+,-N\\d+,$",
-        excludedInitiatorDomains: [EXTENSION_DOMAIN.slice(0, -1).replace("moz-extension://", "").replace("chrome-extension://", "")]
-    },
-    action: {
-        type: /** @type {chrome.declarativeNetRequest.RuleActionType} */ ('redirect'),
-        redirect: { regexSubstitution: EXT_PAGE + '#/my-exams/current' },
-    },
-},
-{
-    id: 208,
-    priority: 3,
-    condition: {
-        isUrlFilterCaseSensitive: true,
-        resourceTypes: [
-            /** @type {chrome.declarativeNetRequest.ResourceType} */ ("main_frame")
-        ],
-        regexFilter: "^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=COURSERESULTS&ARGUMENTS=-N\\d+,-N\\d+,$",
-        excludedInitiatorDomains: [EXTENSION_DOMAIN.slice(0, -1).replace("moz-extension://", "").replace("chrome-extension://", "")]
-    },
-    action: {
-        type: /** @type {chrome.declarativeNetRequest.RuleActionType} */ ('redirect'),
-        redirect: { regexSubstitution: EXT_PAGE + '#/course-results/current' },
-    },
-},
-{
-    id: 209,
-    priority: 3,
-    condition: {
-        isUrlFilterCaseSensitive: true,
-        resourceTypes: [
-            /** @type {chrome.declarativeNetRequest.ResourceType} */ ("main_frame")
-        ],
-        regexFilter: "^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=EXAMRESULTS&ARGUMENTS=-N\\d+,-N\\d+,$",
-        excludedInitiatorDomains: [EXTENSION_DOMAIN.slice(0, -1).replace("moz-extension://", "").replace("chrome-extension://", "")]
-    },
-    action: {
-        type: /** @type {chrome.declarativeNetRequest.RuleActionType} */ ('redirect'),
-        redirect: { regexSubstitution: EXT_PAGE + '#/exam-results/current' },
-    },
-},
-{
-    id: 210,
-    priority: 3,
-    condition: {
-        isUrlFilterCaseSensitive: true,
-        resourceTypes: [
-            /** @type {chrome.declarativeNetRequest.ResourceType} */ ("main_frame")
-        ],
-        regexFilter: "^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=STUDENT_RESULT&ARGUMENTS=-N\\d+,-N\\d+,-N0,-N000000000000000,-N000000000000000,-N000000000000000,-N0,-N000000000000000$",
-        excludedInitiatorDomains: [EXTENSION_DOMAIN.slice(0, -1).replace("moz-extension://", "").replace("chrome-extension://", "")]
-    },
-    action: {
-        type: /** @type {chrome.declarativeNetRequest.RuleActionType} */ ('redirect'),
-        redirect: { regexSubstitution: EXT_PAGE + '#/student-result/default' },
-    },
-},
-{
-    id: 211,
-    priority: 3,
-    condition: {
-        isUrlFilterCaseSensitive: true,
-        resourceTypes: [
-            /** @type {chrome.declarativeNetRequest.ResourceType} */ ("main_frame")
-        ],
-        regexFilter: "^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=CREATEDOCUMENT&ARGUMENTS=-N\\d+,-N\\d+,$",
-        excludedInitiatorDomains: [EXTENSION_DOMAIN.slice(0, -1).replace("moz-extension://", "").replace("chrome-extension://", "")]
-    },
-    action: {
-        type: /** @type {chrome.declarativeNetRequest.RuleActionType} */ ('redirect'),
-        redirect: { regexSubstitution: EXT_PAGE + '#/my-documents' },
-    },
-},];
+// https://groups.google.com/a/chromium.org/g/chromium-extensions/c/v3yrOjZIDJc
 
 async function enableCustomUi() {
     await chrome.declarativeNetRequest.updateDynamicRules({

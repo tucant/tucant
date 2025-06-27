@@ -1,7 +1,5 @@
-use std::rc::Rc;
-
 use dioxus::prelude::*;
-use tucant_types::{DynTucan, Tucan, vv::ActionRequest};
+use tucant_types::{Tucan, vv::ActionRequest};
 
 use crate::{RcTucanType, Route, common::use_unauthenticated_data_loader};
 
@@ -9,6 +7,9 @@ use crate::{RcTucanType, Route, common::use_unauthenticated_data_loader};
 pub fn Vorlesungsverzeichnis(vv: ReadOnlySignal<ActionRequest>) -> Element {
     let handler = async |tucan: RcTucanType, current_session: Option<tucant_types::LoginResponse>, revalidation_strategy, additional| tucan.vv(current_session.as_ref(), revalidation_strategy, additional).await;
 
+    // TODO FIXME wait does vv loading an unauthenticated url with cookies show the head that is for unauthencitaed?
+
+    // this is not fully correct as some urls are only available authenticated
     use_unauthenticated_data_loader(handler, vv.to_owned(), 28 * 24 * 60 * 60, 24 * 60 * 60, |data, reload| {
         rsx! {
             div { class: "container",
@@ -56,7 +57,7 @@ pub fn Vorlesungsverzeichnis(vv: ReadOnlySignal<ActionRequest>) -> Element {
                             .map(|entry| {
                                 rsx! {
                                     Link { to: Route::Vorlesungsverzeichnis { vv: entry.1.clone() }, class: "list-group-item list-group-item-action",
-                                        { format!("{}", entry.0) }
+                                        { entry.0.to_string() }
                                     }
                                 }
                             })

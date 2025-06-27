@@ -1,8 +1,6 @@
-use std::rc::Rc;
-
 use dioxus::prelude::*;
 use tucant_types::{
-    DynTucan, Tucan,
+    Tucan,
     registration::{AnmeldungRequest, RegistrationState},
 };
 
@@ -65,7 +63,7 @@ pub fn Registration(registration: ReadOnlySignal<AnmeldungRequest>) -> Element {
                             .map(|entry| {
                                 rsx! {
                                     Link { to: Route::Registration { registration: entry.1.clone() }, class: "list-group-item list-group-item-action",
-                                        { format!("{}", entry.0) }
+                                        { entry.0.to_string() }
                                     }
                                 }
                             })
@@ -99,12 +97,12 @@ pub fn Registration(registration: ReadOnlySignal<AnmeldungRequest>) -> Element {
                                         }
                                         div { class: "d-flex w-100 justify-content-between",
                                             h6 { class: "mb-1",
-                                                { format!("{}", module.map(|module| module.lecturer.clone().unwrap_or_default()).unwrap_or_default()) }
+                                                { module.map(|module| module.lecturer.clone().unwrap_or_default()).unwrap_or_default().to_string() }
                                             }
                                             if let Some(module) = module {
                                                 if let Some(limit_and_size) = &module.limit_and_size {
                                                     small { class: "text-body-secondary",
-                                                        { ("Teilnehmerlimit ".to_owned() + limit_and_size) }
+                                                        { "Teilnehmerlimit ".to_owned() + limit_and_size }
                                                     }
                                                 }
                                             }
@@ -146,18 +144,17 @@ pub fn Registration(registration: ReadOnlySignal<AnmeldungRequest>) -> Element {
                                                                 }
                                                                 div { class: "d-flex w-100 justify-content-between",
                                                                     h6 { class: "mb-1",
-                                                                        { format!("{}", course.1.lecturers.clone().unwrap_or_default()) }
+                                                                        { course.1.lecturers.clone().unwrap_or_default().to_string() }
                                                                     }
-                                                                    // needing the parentheses is a yew bug
 
                                                                     if let Some(limit_and_size) = &course.1.limit_and_size {
                                                                         small { class: "text-body-secondary",
-                                                                            { ("Teilnehmerlimit ".to_owned() + limit_and_size) }
+                                                                            { "Teilnehmerlimit ".to_owned() + limit_and_size }
                                                                         }
                                                                     }
                                                                 }
                                                                 h6 { class: "mb-1",
-                                                                    { format!("{}", course.1.begin_and_end.clone().unwrap_or_default()) }
+                                                                    { course.1.begin_and_end.clone().unwrap_or_default().to_string() }
                                                                 }
                                                                 {
                                                                     match &course.1.registration_button_link {

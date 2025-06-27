@@ -22,4 +22,5 @@ pub struct Exam {
     pub pruefungsart: String,
     pub date: String,
     pub courseprep_url: Option<String>,
+    pub examunreg_url: Option<String>,
 }

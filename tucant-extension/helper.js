@@ -5,7 +5,7 @@ import { asyncClosure } from "./utils.js";
 window.sayHello = () => {
     asyncClosure(async () => {
         const id = await chrome.cookies.get({
-            url: "https://www.tucan.tu-darmstadt.de/scripts/",
+            url: "https://www.tucan.tu-darmstadt.de/scripts",
             name: "id",
         })
 
@@ -18,7 +18,7 @@ window.sayHello = () => {
 
         console.log("opefwewf")
         await chrome.tabs.update(tab.id, {
-            url: handleOpenInTucan(id?.value, tab.id, document.location.href)
+            url: await handleOpenInTucan(id?.value, tab.id, document.location.href)
         })
     });
 }

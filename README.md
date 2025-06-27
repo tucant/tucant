@@ -49,10 +49,10 @@ cargo +nightly-2025-04-02 fmt
 ### Running as local webserver
 
 ```bash
-cargo +nightly install --git https://github.com/mohe2015/dioxus --branch hash-history dioxus-cli --locked
+cargo +nightly install --git https://github.com/mohe2015/dioxus --branch my dioxus-cli --locked
 
 cd crates/tucant-dioxus/
-dx serve --hotpatch
+dx serve --features api --hotpatch
 
 # in second tab
 bacon tucant-api
@@ -64,7 +64,9 @@ bacon tucant-api
 
 ```
 cd tucant-extension/
-dx bundle --out-dir ../../tucant-extension/ --base-path public --features direct
+dx bundle --out-dir ../../tucant-extension/ --base-path public --features direct --release
+cargo run --manifest-path /home/moritz/Documents/dioxus/packages/cli/Cargo.toml bundle --out-dir ../../tucant-extension/ --base-path public --features direct --release
+llvm-dwarfdump --all --verify tucant-extension/public/assets/tucant-dioxus_bg-dxh4bb37ef8c3ffabdf.wasm
 ```
 
 Go to Firefox Extensions, click settings, debug addons. Then click load temporary add-on and select ./tucant-extension/manifest.json
@@ -99,7 +101,7 @@ Upload to AMO as unlisted extension and pray that it gets signed quickly.
 
 ## How does it work
 
-This software consists of the tucan-connector component that extracts information from the html of [TUCaN](https://www.tucan.tu-darmstadt.de) and provides it as a nicer to use programming API. The tucan-injector component can then be used to show that data with a nicer UI that is written using the Rust frontend library [Yew](https://yew.rs/) and that is compiled to [WebAssembly](https://webassembly.org/). This WebAssembly can be injected into the actual TUCaN website using an extension. Then, some pages provide an overlay with the information in a nicer format and caching.
+This software consists of the tucan-connector component that extracts information from the html of [TUCaN](https://www.tucan.tu-darmstadt.de) and provides it as a nicer to use programming API. The tucan-injector component can then be used to show that data with a nicer UI that is written using the Rust frontend library [Dioxus](https://dioxus.dev/) and that is compiled to [WebAssembly](https://webassembly.org/). This WebAssembly can be injected into the actual TUCaN website using an extension. Then, some pages provide an overlay with the information in a nicer format and caching.
 
 ## API
 

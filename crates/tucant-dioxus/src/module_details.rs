@@ -1,7 +1,5 @@
-use std::rc::Rc;
-
 use dioxus::prelude::*;
-use tucant_types::{DynTucan, Tucan, moduledetails::ModuleDetailsRequest};
+use tucant_types::{Tucan, moduledetails::ModuleDetailsRequest};
 
 use crate::{RcTucanType, common::use_authenticated_data_loader};
 
@@ -9,7 +7,7 @@ use crate::{RcTucanType, common::use_authenticated_data_loader};
 pub fn ModuleDetails(module: ReadOnlySignal<ModuleDetailsRequest>) -> Element {
     let handler = async |tucan: RcTucanType, current_session, revalidation_strategy, additional| tucan.module_details(&current_session, revalidation_strategy, additional).await;
 
-    use_authenticated_data_loader(handler, module.clone(), 14 * 24 * 60 * 60, 60 * 60, |module, reload| {
+    use_authenticated_data_loader(handler, module, 14 * 24 * 60 * 60, 60 * 60, |module, reload| {
         rsx! {
             div {
                 h1 {

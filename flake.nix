@@ -24,10 +24,10 @@
 
         inherit (pkgs) lib;
 
-        rustToolchainFor = p: p.rust-bin.selectLatestNightlyWith (toolchain: toolchain.default.override {
+        rustToolchainFor = p: p.rust-bin.stable.latest.minimal.override {
           targets = [ "wasm32-unknown-unknown" ];
           extensions = [ "rustfmt" ];
-        });
+        };
         craneLib = (crane.mkLib pkgs).overrideToolchain rustToolchainFor;
 
         commonArgs = {
@@ -38,8 +38,8 @@
           src = pkgs.fetchFromGitHub {
             owner = "mohe2015";
             repo = "dioxus";
-            rev = "f8e7c38af8e214683252e5b4f12c062f7cf017bb";
-            hash = "sha256-rO5wdigjsN4DOuM+3fo9rK24hLkKfpClBZC0eEAdBh0=";
+            rev = "097be7740bda531d0c767b73c380723edfcf2c29";
+            hash = "sha256-3MYFY2DDge8FEP4kUXtL2qPHVwOMt6mBx6es/wLV9EA=";
           };
           doCheck = false;
           strictDeps = true;
@@ -124,6 +124,7 @@
         ];
 
         client = craneLib.buildPackage (commonArgs // {
+          doCheck = false;
           cargoArtifacts = null; # building deps only does not work with the default stub entrypoint
           src = lib.fileset.toSource {
             root = ./.;
@@ -136,11 +137,11 @@
           '';
           buildPhaseCargoCommand = ''
             export HOME=$(mktemp -d)
-            ${dioxus-cli}/bin/dx bundle --out-dir $out --base-path public --features direct
+            ${dioxus-cli}/bin/dx bundle --verbose --release --out-dir $out --base-path public --features direct
           '';
           installPhaseCommand = ''
           '';
-          nativeBuildInputs = [ pkgs.wasm-bindgen-cli_0_2_100 ];
+          nativeBuildInputs = [ pkgs.wasm-bindgen-cli_0_2_100 pkgs.binaryen ];
           doNotPostBuildInstallCargoBinaries = true;
         });
 

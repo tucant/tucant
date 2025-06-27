@@ -22,7 +22,7 @@ pub async fn welcome(connector: &TucanConnector) -> Result<LoggedOutHead, TucanE
                     </style>
                 </head>
                 <body class="external_pages">
-                    let vv = logged_out_head(html_handler, 344);
+                    let vv = logged_out_head(html_handler);
                     <script type="text/javascript">
                     </script>
                     <meta http-equiv="content-type" content="text/html; charset=windows-1252"></meta>
@@ -32,6 +32,16 @@ pub async fn welcome(connector: &TucanConnector) -> Result<LoggedOutHead, TucanE
                             <br></br>
                             "TU Darmstadt!"
                         </h1>
+                        <br></br>
+                        <div style="padding:10px; width:650px; border:thin solid grey; margin:0px">
+                            <h2>"Steck die TUDa in die Tasche!"</h2>
+                            <p>
+                                "Jetzt die neue TUDa App herunterladen:"<br></br>
+                                "Viele tolle Funktionen und der digitale Studierendenausweis"<br></br><br></br>
+                                "→"<a href="https://www.app.tu-darmstadt.de" target="_blank">"Infos zur App"</a><br></br>
+                                "→"<a href="https://www.tu-darmstadt.de/studierendenausweis" target="_blank">"Infos zum digitalen Studierendenausweis"</a><br></br>
+                            </p>
+                        </div>
                         <br></br>
                         <p style="line-height: 140%;">
                             <strong>
@@ -95,13 +105,13 @@ pub async fn welcome(connector: &TucanConnector) -> Result<LoggedOutHead, TucanE
                         <div style="padding:10px; width:650px; border:thin solid grey; margin:0px; background-color:#f8f9ed;">
                             <p style="line-height: 140%;">
                                 <strong>
-                                    "Aktuelles: Fristen zur Prüfungsanmeldung in TUCaN für das Wintersemester 2024/2025"
+                                    "Aktuelles: Fristen zur Prüfungsanmeldung in TUCaN für das Sommersemester 2025"
                                 </strong>
                             </p>
                             <p style="line-height: 140%;">
-                                "Die Anmeldezeit zu Prüfungen im WiSe 2024/2025 hat in der Regel am 15. November 2024 begonnen."
+                                "Die Anmeldezeit zu Prüfungen im SoSe 2025 beginnt in der Regel am 01. Juni 2025."
                                 <br></br>
-                                "In vielen Studiengängen endet die Anmeldefrist am 15. Dezember 2024 - bitte informieren Sie sich rechtzeitig! Ihre Anmeldung nehmen Sie im TUCaN-Webportal im Bereich"
+                                "In vielen Studiengängen endet die Anmeldefrist am 30. Juni 2025 - bitte informieren Sie sich rechtzeitig! Ihre Anmeldung nehmen Sie im TUCaN-Webportal im Bereich"
                                 <i>
                                     "Prüfungen"
                                 </i>

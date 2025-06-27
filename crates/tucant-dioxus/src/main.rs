@@ -1,9 +1,9 @@
-use std::{panic, rc::Rc};
+use std::panic;
 
-use dioxus::{prelude::*, web::HashHistory};
+use dioxus::prelude::*;
 use log::warn;
-use tucant_dioxus::{RcTucanType, Route, navbar::Navbar};
-use tucant_types::{DynTucan, LoginRequest, LoginResponse, Tucan};
+use tucant_dioxus::{RcTucanType, Route};
+use tucant_types::LoginResponse;
 use wasm_bindgen::prelude::*;
 
 const BOOTSTRAP_CSS: Asset = asset!("/assets/bootstrap.min.css");
@@ -43,14 +43,14 @@ async fn main() {
 
     warn!("main");
 
-    let history_provider: Rc<dyn History> = Rc::new(HashHistory::default());
-
     #[cfg(feature = "direct")]
     if js_sys::Reflect::get(&js_sys::global(), &wasm_bindgen::JsValue::from_str("chrome")).is_ok() {
-        use std::sync::{Arc, Mutex};
+        use std::rc::Rc;
 
-        use dioxus::web::Config;
+        use dioxus::web::{Config, HashHistory};
+        use tucant_types::DynTucan;
 
+        let history_provider: Rc<dyn History> = Rc::new(HashHistory::default());
         let login_response = tucant_dioxus::direct_login_response().await;
         let connector = RcTucanType(DynTucan::new_rc(tucan_connector::TucanConnector::new().await.unwrap()));
 
@@ -60,8 +60,12 @@ async fn main() {
     }
     #[cfg(feature = "api")]
     {
-        use dioxus::web::Config;
+        use std::rc::Rc;
 
+        use dioxus::web::{Config, HashHistory};
+        use tucant_types::DynTucan;
+
+        let history_provider: Rc<dyn History> = Rc::new(HashHistory::default());
         let login_response = tucant_dioxus::api_login_response().await;
         let connector = RcTucanType(DynTucan::new_rc(tucant_dioxus::api_server::ApiServerTucan::new()));
 
@@ -75,7 +79,7 @@ async fn main() {
 
 #[component]
 fn App(login_response: Option<LoginResponse>, connector: RcTucanType) -> Element {
-    let mut session = use_signal(|| login_response);
+    let session = use_signal(|| login_response);
     provide_context(session);
     provide_context(connector);
 

@@ -4,34 +4,34 @@ import { handleOpenInTucan } from "./open-in-tucan.js"
 chrome.contextMenus.onClicked.addListener((info, tab) => {
     asyncClosure(async () => {
         const id = await chrome.cookies.get({
-            url: "https://www.tucan.tu-darmstadt.de/scripts/",
+            url: "https://www.tucan.tu-darmstadt.de/scripts",
             name: "id",
         })
 
         let url = info.linkUrl ?? info.pageUrl
         let tabId = tab?.id
 
-        if (!tabId) {
+        if (!tabId || !url) {
             return;
         }
 
         if (info.menuItemId === "open-in-tucan" || info.menuItemId === "open-in-tucant" || info.menuItemId === "open-in-tucan-page" || info.menuItemId === "open-in-tucant-page") {
             await chrome.tabs.update(tabId, {
-                url: handleOpenInTucan(id?.value, tabId, url)
+                url: await handleOpenInTucan(id?.value, tabId, url)
             })
             return;
         }
 
         if (info.menuItemId === "open-in-tucan-new-tab" || info.menuItemId === "open-in-tucant-new-tab" || info.menuItemId === "open-in-tucan-page-new-tab" || info.menuItemId === "open-in-tucant-page-new-tab") {
             await chrome.tabs.create({
-                url: handleOpenInTucan(id?.value, tabId, url)
+                url: await handleOpenInTucan(id?.value, tabId, url)
             })
             return;
         }
 
 
         if (info.menuItemId === "shareable-link-page" || info.menuItemId === "shareable-link") {
-            chrome.notifications.create({
+            await chrome.notifications.create({
                 type: "basic",
                 iconUrl: chrome.runtime.getURL("/icon-512.png"),
                 title: "Sharing this URL is not supported",
@@ -40,7 +40,7 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
             return;
         }
 
-        chrome.notifications.create({
+        await chrome.notifications.create({
             type: "basic",
             iconUrl: chrome.runtime.getURL("/icon-512.png"),
             title: "Context menu action not supported",

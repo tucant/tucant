@@ -1,7 +1,5 @@
-use std::rc::Rc;
-
 use dioxus::prelude::*;
-use tucant_types::{DynTucan, Tucan};
+use tucant_types::Tucan;
 
 use crate::{RcTucanType, common::use_authenticated_data_loader};
 

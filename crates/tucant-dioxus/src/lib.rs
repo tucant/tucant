@@ -25,7 +25,7 @@ use std::rc::Rc;
 
 use dioxus::prelude::*;
 use tucant_types::DynTucan;
-use tucant_types::{SemesterId, Tucan, coursedetails::CourseDetailsRequest, moduledetails::ModuleDetailsRequest, registration::AnmeldungRequest, vv::ActionRequest};
+use tucant_types::{SemesterId, coursedetails::CourseDetailsRequest, moduledetails::ModuleDetailsRequest, registration::AnmeldungRequest, vv::ActionRequest};
 
 use crate::navbar::Navbar;
 use crate::overview::Overview;
@@ -38,7 +38,7 @@ pub async fn direct_login_response() -> Option<tucant_types::LoginResponse> {
             name: "id".to_owned(),
             partition_key: None,
             store_id: None,
-            url: "https://www.tucan.tu-darmstadt.de/scripts/".to_owned(),
+            url: "https://www.tucan.tu-darmstadt.de/scripts".to_owned(),
         })
         .await?
         .value;
@@ -47,7 +47,7 @@ pub async fn direct_login_response() -> Option<tucant_types::LoginResponse> {
         .cookies()
         .get(web_extensions_sys::CookieDetails {
             name: "cnsc".to_owned(),
-            url: "https://www.tucan.tu-darmstadt.de/scripts/".to_owned(),
+            url: "https://www.tucan.tu-darmstadt.de/scripts".to_owned(),
             partition_key: None,
             store_id: None,
         })

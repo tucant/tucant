@@ -32,7 +32,7 @@ impl ModuleDetailsRequest {
     }
 
     #[must_use]
-    pub fn inner(&self) -> &str {
+    pub const fn inner(&self) -> &str {
         self.0.as_str()
     }
 }

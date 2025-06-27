@@ -255,7 +255,8 @@ fn codegen_type(r#type: &Type) -> proc_macro2::TokenStream {
 fn codegen_group(group: &(Option<Occur>, Group)) -> proc_macro2::TokenStream {
     // TODO occur
     let group = &group.1;
-    let inner = match group {
+
+    match group {
         Group::And(items) => {
             let items = items.iter().map(codegen_group);
             quote! {
@@ -301,8 +302,7 @@ fn codegen_group(group: &(Option<Occur>, Group)) -> proc_macro2::TokenStream {
                 pub #name_snake: #name,
             }
         }
-    };
-    inner
+    }
 }
 
 fn codegen_rule(rule: &Rule) -> proc_macro2::TokenStream {

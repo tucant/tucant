@@ -12,6 +12,7 @@
   },
   "include": [
     "*.js",
+    "typings/*.d.ts"
   ],
   "exclude": [
     "./eslint.config.js"

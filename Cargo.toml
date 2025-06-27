@@ -1,7 +1,6 @@
 [workspace]
 resolver = "2"
 members = ["crates/*"]
-exclude = ["crates/tucant-tauri", "crates/tucant-yew"]
 
 [workspace.package]
 license = "AGPL-3.0-or-later"

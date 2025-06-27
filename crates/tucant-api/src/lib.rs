@@ -94,7 +94,7 @@ pub async fn logout_endpoint(jar: CookieJar) -> Result<impl IntoResponse, TucanE
 
     tucan.logout(&login_response).await.unwrap();
 
-    let jar = jar.remove(Cookie::from("id")).remove(Cookie::from("cnsc"));
+    let jar = jar.remove(Cookie::build("id").path("/")).remove(Cookie::build("cnsc").path("/"));
 
     Ok((StatusCode::OK, jar, Json(())).into_response())
 }

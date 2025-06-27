@@ -180,7 +180,7 @@ mod tests {
             let realms = session.script_get_realms(GetRealmsParameters::new(Some(browsing_context.clone()), None)).await?;
             println!("{realms:?}");
 
-            let RealmInfo::WindowRealmInfo(window) = &realms.realms[0] else {
+            let RealmInfo::WindowRealmInfo(_window) = &realms.realms[0] else {
                 panic!();
             };
 

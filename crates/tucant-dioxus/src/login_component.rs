@@ -1,7 +1,5 @@
-use std::rc::Rc;
-
 use dioxus::prelude::*;
-use tucant_types::{DynTucan, LoginRequest, LoginResponse, Tucan};
+use tucant_types::{LoginRequest, LoginResponse, Tucan};
 
 use crate::RcTucanType;
 
@@ -14,7 +12,7 @@ pub fn LoginComponent() -> Element {
 
     let mut current_session = use_context::<Signal<Option<LoginResponse>>>();
 
-    let on_submit = move |e: FormEvent| {
+    let on_submit = move |_: FormEvent| {
         let tucan = tucan.clone();
         async move {
             let tucan = tucan.clone();
@@ -32,9 +30,9 @@ pub fn LoginComponent() -> Element {
                     name: Some("id".to_owned()),
                     partition_key: None,
                     store_id: None,
-                    url: "https://www.tucan.tu-darmstadt.de/scripts/".to_owned(),
+                    url: "https://www.tucan.tu-darmstadt.de".to_owned(),
                     domain: None,
-                    path: None,
+                    path: Some("/scripts".to_owned()),
                     value: Some(response.id.to_string()),
                     expiration_date: None,
                     http_only: None,

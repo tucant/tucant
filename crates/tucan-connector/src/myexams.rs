@@ -185,7 +185,11 @@ fn my_exams_internal(login_response: &LoginResponse, content: &str) -> Result<My
                                             } => (date, Some(courseprep_url));
                                         </td>
                                         <td class="tbdata">
-                                            "Ausgewählt"
+                                            let examunreg_url = if html_handler.peek().unwrap().value().is_text() {
+                                                "Ausgewählt"
+                                            } => () else {
+                                                <a href=examunreg_url class="img img_arrowLeftRed">"Abmelden"</a>
+                                            } => examunreg_url;
                                         </td>
                                     </tr>
                                 } => Exam {
@@ -198,6 +202,7 @@ fn my_exams_internal(login_response: &LoginResponse, content: &str) -> Result<My
                                     pruefungsart,
                                     date: date_and_courseprep.clone().either_into::<(String, Option<String>)>().0,
                                     courseprep_url: date_and_courseprep.either_into::<(String, Option<String>)>().1,
+                                    examunreg_url: examunreg_url.right(),
                                 };
                             </tbody>
                         </table>
