@@ -18,20 +18,46 @@ export async function getCurrentTab() {
  */
 export async function handleOpenInTucan(id, tabId, url) {
     const mappings = bidirectionalMappings(id);
+
     for (const mapping of mappings) {
         const regex = new RegExp(mapping.tucan.strings.reduce((acc, curr, i) => {
             const substitution = mapping.tucan.args[i];
             return (acc += substitution
                 ? `${RegExp.escape(curr)}${substitution.from}`
-                : curr);
+                : RegExp.escape(curr));
         }, '^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&') + '$', "g");
         let replacementIdx = 1;
         const replacement = mapping.tucant.strings.reduce((acc, curr, i) => {
             const substitution = mapping.tucant.args[i];
             return (acc += substitution
-                ? `${RegExp.escape(curr)}${substitution.to ?? (replacementIdx++).toString()}`
+                ? `${curr}${substitution.to ?? (replacementIdx++).toString()}`
                 : curr);
-        }, `${EXT_PAGE_INDEX_HTML}#/`) + '$';
+        }, `${EXT_PAGE_INDEX_HTML}#/`);
+        console.log(regex)
+        console.log(replacement)
+
+        let match = regex.exec(url)
+        if (match) {
+            let result = url.replace(regex, replacement)
+            console.log("result ", result)
+            return result
+        }
+    }
+
+    for (const mapping of mappings) {
+        const regex = new RegExp(mapping.tucant.strings.reduce((acc, curr, i) => {
+            const substitution = mapping.tucant.args[i];
+            return (acc += substitution
+                ? `${RegExp.escape(curr)}${substitution.from}`
+                : RegExp.escape(curr));
+        }, `^${EXT_PAGE_INDEX_HTML}#/`) + '$', "g");
+        let replacementIdx = 1;
+        const replacement = mapping.tucan.strings.reduce((acc, curr, i) => {
+            const substitution = mapping.tucan.args[i];
+            return (acc += substitution
+                ? `${curr}${substitution.to ?? (replacementIdx++).toString()}`
+                : curr);
+        }, `https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&`);
         console.log(regex)
         console.log(replacement)
 
