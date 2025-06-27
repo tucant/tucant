@@ -26,7 +26,6 @@ export async function recoverTabs() {
             },
         }],
     }
-    console.log(rules)
     await chrome.declarativeNetRequest.updateDynamicRules(rules);
     console.log(chrome.runtime.lastError)
 

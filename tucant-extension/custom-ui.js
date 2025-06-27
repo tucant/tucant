@@ -56,5 +56,3 @@ export const customUiRules = [{
         redirect: { regexSubstitution: EXT_PAGE_INDEX_HTML + '#/' },
     },
 }, ...rules];
-
-console.log(customUiRules)

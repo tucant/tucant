@@ -1,5 +1,6 @@
 import { asyncClosure } from "./utils.js";
 import { handleOpenInTucan } from "./open-in-tucan.js"
+import { customUiRules } from "./custom-ui.js";
 
 chrome.contextMenus.onClicked.addListener((info, tab) => {
     asyncClosure(async () => {
@@ -31,7 +32,25 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
                 let newTab = await chrome.tabs.create({
                     url: result
                 })
-                console.log("newtabid ", newTab.id)
+
+                const newTabId = newTab.id;
+                if (newTabId === undefined) {
+                    return;
+                }
+
+                await chrome.declarativeNetRequest.updateSessionRules({
+                    removeRuleIds: customUiRules.map(r => r.id),
+                    addRules: customUiRules.map(rule => {
+                        return {
+                            ...rule,
+                            condition: {
+                                excludedTabIds: [newTabId], // TODO add existing
+                                ...rule.condition
+                            },
+                        }
+                    }),
+                })
+                console.log(chrome.runtime.lastError)
             }
             return;
         }

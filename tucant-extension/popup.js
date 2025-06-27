@@ -67,11 +67,9 @@ document.querySelector("#update-extension")?.addEventListener('click', function 
 
         await new Promise(r => setTimeout(r, 2000));
 
-        console.log("reloading")
+        console.log("calling reload")
         chrome.runtime.reload();
-        console.log("seems like it didn't reload, recover tabs?")
-
-        await recoverTabs();
+        console.log("reload called")
     })
 });
 
