@@ -104,11 +104,11 @@ export const bidirectionalMappings = (/** @type {number} */ id) => [
         "tucant": t``,
     },
     {
-        "tucan": t`PRGNAME=STUDENT_RESULT&ARGUMENTS=-N${num(id)},-N000316,-N0,-N000000000000000,-N000000000000000,-N000000000000000,-N0,-N000000000000000`,
+        "tucan": t`PRGNAME=STUDENT_RESULT&ARGUMENTS=-N${num(id)},-N${num(316)},-N0,-N000000000000000,-N000000000000000,-N000000000000000,-N0,-N000000000000000`,
         "tucant": t`student-result/default`,
     },
     {
-        "tucan": t`PRGNAME=STUDENT_RESULT&ARGUMENTS=-N${num(id)},-N000316,-N0,-N000000000000000,-N000000000000000,-N${"(\\d+)"},-N0,-N000000000000000`,
+        "tucan": t`PRGNAME=STUDENT_RESULT&ARGUMENTS=-N${num(id)},-N${num(316)},-N0,-N000000000000000,-N000000000000000,-N${"(\\d+)"},-N0,-N000000000000000`,
         "tucant": t`student-result/${"(\\d+)"}`,
     },
 ]

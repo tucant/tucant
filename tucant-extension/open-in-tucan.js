@@ -15,14 +15,7 @@ export async function getCurrentTab() {
  * @returns {Promise<string|undefined>}
  */
 export async function handleOpenInTucan(id, tabId, url) {
-    let match = new RegExp("^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=-N\\d+,-N\\d+,(.*)$", "g").exec(url)
-
     // TODO FIXME my-modules/current this is actually not current but recent as it remembers last navigation
-
-    match = new RegExp(`^${EXT_PAGE_INDEX_HTML}#/vv/(.*)$`, "g").exec(url)
-    if (match) {
-        return `https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=ACTION&ARGUMENTS=${match[1]}`
-    }
 
     if (!id) {
         await chrome.notifications.create({
