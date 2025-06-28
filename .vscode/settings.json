@@ -10,8 +10,7 @@
     //"rust-analyzer.cargo.target": "wasm32-unknown-unknown",
     "rust-analyzer.cargo.features": [
         "direct",
-        "authenticated_tests",
-        "mobile"
+        "authenticated_tests"
     ],
     "rust-analyzer.check.command": "clippy",
     "rust-analyzer.rustfmt.overrideCommand": [

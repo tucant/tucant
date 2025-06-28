@@ -32,6 +32,8 @@ use student_result::StudentResultResponse;
 use utoipa::ToSchema;
 use vv::{ActionRequest, Vorlesungsverzeichnis};
 
+use crate::gradeoverview::{GradeOverviewRequest, GradeOverviewResponse};
+
 #[derive(Serialize, Deserialize, ToSchema, Debug)]
 pub struct LoginRequest {
     pub username: String,
@@ -194,4 +196,6 @@ pub trait Tucan: Send + Sync {
     fn vv(&self, login_response: Option<&LoginResponse>, revalidation_strategy: RevalidationStrategy, action: ActionRequest) -> impl std::future::Future<Output = Result<Vorlesungsverzeichnis, TucanError>>;
 
     fn student_result(&self, login_response: &LoginResponse, revalidation_strategy: RevalidationStrategy, course_of_study: u64) -> impl std::future::Future<Output = Result<StudentResultResponse, TucanError>>;
+
+    fn gradeoverview(&self, login_response: &LoginResponse, revalidation_strategy: RevalidationStrategy, gradeoverview: GradeOverviewRequest) -> impl std::future::Future<Output = Result<GradeOverviewResponse, TucanError>>;
 }

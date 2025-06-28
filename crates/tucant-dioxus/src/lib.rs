@@ -4,6 +4,7 @@ pub mod common;
 pub mod course_details;
 pub mod course_results;
 pub mod exam_results;
+pub mod gradeoverview;
 pub mod login_component;
 pub mod logout_component;
 pub mod module_details;

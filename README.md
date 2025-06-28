@@ -53,7 +53,7 @@ rustup run nightly-2025-04-02 dx fmt
 cargo install --git https://github.com/mohe2015/dioxus --branch my dioxus-cli --locked
 
 cd crates/tucant-dioxus/
-dx serve --features api --hotpatch
+dx serve --platform web --features api --hotpatch
 
 # in second tab
 bacon tucant-api
