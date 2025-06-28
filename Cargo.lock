@@ -2780,6 +2780,7 @@ dependencies = [
  "futures-util",
  "indexed-db",
  "js-sys",
+ "send_wrapper",
  "serde",
  "serde-wasm-bindgen",
  "serde_json",

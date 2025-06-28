@@ -1,6 +1,6 @@
 pub struct Database {
     #[cfg(target_arch = "wasm32")]
-    database: indexed_db::Database<std::io::Error>,
+    database: send_wrapper::SendWrapper<indexed_db::Database<std::io::Error>>,
     #[cfg(not(target_arch = "wasm32"))]
     database: sqlx::Pool<sqlx::Sqlite>,
 }
@@ -23,7 +23,7 @@ impl Database {
                 .await
                 .unwrap();
 
-            Self { database }
+            Self { database: send_wrapper::SendWrapper::new(database) }
         }
         #[cfg(not(target_arch = "wasm32"))]
         {
