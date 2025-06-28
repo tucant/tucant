@@ -36,7 +36,7 @@ pub fn GradeOverview(gradeoverview: ReadOnlySignal<GradeOverviewRequest>) -> Ele
                             .y_label_area_size(40)
                             .margin(5)
                             .caption("Histogram Test", ("sans-serif", 50.0))
-                            .build_cartesian_2d((0u32..10u32).into_segmented(), 0u32..10u32)?;
+                            .build_cartesian_2d((0usize..15usize).into_segmented(), 0u32..100u32)?;
 
                         chart
                             .configure_mesh()
@@ -47,13 +47,11 @@ pub fn GradeOverview(gradeoverview: ReadOnlySignal<GradeOverviewRequest>) -> Ele
                             .axis_desc_style(("sans-serif", 15))
                             .draw()?;
 
-
-
                         chart.draw_series(
                             Histogram::vertical(&chart)
                                 .style(RED.mix(0.5).filled())
-                                .data(grades.columns.iter().map(|column| {
-                                    (0, i32::from_str_radix(&column.1, 10).unwrap())
+                                .data(grades.columns.iter().enumerate().map(|(idx, column)| {
+                                    (idx, column.1.parse::<u32>().unwrap())
                                 })),
                         )?;
 
