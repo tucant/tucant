@@ -36,4 +36,15 @@ impl GradeOverviewRequest {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, ToSchema)]
-pub struct GradeOverviewResponse {}
+pub struct GradeOverviewResponse {
+    pub module_and_semester: String,
+    pub modulangebot: String,
+    pub studienleistung: String,
+    pub maybe_grades: Option<Grades>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, ToSchema)]
+pub struct Grades {
+    pub columns: Vec<(String, String)>,
+    pub infos: Vec<String>,
+}

@@ -3,7 +3,7 @@ use time::{Duration, OffsetDateTime};
 use tucant_types::{
     LoginResponse, RevalidationStrategy,
     coursedetails::CourseDetailsRequest,
-    gradeoverview::{GradeOverviewRequest, GradeOverviewResponse},
+    gradeoverview::{GradeOverviewRequest, GradeOverviewResponse, Grades},
     mlsstart::{MlsStart, Nachricht, StundenplanEintrag},
 };
 
@@ -111,39 +111,30 @@ fn gradeoverview_internal(login_response: &LoginResponse, content: &str) -> Resu
                                         <td class="tbsubhead">
                                             "Noten"
                                         </td>
-                                        let columns = while html_handler.peek().is_some() {
+                                        let names = while html_handler.peek().is_some() {
                                             <td class="tbsubhead">
-                                                nb
+                                                name
                                             </td>
-                                        } => ();
+                                        } => name;
                                     </tr>
                                     <tr>
                                         <td class="tbdata">
                                             "Anzahl"
                                         </td>
-                                        let columns = while html_handler.peek().is_some() {
+                                        let values = while html_handler.peek().is_some() {
                                             <td class="tbdata">
-                                                second_column_count
+                                                value
                                             </td>
-                                        } => ();
+                                        } => value;
                                     </tr>
                                 </tbody>
                             </table>
-                            <div class="tbdata">
-                                durchschnitt
-                            </div>
-                            <div class="tbdata">
-                                vorliegende_ergebnisse
-                            </div>
-                            <div class="tbdata">
-                                "Ergebnisse mit abweichendem BWS:    0"
-                            </div>
                             let infos = while html_handler.peek().is_some() {
                                 <div class="tbdata">
-                                    fehlend
+                                    info
                                 </div>
-                            } => ();
-                        } => () else {
+                            } => info;
+                        } => Grades { columns: names.into_iter().zip(values).collect(), infos } else {
                             <div class="tbdata">
                                 "noch nicht gesetzt"
                             </div>
@@ -155,5 +146,5 @@ fn gradeoverview_internal(login_response: &LoginResponse, content: &str) -> Resu
     };
     let html_handler = footer(html_handler, login_response.id, 19);
     html_handler.end_document();
-    Ok(GradeOverviewResponse {})
+    Ok(GradeOverviewResponse { module_and_semester, modulangebot, studienleistung, maybe_grades: maybe_grades.left() })
 }
