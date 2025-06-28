@@ -64,7 +64,7 @@ bacon tucant-api
 
 ```
 cd tucant-extension/
-dx bundle --out-dir ../../tucant-extension/ --base-path public --features direct --release
+dx bundle --platform web --out-dir ../../tucant-extension/ --base-path public --features direct --release
 cargo run --manifest-path /home/moritz/Documents/dioxus/packages/cli/Cargo.toml bundle --out-dir ../../tucant-extension/ --base-path public --features direct --release
 llvm-dwarfdump --all --verify tucant-extension/public/assets/tucant-dioxus_bg-dxh4bb37ef8c3ffabdf.wasm
 ```
