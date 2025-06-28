@@ -153,7 +153,7 @@ xdg-open target/coverage/index.html
 ## Android
 
 ```
-dx run --platform android --verbose
+dx serve --platform android --verbose
 adb shell run-as com.example.TucantDioxus logcat
 # grep for RustStdoutStderr
 ```
