@@ -137,7 +137,7 @@
           '';
           buildPhaseCargoCommand = ''
             export HOME=$(mktemp -d)
-            ${dioxus-cli}/bin/dx bundle --verbose --release --out-dir $out --base-path public --features direct
+            ${dioxus-cli}/bin/dx bundle --platform web --verbose --release --out-dir $out --base-path public --features direct
           '';
           installPhaseCommand = ''
           '';
