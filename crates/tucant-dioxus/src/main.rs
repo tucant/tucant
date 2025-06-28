@@ -28,14 +28,8 @@ extern "C" {
 // https://github.com/tauri-apps/wry
 // https://github.com/tauri-apps/tao/blob/5ac00b57ad3f5c5c7135dde626cb90bc1ad469dc/src/platform_impl/android/ndk_glue.rs#L236
 
-pub fn main() {
-    // because tao::android_binding is not called here yet the logging does not work yet etc.
-    // so this likely panics and then there is no response
-    // the JNI_OnLoad trick is actually not nice
-
-    // report issue for panicking here and report issue for making this async?
-
-
+#[tokio::main]
+pub async fn main() {
     // logging in here does not work?
     //dioxus::logger::initialize_default();
     //tracing::error!("start of main");
@@ -52,10 +46,9 @@ pub fn main() {
     }));
 */
     //console_log::init().unwrap();
-    dioxus::mobile::launch_cfg(App, vec![], vec![]);
 
     // maybe this code panics before?
-/*
+
     let launcher = dioxus::LaunchBuilder::mobile();
 
     #[cfg(feature = "web")]
@@ -66,8 +59,8 @@ pub fn main() {
 
     launcher
         .with_context(login_response)
-        //.with_context(RcTucanType(tucant_types::DynTucan::new_arc(tucan_connector::TucanConnector::new().await.unwrap())))
-        .launch(App);*/
+        .with_context(RcTucanType(tucant_types::DynTucan::new_arc(tucan_connector::TucanConnector::new().await.unwrap())))
+        .launch(App);
 
     //let connector = RcTucanType(DynTucan::new_rc(tucant_dioxus::api_server::ApiServerTucan::new()));
 }
