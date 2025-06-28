@@ -13,8 +13,10 @@ pub fn LoginComponent() -> Element {
     let mut current_session = use_context::<Signal<Option<LoginResponse>>>();
 
     let on_submit = move |_: FormEvent| {
+        println!("on_submit");
+        eprintln!("on_submit");
         let tucan = tucan.clone();
-        async move {
+        spawn(async move {
             let tucan = tucan.clone();
 
             let password_string = password();
@@ -42,14 +44,15 @@ pub fn LoginComponent() -> Element {
                 .await;
 
             current_session.set(Some(response.clone()));
-        }
+        });
     };
 
     rsx! {
-        form { onsubmit: on_submit, class: "d-flex",
+        form { id: "cool-form", onsubmit: on_submit, class: "d-flex",
             input { id:"login-username", value: "{username}", oninput: move |event| username.set(event.value()), required:true, class:"form-control me-2", r#type:"username", placeholder: "TU-ID", "aria-label": "TU-ID", autocomplete:"current-username"}
             input { id:"login-password", value: "{password}", oninput: move |event| password.set(event.value()), required:true, class:"form-control me-2", r#type:"password", placeholder:"Password", "aria-label":"Password", autocomplete:"current-password"}
-            button { class:"btn btn-outline-success", r#type:"submit", id: "login-button", "Login" }
+            button { class:"btn btn-outline-success", r#type:"submit", value: "submit", id: "login-button", "Login" }
+            button { r#type: "submit", value: "Submit", "Submit the form" }
         }
     }
 }
