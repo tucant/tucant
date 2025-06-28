@@ -4,7 +4,9 @@ use html_handler::{Root, parse_document};
 use regex::Regex;
 use time::{Duration, OffsetDateTime};
 use tucant_types::{
-    examresults::{ExamResult, ExamResultsResponse}, gradeoverview::GradeOverviewRequest, LoginResponse, RevalidationStrategy, SemesterId, Semesterauswahl, TucanError
+    LoginResponse, RevalidationStrategy, SemesterId, Semesterauswahl, TucanError,
+    examresults::{ExamResult, ExamResultsResponse},
+    gradeoverview::GradeOverviewRequest,
 };
 
 use crate::{

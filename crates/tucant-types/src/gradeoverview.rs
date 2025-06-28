@@ -4,7 +4,6 @@ use regex::Regex;
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 
-
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, ToSchema)]
 pub struct GradeOverviewRequest(String);
 
@@ -37,6 +36,4 @@ impl GradeOverviewRequest {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, ToSchema)]
-pub struct GradeOverviewResponse {
-
-}
+pub struct GradeOverviewResponse {}

@@ -1,7 +1,10 @@
 use log::info;
 use time::{Duration, OffsetDateTime};
 use tucant_types::{
-    coursedetails::CourseDetailsRequest, gradeoverview::{GradeOverviewRequest, GradeOverviewResponse}, mlsstart::{MlsStart, Nachricht, StundenplanEintrag}, LoginResponse, RevalidationStrategy
+    LoginResponse, RevalidationStrategy,
+    coursedetails::CourseDetailsRequest,
+    gradeoverview::{GradeOverviewRequest, GradeOverviewResponse},
+    mlsstart::{MlsStart, Nachricht, StundenplanEintrag},
 };
 
 use crate::{
@@ -12,7 +15,6 @@ use html_handler::{MyElementRef, MyNode, Root, parse_document};
 
 // ARGUMENTS=-N352196045346277,-N000325,-AEXEV,-N391263798646423,-N0,-N,-N,-A,-N,-A,-N,-N,-N0,-N391263798681424
 //                                              exam-details-id                                 some-id
-
 
 // PRGNAME=GRADEOVERVIEW&ARGUMENTS=-N700694270951401,-N000325,-AEXEV,-N391263798646423,-N0,-N,-N000000015166000,-A,-N,-A,-N,-N,-N2,-N391263798681424
 //                                                                                                                             full site?
@@ -91,11 +93,11 @@ fn gradeoverview_internal(login_response: &LoginResponse, content: &str) -> Resu
                     <div class="tb">
                         <div class="tbhead"></div>
                         <div class="tbcontrol">
-                                    
+
                                         <a href=examresults_url class="img img_arrowLeft prev">"Zurück"</a>
-                                    
-                                    
-                                    
+
+
+
                                 </div>
                                                             <table class="nb">
                                         <tbody><tr>
@@ -105,22 +107,22 @@ fn gradeoverview_internal(login_response: &LoginResponse, content: &str) -> Resu
                                                                                                         <td class="tbsubhead">b</td>
                                                                                                                                     <td class="tbsubhead">nb</td>
                                                                                             </tr>
-                                        
-                                                            
+
+
                                         <tr>
                                             <td class="tbdata">"Anzahl"</td>
                                                                                                         <td class="tbdata">count</td>
                                                                                                                                     <td class="tbdata">second_column_count</td>
                                                                                             </tr>
                                     </tbody></table>
-                                
-                                            
+
+
                                 <div class="tbdata">"Durchschnitt:    1,0"</div>
                             <div class="tbdata">vorliegende_ergebnisse</div>
                             <div class="tbdata">"Ergebnisse mit abweichendem BWS:    0"</div>
 
                                                         <div class="tbdata">fehlend</div>
-            
+
                     </div>
                 </div>
             </div>
@@ -128,5 +130,5 @@ fn gradeoverview_internal(login_response: &LoginResponse, content: &str) -> Resu
     };
     let html_handler = footer(html_handler, login_response.id, 19);
     html_handler.end_document();
-    Ok(GradeOverviewResponse {  })
+    Ok(GradeOverviewResponse {})
 }

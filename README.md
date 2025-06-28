@@ -153,7 +153,14 @@ xdg-open target/coverage/index.html
 ## Android
 
 ```
-dx serve --platform android --verbose
+dx serve --platform android --hotpatch --verbose
 adb shell run-as com.example.TucantDioxus logcat
 # grep for RustStdoutStderr
+```
+
+## Linux
+
+```
+dx serve --platform linux --hotpatch --verbose
+
 ```

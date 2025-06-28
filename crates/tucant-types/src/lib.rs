@@ -2,6 +2,7 @@ pub mod coursedetails;
 pub mod courseprep;
 pub mod courseresults;
 pub mod examresults;
+pub mod gradeoverview;
 pub mod mlsstart;
 pub mod moduledetails;
 pub mod mycourses;
@@ -11,7 +12,6 @@ pub mod mymodules;
 pub mod registration;
 pub mod student_result;
 pub mod vv;
-pub mod gradeoverview;
 
 use std::{convert::Infallible, str::FromStr};
 

@@ -1,6 +1,6 @@
 use std::{collections::HashMap, panic};
 
-use dioxus::{prelude::*};
+use dioxus::prelude::*;
 use log::warn;
 use tucant_dioxus::{RcTucanType, Route};
 use tucant_types::LoginResponse;
@@ -35,16 +35,16 @@ pub async fn main() {
     //tracing::error!("start of main");
     // From https://github.com/rustwasm/console_error_panic_hook, licensed under MIT and Apache 2.0
     /*panic::set_hook(Box::new(|info| {
-        let mut msg = info.to_string();
-        msg.push_str("\n\nStack:\n\n");
-        let e = Error::new();
-        let stack = e.stack();
-        msg.push_str(&stack);
-        msg.push_str("\n\n");
-        error(msg.clone());
-        alert(msg.as_str());
-    }));
-*/
+            let mut msg = info.to_string();
+            msg.push_str("\n\nStack:\n\n");
+            let e = Error::new();
+            let stack = e.stack();
+            msg.push_str(&stack);
+            msg.push_str("\n\n");
+            error(msg.clone());
+            alert(msg.as_str());
+        }));
+    */
     //console_log::init().unwrap();
 
     // maybe this code panics before?
@@ -56,10 +56,7 @@ pub async fn main() {
 
     let login_response = tucant_dioxus::login_response().await;
 
-    launcher
-        .with_context(login_response)
-        .with_context(RcTucanType(tucant_types::DynTucan::new_arc(tucan_connector::TucanConnector::new().await.unwrap())))
-        .launch(App);
+    launcher.with_context(login_response).with_context(RcTucanType(tucant_types::DynTucan::new_arc(tucan_connector::TucanConnector::new().await.unwrap()))).launch(App);
 
     //let connector = RcTucanType(DynTucan::new_rc(tucant_dioxus::api_server::ApiServerTucan::new()));
 }

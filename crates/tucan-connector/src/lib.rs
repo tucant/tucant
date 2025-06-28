@@ -40,6 +40,7 @@ pub mod courseprep;
 pub mod courseresults;
 pub mod examresults;
 pub mod externalpages;
+pub mod gradeoverview;
 pub mod head;
 pub mod login;
 pub mod mlsstart;
@@ -54,7 +55,6 @@ pub mod root;
 pub mod startpage_dispatch;
 pub mod student_result;
 pub mod vv;
-pub mod gradeoverview;
 
 #[cfg(target_arch = "wasm32")]
 pub async fn sleep(duration: Duration) {
@@ -355,7 +355,19 @@ mod authenticated_tests {
     use tucant_types::{LoginRequest, LoginResponse, RevalidationStrategy, SemesterId, registration::AnmeldungRequest};
 
     use crate::{
-        courseresults::courseresults, examresults::examresults, gradeoverview::gradeoverview, login::login, mlsstart::after_login, mycourses::mycourses, mydocuments::my_documents, myexams::my_exams, registration::anmeldung, startpage_dispatch::after_login::redirect_after_login, student_result::student_result, tests::{get_tucan_connector, runtime}, Tucan
+        Tucan,
+        courseresults::courseresults,
+        examresults::examresults,
+        gradeoverview::gradeoverview,
+        login::login,
+        mlsstart::after_login,
+        mycourses::mycourses,
+        mydocuments::my_documents,
+        myexams::my_exams,
+        registration::anmeldung,
+        startpage_dispatch::after_login::redirect_after_login,
+        student_result::student_result,
+        tests::{get_tucan_connector, runtime},
     };
 
     static ONCE: OnceCell<LoginResponse> = OnceCell::const_new();
