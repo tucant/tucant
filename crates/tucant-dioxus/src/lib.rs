@@ -144,29 +144,29 @@ pub fn NotFound(route: Vec<String>) -> Element {
 pub fn Root() -> Element {
     rsx! {
         div { class: "container",
-            h1 {
-                { "Willkommen bei TUCaN't!" }
+            h1 { {"Willkommen bei TUCaN't!"} }
+            p {
+                {"Du kannst gerne die "}
+                a {
+                    href: "https://tucant.github.io/tucant/",
+                    target: "_blank",
+                    {"Browsererweiterung herunterladen"}
+                }
+                {", falls Du diese noch nicht verwendest."}
             }
             p {
-                { "Du kannst gerne die " }
-                a { href: "https://tucant.github.io/tucant/", target: "_blank",
-                    { "Browsererweiterung herunterladen" }
+                {"Der Quellcode dieses Projekts ist unter der AGPL-3.0 Lizenz auf "}
+                a {
+                    href: "https://github.com/tucant/tucant/",
+                    target: "_blank",
+                    {"GitHub"}
                 }
-                { ", falls Du diese noch nicht verwendest." }
+                {" verfügbar."}
             }
             p {
-                { "Der Quellcode dieses Projekts ist unter der AGPL-3.0 Lizenz auf " }
-                a { href: "https://github.com/tucant/tucant/", target: "_blank",
-                    { "GitHub" }
-                }
-                { " verfügbar." }
-            }
-            p {
-                { "Du kannst Dir deine " }
-                a { href: "#/registration/",
-                    { "anmeldbaren Module ansehen" }
-                }
-                { "." }
+                {"Du kannst Dir deine "}
+                a { href: "#/registration/", {"anmeldbaren Module ansehen"} }
+                {"."}
             }
         }
     }
