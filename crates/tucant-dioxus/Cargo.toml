@@ -8,6 +8,8 @@ edition = "2021"
 
 [dependencies]
 dioxus = { git = "https://github.com/mohe2015/dioxus.git", branch = "my", features = ["router", "logger"] }
+dioxus-desktop = { git = "https://github.com/mohe2015/dioxus.git", branch = "my", default-features = false }
+dioxus-mobile = { git = "https://github.com/mohe2015/dioxus.git", branch = "my", default-features = false }
 tucant-types = { path = "../tucant-types" }
 log = { version = "0.4", features = ["max_level_debug", "release_max_level_warn"] }
 reqwest = { version = "0.12.9", default-features = false, features = ["rustls-tls", "http2", "charset", "json"] }

@@ -5504,6 +5504,8 @@ dependencies = [
  "console_log",
  "cookie",
  "dioxus",
+ "dioxus-desktop",
+ "dioxus-mobile",
  "js-sys",
  "log",
  "reqwest",
