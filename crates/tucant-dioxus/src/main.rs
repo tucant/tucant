@@ -28,24 +28,22 @@ extern "C" {
 // https://github.com/tauri-apps/wry
 // https://github.com/tauri-apps/tao/blob/5ac00b57ad3f5c5c7135dde626cb90bc1ad469dc/src/platform_impl/android/ndk_glue.rs#L236
 
-#[tokio::main]
+#[tokio::main(flavor = "current_thread")]
 pub async fn main() {
-    // logging in here does not work?
-    //dioxus::logger::initialize_default();
-    //tracing::error!("start of main");
     // From https://github.com/rustwasm/console_error_panic_hook, licensed under MIT and Apache 2.0
-    /*panic::set_hook(Box::new(|info| {
-            let mut msg = info.to_string();
-            msg.push_str("\n\nStack:\n\n");
-            let e = Error::new();
-            let stack = e.stack();
-            msg.push_str(&stack);
-            msg.push_str("\n\n");
-            error(msg.clone());
-            alert(msg.as_str());
-        }));
-    */
-    //console_log::init().unwrap();
+    #[cfg(feature = "web")]
+    panic::set_hook(Box::new(|info| {
+        let mut msg = info.to_string();
+        msg.push_str("\n\nStack:\n\n");
+        let e = Error::new();
+        let stack = e.stack();
+        msg.push_str(&stack);
+        msg.push_str("\n\n");
+        error(msg.clone());
+        alert(msg.as_str());
+    }));
+    #[cfg(feature = "web")]
+    console_log::init().unwrap();
 
     // maybe this code panics before?
 
@@ -56,9 +54,15 @@ pub async fn main() {
 
     let login_response = tucant_dioxus::login_response().await;
 
-    launcher.with_context(login_response).with_context(RcTucanType(tucant_types::DynTucan::new_arc(tucan_connector::TucanConnector::new().await.unwrap()))).launch(App);
+    let launcher = launcher.with_context(login_response);
+    
+    #[cfg(feature = "web")]
+    let launcher = launcher.with_context(RcTucanType(tucant_types::DynTucan::new_arc(tucant_dioxus::api_server::ApiServerTucan::new())));
 
-    //let connector = RcTucanType(DynTucan::new_rc(tucant_dioxus::api_server::ApiServerTucan::new()));
+    #[cfg(not(feature = "web"))]
+    let launcher = launcher.with_context(RcTucanType(tucant_types::DynTucan::new_arc(tucan_connector::TucanConnector::new().await.unwrap())));
+    
+    launcher.launch(App);
 }
 
 #[component]
