@@ -75,13 +75,13 @@ pub async fn main() {
         let login_response = tucant_dioxus::login_response().await;
 
         let launcher = launcher.with_context(login_response);
-        
+
         #[cfg(feature = "api")]
         let launcher = launcher.with_context(RcTucanType(tucant_types::DynTucan::new_arc(tucant_dioxus::api_server::ApiServerTucan::new())));
 
         #[cfg(not(feature = "api"))]
         let launcher = launcher.with_context(RcTucanType(tucant_types::DynTucan::new_arc(tucan_connector::TucanConnector::new().await.unwrap())));
-        
+
         launcher.launch(App);
     }
 }
