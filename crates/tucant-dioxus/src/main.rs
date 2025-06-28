@@ -47,22 +47,42 @@ pub async fn main() {
 
     // maybe this code panics before?
 
-    let launcher = dioxus::LaunchBuilder::new();
+    #[cfg(feature = "direct")]
+    {
+        use std::rc::Rc;
 
-    #[cfg(feature = "web")]
-    let launcher = launcher.with_cfg(dioxus::web::Config::new().history(std::rc::Rc::new(dioxus::web::HashHistory::new(false))));
+        use dioxus::web::{Config, HashHistory};
+        use tucant_types::DynTucan;
 
-    let login_response = tucant_dioxus::login_response().await;
+        let history_provider: Rc<dyn History> = Rc::new(HashHistory::default());
+        let login_response = tucant_dioxus::login_response().await;
+        let connector = RcTucanType(DynTucan::new_rc(tucan_connector::TucanConnector::new().await.unwrap()));
 
-    let launcher = launcher.with_context(login_response);
-    
-    #[cfg(feature = "api")]
-    let launcher = launcher.with_context(RcTucanType(tucant_types::DynTucan::new_arc(tucant_dioxus::api_server::ApiServerTucan::new())));
+        let vdom = VirtualDom::new(App);
+        vdom.provide_root_context(history_provider);
+        vdom.provide_root_context(login_response);
+        vdom.provide_root_context(connector);
+        dioxus::web::launch::launch_virtual_dom(vdom, Config::new());
+    }
 
-    #[cfg(not(feature = "api"))]
-    let launcher = launcher.with_context(RcTucanType(tucant_types::DynTucan::new_rc(tucan_connector::TucanConnector::new().await.unwrap())));
-    
-    launcher.launch(App);
+    #[cfg(not(feature = "direct"))]
+    {
+        let launcher = dioxus::LaunchBuilder::new();
+
+        let launcher = launcher.with_cfg(dioxus::web::Config::new().history(std::rc::Rc::new(dioxus::web::HashHistory::new(false))));
+
+        let login_response = tucant_dioxus::login_response().await;
+
+        let launcher = launcher.with_context(login_response);
+        
+        #[cfg(feature = "api")]
+        let launcher = launcher.with_context(RcTucanType(tucant_types::DynTucan::new_arc(tucant_dioxus::api_server::ApiServerTucan::new())));
+
+        #[cfg(not(feature = "api"))]
+        let launcher = launcher.with_context(RcTucanType(tucant_types::DynTucan::new_rc(tucan_connector::TucanConnector::new().await.unwrap())));
+        
+        launcher.launch(App);
+    }
 }
 
 #[component]
