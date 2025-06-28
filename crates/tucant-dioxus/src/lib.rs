@@ -27,6 +27,7 @@ use std::sync::Arc;
 
 use dioxus::prelude::*;
 use tucant_types::DynTucan;
+use tucant_types::gradeoverview::GradeOverviewRequest;
 use tucant_types::{SemesterId, coursedetails::CourseDetailsRequest, moduledetails::ModuleDetailsRequest, registration::AnmeldungRequest, vv::ActionRequest};
 
 use crate::navbar::Navbar;
@@ -89,6 +90,7 @@ pub async fn login_response() -> Option<tucant_types::LoginResponse> {
 use crate::course_details::CourseDetails;
 use crate::course_results::CourseResults;
 use crate::exam_results::ExamResults;
+use crate::gradeoverview::GradeOverview;
 use crate::module_details::ModuleDetails;
 use crate::my_courses::MyCourses;
 use crate::my_documents::MyDocuments;
@@ -132,6 +134,8 @@ pub enum Route {
     MyDocuments {},
     #[route("/student-result/:course_of_study")]
     StudentResult { course_of_study: String },
+    #[route("/gradeoverview/:gradeoverview")]
+    GradeOverview { gradeoverview: GradeOverviewRequest },
 }
 
 #[component]
