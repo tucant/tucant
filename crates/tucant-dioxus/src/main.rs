@@ -47,7 +47,7 @@ pub async fn main() {
 
     // maybe this code panics before?
 
-    #[cfg(feature = "direct")]
+    #[cfg(all(feature = "web", feature = "direct"))]
     {
         use std::rc::Rc;
 
@@ -56,7 +56,7 @@ pub async fn main() {
 
         let history_provider: Rc<dyn History> = Rc::new(HashHistory::default());
         let login_response = tucant_dioxus::login_response().await;
-        let connector = RcTucanType(DynTucan::new_rc(tucan_connector::TucanConnector::new().await.unwrap()));
+        let connector = RcTucanType(DynTucan::new_arc(tucan_connector::TucanConnector::new().await.unwrap()));
 
         let vdom = VirtualDom::new(App);
         vdom.provide_root_context(history_provider);
@@ -79,7 +79,7 @@ pub async fn main() {
         let launcher = launcher.with_context(RcTucanType(tucant_types::DynTucan::new_arc(tucant_dioxus::api_server::ApiServerTucan::new())));
 
         #[cfg(not(feature = "api"))]
-        let launcher = launcher.with_context(RcTucanType(tucant_types::DynTucan::new_rc(tucan_connector::TucanConnector::new().await.unwrap())));
+        let launcher = launcher.with_context(RcTucanType(tucant_types::DynTucan::new_arc(tucan_connector::TucanConnector::new().await.unwrap())));
         
         launcher.launch(App);
     }

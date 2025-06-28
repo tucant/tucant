@@ -172,12 +172,7 @@ pub fn Root() -> Element {
     }
 }
 
-#[cfg(feature = "web")]
-type Ref<T> = Rc<T>;
-#[cfg(not(feature = "web"))]
-type Ref<T> = Arc<T>;
-
-pub struct RcTucanType(pub Ref<DynTucan<'static>>);
+pub struct RcTucanType(pub Arc<DynTucan<'static>>);
 
 impl Clone for RcTucanType {
     fn clone(&self) -> Self {
@@ -187,12 +182,12 @@ impl Clone for RcTucanType {
 
 impl PartialEq for RcTucanType {
     fn eq(&self, other: &RcTucanType) -> bool {
-        Ref::ptr_eq(&self.0, &other.0)
+        Arc::ptr_eq(&self.0, &other.0)
     }
 }
 
 impl Deref for RcTucanType {
-    type Target = Ref<DynTucan<'static>>;
+    type Target = Arc<DynTucan<'static>>;
 
     fn deref(&self) -> &Self::Target {
         &self.0
