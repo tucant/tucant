@@ -49,7 +49,7 @@ pub async fn main() {
 
     // maybe this code panics before?
 
-    let launcher = dioxus::LaunchBuilder::mobile();
+    let launcher = dioxus::LaunchBuilder::new();
 
     #[cfg(feature = "web")]
     let launcher = launcher.with_cfg(dioxus::web::Config::new().history(std::rc::Rc::new(dioxus::web::HashHistory::new(false))));
