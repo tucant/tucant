@@ -95,6 +95,7 @@ fn gradeoverview_internal(login_response: &LoginResponse, content: &str) -> Resu
                         <div class="tbcontrol">
                                         <a href=examresults_url class="img img_arrowLeft prev">"Zurück"</a>
                                 </div>
+                            let maybe_grades = if html_handler.peek().unwrap().value().as_element().unwrap().name() == "table" {
                             <table class="nb">
                                         <tbody><tr>
                                             <td class="tbsubhead">
@@ -121,6 +122,9 @@ fn gradeoverview_internal(login_response: &LoginResponse, content: &str) -> Resu
                             let infos = while html_handler.peek().is_some() {
                                 <div class="tbdata">fehlend</div>
                             } => ();
+                        } => () else {
+                            <div class="tbdata">"noch nicht gesetzt"</div>
+                        } => ();
                     </div>
                 </div>
             </div>
