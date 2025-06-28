@@ -39,7 +39,6 @@ mod tests {
             (
                 "goog:chromeOptions".to_owned(),
                 json!({
-                    "binary": "/home/moritz/Downloads/chrome-linux64/chrome-linux64/chrome",
                     "args": ["--enable-unsafe-extension-debugging", "--remote-debugging-pipe"],
                 }),
             ),
@@ -99,16 +98,11 @@ mod tests {
 
         env_logger::init();
 
-        // https://github.com/SeleniumHQ/selenium/issues/15585#issuecomment-2782657812
         // Firefox 138 is required
-        // geckodriver --binary /home/moritz/Downloads/firefox-138.0b6/firefox/firefox-bin
+        // geckodriver
 
-        // Download beta (>= 136.0.7103.25) chrome and chromedriver from https://googlechromelabs.github.io/chrome-for-testing/#beta
-        // /home/moritz/Downloads/chromedriver-linux64/chromedriver-linux64/chromedriver --port=4444 --enable-chrome-logs
-        // https://github.com/GoogleChromeLabs/chromium-bidi/issues/2849
-
-        // https://groups.google.com/a/chromium.org/g/chromium-extensions/c/aEHdhDZ-V0E/m/WvvehPqKAwAJ
-        // seems like context menu clicking etc may happen at some point in webdriver bidi
+        // Chrome >= 136.0.7103.25 is required
+        // chromedriver --port=4444 --enable-chrome-logs
 
         let mut session = get_session().await;
 
@@ -124,11 +118,19 @@ mod tests {
 
             session
                 .register_event_handler(EventType::LogEntryAdded, async |event| {
-                    println!("{event}");
+                    println!("{}", event.as_object().unwrap().get_key_value("params").unwrap().1.as_object().unwrap().get_key_value("args").unwrap().1);
+                })
+                .await;
+
+            session
+                .register_event_handler(EventType::BrowsingContextUserPromptOpened, async |event| {
+                    println!("user prompt {}", event);
                 })
                 .await;
 
             session.session_subscribe(SubscriptionRequest::new(vec!["log.entryAdded".to_owned()], Some(vec![browsing_context.clone()]), None)).await?;
+
+            session.session_subscribe(SubscriptionRequest::new(vec!["browsingContext.userPromptOpened".to_owned()], Some(vec![browsing_context.clone()]), None)).await?;
 
             session
                 .browsing_context_set_viewport(SetViewportParameters {
@@ -149,6 +151,8 @@ mod tests {
             let node = session.browsing_context_locate_nodes(LocateNodesParameters::new(browsing_context.clone(), Locator::CssLocator(CssLocator::new("#login-button".to_owned())), None, None, None)).await?;
             let node = &node.nodes[0];
             click_element(&mut session, browsing_context.clone(), node).await?;
+
+            // time not implemented on this platform
 
             session
                 .script_evaluate(EvaluateParameters::new(
@@ -184,9 +188,11 @@ mod tests {
                 panic!();
             };
 
+            println!("before sendMessage");
             session.script_evaluate(EvaluateParameters::new(r#"chrome.runtime.sendMessage("open-in-tucan-page")"#.to_owned(), Target::ContextTarget(ContextTarget::new(browsing_context.clone(), None)), false, None, None, Some(true))).await?;
+            println!("after sendMessage");
 
-            sleep(Duration::from_secs(50)).await;
+            sleep(Duration::from_secs(5)).await;
 
             let realms = session.script_get_realms(GetRealmsParameters::new(Some(browsing_context.clone()), None)).await?;
             println!("{realms:?}");
@@ -194,9 +200,11 @@ mod tests {
             let contexts = session.browsing_context_get_tree(GetTreeParameters { max_depth: None, root: Some(browsing_context.clone()) }).await?;
             println!("{contexts:?}");
 
+            println!("before dispatchEvent");
             session.script_evaluate(EvaluateParameters::new(r#"window.dispatchEvent(new CustomEvent('tucant', { detail: "open-in-tucan-page" }));"#.to_owned(), Target::ContextTarget(ContextTarget::new(browsing_context.clone(), None)), false, None, None, Some(true))).await?;
+            println!("after dispatchEvent");
 
-            sleep(Duration::from_secs(50)).await;
+            sleep(Duration::from_secs(5)).await;
 
             // driver.query(By::XPath(r#"//div/ul/li/a[text()="Veranstaltungen"]"#)).single().await?.click().await?;
 

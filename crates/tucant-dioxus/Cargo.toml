@@ -7,7 +7,9 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-dioxus = { git = "https://github.com/mohe2015/dioxus.git", branch = "my", features = ["router"] }
+dioxus = { git = "https://github.com/mohe2015/dioxus.git", branch = "my", features = ["router", "logger"] }
+dioxus-desktop = { git = "https://github.com/mohe2015/dioxus.git", branch = "my", default-features = false, optional = true }
+dioxus-mobile = { git = "https://github.com/mohe2015/dioxus.git", branch = "my", default-features = false, optional = true }
 tucant-types = { path = "../tucant-types" }
 log = { version = "0.4", features = ["max_level_debug", "release_max_level_warn"] }
 reqwest = { version = "0.12.9", default-features = false, features = ["rustls-tls", "http2", "charset", "json"] }
@@ -21,11 +23,13 @@ web-sys = { version = "0.3", features = ["Document", "Window", "HtmlDocument", "
 cookie = "0.18"
 web-extensions-sys = { optional = true, git = "https://github.com/mohe2015/web-extensions-sys", branch = "cookies" }
 tucan-connector = { optional = true, path = "../tucan-connector" }
+tokio = { features = ["macros", "rt"], version = "1" }
+tracing = "0.1.41"
 
 [features]
-direct = ["dep:tucan-connector", "dep:web-extensions-sys"]
-api = []
-default = ["web"]
+direct = ["web", "dep:tucan-connector", "dep:web-extensions-sys"]
+api = ["web"]
+default = []
 web = ["dioxus/web"]
-desktop = ["dioxus/desktop"]
-mobile = ["dioxus/mobile"]
+desktop = ["dioxus/desktop", "dep:dioxus-desktop", "dep:tucan-connector"]
+mobile = ["dioxus/mobile", "dep:dioxus-mobile", "dep:dioxus-desktop", "dep:tucan-connector"]

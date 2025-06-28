@@ -49,7 +49,7 @@ cargo +nightly-2025-04-02 fmt
 ### Running as local webserver
 
 ```bash
-cargo +nightly install --git https://github.com/mohe2015/dioxus --branch my dioxus-cli --locked
+cargo install --git https://github.com/mohe2015/dioxus --branch my dioxus-cli --locked
 
 cd crates/tucant-dioxus/
 dx serve --features api --hotpatch
@@ -64,7 +64,7 @@ bacon tucant-api
 
 ```
 cd tucant-extension/
-dx bundle --out-dir ../../tucant-extension/ --base-path public --features direct --release
+dx bundle --platform web --out-dir ../../tucant-extension/ --base-path public --features direct --release
 cargo run --manifest-path /home/moritz/Documents/dioxus/packages/cli/Cargo.toml bundle --out-dir ../../tucant-extension/ --base-path public --features direct --release
 llvm-dwarfdump --all --verify tucant-extension/public/assets/tucant-dioxus_bg-dxh4bb37ef8c3ffabdf.wasm
 ```
@@ -148,4 +148,19 @@ llvm-cov show -Xdemangler=/home/moritz/.cargo/bin/rustfilt /home/moritz/Document
     -show-instantiations
 
 xdg-open target/coverage/index.html 
+```
+
+## Android
+
+```
+dx serve --platform android --hotpatch --verbose
+adb shell run-as com.example.TucantDioxus logcat
+# grep for RustStdoutStderr
+```
+
+## Linux
+
+```
+dx serve --platform linux --hotpatch --verbose
+
 ```

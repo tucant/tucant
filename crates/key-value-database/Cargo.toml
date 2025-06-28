@@ -13,6 +13,9 @@ serde-wasm-bindgen = "0.6"
 futures-util = { version = "0.3", features = ["io"] }
 tempfile = "3.19.1"
 
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+send_wrapper = "0.6.0"
+
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 sqlx = { version = "0.8", default-features = false, features = [ "runtime-tokio", "sqlite", "derive" ] }
 tokio = { version = "1", features = ["fs"] }

@@ -2,6 +2,7 @@ pub mod coursedetails;
 pub mod courseprep;
 pub mod courseresults;
 pub mod examresults;
+pub mod gradeoverview;
 pub mod mlsstart;
 pub mod moduledetails;
 pub mod mycourses;
@@ -163,7 +164,7 @@ pub struct Semesterauswahl {
 }
 
 #[dynosaur::dynosaur(pub DynTucan)]
-pub trait Tucan {
+pub trait Tucan: Send + Sync {
     fn login(&self, request: LoginRequest) -> impl std::future::Future<Output = Result<LoginResponse, TucanError>>;
 
     fn welcome(&self) -> impl std::future::Future<Output = Result<LoggedOutHead, TucanError>>;

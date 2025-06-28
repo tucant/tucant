@@ -32,5 +32,10 @@ tucant-types = { path = "../tucant-types" }
 log = { version = "0.4", features = ["max_level_debug", "release_max_level_warn"] }
 time = { version = "0.3.41", features = ["serde-human-readable", "wasm-bindgen"] }
 
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+web-sys = "0.3.77"
+js-sys = "0.3.77"
+wasm-bindgen-futures = "0.4.50"
+
 [features]
 authenticated_tests = []

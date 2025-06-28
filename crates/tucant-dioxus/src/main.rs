@@ -1,4 +1,4 @@
-use std::panic;
+use std::{collections::HashMap, panic};
 
 use dioxus::prelude::*;
 use log::warn;
@@ -25,9 +25,14 @@ extern "C" {
     fn stack(error: &Error) -> String;
 }
 
-#[wasm_bindgen(main)]
-async fn main() {
+// https://github.com/tauri-apps/wry
+// https://github.com/tauri-apps/tao/blob/5ac00b57ad3f5c5c7135dde626cb90bc1ad469dc/src/platform_impl/android/ndk_glue.rs#L236
+
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen(main))]
+#[cfg_attr(not(target_arch = "wasm32"), tokio::main(flavor = "current_thread"))]
+pub async fn main() {
     // From https://github.com/rustwasm/console_error_panic_hook, licensed under MIT and Apache 2.0
+    #[cfg(feature = "web")]
     panic::set_hook(Box::new(|info| {
         let mut msg = info.to_string();
         msg.push_str("\n\nStack:\n\n");
@@ -38,27 +43,12 @@ async fn main() {
         error(msg.clone());
         alert(msg.as_str());
     }));
-
+    #[cfg(feature = "web")]
     console_log::init().unwrap();
 
-    warn!("main");
+    // maybe this code panics before?
 
-    #[cfg(feature = "direct")]
-    if js_sys::Reflect::get(&js_sys::global(), &wasm_bindgen::JsValue::from_str("chrome")).is_ok() {
-        use std::rc::Rc;
-
-        use dioxus::web::{Config, HashHistory};
-        use tucant_types::DynTucan;
-
-        let history_provider: Rc<dyn History> = Rc::new(HashHistory::default());
-        let login_response = tucant_dioxus::direct_login_response().await;
-        let connector = RcTucanType(DynTucan::new_rc(tucan_connector::TucanConnector::new().await.unwrap()));
-
-        let vdom = VirtualDom::new_with_props(App, AppProps { login_response, connector });
-        vdom.provide_root_context(history_provider);
-        dioxus::web::launch::launch_virtual_dom(vdom, Config::new());
-    }
-    #[cfg(feature = "api")]
+    #[cfg(all(feature = "web", feature = "direct"))]
     {
         use std::rc::Rc;
 
@@ -66,23 +56,41 @@ async fn main() {
         use tucant_types::DynTucan;
 
         let history_provider: Rc<dyn History> = Rc::new(HashHistory::default());
-        let login_response = tucant_dioxus::api_login_response().await;
-        let connector = RcTucanType(DynTucan::new_rc(tucant_dioxus::api_server::ApiServerTucan::new()));
+        let login_response = tucant_dioxus::login_response().await;
+        let connector = RcTucanType(DynTucan::new_arc(tucan_connector::TucanConnector::new().await.unwrap()));
 
-        let vdom = VirtualDom::new_with_props(App, AppProps { login_response, connector });
+        let vdom = VirtualDom::new(App);
         vdom.provide_root_context(history_provider);
+        vdom.provide_root_context(login_response);
+        vdom.provide_root_context(connector);
         dioxus::web::launch::launch_virtual_dom(vdom, Config::new());
     }
-    #[cfg(not(any(feature = "direct", feature = "api")))]
-    panic!("must activate at least feature `direct` or `api`");
+
+    #[cfg(not(feature = "direct"))]
+    {
+        let launcher = dioxus::LaunchBuilder::new();
+
+        let launcher = launcher.with_cfg(dioxus::web::Config::new().history(std::rc::Rc::new(dioxus::web::HashHistory::new(false))));
+
+        let login_response = tucant_dioxus::login_response().await;
+
+        let launcher = launcher.with_context(login_response);
+
+        #[cfg(feature = "api")]
+        let launcher = launcher.with_context(RcTucanType(tucant_types::DynTucan::new_arc(tucant_dioxus::api_server::ApiServerTucan::new())));
+
+        #[cfg(not(feature = "api"))]
+        let launcher = launcher.with_context(RcTucanType(tucant_types::DynTucan::new_arc(tucan_connector::TucanConnector::new().await.unwrap())));
+
+        launcher.launch(App);
+    }
 }
 
 #[component]
-fn App(login_response: Option<LoginResponse>, connector: RcTucanType) -> Element {
-    let session = use_signal(|| login_response);
-    provide_context(session);
-    provide_context(connector);
-
+fn App() -> Element {
+    let login_response: Option<LoginResponse> = use_context();
+    let login_response = use_signal(|| login_response);
+    provide_context(login_response);
     rsx! {
         // TODO move this into index.html to prevent flash of unstyled content
         document::Link { rel: "stylesheet", href: BOOTSTRAP_CSS }

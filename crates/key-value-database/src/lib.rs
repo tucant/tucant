@@ -1,6 +1,6 @@
 pub struct Database {
     #[cfg(target_arch = "wasm32")]
-    database: indexed_db::Database<std::io::Error>,
+    database: send_wrapper::SendWrapper<indexed_db::Database<std::io::Error>>,
     #[cfg(not(target_arch = "wasm32"))]
     database: sqlx::Pool<sqlx::Sqlite>,
 }
@@ -23,13 +23,13 @@ impl Database {
                 .await
                 .unwrap();
 
-            Self { database }
+            Self { database: send_wrapper::SendWrapper::new(database) }
         }
         #[cfg(not(target_arch = "wasm32"))]
         {
             let database = if cfg!(target_os = "android") {
-                tokio::fs::create_dir_all("/data/data/de.selfmade4u.tucant/files").await.unwrap();
-                sqlx::SqlitePool::connect("sqlite:///data/data/de.selfmade4u.tucant/files/data.db?mode=rwc").await.unwrap()
+                tokio::fs::create_dir_all("/data/data/com.example.TucantDioxus/files").await.unwrap();
+                sqlx::SqlitePool::connect("sqlite:///data/data/com.example.TucantDioxus/files/data.db?mode=rwc").await.unwrap()
             } else {
                 sqlx::SqlitePool::connect("sqlite://data.db?mode=rwc").await.unwrap()
             };
