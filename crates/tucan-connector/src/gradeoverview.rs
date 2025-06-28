@@ -80,50 +80,73 @@ fn gradeoverview_internal(login_response: &LoginResponse, content: &str) -> Resu
                         module_and_semester
                     </h2>
                     <table class="tb">
-                        <tbody><tr>
-                            <td class="tbhead">"Kontext"</td>
-                        </tr>
-                        <tr>
-                            <td class="tbdata">
-                                                    modulangebot
-                                            </td>
-                        </tr>
-                    </tbody></table>
-                    <h2>studienleistung</h2>
+                        <tbody>
+                            <tr>
+                                <td class="tbhead">
+                                    "Kontext"
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="tbdata">
+                                    modulangebot
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <h2>
+                        studienleistung
+                    </h2>
                     <div class="tb">
-                        <div class="tbhead"></div>
+                        <div class="tbhead">
+                        </div>
                         <div class="tbcontrol">
-                                        <a href=examresults_url class="img img_arrowLeft prev">"Zurück"</a>
-                                </div>
-                            let maybe_grades = if html_handler.peek().unwrap().value().as_element().unwrap().name() == "table" {
+                            <a href=examresults_url class="img img_arrowLeft prev">
+                                "Zurück"
+                            </a>
+                        </div>
+                        let maybe_grades = if html_handler.peek().unwrap().value().as_element().unwrap().name() == "table" {
                             <table class="nb">
-                                        <tbody><tr>
-                                            <td class="tbsubhead">
+                                <tbody>
+                                    <tr>
+                                        <td class="tbsubhead">
                                             "Noten"
+                                        </td>
+                                        let columns = while html_handler.peek().is_some() {
+                                            <td class="tbsubhead">
+                                                nb
                                             </td>
-                                                let columns = while html_handler.peek().is_some() {
-                                                    <td class="tbsubhead">nb</td>
-                                                } => ();
-                                            </tr>
-                                        <tr>
-                                            <td class="tbdata">"Anzahl"</td>
-
-                                                let columns = while html_handler.peek().is_some() {
-                                                <td class="tbdata">second_column_count</td>
-                                                } => ();
-
-                                                    </tr>
-                                    </tbody></table>
-
-
-                                <div class="tbdata">durchschnitt</div>
-                            <div class="tbdata">vorliegende_ergebnisse</div>
-                            <div class="tbdata">"Ergebnisse mit abweichendem BWS:    0"</div>
+                                        } => ();
+                                    </tr>
+                                    <tr>
+                                        <td class="tbdata">
+                                            "Anzahl"
+                                        </td>
+                                        let columns = while html_handler.peek().is_some() {
+                                            <td class="tbdata">
+                                                second_column_count
+                                            </td>
+                                        } => ();
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <div class="tbdata">
+                                durchschnitt
+                            </div>
+                            <div class="tbdata">
+                                vorliegende_ergebnisse
+                            </div>
+                            <div class="tbdata">
+                                "Ergebnisse mit abweichendem BWS:    0"
+                            </div>
                             let infos = while html_handler.peek().is_some() {
-                                <div class="tbdata">fehlend</div>
+                                <div class="tbdata">
+                                    fehlend
+                                </div>
                             } => ();
                         } => () else {
-                            <div class="tbdata">"noch nicht gesetzt"</div>
+                            <div class="tbdata">
+                                "noch nicht gesetzt"
+                            </div>
                         } => ();
                     </div>
                 </div>

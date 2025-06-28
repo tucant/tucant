@@ -40,7 +40,7 @@ nix run .#test-dev
 We use a fork of rustfmt to format our custom html extractor macro.
 ```
 # install minimal profile
-rustup component add --toolchain nightly-2025-04-02 rust-src rustc-dev llvm-tools-preview
+rustup toolchain install nightly-2025-04-02 --component rust-src rustc-dev llvm-tools-preview
 rustup component remove --toolchain nightly-2025-04-02 rustfmt
 cargo +nightly-2025-04-02 install --force --git https://github.com/tucant/rustfmt --branch html-extractor-formatting rustfmt-nightly
 cargo +nightly-2025-04-02 fmt
