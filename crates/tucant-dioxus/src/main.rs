@@ -54,8 +54,7 @@ pub async fn main() {
     #[cfg(feature = "web")]
     let launcher = launcher.with_cfg(dioxus::web::Config::new().history(std::rc::Rc::new(dioxus::web::HashHistory::new(false))));
 
-    let login_response = tucant_dioxus::login_response();
-    let login_response = SyncSignal::new_maybe_sync(|| login_response);
+    let login_response = tucant_dioxus::login_response().await;
 
     launcher
         .with_context(login_response)
@@ -67,6 +66,9 @@ pub async fn main() {
 
 #[component]
 fn App() -> Element {
+    let login_response: Option<LoginResponse> = use_context();
+    let login_response = use_signal(|| login_response);
+    provide_context(login_response);
     rsx! {
         // TODO move this into index.html to prevent flash of unstyled content
         document::Link { rel: "stylesheet", href: BOOTSTRAP_CSS }
