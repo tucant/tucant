@@ -284,7 +284,7 @@
             export EXTENSION_DIR
             cp -r ${extension-unpacked}/. "$EXTENSION_DIR"/
             chmod -R ug+rw "$EXTENSION_DIR"
-            ${tests}/bin/chromium-extension
+            cargo test -- --nocapture
           '';
         };
 
