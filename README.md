@@ -158,6 +158,9 @@ dx serve --platform android --hotpatch --verbose
 cargo run --manifest-path /home/moritz/Documents/dioxus/packages/cli/Cargo.toml serve --platform android --verbose
 adb shell run-as com.example.TucantDioxus logcat
 # grep for RustStdoutStderr
+
+dx bundle --platform android --release
+adb install target/dx/tucant-dioxus/release/android/app/app/build/outputs/apk/release/app-release.apk
 ```
 
 ## Linux
