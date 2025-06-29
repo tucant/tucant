@@ -1,5 +1,8 @@
 use dioxus::prelude::*;
-use plotters::prelude::*;
+use plotters::{
+    prelude::*,
+    style::text_anchor::{HPos, Pos, VPos},
+};
 use tucant_types::{
     Tucan,
     gradeoverview::{GradeOverviewRequest, GradeOverviewResponse},
@@ -62,7 +65,7 @@ pub fn GradeOverview(gradeoverview: ReadOnlySignal<GradeOverviewRequest>) -> Ele
                         )?;
 
                         chart.draw_series(grades.columns.iter().enumerate().map(|(idx, column)| {
-                            Text::new("test".to_owned(), (SegmentValue::CenterOf(idx), column.1), ("sans-serif", 15).into_text_style(&root))
+                            Text::new(column.1.to_string(), (SegmentValue::CenterOf(idx), column.1), ("sans-serif", 15).into_text_style(&root).pos(Pos::new(HPos::Center, VPos::Top)))
                         }))?;
 
                         root.present()?;
