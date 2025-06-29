@@ -23,7 +23,6 @@ pub async fn login(client: &MyClient, login_request: &LoginRequest) -> Result<Lo
         .send()
         .await?
         .error_for_status()?;
-    info!("{response:?}");
     assert_eq!(response.headers_mut().remove("content-type"), Some(HeaderValue::from_static("text/html")));
     assert_eq!(response.headers_mut().remove("server"), Some(HeaderValue::from_static("Microsoft-IIS/10.0")));
     response.headers_mut().remove("mgmiddlewarewaittime");

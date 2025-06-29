@@ -31,6 +31,8 @@ pub fn NavbarLoggedOut() -> Element {
                             ),
                         },
                         class: "dropdown-item bg-success",
+                        "data-bs-target": "#navbarSupportedContent",
+                        "data-bs-toggle": "collapse",
                         "Vorlesungsverzeichnis"
                     }
                 }
@@ -59,6 +61,8 @@ pub fn NavbarLoggedOut() -> Element {
                             ),
                         },
                         class: "dropdown-item bg-success",
+                        "data-bs-target": "#navbarSupportedContent",
+                        "data-bs-toggle": "collapse",
                         "Aktuell - Sommersemester 2025"
                     }
                 }
@@ -70,6 +74,8 @@ pub fn NavbarLoggedOut() -> Element {
                             ),
                         },
                         class: "dropdown-item bg-success",
+                        "data-bs-target": "#navbarSupportedContent",
+                        "data-bs-toggle": "collapse",
                         "Vorlesungsverzeichnis des WiSe 2024/25"
                     }
                 }
@@ -81,6 +87,8 @@ pub fn NavbarLoggedOut() -> Element {
                             ),
                         },
                         class: "dropdown-item bg-success",
+                        "data-bs-target": "#navbarSupportedContent",
+                        "data-bs-toggle": "collapse",
                         "Vorlesungsverzeichnis des SoSe2024"
                     }
                 }

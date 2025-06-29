@@ -5,16 +5,14 @@ use regex::Regex;
 use time::{Duration, OffsetDateTime};
 use tucant_types::{
     LoginResponse, RevalidationStrategy,
-    coursedetails::CourseDetailsRequest,
     gradeoverview::{GradeOverviewRequest, GradeOverviewResponse, Grades},
-    mlsstart::{MlsStart, Nachricht, StundenplanEintrag},
 };
 
 use crate::{
-    COURSEDETAILS_REGEX, TucanConnector, TucanError, authenticated_retryable_get,
+    TucanConnector, TucanError, authenticated_retryable_get,
     head::{footer, html_head, logged_in_head},
 };
-use html_handler::{MyElementRef, MyNode, Root, parse_document};
+use html_handler::{Root, parse_document};
 
 pub static GRADEOVERVIEW_REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=GRADEOVERVIEW&ARGUMENTS=-N\\d+,-N\\d+,").unwrap());
 

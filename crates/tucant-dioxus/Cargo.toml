@@ -9,7 +9,7 @@ edition = "2021"
 [dependencies]
 dioxus = { git = "https://github.com/mohe2015/dioxus.git", branch = "my", features = ["router", "logger"] }
 dioxus-desktop = { git = "https://github.com/mohe2015/dioxus.git", branch = "my", default-features = false, optional = true }
-dioxus-mobile = { git = "https://github.com/mohe2015/dioxus.git", branch = "my", default-features = false, optional = true }
+dioxus-mobile = { git = "https://github.com/mohe2015/dioxus.git", branch = "my", default-features = false, features = ["devtools"], optional = true }
 tucant-types = { path = "../tucant-types" }
 log = { version = "0.4", features = ["max_level_debug", "release_max_level_warn"] }
 reqwest = { version = "0.12.9", default-features = false, features = ["rustls-tls", "http2", "charset", "json"] }
@@ -23,14 +23,18 @@ web-sys = { version = "0.3", features = ["Document", "Window", "HtmlDocument", "
 cookie = "0.18"
 web-extensions-sys = { optional = true, git = "https://github.com/mohe2015/web-extensions-sys", branch = "cookies" }
 tucan-connector = { optional = true, path = "../tucan-connector" }
-tokio = { features = ["macros", "rt"], version = "1" }
 tracing = "0.1.41"
-plotters = { git = "https://github.com/plotters-rs/plotters.git" }
+plotters = { git = "https://github.com/plotters-rs/plotters.git", default-features = false, features = ["svg_backend", "histogram"] }
+keyring = { version = "4.0.0-rc.1", optional = true }
+android-keyring = { version = "0.1.2", optional = true }
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+tokio = { features = ["macros", "rt", "rt-multi-thread"], version = "1" }
 
 [features]
 direct = ["web", "dep:tucan-connector", "dep:web-extensions-sys"]
 api = ["web"]
 default = []
 web = ["dioxus/web"]
-desktop = ["dioxus/desktop", "dep:dioxus-desktop", "dep:tucan-connector"]
-mobile = ["dioxus/mobile", "dep:dioxus-mobile", "dep:dioxus-desktop", "dep:tucan-connector"]
+desktop = ["dioxus/desktop", "dep:dioxus-desktop", "dep:tucan-connector", "dep:keyring"]
+mobile = ["dioxus/mobile", "dep:dioxus-mobile", "dep:dioxus-desktop", "dep:tucan-connector", "dep:keyring", "dep:android-keyring"]

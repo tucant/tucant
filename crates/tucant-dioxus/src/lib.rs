@@ -22,7 +22,6 @@ pub mod student_result;
 pub mod vv;
 
 use std::ops::Deref;
-use std::rc::Rc;
 use std::sync::Arc;
 
 use dioxus::prelude::*;
@@ -33,9 +32,17 @@ use tucant_types::{SemesterId, coursedetails::CourseDetailsRequest, moduledetail
 use crate::navbar::Navbar;
 use crate::overview::Overview;
 
-#[cfg(any(feature = "mobile", feature = "desktop"))]
+#[cfg(not(any(feature = "direct", feature = "api")))]
 pub async fn login_response() -> Option<tucant_types::LoginResponse> {
-    None
+    #[cfg(feature = "mobile")]
+    android_keyring::set_android_keyring_credential_builder().unwrap();
+
+    let entry = keyring::Entry::new("tucant", "session").ok()?;
+    Some(serde_json::from_str(&entry.get_password().ok()?).unwrap())
+    //println!("My password is '{}'", password);
+    //entry.set_password("topS3cr3tP4$$w0rd").ok()?;
+    //println!("could set password");
+    //None
 }
 
 #[cfg(feature = "direct")]
@@ -170,7 +177,12 @@ pub fn Root() -> Element {
             }
             p {
                 {"Du kannst Dir deine "}
-                a { href: "#/registration/", {"anmeldbaren Module ansehen"} }
+                Link {
+                    to: Route::Registration {
+                        registration: AnmeldungRequest::default(),
+                    },
+                    {"anmeldbaren Module ansehen"}
+                }
                 {"."}
             }
         }
