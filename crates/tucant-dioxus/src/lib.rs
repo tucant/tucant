@@ -34,6 +34,9 @@ use crate::overview::Overview;
 
 #[cfg(not(any(feature = "direct", feature = "api")))]
 pub async fn login_response() -> Option<tucant_types::LoginResponse> {
+    #[cfg(feature = "mobile")]
+    android_keyring::set_android_keyring_credential_builder().unwrap();
+
     let entry = keyring::Entry::new("tucant", "session").ok()?;
     Some(serde_json::from_str(&entry.get_password().ok()?).unwrap())
     //println!("My password is '{}'", password);

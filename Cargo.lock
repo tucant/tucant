@@ -44,6 +44,20 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "683d7910e743518b0e34f1186f92494becacb047c7b6bf616c96772180fef923"
 
 [[package]]
+name = "android-keyring"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c22aecab4095dd224404a79a1fa4806df00d08c12aa9c5249b1593562a6670e9"
+dependencies = [
+ "base64",
+ "jni",
+ "keyring",
+ "ndk-context",
+ "thiserror 2.0.12",
+ "tracing",
+]
+
+[[package]]
 name = "anstream"
 version = "0.6.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5733,6 +5747,7 @@ dependencies = [
 name = "tucant-dioxus"
 version = "0.1.0"
 dependencies = [
+ "android-keyring",
  "console_log",
  "cookie",
  "dioxus",
