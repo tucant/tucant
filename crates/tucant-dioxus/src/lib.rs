@@ -22,7 +22,6 @@ pub mod student_result;
 pub mod vv;
 
 use std::ops::Deref;
-use std::rc::Rc;
 use std::sync::Arc;
 
 use dioxus::prelude::*;

@@ -6,7 +6,6 @@ use plotters::{
 use tucant_types::{
     Tucan,
     gradeoverview::{GradeOverviewRequest, GradeOverviewResponse},
-    moduledetails::ModuleDetailsRequest,
 };
 
 use crate::{RcTucanType, common::use_authenticated_data_loader};

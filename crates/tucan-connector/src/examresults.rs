@@ -1,7 +1,6 @@
-use std::{str::FromStr, sync::LazyLock};
+use std::str::FromStr;
 
 use html_handler::{Root, parse_document};
-use regex::Regex;
 use time::{Duration, OffsetDateTime};
 use tucant_types::{
     LoginResponse, RevalidationStrategy, SemesterId, Semesterauswahl, TucanError,
