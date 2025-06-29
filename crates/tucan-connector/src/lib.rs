@@ -530,7 +530,14 @@ mod authenticated_tests {
             let login_response = get_login_session().await;
             let semesters = courseresults(&tucan, login_response, RevalidationStrategy::default(), SemesterId::current()).await.unwrap().semester;
             for semester in semesters {
-                courseresults(&tucan, login_response, RevalidationStrategy::default(), semester.value).await.unwrap();
+                let courseresults = courseresults(&tucan, login_response, RevalidationStrategy::default(), semester.value).await.unwrap();
+                for result in courseresults.results {
+                    if let Some(average_url) = result.average_url {
+                        println!("{average_url}");
+                        let overview = gradeoverview(&tucan, login_response, RevalidationStrategy::cache(), average_url).await.unwrap();
+                        println!("{overview:?}")
+                    }
+                }
             }
         });
     }
