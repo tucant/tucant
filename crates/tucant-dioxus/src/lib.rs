@@ -177,7 +177,7 @@ pub fn Root() -> Element {
             }
             p {
                 {"Du kannst Dir deine "}
-                a { href: "#/registration/", {"anmeldbaren Module ansehen"} }
+                Link { to: Route::Registration { registration: AnmeldungRequest::default() }, {"anmeldbaren Module ansehen"} }
                 {"."}
             }
         }
