@@ -46,6 +46,21 @@ pub fn Navbar() -> Element {
     rsx! {
         nav { class: "navbar navbar-expand-xl bg-body-tertiary",
             div { class: "container-fluid",
+                button { r#type:"button", class:"btn",
+                    onclick: |_| { navigator().go_back(); },
+                    svg {
+                        class: "bi bi-arrow-left",
+                        fill: "currentColor",
+                        height: "16",
+                        view_box: "0 0 16 16",
+                        width: "16",
+                        xmlns: "http://www.w3.org/2000/svg",
+                        path {
+                            d: "M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8",
+                            fill_rule: "evenodd",
+                        }
+                    }
+                }
                 a { class: "navbar-brand", href: "#/", "TUCaN't" }
                 button {
                     aria_controls: "navbarSupportedContent",
