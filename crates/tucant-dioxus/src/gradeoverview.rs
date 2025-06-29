@@ -61,6 +61,10 @@ pub fn GradeOverview(gradeoverview: ReadOnlySignal<GradeOverviewRequest>) -> Ele
                                 })),
                         )?;
 
+                        chart.draw_series(grades.columns.iter().enumerate().map(|(idx, column)| {
+                            Text::new("test".to_owned(), (SegmentValue::CenterOf(idx), column.1), ("sans-serif", 15).into_text_style(&root))
+                        }))?;
+
                         root.present()?;
                     }
 
