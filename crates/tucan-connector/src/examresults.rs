@@ -11,6 +11,7 @@ use tucant_types::{
 
 use crate::{
     TucanConnector, authenticated_retryable_get,
+    gradeoverview::GRADEOVERVIEW_REGEX,
     head::{footer, html_head, logged_in_head},
 };
 
@@ -55,7 +56,6 @@ pub async fn examresults(tucan: &TucanConnector, login_response: &LoginResponse,
 
 #[expect(clippy::too_many_lines)]
 fn examresults_internal(login_response: &LoginResponse, content: &str) -> Result<ExamResultsResponse, TucanError> {
-    static GRADEOVERVIEW_REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=GRADEOVERVIEW&ARGUMENTS=-N\\d+,-N000325,").unwrap());
     let document = parse_document(content);
     let html_handler = Root::new(document.root());
     let html_handler = html_handler.document_start();

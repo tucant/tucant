@@ -95,8 +95,11 @@ pub fn CourseResults(semester: ReadOnlySignal<SemesterId>) -> Element {
                                             }
                                             td {
                                                 if let Some(average_url) = &exam.average_url {
-                                                    a { href: format!("https://www.tucan.tu-darmstadt.de{}", average_url),
-                                                        {"Ø"}
+                                                    Link {
+                                                        to: Route::GradeOverview {
+                                                            gradeoverview: average_url.clone(),
+                                                        },
+                                                        "Ø"
                                                     }
                                                 }
                                             }

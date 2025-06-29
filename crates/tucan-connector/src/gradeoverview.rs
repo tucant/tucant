@@ -1,4 +1,7 @@
+use std::sync::LazyLock;
+
 use log::info;
+use regex::Regex;
 use time::{Duration, OffsetDateTime};
 use tucant_types::{
     LoginResponse, RevalidationStrategy,
@@ -13,11 +16,7 @@ use crate::{
 };
 use html_handler::{MyElementRef, MyNode, Root, parse_document};
 
-// ARGUMENTS=-N352196045346277,-N000325,-AEXEV,-N391263798646423,-N0,-N,-N,-A,-N,-A,-N,-N,-N0,-N391263798681424
-//                                              exam-details-id                                 some-id
-
-// PRGNAME=GRADEOVERVIEW&ARGUMENTS=-N700694270951401,-N000325,-AEXEV,-N391263798646423,-N0,-N,-N000000015166000,-A,-N,-A,-N,-N,-N2,-N391263798681424
-//                                                                                                                             full site?
+pub static GRADEOVERVIEW_REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=GRADEOVERVIEW&ARGUMENTS=-N\\d+,-N\\d+,").unwrap());
 
 pub async fn gradeoverview(tucan: &TucanConnector, login_response: &LoginResponse, revalidation_strategy: RevalidationStrategy, request: GradeOverviewRequest) -> Result<GradeOverviewResponse, TucanError> {
     let key = format!("unparsed_gradeoverview.{request}");
