@@ -20,38 +20,32 @@ pub fn LoginComponent() -> Element {
             let password_string = password();
             password.set("".to_owned());
 
-            println!("a");
+            match tucan.login(LoginRequest { username: username(), password: password_string }).await {
+                Ok(response) => {
+                    #[cfg(feature = "direct")]
+                    web_extensions_sys::chrome()
+                        .cookies()
+                        .set(web_extensions_sys::SetCookieDetails {
+                            name: Some("id".to_owned()),
+                            partition_key: None,
+                            store_id: None,
+                            url: "https://www.tucan.tu-darmstadt.de".to_owned(),
+                            domain: None,
+                            path: Some("/scripts".to_owned()),
+                            value: Some(response.id.to_string()),
+                            expiration_date: None,
+                            http_only: None,
+                            secure: Some(true),
+                            same_site: None,
+                        })
+                        .await;
 
-            // TODO don't unwrap here but handle error
-            let response = match tucan.login(LoginRequest { username: username(), password: password_string }).await {
-                Ok(v) => v,
+                    current_session.set(Some(response.clone()));
+                }
                 Err(e) => {
                     eprintln!("{e}");
-                    panic!();
                 }
             };
-
-            println!("b");
-
-            #[cfg(feature = "direct")]
-            web_extensions_sys::chrome()
-                .cookies()
-                .set(web_extensions_sys::SetCookieDetails {
-                    name: Some("id".to_owned()),
-                    partition_key: None,
-                    store_id: None,
-                    url: "https://www.tucan.tu-darmstadt.de".to_owned(),
-                    domain: None,
-                    path: Some("/scripts".to_owned()),
-                    value: Some(response.id.to_string()),
-                    expiration_date: None,
-                    http_only: None,
-                    secure: Some(true),
-                    same_site: None,
-                })
-                .await;
-
-            current_session.set(Some(response.clone()));
         }
     };
 
