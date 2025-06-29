@@ -71,7 +71,7 @@ pub fn GradeOverview(gradeoverview: ReadOnlySignal<GradeOverviewRequest>) -> Ele
                         root.present()?;
                     }
 
-                    rsx! { div { dangerous_inner_html: output } }
+                    rsx! { div { dangerous_inner_html: output.replace(r#"<svg width="640" height="480""#, "<svg") } }
                 }
                     {
                         grades.infos.iter().map(|info| {
