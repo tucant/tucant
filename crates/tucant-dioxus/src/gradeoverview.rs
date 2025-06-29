@@ -36,7 +36,7 @@ pub fn GradeOverview(gradeoverview: ReadOnlySignal<GradeOverviewRequest>) -> Ele
                             .y_label_area_size(40)
                             .margin(5)
                             .caption("Grade distribution", ("sans-serif", 50.0))
-                            .build_cartesian_2d((0usize..grades.columns.len()-1).into_segmented(), 0u32..100u32)?;
+                            .build_cartesian_2d((0usize..grades.columns.len()-1).into_segmented(), 0usize..grades.columns.iter().max_by_key(|v| v.1).unwrap().1)?;
 
                         chart
                             .configure_mesh()
@@ -57,7 +57,7 @@ pub fn GradeOverview(gradeoverview: ReadOnlySignal<GradeOverviewRequest>) -> Ele
                             Histogram::vertical(&chart)
                                 .style(RED.mix(0.5).filled())
                                 .data(grades.columns.iter().enumerate().map(|(idx, column)| {
-                                    (idx, column.1.parse::<u32>().unwrap())
+                                    (idx, column.1)
                                 })),
                         )?;
 

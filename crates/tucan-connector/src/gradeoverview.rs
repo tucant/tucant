@@ -125,7 +125,7 @@ fn gradeoverview_internal(login_response: &LoginResponse, content: &str) -> Resu
                                             <td class="tbdata">
                                                 value
                                             </td>
-                                        } => value;
+                                        } => value.parse().unwrap();
                                     </tr>
                                 </tbody>
                             </table>

@@ -45,6 +45,6 @@ pub struct GradeOverviewResponse {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, ToSchema)]
 pub struct Grades {
-    pub columns: Vec<(String, String)>,
+    pub columns: Vec<(String, usize)>,
     pub infos: Vec<String>,
 }
