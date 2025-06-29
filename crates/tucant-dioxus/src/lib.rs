@@ -32,7 +32,7 @@ use tucant_types::{SemesterId, coursedetails::CourseDetailsRequest, moduledetail
 use crate::navbar::Navbar;
 use crate::overview::Overview;
 
-#[cfg(any(feature = "mobile", feature = "desktop"))]
+#[cfg(not(any(feature = "direct", feature = "api")))]
 pub async fn login_response() -> Option<tucant_types::LoginResponse> {
     None
 }
