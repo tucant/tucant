@@ -25,6 +25,7 @@ web-extensions-sys = { optional = true, git = "https://github.com/mohe2015/web-e
 tucan-connector = { optional = true, path = "../tucan-connector" }
 tracing = "0.1.41"
 plotters = { git = "https://github.com/plotters-rs/plotters.git", default-features = false, features = ["svg_backend", "histogram"] }
+keyring = { version = "4.0.0-rc.1", optional = true }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 tokio = { features = ["macros", "rt", "rt-multi-thread"], version = "1" }
@@ -34,5 +35,5 @@ direct = ["web", "dep:tucan-connector", "dep:web-extensions-sys"]
 api = ["web"]
 default = []
 web = ["dioxus/web"]
-desktop = ["dioxus/desktop", "dep:dioxus-desktop", "dep:tucan-connector"]
-mobile = ["dioxus/mobile", "dep:dioxus-mobile", "dep:dioxus-desktop", "dep:tucan-connector"]
+desktop = ["dioxus/desktop", "dep:dioxus-desktop", "dep:tucan-connector", "dep:keyring"]
+mobile = ["dioxus/mobile", "dep:dioxus-mobile", "dep:dioxus-desktop", "dep:tucan-connector", "dep:keyring"]
