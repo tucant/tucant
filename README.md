@@ -161,6 +161,9 @@ adb shell run-as com.example.TucantDioxus logcat
 
 dx bundle --platform android --release
 adb install target/dx/tucant-dioxus/release/android/app/app/build/outputs/apk/release/app-release.apk
+
+
+cargo run --manifest-path /home/moritz/Documents/dioxus/packages/cli/Cargo.toml build --platform android
 ```
 
 ## Linux
