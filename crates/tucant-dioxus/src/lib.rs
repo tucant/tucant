@@ -177,7 +177,12 @@ pub fn Root() -> Element {
             }
             p {
                 {"Du kannst Dir deine "}
-                Link { to: Route::Registration { registration: AnmeldungRequest::default() }, {"anmeldbaren Module ansehen"} }
+                Link {
+                    to: Route::Registration {
+                        registration: AnmeldungRequest::default(),
+                    },
+                    {"anmeldbaren Module ansehen"}
+                }
                 {"."}
             }
         }
