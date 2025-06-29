@@ -9,6 +9,7 @@ pub fn LoginComponent() -> Element {
 
     let mut username = use_signal(|| "".to_string());
     let mut password = use_signal(|| "".to_string());
+    let mut valid = use_signal(|| true);
 
     let mut current_session = use_context::<Signal<Option<LoginResponse>>>();
 
@@ -41,14 +42,17 @@ pub fn LoginComponent() -> Element {
                         .await;
 
                     current_session.set(Some(response.clone()));
+                    valid.set(true);
                 }
                 Err(e) => {
                     tracing::error!("{e}");
+                    valid.set(false);
                 }
             };
         }
     };
 
+    let is_invalid = if valid() { "" } else { "is-invalid" };
     rsx! {
         form { onsubmit: on_submit, class: "d-flex",
             input {
@@ -69,15 +73,19 @@ pub fn LoginComponent() -> Element {
                     value: "{password}",
                     oninput: move |event| password.set(event.value()),
                     required: true,
-                    class: "form-control me-2 is-invalid",
+                    class: "form-control me-2 {is_invalid}",
                     r#type: "password",
                     placeholder: "Password",
                     "aria-label": "Password",
+                    "aria-describedby": "password-feedback",
                     autocomplete: "current-password",
                 }
-                div {
-                    class: "invalid-feedback",
-                    "Wrong password"
+                if !valid() {
+                    div {
+                        id: "password-feedback",
+                        class: "invalid-feedback",
+                        "Wrong password"
+                    }
                 }
             }
             button {
