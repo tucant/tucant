@@ -34,14 +34,12 @@ use crate::overview::Overview;
 
 #[cfg(not(any(feature = "direct", feature = "api")))]
 pub async fn login_response() -> Option<tucant_types::LoginResponse> {
-    println!("loading entry");
-    let entry = keyring::Entry::new("tucant", "tucant").ok()?;
-    println!("could load entry");
-    //let password = entry.get_password().ok()?;
+    let entry = keyring::Entry::new("tucant", "session").ok()?;
+    Some(serde_json::from_str(&entry.get_password().ok()?).unwrap())
     //println!("My password is '{}'", password);
-    entry.set_password("topS3cr3tP4$$w0rd").ok()?;
-    println!("could set password");
-    None
+    //entry.set_password("topS3cr3tP4$$w0rd").ok()?;
+    //println!("could set password");
+    //None
 }
 
 #[cfg(feature = "direct")]

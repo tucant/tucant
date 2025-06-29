@@ -43,6 +43,9 @@ pub fn LoginComponent() -> Element {
                         })
                         .await;
 
+                    #[cfg(not(any(feature = "direct", feature = "api")))]
+                    keyring::Entry::new("tucant", "session").unwrap().set_password(&serde_json::to_string(&response).unwrap()).unwrap();
+
                     current_session.set(Some(response.clone()));
                     error_message.set(None);
                 }
