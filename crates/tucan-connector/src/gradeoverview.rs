@@ -73,27 +73,31 @@ fn gradeoverview_internal(login_response: &LoginResponse, content: &str) -> Resu
                     <script type="text/javascript">
                     </script>
                     <h1>
-                        _welcome_message
+                        notenspiegel
                     </h1>
                     <h2>
                         module_and_semester
                     </h2>
-                    <table class="tb">
-                        <tbody>
-                            <tr>
-                                <td class="tbhead">
-                                    "Kontext"
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="tbdata">
-                                    modulangebot
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+                    let modulangebot = if html_handler.peek().unwrap().value().as_element().unwrap().name() == "table" {
+                        <table class="tb">
+                            <tbody>
+                                <tr>
+                                    <td class="tbhead">
+                                        "Kontext"
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="tbdata">
+                                        modulangebot
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    } => modulangebot;
                     <h2>
-                        studienleistung
+                        let studienleistung = if html_handler.peek().is_some() {
+                            studienleistung
+                        } => studienleistung;
                     </h2>
                     <div class="tb">
                         <div class="tbhead">

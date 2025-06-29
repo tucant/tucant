@@ -40,8 +40,8 @@ impl GradeOverviewRequest {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, ToSchema)]
 pub struct GradeOverviewResponse {
     pub module_and_semester: String,
-    pub modulangebot: String,
-    pub studienleistung: String,
+    pub modulangebot: Option<String>,
+    pub studienleistung: Option<String>,
     pub maybe_grades: Option<Grades>,
 }
 
