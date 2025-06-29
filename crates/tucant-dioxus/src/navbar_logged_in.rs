@@ -22,6 +22,8 @@ pub fn Vorlesungsverzeichnisse(data: ReadOnlySignal<Option<MlsStart>>) -> Elemen
                                     vv: url.clone(),
                                 },
                                 class: "dropdown-item bg-success {disabled}",
+                                "data-bs-target": "#navbarSupportedContent",
+                                "data-bs-toggle": "collapse",
                                 "{name}"
                                 if data().is_none() {
                                     " "
@@ -54,6 +56,8 @@ pub fn NavbarLoggedIn(current_session: ReadOnlySignal<LoginResponse>, data: Read
                     Link {
                         to: Route::Overview {},
                         class: "dropdown-item bg-success",
+                        "data-bs-target": "#navbarSupportedContent",
+                        "data-bs-toggle": "collapse",
                         "Aktuelles"
                     }
                 }
@@ -100,6 +104,8 @@ pub fn NavbarLoggedIn(current_session: ReadOnlySignal<LoginResponse>, data: Read
                                 route: vec!["not-found".to_string()],
                             }),
                         class: "dropdown-item bg-success {disabled}",
+                        "data-bs-target": "#navbarSupportedContent",
+                        "data-bs-toggle": "collapse",
                         "Vorlesungsverzeichnis"
                         if data().is_none() {
                             " "
@@ -246,6 +252,8 @@ pub fn NavbarLoggedIn(current_session: ReadOnlySignal<LoginResponse>, data: Read
                             semester: SemesterId::current(),
                         },
                         class: "dropdown-item bg-success",
+                        "data-bs-target": "#navbarSupportedContent",
+                        "data-bs-toggle": "collapse",
                         {"Meine Semestermodule"}
                     }
                 }
@@ -255,6 +263,8 @@ pub fn NavbarLoggedIn(current_session: ReadOnlySignal<LoginResponse>, data: Read
                             semester: SemesterId::current(),
                         },
                         class: "dropdown-item bg-success",
+                        "data-bs-target": "#navbarSupportedContent",
+                        "data-bs-toggle": "collapse",
                         {"Meine Module"}
                     }
                 }
@@ -264,6 +274,8 @@ pub fn NavbarLoggedIn(current_session: ReadOnlySignal<LoginResponse>, data: Read
                             semester: SemesterId::current(),
                         },
                         class: "dropdown-item bg-success",
+                        "data-bs-target": "#navbarSupportedContent",
+                        "data-bs-toggle": "collapse",
                         {"Meine Veranstaltungen"}
                     }
                 }
@@ -283,6 +295,8 @@ pub fn NavbarLoggedIn(current_session: ReadOnlySignal<LoginResponse>, data: Read
                             registration: AnmeldungRequest::default(),
                         },
                         class: "dropdown-item bg-success",
+                        "data-bs-target": "#navbarSupportedContent",
+                        "data-bs-toggle": "collapse",
                         {"Anmeldung"}
                     }
                 }
@@ -327,6 +341,8 @@ pub fn NavbarLoggedIn(current_session: ReadOnlySignal<LoginResponse>, data: Read
                             semester: SemesterId::current(),
                         },
                         class: "dropdown-item bg-success",
+                        "data-bs-target": "#navbarSupportedContent",
+                        "data-bs-toggle": "collapse",
                         {"Meine Prüfungen"}
                     }
                 }
@@ -366,6 +382,8 @@ pub fn NavbarLoggedIn(current_session: ReadOnlySignal<LoginResponse>, data: Read
                             semester: SemesterId::current(),
                         },
                         class: "dropdown-item bg-success",
+                        "data-bs-target": "#navbarSupportedContent",
+                        "data-bs-toggle": "collapse",
                         {"Modulergebnisse"}
                     }
                 }
@@ -375,6 +393,8 @@ pub fn NavbarLoggedIn(current_session: ReadOnlySignal<LoginResponse>, data: Read
                             semester: SemesterId::current(),
                         },
                         class: "dropdown-item bg-success",
+                        "data-bs-target": "#navbarSupportedContent",
+                        "data-bs-toggle": "collapse",
                         {"Prüfungsergebnisse"}
                     }
                 }
@@ -384,6 +404,8 @@ pub fn NavbarLoggedIn(current_session: ReadOnlySignal<LoginResponse>, data: Read
                             course_of_study: "default".to_owned(),
                         },
                         class: "dropdown-item bg-success",
+                        "data-bs-target": "#navbarSupportedContent",
+                        "data-bs-toggle": "collapse",
                         {"Leistungsspiegel"}
                     }
                 }
@@ -426,6 +448,8 @@ pub fn NavbarLoggedIn(current_session: ReadOnlySignal<LoginResponse>, data: Read
                     Link {
                         to: Route::MyDocuments {},
                         class: "dropdown-item bg-success",
+                        "data-bs-target": "#navbarSupportedContent",
+                        "data-bs-toggle": "collapse",
                         {"Meine Dokumente"}
                     }
                 }
@@ -503,6 +527,8 @@ pub fn NavbarLoggedIn(current_session: ReadOnlySignal<LoginResponse>, data: Read
                     Link {
                         to: Route::MyDocuments {},
                         class: "dropdown-item bg-success",
+                        "data-bs-target": "#navbarSupportedContent",
+                        "data-bs-toggle": "collapse",
                         {"Meine Dokumente"}
                     }
                 }
