@@ -9,7 +9,8 @@ pub fn LoginComponent() -> Element {
 
     let mut username = use_signal(|| "".to_string());
     let mut password = use_signal(|| "".to_string());
-    let mut valid = use_signal(|| true);
+    let mut error_message = use_signal(|| None);
+    let mut loading = use_signal(|| false);
 
     let mut current_session = use_context::<Signal<Option<LoginResponse>>>();
 
@@ -21,6 +22,7 @@ pub fn LoginComponent() -> Element {
             let password_string = password();
             password.set("".to_owned());
 
+            loading.set(true);
             match tucan.login(LoginRequest { username: username(), password: password_string }).await {
                 Ok(response) => {
                     #[cfg(feature = "direct")]
@@ -42,17 +44,18 @@ pub fn LoginComponent() -> Element {
                         .await;
 
                     current_session.set(Some(response.clone()));
-                    valid.set(true);
+                    error_message.set(None);
                 }
                 Err(e) => {
                     tracing::error!("{e}");
-                    valid.set(false);
+                    error_message.set(Some(e.to_string()));
                 }
             };
+            loading.set(false);
         }
     };
 
-    let is_invalid = if valid() { "" } else { "is-invalid" };
+    let is_invalid = if error_message().is_some() { "is-invalid" } else { "" };
     rsx! {
         form { onsubmit: on_submit, class: "d-flex",
             input {
@@ -65,6 +68,7 @@ pub fn LoginComponent() -> Element {
                 placeholder: "TU-ID",
                 "aria-label": "TU-ID",
                 autocomplete: "current-username",
+                disabled: loading()
             }
             div {
                 class: "align-self-start input-group has-validation",
@@ -79,19 +83,21 @@ pub fn LoginComponent() -> Element {
                     "aria-label": "Password",
                     "aria-describedby": "password-feedback",
                     autocomplete: "current-password",
+                    disabled: loading()
                 }
-                if !valid() {
+                if let Some(error_message) = error_message() {
                     div {
                         id: "password-feedback",
                         class: "invalid-feedback",
-                        "Wrong password"
+                        "{error_message}"
                     }
-                }
+                },
             }
             button {
                 class: "align-self-start btn btn-outline-success",
                 r#type: "submit",
                 id: "login-button",
+                disabled: loading(),
                 "Login"
             }
         }
