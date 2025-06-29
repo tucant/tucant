@@ -125,7 +125,7 @@ fn gradeoverview_internal(login_response: &LoginResponse, content: &str) -> Resu
                                             <td class="tbdata">
                                                 value
                                             </td>
-                                        } => value.parse().unwrap();
+                                        } => if value == "---" { 0 } else { value.parse().expect(&value) };
                                     </tr>
                                 </tbody>
                             </table>
