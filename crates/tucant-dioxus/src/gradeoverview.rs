@@ -39,7 +39,7 @@ pub fn GradeOverview(gradeoverview: ReadOnlySignal<GradeOverviewRequest>) -> Ele
                             .y_label_area_size(40)
                             .margin(5)
                             .caption("Grade distribution", ("sans-serif", 50.0))
-                            .build_cartesian_2d((0usize..grades.columns.len()-1).into_segmented(), 0usize..grades.columns.iter().max_by_key(|v| v.1).unwrap().1)?;
+                            .build_cartesian_2d((0usize..grades.columns.len()-1).into_segmented(), 0usize..grades.columns.iter().max_by_key(|v| v.1).unwrap().1+1)?;
 
                         chart
                             .configure_mesh()
@@ -65,7 +65,7 @@ pub fn GradeOverview(gradeoverview: ReadOnlySignal<GradeOverviewRequest>) -> Ele
                         )?;
 
                         chart.draw_series(grades.columns.iter().enumerate().map(|(idx, column)| {
-                            Text::new(column.1.to_string(), (SegmentValue::CenterOf(idx), column.1), ("sans-serif", 15).into_text_style(&root).pos(Pos::new(HPos::Center, VPos::Top)))
+                            Text::new(column.1.to_string(), (SegmentValue::CenterOf(idx), column.1), ("sans-serif", 15).into_text_style(&root).pos(Pos::new(HPos::Center, VPos::Bottom)))
                         }))?;
 
                         root.present()?;
