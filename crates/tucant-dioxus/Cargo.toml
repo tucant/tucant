@@ -23,7 +23,7 @@ web-sys = { version = "0.3", features = ["Document", "Window", "HtmlDocument", "
 cookie = "0.18"
 web-extensions-sys = { optional = true, git = "https://github.com/mohe2015/web-extensions-sys", branch = "cookies" }
 tucan-connector = { optional = true, path = "../tucan-connector" }
-tokio = { features = ["macros", "rt"], version = "1" }
+tokio = { features = ["macros", "rt", "rt-multi-thread"], version = "1" }
 tracing = "0.1.41"
 plotters = { git = "https://github.com/plotters-rs/plotters.git", default-features = false, features = ["svg_backend", "histogram"] }
 

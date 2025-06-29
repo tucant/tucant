@@ -29,7 +29,7 @@ extern "C" {
 // https://github.com/tauri-apps/tao/blob/5ac00b57ad3f5c5c7135dde626cb90bc1ad469dc/src/platform_impl/android/ndk_glue.rs#L236
 
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen(main))]
-#[cfg_attr(not(target_arch = "wasm32"), tokio::main(flavor = "current_thread"))]
+#[cfg_attr(not(target_arch = "wasm32"), tokio::main)]
 pub async fn main() {
     // From https://github.com/rustwasm/console_error_panic_hook, licensed under MIT and Apache 2.0
     #[cfg(feature = "web")]
