@@ -43,7 +43,7 @@ pub fn LoginComponent() -> Element {
                     current_session.set(Some(response.clone()));
                 }
                 Err(e) => {
-                    eprintln!("{e}");
+                    tracing::error!("{e}");
                 }
             };
         }
@@ -56,25 +56,32 @@ pub fn LoginComponent() -> Element {
                 value: "{username}",
                 oninput: move |event| username.set(event.value()),
                 required: true,
-                class: "form-control me-2",
+                class: "align-self-start form-control me-2",
                 r#type: "username",
                 placeholder: "TU-ID",
                 "aria-label": "TU-ID",
                 autocomplete: "current-username",
             }
-            input {
-                id: "login-password",
-                value: "{password}",
-                oninput: move |event| password.set(event.value()),
-                required: true,
-                class: "form-control me-2",
-                r#type: "password",
-                placeholder: "Password",
-                "aria-label": "Password",
-                autocomplete: "current-password",
+            div {
+                class: "align-self-start input-group has-validation",
+                input {
+                    id: "login-password",
+                    value: "{password}",
+                    oninput: move |event| password.set(event.value()),
+                    required: true,
+                    class: "form-control me-2 is-invalid",
+                    r#type: "password",
+                    placeholder: "Password",
+                    "aria-label": "Password",
+                    autocomplete: "current-password",
+                }
+                div {
+                    class: "invalid-feedback",
+                    "Wrong password"
+                }
             }
             button {
-                class: "btn btn-outline-success",
+                class: "align-self-start btn btn-outline-success",
                 r#type: "submit",
                 id: "login-button",
                 "Login"
