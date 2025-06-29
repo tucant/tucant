@@ -68,7 +68,10 @@ pub async fn main() {
 
     #[cfg(not(feature = "direct"))]
     {
+        use tracing::Level;
+
         let launcher = dioxus::LaunchBuilder::new();
+        dioxus::logger::init(Level::TRACE).expect("logger failed to init");
 
         #[cfg(feature = "web")]
         let launcher = launcher.with_cfg(dioxus::web::Config::new().history(std::rc::Rc::new(dioxus::web::HashHistory::new(false))));

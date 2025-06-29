@@ -20,8 +20,18 @@ pub fn LoginComponent() -> Element {
             let password_string = password();
             password.set("".to_owned());
 
+            println!("a");
+
             // TODO don't unwrap here but handle error
-            let response = tucan.login(LoginRequest { username: username(), password: password_string }).await.unwrap();
+            let response = match tucan.login(LoginRequest { username: username(), password: password_string }).await {
+                Ok(v) => v,
+                Err(e) => {
+                    eprintln!("{e}");
+                    panic!();
+                }
+            };
+
+            println!("b");
 
             #[cfg(feature = "direct")]
             web_extensions_sys::chrome()

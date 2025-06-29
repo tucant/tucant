@@ -14,6 +14,7 @@ pub async fn logout(connector: &TucanConnector, login_response: &LoginResponse) 
 }
 
 pub async fn login(client: &MyClient, login_request: &LoginRequest) -> Result<LoginResponse, TucanError> {
+    println!("d");
     static NEXT_URL_REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"0; URL=/scripts/mgrqispi\.dll\?APPNAME=CampusNet&PRGNAME=STARTPAGE_DISPATCH&ARGUMENTS=-N(?P<id>\d+),-N000019,-N000000000000000").unwrap());
     assert_ne!(login_request.username, "");
     assert_ne!(login_request.password, "");
@@ -23,6 +24,7 @@ pub async fn login(client: &MyClient, login_request: &LoginRequest) -> Result<Lo
         .send()
         .await?
         .error_for_status()?;
+    // wait is this the issue that the first request is always failing for some reason?
     info!("{response:?}");
     assert_eq!(response.headers_mut().remove("content-type"), Some(HeaderValue::from_static("text/html")));
     assert_eq!(response.headers_mut().remove("server"), Some(HeaderValue::from_static("Microsoft-IIS/10.0")));
