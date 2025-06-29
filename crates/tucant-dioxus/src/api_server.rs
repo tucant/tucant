@@ -4,6 +4,7 @@ use tucant_types::{
     coursedetails::{CourseDetailsRequest, CourseDetailsResponse},
     courseresults::ModuleResultsResponse,
     examresults::ExamResultsResponse,
+    gradeoverview::{GradeOverviewRequest, GradeOverviewResponse},
     mlsstart::MlsStart,
     moduledetails::{ModuleDetailsRequest, ModuleDetailsResponse},
     mycourses::MyCoursesResponse,
@@ -125,5 +126,11 @@ impl Tucan for ApiServerTucan {
 
     async fn welcome(&self) -> Result<tucant_types::LoggedOutHead, TucanError> {
         todo!()
+    }
+
+    async fn gradeoverview(&self, _login_response: &LoginResponse, revalidation_strategy: RevalidationStrategy, gradeoverview: GradeOverviewRequest) -> Result<GradeOverviewResponse, TucanError> {
+        let url = Url::parse(&format!("http://127.0.0.1:8080/api/v1/gradeoverview/{}", gradeoverview.inner())).unwrap();
+        let response = self.client.get(url).fetch_credentials_include().header("X-Revalidation-Strategy", serde_json::to_string(&revalidation_strategy).unwrap()).send().await?.error_for_status()?.json().await?;
+        Ok(response)
     }
 }

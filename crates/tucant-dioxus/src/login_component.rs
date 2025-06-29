@@ -47,9 +47,34 @@ pub fn LoginComponent() -> Element {
 
     rsx! {
         form { onsubmit: on_submit, class: "d-flex",
-            input { id:"login-username", value: "{username}", oninput: move |event| username.set(event.value()), required:true, class:"form-control me-2", r#type:"username", placeholder: "TU-ID", "aria-label": "TU-ID", autocomplete:"current-username"}
-            input { id:"login-password", value: "{password}", oninput: move |event| password.set(event.value()), required:true, class:"form-control me-2", r#type:"password", placeholder:"Password", "aria-label":"Password", autocomplete:"current-password"}
-            button { class:"btn btn-outline-success", r#type:"submit", id: "login-button", "Login" }
+            input {
+                id: "login-username",
+                value: "{username}",
+                oninput: move |event| username.set(event.value()),
+                required: true,
+                class: "form-control me-2",
+                r#type: "username",
+                placeholder: "TU-ID",
+                "aria-label": "TU-ID",
+                autocomplete: "current-username",
+            }
+            input {
+                id: "login-password",
+                value: "{password}",
+                oninput: move |event| password.set(event.value()),
+                required: true,
+                class: "form-control me-2",
+                r#type: "password",
+                placeholder: "Password",
+                "aria-label": "Password",
+                autocomplete: "current-password",
+            }
+            button {
+                class: "btn btn-outline-success",
+                r#type: "submit",
+                id: "login-button",
+                "Login"
+            }
         }
     }
 }

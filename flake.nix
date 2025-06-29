@@ -68,8 +68,6 @@
           pname = "tucant-workspace-native";
         };
 
-        cargoArtifacts = craneLib.buildDepsOnly nativeArgs;
-
         tests = craneLib.buildPackage (commonArgs // {
           pname = "tucant-workspace-native-tests";
           src = lib.fileset.toSource {
@@ -82,7 +80,6 @@
           };
           cargoTestExtraArgs = "--no-run";
           cargoExtraArgs = "--package=tucant-tests";
-          inherit cargoArtifacts;
         });
 
         api = craneLib.buildPackage (commonArgs // {
@@ -102,7 +99,6 @@
           };
           cargoTestExtraArgs = "--no-run";
           cargoExtraArgs = "--package=tucant-api";
-          inherit cargoArtifacts;
         });
 
         schema = pkgs.runCommandNoCC "schema.json" {
@@ -218,7 +214,6 @@
 
           # todo also clippy the frontend
           my-app-clippy = craneLib.cargoClippy (nativeArgs // {
-            inherit cargoArtifacts;
             cargoClippyExtraArgs = "--all-targets -- --deny warnings";
           });
 

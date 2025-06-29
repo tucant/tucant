@@ -11,34 +11,40 @@ pub fn ModuleDetails(module: ReadOnlySignal<ModuleDetailsRequest>) -> Element {
         rsx! {
             div {
                 h1 {
-                    { module.module_id.clone() }
+                    {module.module_id.clone()}
                     if let Some(credits) = &module.credits {
-                        { " " }
-                        span { class: "badge text-bg-secondary",
-                            { format!("{credits} CP",) }
-                        }
+                        {" "}
+                        span { class: "badge text-bg-secondary", {format!("{credits} CP")} }
                     }
                     if module.registered {
-                        { " " }
-                        span { class: "badge text-bg-secondary",
-                            { "Angemeldet" }
-                        }
+                        {" "}
+                        span { class: "badge text-bg-secondary", {"Angemeldet"} }
                     }
-                    { " " }
-                    button { onclick: reload, type: "button", class: "btn btn-secondary",
+                    {" "}
+                    button {
+                        onclick: reload,
+                        r#type: "button",
+                        class: "btn btn-secondary",
                         // https://github.com/twbs/icons
                         // The MIT License (MIT)
                         // Copyright (c) 2019-2024 The Bootstrap Authors
 
-                        svg { xmlns: "http://www.w3.org/2000/svg", width: "16", height: "16", fill: "currentColor", class: "bi bi-arrow-clockwise", view_box: "0 0 16 16",
-                            path { "fill-rule": "evenodd", d: "M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2z" }
+                        svg {
+                            xmlns: "http://www.w3.org/2000/svg",
+                            width: "16",
+                            height: "16",
+                            fill: "currentColor",
+                            class: "bi bi-arrow-clockwise",
+                            view_box: "0 0 16 16",
+                            path {
+                                "fill-rule": "evenodd",
+                                d: "M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2z",
+                            }
                             path { d: "M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466" }
                         }
                     }
                 }
-                h2 {
-                    { "Modulverantwortliche" }
-                }
+                h2 { {"Modulverantwortliche"} }
                 ul {
                     {
                         module
@@ -46,219 +52,153 @@ pub fn ModuleDetails(module: ReadOnlySignal<ModuleDetailsRequest>) -> Element {
                             .iter()
                             .map(|modulverantwortliche| {
                                 rsx! {
-                                    li {
-                                        { modulverantwortliche.0.clone() }
-                                    }
+                                    li { {modulverantwortliche.0.clone()} }
                                 }
                             })
-
                     }
                 }
-                h2 {
-                    { "Kurse" }
-                }
+                h2 { {"Kurse"} }
                 {
                     module
                         .kurskategorien
                         .iter()
                         .map(|kurskategorie| {
                             rsx! {
-                                    h3 {
-                                        { kurskategorie.course_no.clone() }
-                                        { " " }
-                                        { kurskategorie.name.clone() }
-                                        if kurskategorie.credits != 0.0 {
-                                            { " " }
-                                            span { class: "badge text-bg-secondary",
-                                                { format!("{} CP", kurskategorie.credits) }
-                                            }
-                                        }
-                                        if kurskategorie.mandatory {
-                                            { " " }
-                                            span { class: "badge text-bg-secondary",
-                                                { "Pflicht" }
-                                            }
-                                        }
-                                        if let Some(semester) = &kurskategorie.semester {
-                                            if *semester != 1 {
-                                                { " " }
-                                                span { class: "badge text-bg-secondary",
-                                                    { format!("{semester} Semester") }
-                                                }
-                                            }
+                                h3 {
+                                    {kurskategorie.course_no.clone()}
+                                    {" "}
+                                    {kurskategorie.name.clone()}
+                                    if kurskategorie.credits != 0.0 {
+                                        {" "}
+                                        span { class: "badge text-bg-secondary", {format!("{} CP", kurskategorie.credits)} }
+                                    }
+                                    if kurskategorie.mandatory {
+                                        {" "}
+                                        span { class: "badge text-bg-secondary", {"Pflicht"} }
+                                    }
+                                    if let Some(semester) = &kurskategorie.semester {
+                                        if *semester != 1 {
+                                            {" "}
+                                            span { class: "badge text-bg-secondary", {format!("{semester} Semester")} }
                                         }
                                     }
-                                    table { class: "table",
-                                        thead {
-                                            tr {
-                                                th { scope: "col",
-                                                    { "Nummer" }
-                                                }
-                                                th { scope: "col",
-                                                    { "Name" }
-                                                }
-                                                th { scope: "col",
-                                                    { "Semester" }
-                                                }
-                                            }
+                                }
+                                table { class: "table",
+                                    thead {
+                                        tr {
+                                            th { scope: "col", {"Nummer"} }
+                                            th { scope: "col", {"Name"} }
+                                            th { scope: "col", {"Semester"} }
                                         }
-                                        tbody {
-                                            {
-                                                kurskategorie
-                                                    .kurse
-                                                    .iter()
-                                                    .map(|kurs| {
-                                                        rsx! {
-                                                            tr {
-                                                                th { scope: "row",
-                                                                    { kurs.course_id.clone() }
-                                                                }
-                                                                td {
-                                                                    { kurs.name.clone() }
-                                                                }
-                                                                td {
-                                                                    { kurs.semester.clone() }
-                                                                }
-                                                            }
+                                    }
+                                    tbody {
+                                        {
+                                            kurskategorie
+                                                .kurse
+                                                .iter()
+                                                .map(|kurs| {
+                                                    rsx! {
+                                                        tr {
+                                                            th { scope: "row", {kurs.course_id.clone()} }
+                                                            td { {kurs.name.clone()} }
+                                                            td { {kurs.semester.clone()} }
                                                         }
-                                                    })
-
-                                            }
+                                                    }
+                                                })
                                         }
                                     }
+                                }
                             }
                         })
-
                 }
-                h2 {
-                    { "Leistungen" }
-                }
+                h2 { {"Leistungen"} }
                 {
                     module
                         .leistungen
                         .iter()
                         .map(|leistung| {
                             rsx! {
-                                    h3 {
-                                        { leistung.name.clone() }
-                                        if leistung.compulsory {
-                                            { " " }
-                                            span { class: "badge text-bg-secondary",
-                                                { "Pflicht" }
-                                            }
-                                        }
-                                        { " " }
-                                        span { class: "badge text-bg-secondary",
-                                            { format!("{} Gewichtung", leistung.weight) }
-                                        }
-                                        if let Some(weight_more) = &leistung.weight_more {
-                                            { " " }
-                                            span { class: "badge text-bg-secondary",
-                                                { format!("Zusatzinfo {weight_more}") }
-                                            }
-                                        }
+                                h3 {
+                                    {leistung.name.clone()}
+                                    if leistung.compulsory {
+                                        {" "}
+                                        span { class: "badge text-bg-secondary", {"Pflicht"} }
                                     }
+                                    {" "}
+                                    span { class: "badge text-bg-secondary", {format!("{} Gewichtung", leistung.weight)} }
+                                    if let Some(weight_more) = &leistung.weight_more {
+                                        {" "}
+                                        span { class: "badge text-bg-secondary", {format!("Zusatzinfo {weight_more}")} }
+                                    }
+                                }
                             }
                         })
-
                 }
-                h2 {
-                    { "Pruefungen" }
-                }
+                h2 { {"Pruefungen"} }
                 {
                     module
                         .pruefungen
                         .iter()
                         .map(|pruefung| {
                             rsx! {
-                                    h3 {
-                                        { pruefung.name.clone() }
-                                        if pruefung.compulsory {
-                                            { " " }
-                                            span { class: "badge text-bg-secondary",
-                                                { "Pflicht" }
-                                            }
+                                h3 {
+                                    {pruefung.name.clone()}
+                                    if pruefung.compulsory {
+                                        {" "}
+                                        span { class: "badge text-bg-secondary", {"Pflicht"} }
+                                    }
+                                }
+                                table { class: "table",
+                                    thead {
+                                        tr {
+                                            th { scope: "col", {"Name"} }
+                                            th { scope: "col", {"Datum"} }
+                                            th { scope: "col", {"Prüfende"} }
                                         }
                                     }
-                                    table { class: "table",
-                                        thead {
-                                            tr {
-                                                th { scope: "col",
-                                                    { "Name" }
-                                                }
-                                                th { scope: "col",
-                                                    { "Datum" }
-                                                }
-                                                th { scope: "col",
-                                                    { "Prüfende" }
-                                                }
-                                            }
-                                        }
-                                        tbody {
-                                            {
-                                                pruefung
-                                                    .termine
-                                                    .iter()
-                                                    .map(|termin| {
-                                                        rsx! {
-                                                            tr {
-                                                                th { scope: "row",
-                                                                    { termin.subname.clone() }
-                                                                }
-                                                                td {
-                                                                    { termin.date.clone() }
-                                                                }
-                                                                td {
-                                                                    { termin.examiner.clone() }
-                                                                }
-                                                            }
+                                    tbody {
+                                        {
+                                            pruefung
+                                                .termine
+                                                .iter()
+                                                .map(|termin| {
+                                                    rsx! {
+                                                        tr {
+                                                            th { scope: "row", {termin.subname.clone()} }
+                                                            td { {termin.date.clone()} }
+                                                            td { {termin.examiner.clone()} }
                                                         }
-                                                    })
-
-                                            }
+                                                    }
+                                                })
                                         }
                                     }
+                                }
                             }
                         })
-
                 }
-                h2 {
-                    { "Beschreibung" }
-                }
+                h2 { {"Beschreibung"} }
                 // TODO FIXME this is dangerous
 
                 div { dangerous_inner_html: module.description.join("\n") }
-                h2 {
-                    { "Sonstige Informationen" }
-                }
+                h2 { {"Sonstige Informationen"} }
                 if module.abweichende_credits {
                     div { class: "alert alert-warning", role: "alert",
-                        { "Hinweis: In Ihrer Prüfungsordnung können abweichende Credits festgelegt sein." }
+                        {
+                            "Hinweis: In Ihrer Prüfungsordnung können abweichende Credits festgelegt sein."
+                        }
                     }
                 }
                 if let Some(anmeldefristen) = &module.anmeldefristen {
-                    div {
-                        { format!("Anmeldefrist: {}", anmeldefristen.registration_range) }
-                    }
-                    div {
-                        { format!("Abmeldefrist: {}", anmeldefristen.unregistration_range) }
-                    }
+                    div { {format!("Anmeldefrist: {}", anmeldefristen.registration_range)} }
+                    div { {format!("Abmeldefrist: {}", anmeldefristen.unregistration_range)} }
                 }
-                div {
-                    { format!("Startsemester: {}", module.start_semester) }
-                }
+                div { {format!("Startsemester: {}", module.start_semester)} }
                 if let Some(display_in_timetable) = &module.display_in_timetable {
-                    div {
-                        { format!("Display in timetable: {}", display_in_timetable) }
-                    }
+                    div { {format!("Display in timetable: {}", display_in_timetable)} }
                 }
-                div {
-                    { format!("Dauer: {}", module.duration) }
-                }
-                div {
-                    { format!("Anzahl Wahlkurse: {}", module.count_elective_courses) }
-                }
-                br { }
+                div { {format!("Dauer: {}", module.duration)} }
+                div { {format!("Anzahl Wahlkurse: {}", module.count_elective_courses)} }
+                br {}
             }
         }
     })

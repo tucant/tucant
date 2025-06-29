@@ -25,6 +25,7 @@ use tucant_types::{
     LoginResponse, RevalidationStrategy, SemesterId, Tucan, TucanError,
     courseresults::ModuleResultsResponse,
     examresults::ExamResultsResponse,
+    gradeoverview::{GradeOverviewRequest, GradeOverviewResponse},
     mlsstart::MlsStart,
     mycourses::MyCoursesResponse,
     mydocuments::MyDocumentsResponse,
@@ -69,6 +70,8 @@ pub async fn sleep(duration: Duration) {
 
 #[cfg(not(target_arch = "wasm32"))]
 use tokio::time::sleep;
+
+use crate::gradeoverview::gradeoverview;
 
 static COURSEDETAILS_REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=COURSEDETAILS&ARGUMENTS=-N\\d+,-N\\d+,").unwrap());
 
@@ -201,6 +204,10 @@ impl Tucan for TucanConnector {
 
     async fn student_result(&self, login_response: &LoginResponse, revalidation_strategy: RevalidationStrategy, course_of_study: u64) -> Result<StudentResultResponse, TucanError> {
         student_result(self, login_response, revalidation_strategy, course_of_study).await
+    }
+
+    fn gradeoverview(&self, login_response: &LoginResponse, revalidation_strategy: RevalidationStrategy, request: GradeOverviewRequest) -> impl std::future::Future<Output = Result<GradeOverviewResponse, TucanError>> {
+        gradeoverview(self, login_response, revalidation_strategy, request)
     }
 }
 
@@ -523,7 +530,14 @@ mod authenticated_tests {
             let login_response = get_login_session().await;
             let semesters = courseresults(&tucan, login_response, RevalidationStrategy::default(), SemesterId::current()).await.unwrap().semester;
             for semester in semesters {
-                courseresults(&tucan, login_response, RevalidationStrategy::default(), semester.value).await.unwrap();
+                let courseresults = courseresults(&tucan, login_response, RevalidationStrategy::default(), semester.value).await.unwrap();
+                for result in courseresults.results {
+                    if let Some(average_url) = result.average_url {
+                        println!("{average_url}");
+                        let overview = gradeoverview(&tucan, login_response, RevalidationStrategy::cache(), average_url).await.unwrap();
+                        println!("{overview:?}")
+                    }
+                }
             }
         });
     }

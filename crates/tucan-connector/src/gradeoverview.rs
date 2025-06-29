@@ -1,9 +1,12 @@
+use std::sync::LazyLock;
+
 use log::info;
+use regex::Regex;
 use time::{Duration, OffsetDateTime};
 use tucant_types::{
     LoginResponse, RevalidationStrategy,
     coursedetails::CourseDetailsRequest,
-    gradeoverview::{GradeOverviewRequest, GradeOverviewResponse},
+    gradeoverview::{GradeOverviewRequest, GradeOverviewResponse, Grades},
     mlsstart::{MlsStart, Nachricht, StundenplanEintrag},
 };
 
@@ -13,11 +16,7 @@ use crate::{
 };
 use html_handler::{MyElementRef, MyNode, Root, parse_document};
 
-// ARGUMENTS=-N352196045346277,-N000325,-AEXEV,-N391263798646423,-N0,-N,-N,-A,-N,-A,-N,-N,-N0,-N391263798681424
-//                                              exam-details-id                                 some-id
-
-// PRGNAME=GRADEOVERVIEW&ARGUMENTS=-N700694270951401,-N000325,-AEXEV,-N391263798646423,-N0,-N,-N000000015166000,-A,-N,-A,-N,-N,-N2,-N391263798681424
-//                                                                                                                             full site?
+pub static GRADEOVERVIEW_REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=GRADEOVERVIEW&ARGUMENTS=-N\\d+,-N\\d+,").unwrap());
 
 pub async fn gradeoverview(tucan: &TucanConnector, login_response: &LoginResponse, revalidation_strategy: RevalidationStrategy, request: GradeOverviewRequest) -> Result<GradeOverviewResponse, TucanError> {
     let key = format!("unparsed_gradeoverview.{request}");
@@ -74,55 +73,75 @@ fn gradeoverview_internal(login_response: &LoginResponse, content: &str) -> Resu
                     <script type="text/javascript">
                     </script>
                     <h1>
-                        _welcome_message
+                        notenspiegel
                     </h1>
                     <h2>
                         module_and_semester
                     </h2>
-                    <table class="tb">
-                        <tbody><tr>
-                            <td class="tbhead">"Kontext"</td>
-                        </tr>
-                        <tr>
-                            <td class="tbdata">
-                                                    modulangebot
-                                            </td>
-                        </tr>
-                    </tbody></table>
-                    <h2>studienleistung</h2>
+                    let modulangebot = if html_handler.peek().unwrap().value().as_element().unwrap().name() == "table" {
+                        <table class="tb">
+                            <tbody>
+                                <tr>
+                                    <td class="tbhead">
+                                        "Kontext"
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="tbdata">
+                                        modulangebot
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    } => modulangebot;
+                    <h2>
+                        let studienleistung = if html_handler.peek().is_some() {
+                            studienleistung
+                        } => studienleistung;
+                    </h2>
                     <div class="tb">
-                        <div class="tbhead"></div>
+                        <div class="tbhead">
+                        </div>
                         <div class="tbcontrol">
-
-                                        <a href=examresults_url class="img img_arrowLeft prev">"Zurück"</a>
-
-
-
-                                </div>
-                                                            <table class="nb">
-                                        <tbody><tr>
-                                            <td class="tbsubhead">
+                            <a href=examresults_url class="img img_arrowLeft prev">
+                                "Zurück"
+                            </a>
+                        </div>
+                        let maybe_grades = if html_handler.peek().unwrap().value().as_element().unwrap().name() == "table" {
+                            <table class="nb">
+                                <tbody>
+                                    <tr>
+                                        <td class="tbsubhead">
                                             "Noten"
+                                        </td>
+                                        let names = while html_handler.peek().is_some() {
+                                            <td class="tbsubhead">
+                                                name
                                             </td>
-                                                                                                        <td class="tbsubhead">b</td>
-                                                                                                                                    <td class="tbsubhead">nb</td>
-                                                                                            </tr>
-
-
-                                        <tr>
-                                            <td class="tbdata">"Anzahl"</td>
-                                                                                                        <td class="tbdata">count</td>
-                                                                                                                                    <td class="tbdata">second_column_count</td>
-                                                                                            </tr>
-                                    </tbody></table>
-
-
-                                <div class="tbdata">"Durchschnitt:    1,0"</div>
-                            <div class="tbdata">vorliegende_ergebnisse</div>
-                            <div class="tbdata">"Ergebnisse mit abweichendem BWS:    0"</div>
-
-                                                        <div class="tbdata">fehlend</div>
-
+                                        } => name;
+                                    </tr>
+                                    <tr>
+                                        <td class="tbdata">
+                                            "Anzahl"
+                                        </td>
+                                        let values = while html_handler.peek().is_some() {
+                                            <td class="tbdata">
+                                                value
+                                            </td>
+                                        } => if value == "---" { 0 } else { value.parse().expect(&value) };
+                                    </tr>
+                                </tbody>
+                            </table>
+                            let infos = while html_handler.peek().is_some() {
+                                <div class="tbdata">
+                                    info
+                                </div>
+                            } => info;
+                        } => Grades { columns: names.into_iter().zip(values).collect(), infos } else {
+                            <div class="tbdata">
+                                "noch nicht gesetzt"
+                            </div>
+                        } => ();
                     </div>
                 </div>
             </div>
@@ -130,5 +149,5 @@ fn gradeoverview_internal(login_response: &LoginResponse, content: &str) -> Resu
     };
     let html_handler = footer(html_handler, login_response.id, 19);
     html_handler.end_document();
-    Ok(GradeOverviewResponse {})
+    Ok(GradeOverviewResponse { module_and_semester, modulangebot, studienleistung, maybe_grades: maybe_grades.left() })
 }

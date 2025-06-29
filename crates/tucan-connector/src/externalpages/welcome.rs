@@ -34,12 +34,25 @@ pub async fn welcome(connector: &TucanConnector) -> Result<LoggedOutHead, TucanE
                         </h1>
                         <br></br>
                         <div style="padding:10px; width:650px; border:thin solid grey; margin:0px">
-                            <h2>"Steck die TUDa in die Tasche!"</h2>
+                            <h2>
+                                "Steck die TUDa in die Tasche!"
+                            </h2>
                             <p>
-                                "Jetzt die neue TUDa App herunterladen:"<br></br>
-                                "Viele tolle Funktionen und der digitale Studierendenausweis"<br></br><br></br>
-                                "→"<a href="https://www.app.tu-darmstadt.de" target="_blank">"Infos zur App"</a><br></br>
-                                "→"<a href="https://www.tu-darmstadt.de/studierendenausweis" target="_blank">"Infos zum digitalen Studierendenausweis"</a><br></br>
+                                "Jetzt die neue TUDa App herunterladen:"
+                                <br></br>
+                                "Viele tolle Funktionen und der digitale Studierendenausweis"
+                                <br></br>
+                                <br></br>
+                                "→"
+                                <a href="https://www.app.tu-darmstadt.de" target="_blank">
+                                    "Infos zur App"
+                                </a>
+                                <br></br>
+                                "→"
+                                <a href="https://www.tu-darmstadt.de/studierendenausweis" target="_blank">
+                                    "Infos zum digitalen Studierendenausweis"
+                                </a>
+                                <br></br>
                             </p>
                         </div>
                         <br></br>

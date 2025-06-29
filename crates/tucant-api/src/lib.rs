@@ -12,6 +12,7 @@ use tucant_types::{
     LoginRequest, LoginResponse, RevalidationStrategy, SemesterId, TucanError,
     coursedetails::CourseDetailsRequest,
     examresults::ExamResultsResponse,
+    gradeoverview::{GradeOverviewRequest, GradeOverviewResponse},
     moduledetails::ModuleDetailsRequest,
     mycourses::MyCoursesResponse,
     mydocuments::MyDocumentsResponse,
@@ -387,6 +388,29 @@ pub async fn student_result_endpoint(jar: CookieJar, revalidation_strategy: Reva
     Ok((StatusCode::OK, Json(response)).into_response())
 }
 
+#[utoipa::path(
+    get,
+    path = "/api/v1/gradeoverview/{gradeoverview}",
+    tag = TUCANT_TAG,
+    params(("gradeoverview" = GradeOverviewRequest, Path)),
+    responses(
+        (status = 200, description = "Successful", body = GradeOverviewResponse),
+        (status = 500, description = "Some TUCaN error")
+    )
+)]
+pub async fn gradeoverview_endpoint(jar: CookieJar, Path(gradeoverview): Path<GradeOverviewRequest>, revalidation_strategy: RevalidationStrategyW) -> Result<impl IntoResponse, TucanError> {
+    let tucan = TucanConnector::new().await?;
+
+    let login_response: LoginResponse = LoginResponse {
+        id: jar.get("id").unwrap().value().parse().unwrap(),
+        cookie_cnsc: jar.get("cnsc").unwrap().value().to_owned(),
+    };
+
+    let response = tucan.gradeoverview(&login_response, revalidation_strategy.0, gradeoverview).await?;
+
+    Ok((StatusCode::OK, Json(response)).into_response())
+}
+
 pub fn router() -> OpenApiRouter {
     OpenApiRouter::with_openapi(ApiDoc::openapi())
         .routes(routes!(login_endpoint))
@@ -403,4 +427,5 @@ pub fn router() -> OpenApiRouter {
         .routes(routes!(course_results_endpoint))
         .routes(routes!(my_documents_endpoint))
         .routes(routes!(student_result_endpoint))
+        .routes(routes!(gradeoverview_endpoint))
 }

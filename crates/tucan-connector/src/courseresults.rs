@@ -5,10 +5,12 @@ use time::{Duration, OffsetDateTime};
 use tucant_types::{
     LoginResponse, RevalidationStrategy, SemesterId, Semesterauswahl, TucanError,
     courseresults::{ModuleResult, ModuleResultsResponse},
+    gradeoverview::GradeOverviewRequest,
 };
 
 use crate::{
     TucanConnector, authenticated_retryable_get,
+    gradeoverview::GRADEOVERVIEW_REGEX,
     head::{footer, html_head, logged_in_head},
 };
 
@@ -178,7 +180,7 @@ fn courseresults_internal(login_response: &LoginResponse, content: &str) -> Resu
                                                 <script type="text/javascript">
                                                     _script
                                                 </script>
-                                            } => average_url;
+                                            } => GradeOverviewRequest::parse(&GRADEOVERVIEW_REGEX.replace(&average_url, ""));
                                         </td>
                                     </tr>
                                 } => ModuleResult { nr, name, grade, credits, status, pruefungen_url, average_url };

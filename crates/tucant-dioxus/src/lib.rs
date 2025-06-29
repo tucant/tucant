@@ -4,6 +4,7 @@ pub mod common;
 pub mod course_details;
 pub mod course_results;
 pub mod exam_results;
+pub mod gradeoverview;
 pub mod login_component;
 pub mod logout_component;
 pub mod module_details;
@@ -26,6 +27,7 @@ use std::sync::Arc;
 
 use dioxus::prelude::*;
 use tucant_types::DynTucan;
+use tucant_types::gradeoverview::GradeOverviewRequest;
 use tucant_types::{SemesterId, coursedetails::CourseDetailsRequest, moduledetails::ModuleDetailsRequest, registration::AnmeldungRequest, vv::ActionRequest};
 
 use crate::navbar::Navbar;
@@ -88,6 +90,7 @@ pub async fn login_response() -> Option<tucant_types::LoginResponse> {
 use crate::course_details::CourseDetails;
 use crate::course_results::CourseResults;
 use crate::exam_results::ExamResults;
+use crate::gradeoverview::GradeOverview;
 use crate::module_details::ModuleDetails;
 use crate::my_courses::MyCourses;
 use crate::my_documents::MyDocuments;
@@ -131,6 +134,8 @@ pub enum Route {
     MyDocuments {},
     #[route("/student-result/:course_of_study")]
     StudentResult { course_of_study: String },
+    #[route("/gradeoverview/:gradeoverview")]
+    GradeOverview { gradeoverview: GradeOverviewRequest },
 }
 
 #[component]
@@ -144,29 +149,29 @@ pub fn NotFound(route: Vec<String>) -> Element {
 pub fn Root() -> Element {
     rsx! {
         div { class: "container",
-            h1 {
-                { "Willkommen bei TUCaN't!" }
+            h1 { {"Willkommen bei TUCaN't!"} }
+            p {
+                {"Du kannst gerne die "}
+                a {
+                    href: "https://tucant.github.io/tucant/",
+                    target: "_blank",
+                    {"Browsererweiterung herunterladen"}
+                }
+                {", falls Du diese noch nicht verwendest."}
             }
             p {
-                { "Du kannst gerne die " }
-                a { href: "https://tucant.github.io/tucant/", target: "_blank",
-                    { "Browsererweiterung herunterladen" }
+                {"Der Quellcode dieses Projekts ist unter der AGPL-3.0 Lizenz auf "}
+                a {
+                    href: "https://github.com/tucant/tucant/",
+                    target: "_blank",
+                    {"GitHub"}
                 }
-                { ", falls Du diese noch nicht verwendest." }
+                {" verfügbar."}
             }
             p {
-                { "Der Quellcode dieses Projekts ist unter der AGPL-3.0 Lizenz auf " }
-                a { href: "https://github.com/tucant/tucant/", target: "_blank",
-                    { "GitHub" }
-                }
-                { " verfügbar." }
-            }
-            p {
-                { "Du kannst Dir deine " }
-                a { href: "#/registration/",
-                    { "anmeldbaren Module ansehen" }
-                }
-                { "." }
+                {"Du kannst Dir deine "}
+                a { href: "#/registration/", {"anmeldbaren Module ansehen"} }
+                {"."}
             }
         }
     }

@@ -188,7 +188,9 @@ fn my_exams_internal(login_response: &LoginResponse, content: &str) -> Result<My
                                             let examunreg_url = if html_handler.peek().unwrap().value().is_text() {
                                                 "Ausgewählt"
                                             } => () else {
-                                                <a href=examunreg_url class="img img_arrowLeftRed">"Abmelden"</a>
+                                                <a href=examunreg_url class="img img_arrowLeftRed">
+                                                    "Abmelden"
+                                                </a>
                                             } => examunreg_url;
                                         </td>
                                     </tr>
