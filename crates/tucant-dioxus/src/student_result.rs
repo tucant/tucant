@@ -109,9 +109,11 @@ pub fn StudentResultLevelComponent(level: ReadOnlySignal<StudentResultLevel>, pa
                                 rsx! {
                                     tr {
                                         td { {entry.name.clone()} }
-                                        td { {entry.cp.clone().unwrap_or_default()} }
-                                        td { {entry.used_cp.clone().unwrap_or_default()} }
-                                        td { {entry.grade.clone().unwrap_or_default().clone()} }
+                                        td { {entry.cp.clone().unwrap_or_default().to_string()} }
+                                        td { {entry.used_cp.clone().unwrap_or_default().to_string()} }
+                                        if let Some(grade) = &entry.grade {
+                                            td { "{grade}" }
+                                        }
                                         td { {entry.state.clone()} }
                                     }
                                 }

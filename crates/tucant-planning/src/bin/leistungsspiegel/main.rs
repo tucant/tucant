@@ -8,6 +8,7 @@ use futures_util::{FutureExt, StreamExt};
 use tucan_connector::TucanConnector;
 use tucant_types::coursedetails::CourseDetailsRequest;
 use tucant_types::registration::{AnmeldungRequest, RegistrationState};
+use tucant_types::student_result::StudentResultLevel;
 use tucant_types::{LoginRequest, RevalidationStrategy, Tucan};
 use tucant_types::{LoginResponse, TucanError};
 
@@ -15,6 +16,8 @@ fn main() -> Result<(), TucanError> {
     dotenvy::dotenv().unwrap();
     tokio::runtime::Builder::new_current_thread().enable_all().build().unwrap().block_on(async_main())
 }
+
+fn validate(level: &StudentResultLevel) {}
 
 async fn async_main() -> Result<(), TucanError> {
     let tucan = TucanConnector::new().await?;
@@ -35,6 +38,9 @@ async fn async_main() -> Result<(), TucanError> {
     let course_of_studies = tucan.student_result(&login_response, RevalidationStrategy::cache(), 0).await.unwrap();
     let bachelor = course_of_studies.course_of_study.iter().find(|v| v.name == "B.Sc. Informatik (2015)").unwrap().value;
     let student_result = tucan.student_result(&login_response, RevalidationStrategy::cache(), bachelor).await.unwrap();
-    println!("{:#?}", student_result.level0);
+    println!("{:#?}", student_result);
+
+    validate(&student_result.level0);
+
     Ok(())
 }
