@@ -140,7 +140,10 @@ fn parse_rules(rules: &[String]) -> StudentResultRules {
             result.min_cp = c["min"].parse().unwrap();
         } else if let Some(c) = RULES_6.captures(rule) {
             result.min_modules = c["min"].parse().unwrap();
-            result.max_modules = Some(c["max"].parse().unwrap());
+            let max: u64 = c["max"].parse().unwrap();
+            if max != 0 {
+                result.max_modules = Some(max);
+            }
         } else {
             panic!("{}", rule);
         }
