@@ -1,0 +1,16 @@
+[package]
+name = "tucant-planning"
+license.workspace = true
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+tucan-connector = { path = "../tucan-connector" }
+tucant-types = { path = "../tucant-types" }
+futures-util = { version = "0.3", features = ["io"] }
+dotenvy = "0.15"
+tokio = { features = ["full"], version = "1" }
+
+[lints]
+workspace = true

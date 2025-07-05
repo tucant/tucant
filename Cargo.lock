@@ -444,19 +444,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "cddl-codegen"
-version = "0.1.2"
-dependencies = [
- "anyhow",
- "heck 0.5.0",
- "prettyplease",
- "proc-macro2",
- "quote",
- "syn 2.0.104",
- "winnow 0.7.11",
-]
-
-[[package]]
 name = "cesu8"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4002,16 +3989,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "925383efa346730478fb4838dbe9137d2a47675ad789c546d150a6e1dd4ab31c"
 
 [[package]]
-name = "prettyplease"
-version = "0.2.35"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "061c1221631e079b26479d25bbf2275bfe5917ae8419cd7e34f13bfc2aa7539a"
-dependencies = [
- "proc-macro2",
- "syn 2.0.104",
-]
-
-[[package]]
 name = "proc-macro-crate"
 version = "1.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5855,6 +5832,17 @@ dependencies = [
  "wasm-bindgen-futures",
  "web-extensions-sys",
  "web-sys",
+]
+
+[[package]]
+name = "tucant-planning"
+version = "0.1.2"
+dependencies = [
+ "dotenvy",
+ "futures-util",
+ "tokio",
+ "tucan-connector",
+ "tucant-types",
 ]
 
 [[package]]
