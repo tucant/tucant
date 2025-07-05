@@ -1,2 +1,0 @@
-[target.x86_64-linux-android]
-linker = "/home/moritz/Android/Sdk/ndk/29.0.13599879/toolchains/llvm/prebuilt/linux-x86_64/bin/x86_64-linux-android24-clang"
