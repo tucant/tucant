@@ -64,5 +64,11 @@ async fn async_main() -> Result<(), TucanError> {
 
     validate(&student_result.level0);
 
+    let master = course_of_studies.course_of_study.iter().find(|v| v.name == "M.Sc. Informatik (2023)").unwrap().value;
+    let student_result = tucan.student_result(&login_response, RevalidationStrategy::cache(), master).await.unwrap();
+    println!("{:#?}", student_result);
+
+    validate(&student_result.level0);
+
     Ok(())
 }
