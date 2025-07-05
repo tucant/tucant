@@ -28,8 +28,7 @@ pub struct StudentResultLevel {
     pub sum_cp: Option<u64>,
     pub sum_used_cp: Option<u64>,
     pub state: Option<String>,
-    /// can be 0-2 rules, first one is module count, second one is cp
-    pub rules: Vec<String>,
+    pub rules: StudentResultRules,
     pub children: Vec<StudentResultLevel>,
 }
 
@@ -39,4 +38,12 @@ pub struct StudentResultResponse {
     pub level0: StudentResultLevel,
     pub total_gpa: String,
     pub main_gpa: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema, PartialEq, Eq)]
+pub struct StudentResultRules {
+    pub min_cp: u64,
+    pub max_cp: Option<u64>,
+    pub min_modules: u64,
+    pub max_modules: Option<u64>,
 }

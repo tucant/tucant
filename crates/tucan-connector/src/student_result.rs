@@ -1,4 +1,4 @@
-use std::str::FromStr;
+use std::{str::FromStr, sync::LazyLock};
 
 use crate::{
     TucanConnector, authenticated_retryable_get,
@@ -6,11 +6,12 @@ use crate::{
 };
 use html_handler::{InElement, Root, parse_document};
 use log::info;
+use regex::Regex;
 use scraper::CaseSensitivity;
 use time::{Duration, OffsetDateTime};
 use tucant_types::{
     Grade, LoginResponse, RevalidationStrategy, TucanError,
-    student_result::{CourseOfStudySelection, StudentResultEntry, StudentResultLevel, StudentResultResponse},
+    student_result::{CourseOfStudySelection, StudentResultEntry, StudentResultLevel, StudentResultResponse, StudentResultRules},
 };
 
 /// 0 is the default
@@ -115,6 +116,21 @@ fn part0<'a, T>(html_handler: InElement<'a, T>, level: &str) -> (InElement<'a, T
     (html_handler, (level_i, entries))
 }
 
+fn parse_rules(rules: &[String]) -> StudentResultRules {
+    static RULES_1: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^Es sind mindestens   (?P<min>\d+),0 Credits einzubringen. Die Ergebnisse von maximal   (?P<max>\d+),0 Credits gehen in die Notenberechnung ein.$").unwrap());
+    static RULES_2: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^Es sind mindestens   (?P<min>\d+),0 Credits einzubringen. Die Ergebnisse von maximal   (?P<max>\d+),0 Credits gehen in die Notenberechnung ein.$").unwrap());
+    let mut result = StudentResultRules { min_cp: 0, max_cp: None, min_modules: 0, max_modules: None };
+    for rule in rules {
+        if let Some(c) = RULES_1.captures(rule) {
+            result.min_cp = c["n2"].parse().unwrap();
+        } else if let Some(c) = RULES_2.captures(rule) {
+        } else {
+            panic!("{}", rule);
+        }
+    }
+    result
+}
+
 fn part1<'a, T>(html_handler: InElement<'a, T>, level: &str, name: (String, Vec<StudentResultEntry>), children: Vec<StudentResultLevel>) -> (InElement<'a, T>, StudentResultLevel) {
     html_extractor::html! {
         let optional = if html_handler.peek().unwrap().value().as_element().unwrap().attrs.is_empty() {
@@ -149,10 +165,10 @@ fn part1<'a, T>(html_handler: InElement<'a, T>, level: &str, name: (String, Vec<
             let rules = while html_handler.peek().is_some() && html_handler.peek().unwrap().first_child().unwrap().value().as_element().unwrap().has_class(level, CaseSensitivity::CaseSensitive) {
                 <tr>
                     <td colspan="   7" class={|v| assert_eq!(v, level)}>
-                        rules
+                        rule
                     </td>
                 </tr>
-            } => rules;
+            } => rule;
         } => {
             let (sum_cp, sum_used_cp) = sum_cp_and_used_cp.either_into();
             (sum_cp, sum_used_cp, state, rules)
@@ -166,7 +182,7 @@ fn part1<'a, T>(html_handler: InElement<'a, T>, level: &str, name: (String, Vec<
             sum_cp: optional.clone().and_then(|o| o.0).map(|v| v.trim_end_matches(",0").parse().unwrap()),
             sum_used_cp: optional.clone().and_then(|o| o.1).map(|v| v.trim_end_matches(",0").parse().unwrap()),
             state: optional.clone().map(|o| o.2),
-            rules: optional.map(|o| o.3).unwrap_or_default(),
+            rules: parse_rules(&optional.map(|o| o.3).unwrap_or_default()),
             children,
         },
     )
