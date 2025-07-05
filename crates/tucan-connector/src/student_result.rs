@@ -122,6 +122,7 @@ fn parse_rules(rules: &[String]) -> StudentResultRules {
     static RULES_3: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^In diesem Bereich sind +(?P<eq>\d+),0 Credits einzubringen.$").unwrap());
     static RULES_4: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^Erforderliche Credits für Abschluss: +(?P<eq>\d+),0$").unwrap());
     static RULES_5: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^Es sind mindestens +(?P<min>\d+),0 Credits einzubringen.$").unwrap());
+    static RULES_6: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^In diesem Bereich sind mindestens[[:space:]]+(?P<min>\d+)[[:space:]]+und maximal[[:space:]]+(?P<max>\d+) Module zu belegen.$").unwrap());
     let mut result = StudentResultRules { min_cp: 0, max_cp: None, min_modules: 0, max_modules: None };
     for rule in rules {
         if let Some(c) = RULES_1.captures(rule) {
@@ -137,6 +138,9 @@ fn parse_rules(rules: &[String]) -> StudentResultRules {
             result.max_cp = Some(c["eq"].parse().unwrap());
         } else if let Some(c) = RULES_5.captures(rule) {
             result.min_cp = c["min"].parse().unwrap();
+        } else if let Some(c) = RULES_6.captures(rule) {
+            result.min_modules = c["min"].parse().unwrap();
+            result.max_modules = Some(c["max"].parse().unwrap());
         } else {
             panic!("{}", rule);
         }
