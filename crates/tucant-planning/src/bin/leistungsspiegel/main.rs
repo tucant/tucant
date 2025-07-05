@@ -2,6 +2,7 @@ use std::future::Future;
 use std::panic::AssertUnwindSafe;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicU64, Ordering};
+use std::u64;
 
 use futures_util::stream::FuturesUnordered;
 use futures_util::{FutureExt, StreamExt};
@@ -17,7 +18,28 @@ fn main() -> Result<(), TucanError> {
     tokio::runtime::Builder::new_current_thread().enable_all().build().unwrap().block_on(async_main())
 }
 
-fn validate(level: &StudentResultLevel) {}
+fn validate(level: &StudentResultLevel) -> (u64, u64) {
+    let mut cp = 0;
+    let mut modules = 0;
+    for level in &level.children {
+        let inner = validate(&level);
+        cp += inner.0;
+        modules += inner.1;
+    }
+    for entry in &level.entries {
+        if let Some(module_cp) = entry.cp {
+            cp += module_cp;
+        }
+        modules += 1;
+    }
+    if cp > level.rules.max_cp.unwrap_or(u64::MAX) || cp < level.rules.min_cp {
+        panic!("invalid cp")
+    }
+    if modules > level.rules.max_modules.unwrap_or(u64::MAX) || modules < level.rules.min_modules {
+        panic!("invalid module count")
+    }
+    (cp, modules)
+}
 
 async fn async_main() -> Result<(), TucanError> {
     let tucan = TucanConnector::new().await?;
