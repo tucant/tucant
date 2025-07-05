@@ -8,6 +8,7 @@ use wasm_bindgen::prelude::*;
 
 const BOOTSTRAP_CSS: Asset = asset!("/assets/bootstrap.css");
 const BOOTSTRAP_JS: Asset = asset!("/assets/bootstrap.bundle.min.js");
+const BOOTSTRAP_PATCH_JS: Asset = asset!("/assets/bootstrap.patch.js");
 
 #[wasm_bindgen]
 extern "C" {
@@ -73,5 +74,6 @@ fn App() -> Element {
         document::Link { rel: "stylesheet", href: BOOTSTRAP_CSS }
         Router::<Route> {}
         script { src: BOOTSTRAP_JS }
+        script { src: BOOTSTRAP_PATCH_JS }
     }
 }
