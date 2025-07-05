@@ -45,13 +45,11 @@ async fn async_main() -> Result<(), TucanError> {
 
 struct Fetcher {
     anmeldung: AtomicU64,
-    module: AtomicU64,
-    course: AtomicU64,
 }
 
 impl Fetcher {
     pub const fn new() -> Self {
-        Self { anmeldung: AtomicU64::new(0), module: AtomicU64::new(0), course: AtomicU64::new(0) }
+        Self { anmeldung: AtomicU64::new(0) }
     }
 
     #[expect(clippy::manual_async_fn)]
@@ -72,6 +70,8 @@ impl Fetcher {
             //println!("anmeldung counter: {}", self.anmeldung_counter.load(Ordering::Relaxed));
             self.anmeldung.fetch_add(1, Ordering::Relaxed);
 
+            // TODO ignore zusätzliche leistungen
+
             let results: FuturesUnordered<_> = anmeldung_response
                 .submenus
                 .iter()
@@ -91,41 +91,6 @@ impl Fetcher {
                             if matches!(&module.registration_state, RegistrationState::Registered { unregister_link: _ }) {
                                 eprintln!("registered for {} at {}", module.name, path);
                             }
-
-                            let result = AssertUnwindSafe(async { tucan.module_details(login_response, RevalidationStrategy::cache(), module.url.clone()).await.unwrap() }).catch_unwind().await;
-                            match result {
-                                Err(err) => {
-                                    eprintln!("failed to fetch module {} with error {err:?}", module.url);
-                                }
-                                Ok(module) => {
-                                    if module.registered {
-                                        //println!("registered for {} at {}", module.module_id, path)
-                                    }
-                                }
-                            }
-
-                            //println!("module counter: {}", self.module.load(Ordering::Relaxed));
-                            self.module.fetch_add(1, Ordering::Relaxed);
-                        }
-
-                        for course in &entry.courses {
-                            //println!("course {}", course.1.url.inner());
-                            //self.course_file.write_all(course.1.url.inner().as_bytes()).await.unwrap();
-                            //self.course_file.write_all(b"\n").await.unwrap();
-
-                            let result = AssertUnwindSafe(async {
-                                let course_details = tucan.course_details(login_response, RevalidationStrategy::cache(), CourseDetailsRequest::parse(course.1.url.inner())).await.unwrap();
-
-                                println!("{}: {}", path, course_details.name);
-                            })
-                            .catch_unwind()
-                            .await;
-                            if let Err(err) = result {
-                                eprintln!("failed to fetch course {} with error {err:?}", course.1.url);
-                            }
-
-                            //println!("course counter: {}", self.course.load(Ordering::Relaxed));
-                            self.course.fetch_add(1, Ordering::Relaxed);
                         }
                     }
                     .boxed()
