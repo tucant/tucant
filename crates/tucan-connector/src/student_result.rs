@@ -117,13 +117,26 @@ fn part0<'a, T>(html_handler: InElement<'a, T>, level: &str) -> (InElement<'a, T
 }
 
 fn parse_rules(rules: &[String]) -> StudentResultRules {
-    static RULES_1: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^Es sind mindestens   (?P<min>\d+),0 Credits einzubringen. Die Ergebnisse von maximal   (?P<max>\d+),0 Credits gehen in die Notenberechnung ein.$").unwrap());
-    static RULES_2: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^Es sind mindestens   (?P<min>\d+),0 Credits einzubringen. Die Ergebnisse von maximal   (?P<max>\d+),0 Credits gehen in die Notenberechnung ein.$").unwrap());
+    static RULES_1: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^Es sind mindestens +(?P<min>\d+),0 Credits einzubringen. Die Ergebnisse von maximal +(?P<max>\d+),0 Credits gehen in die Notenberechnung ein.$").unwrap());
+    static RULES_2: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^Maximal +(?P<max>\d+),0 Credits gehen in die Notenberechnung ein.$").unwrap());
+    static RULES_3: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^In diesem Bereich sind +(?P<eq>\d+),0 Credits einzubringen.$").unwrap());
+    static RULES_4: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^Erforderliche Credits für Abschluss: +(?P<eq>\d+),0$").unwrap());
+    static RULES_5: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^Es sind mindestens +(?P<min>\d+),0 Credits einzubringen.$").unwrap());
     let mut result = StudentResultRules { min_cp: 0, max_cp: None, min_modules: 0, max_modules: None };
     for rule in rules {
         if let Some(c) = RULES_1.captures(rule) {
-            result.min_cp = c["n2"].parse().unwrap();
+            result.min_cp = c["min"].parse().unwrap();
+            result.max_cp = Some(c["max"].parse().unwrap());
         } else if let Some(c) = RULES_2.captures(rule) {
+            result.max_cp = Some(c["max"].parse().unwrap());
+        } else if let Some(c) = RULES_3.captures(rule) {
+            result.min_cp = c["eq"].parse().unwrap();
+            result.max_cp = Some(c["eq"].parse().unwrap());
+        } else if let Some(c) = RULES_4.captures(rule) {
+            result.min_cp = c["eq"].parse().unwrap();
+            result.max_cp = Some(c["eq"].parse().unwrap());
+        } else if let Some(c) = RULES_5.captures(rule) {
+            result.min_cp = c["min"].parse().unwrap();
         } else {
             panic!("{}", rule);
         }
