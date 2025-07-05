@@ -70,11 +70,10 @@ impl Fetcher {
             //println!("anmeldung counter: {}", self.anmeldung_counter.load(Ordering::Relaxed));
             self.anmeldung.fetch_add(1, Ordering::Relaxed);
 
-            // TODO ignore zusätzliche leistungen
-
             let results: FuturesUnordered<_> = anmeldung_response
                 .submenus
                 .iter()
+                .filter(|entry| entry.0 != "Zusätzliche Leistungen")
                 .map(|entry| {
                     async {
                         self.clone().recursive_anmeldung(tucan, login_response, entry.1.clone(), path.clone() + " > " + &entry.0).await;
