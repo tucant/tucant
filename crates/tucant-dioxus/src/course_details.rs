@@ -71,88 +71,139 @@ pub fn CourseDetails(course: ReadOnlySignal<CourseDetailsRequest>) -> Element {
                     }
                 }
                 h2 { {"Übungsgruppen"} }
-                table { class: "table",
-                    thead {
-                        tr {
-                            th { scope: "col", {"Name"} }
-                            th { scope: "col", {"Zeitraum"} }
-                            th { scope: "col", {"Uebungsleitende"} }
-                        }
-                    }
-                    tbody {
-                        if let Some(plenumsveranstaltung) = course.plenumsveranstaltung_url {
+                div { class: "table-responsive",
+                    table { class: "table",
+                        thead {
                             tr {
-                                th { scope: "row",
-                                    Link {
-                                        to: Route::CourseDetails {
-                                            course: plenumsveranstaltung.clone(),
-                                        },
-                                        {"Plenumsveranstaltung"}
-                                    }
-                                }
-                                td {
-                                }
-                                td {
-                                }
+                                th { scope: "col", {"Name"} }
+                                th { scope: "col", {"Zeitraum"} }
+                                th { scope: "col", {"Uebungsleitende"} }
                             }
                         }
-                        {
-                            course
-                                .uebungsgruppen
-                                .iter()
-                                .map(|uebungsgruppe| {
-                                    rsx! {
-                                        tr { class: if uebungsgruppe.active { "table-primary" } else { "" },
-                                            th { scope: "row",
-                                                Link {
-                                                    to: Route::CourseDetails {
-                                                        course: uebungsgruppe.url.clone(),
-                                                    },
-                                                    {uebungsgruppe.name.clone()}
-                                                }
-                                            }
-                                            td { {uebungsgruppe.date_range.clone().unwrap_or_default()} }
-                                            td { {uebungsgruppe.uebungsleiter.clone()} }
+                        tbody {
+                            if let Some(plenumsveranstaltung) = course.plenumsveranstaltung_url {
+                                tr {
+                                    th { scope: "row",
+                                        Link {
+                                            to: Route::CourseDetails {
+                                                course: plenumsveranstaltung.clone(),
+                                            },
+                                            {"Plenumsveranstaltung"}
                                         }
                                     }
-                                })
+                                    td {
+                                    }
+                                    td {
+                                    }
+                                }
+                            }
+                            {
+                                course
+                                    .uebungsgruppen
+                                    .iter()
+                                    .map(|uebungsgruppe| {
+                                        rsx! {
+                                            tr { class: if uebungsgruppe.active { "table-primary" } else { "" },
+                                                th { scope: "row",
+                                                    Link {
+                                                        to: Route::CourseDetails {
+                                                            course: uebungsgruppe.url.clone(),
+                                                        },
+                                                        {uebungsgruppe.name.clone()}
+                                                    }
+                                                }
+                                                td { {uebungsgruppe.date_range.clone().unwrap_or_default()} }
+                                                td { {uebungsgruppe.uebungsleiter.clone()} }
+                                            }
+                                        }
+                                    })
+                            }
                         }
                     }
                 }
                 h2 { {"Anmeldefristen"} }
-                table { class: "table",
-                    thead {
-                        tr {
-                            th { scope: "col", {"Phase"} }
-                            th { scope: "col", {"Block"} }
-                            th { scope: "col", {"Start"} }
-                            th { scope: "col", {"Ende Anmeldung"} }
-                            th { scope: "col", {"Ende Abmeldung"} }
-                            th { scope: "col", {"Ende Hörer"} }
+                div { class: "table-responsive",
+                    table { class: "table",
+                        thead {
+                            tr {
+                                th { scope: "col", {"Phase"} }
+                                th { scope: "col", {"Block"} }
+                                th { scope: "col", {"Start"} }
+                                th { scope: "col", {"Ende Anmeldung"} }
+                                th { scope: "col", {"Ende Abmeldung"} }
+                                th { scope: "col", {"Ende Hörer"} }
+                            }
                         }
-                    }
-                    tbody {
-                        {
-                            course
-                                .course_anmeldefristen
-                                .iter()
-                                .map(|anmeldefrist| {
-                                    rsx! {
-                                        tr {
-                                            td { {anmeldefrist.zulassungstyp.clone()} }
-                                            td { {anmeldefrist.block_type.clone()} }
-                                            td { {anmeldefrist.start.clone().unwrap_or_default()} }
-                                            td { {anmeldefrist.ende_anmeldung.clone().unwrap_or_default().clone()} }
-                                            td { {anmeldefrist.ende_abmeldung.clone().unwrap_or_default().clone()} }
-                                            td { {anmeldefrist.ende_hoerer.clone().unwrap_or_default().clone()} }
+                        tbody {
+                            {
+                                course
+                                    .course_anmeldefristen
+                                    .iter()
+                                    .map(|anmeldefrist| {
+                                        rsx! {
+                                            tr {
+                                                td { {anmeldefrist.zulassungstyp.clone()} }
+                                                td { {anmeldefrist.block_type.clone()} }
+                                                td { {anmeldefrist.start.clone().unwrap_or_default()} }
+                                                td { {anmeldefrist.ende_anmeldung.clone().unwrap_or_default().clone()} }
+                                                td { {anmeldefrist.ende_abmeldung.clone().unwrap_or_default().clone()} }
+                                                td { {anmeldefrist.ende_hoerer.clone().unwrap_or_default().clone()} }
+                                            }
                                         }
-                                    }
-                                })
+                                    })
+                            }
                         }
                     }
                 }
                 if !course.termine_kleingruppe.is_empty() {
                     h2 { {"Termine Kleingruppe"} }
+                    div { class: "table-responsive",
+                        table { class: "table",
+                            thead {
+                                tr {
+                                    th { scope: "col", {"Datum"} }
+                                    th { scope: "col", {"Start"} }
+                                    th { scope: "col", {"Ende"} }
+                                    th { scope: "col", {"Kursleitende"} }
+                                    th { scope: "col", {"Räume"} }
+                                }
+                            }
+                            tbody {
+                                {
+                                    course
+                                        .termine_kleingruppe
+                                        .iter()
+                                        .map(|termin| {
+                                            rsx! {
+                                                tr {
+                                                    td { {termin.date.clone()} }
+                                                    td { {termin.time_start.clone()} }
+                                                    td { {termin.time_end.clone()} }
+                                                    td { {termin.instructors.clone().unwrap_or_default().clone()} }
+                                                    td {
+                                                        ul {
+                                                            {
+                                                                termin
+                                                                    .rooms
+                                                                    .iter()
+                                                                    .map(|room| {
+                                                                        rsx! {
+                                                                            li { {room.name.clone()} }
+                                                                        }
+                                                                    })
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        })
+                                }
+                            }
+                        }
+                    }
+                }
+                h2 { {"Termine Plenumsveranstaltung"} }
+                div { class: "table-responsive",
                     table { class: "table",
                         thead {
                             tr {
@@ -166,7 +217,7 @@ pub fn CourseDetails(course: ReadOnlySignal<CourseDetailsRequest>) -> Element {
                         tbody {
                             {
                                 course
-                                    .termine_kleingruppe
+                                    .termine
                                     .iter()
                                     .map(|termin| {
                                         rsx! {
@@ -193,49 +244,6 @@ pub fn CourseDetails(course: ReadOnlySignal<CourseDetailsRequest>) -> Element {
                                         }
                                     })
                             }
-                        }
-                    }
-                }
-                h2 { {"Termine Plenumsveranstaltung"} }
-                table { class: "table",
-                    thead {
-                        tr {
-                            th { scope: "col", {"Datum"} }
-                            th { scope: "col", {"Start"} }
-                            th { scope: "col", {"Ende"} }
-                            th { scope: "col", {"Kursleitende"} }
-                            th { scope: "col", {"Räume"} }
-                        }
-                    }
-                    tbody {
-                        {
-                            course
-                                .termine
-                                .iter()
-                                .map(|termin| {
-                                    rsx! {
-                                        tr {
-                                            td { {termin.date.clone()} }
-                                            td { {termin.time_start.clone()} }
-                                            td { {termin.time_end.clone()} }
-                                            td { {termin.instructors.clone().unwrap_or_default().clone()} }
-                                            td {
-                                                ul {
-                                                    {
-                                                        termin
-                                                            .rooms
-                                                            .iter()
-                                                            .map(|room| {
-                                                                rsx! {
-                                                                    li { {room.name.clone()} }
-                                                                }
-                                                            })
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                })
                         }
                     }
                 }

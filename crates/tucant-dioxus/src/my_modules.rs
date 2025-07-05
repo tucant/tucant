@@ -61,37 +61,39 @@ pub fn MyModules(semester: ReadOnlySignal<SemesterId>) -> Element {
                             })
                     }
                 }
-                table { class: "table",
-                    thead {
-                        tr {
-                            th { scope: "col", {"NR"} }
-                            th { scope: "col", {"Name"} }
-                            th { scope: "col", {"Verantwortliche Person"} }
-                            th { scope: "col", {"Credits"} }
+                div { class: "table-responsive",
+                    table { class: "table",
+                        thead {
+                            tr {
+                                th { scope: "col", {"NR"} }
+                                th { scope: "col", {"Name"} }
+                                th { scope: "col", {"Verantwortliche Person"} }
+                                th { scope: "col", {"Credits"} }
+                            }
                         }
-                    }
-                    tbody {
-                        {
-                            my_modules
-                                .modules
-                                .iter()
-                                .map(|module| {
-                                    rsx! {
-                                        tr {
-                                            th { scope: "row", {module.nr.clone()} }
-                                            td {
-                                                Link {
-                                                    to: Route::ModuleDetails {
-                                                        module: module.url.clone(),
-                                                    },
-                                                    {module.title.clone()}
+                        tbody {
+                            {
+                                my_modules
+                                    .modules
+                                    .iter()
+                                    .map(|module| {
+                                        rsx! {
+                                            tr {
+                                                th { scope: "row", {module.nr.clone()} }
+                                                td {
+                                                    Link {
+                                                        to: Route::ModuleDetails {
+                                                            module: module.url.clone(),
+                                                        },
+                                                        {module.title.clone()}
+                                                    }
                                                 }
+                                                td { {module.lecturer.clone()} }
+                                                td { {module.credits.clone().unwrap_or_else(|| "-".to_owned())} }
                                             }
-                                            td { {module.lecturer.clone()} }
-                                            td { {module.credits.clone().unwrap_or_else(|| "-".to_owned())} }
                                         }
-                                    }
-                                })
+                                    })
+                            }
                         }
                     }
                 }

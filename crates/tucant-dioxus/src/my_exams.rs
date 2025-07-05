@@ -61,59 +61,62 @@ pub fn MyExams(semester: ReadOnlySignal<SemesterId>) -> Element {
                             })
                     }
                 }
-                table { class: "table",
-                    thead {
-                        tr {
-                            th { scope: "col", {"NR"} }
-                            th { scope: "col", {"Name"} }
-                            th { scope: "col", {"Prüfungsart"} }
-                            th { scope: "col", {"Termin"} }
+                div { class: "table-responsive",
+                    table { class: "table",
+                        thead {
+                            tr {
+                                th { scope: "col", {"NR"} }
+                                th { scope: "col", {"Name"} }
+                                th { scope: "col", {"Prüfungsart"} }
+                                th { scope: "col", {"Termin"} }
+                            }
                         }
-                    }
-                    tbody {
-                        {
-                            exams
-                                .exams
-                                .iter()
-                                .map(|exam| {
-                                    rsx! {
-                                        tr {
-                                            th { scope: "row", {exam.id.clone()} }
-                                            td {
-                                                if let Some(coursedetails_url) = &exam.coursedetails_url {
-                                                    Link {
-                                                        to: Route::CourseDetails {
-                                                            course: coursedetails_url.clone(),
-                                                        },
-                                                        {exam.name.clone()}
+                        tbody {
+                            {
+                                exams
+                                    .exams
+                                    .iter()
+                                    .map(|exam| {
+                                        rsx! {
+                                            tr {
+                                                th { scope: "row", {exam.id.clone()} }
+                                                td {
+                                                    if let Some(coursedetails_url) = &exam.coursedetails_url {
+                                                        Link {
+                                                            to: Route::CourseDetails {
+                                                                course: coursedetails_url.clone(),
+                                                            },
+                                                            {exam.name.clone()}
+                                                        }
+                                                    }
+                                                    if let Some(moduledetails_url) = &exam.moduledetails_url {
+                                                        Link {
+                                                            to: Route::ModuleDetails {
+                                                                module: moduledetails_url.clone(),
+                                                            },
+                                                            {exam.name.clone()}
+                                                        }
                                                     }
                                                 }
-                                                if let Some(moduledetails_url) = &exam.moduledetails_url {
-                                                    Link {
-                                                        to: Route::ModuleDetails {
-                                                            module: moduledetails_url.clone(),
-                                                        },
-                                                        {exam.name.clone()}
+                                                td {
+                                                    a { href: format!("https://www.tucan.tu-darmstadt.de{}", exam.examdetail_url),
+                                                        {exam.pruefungsart.clone()}
                                                     }
                                                 }
-                                            }
-                                            td {
-                                                a { href: format!("https://www.tucan.tu-darmstadt.de{}", exam.examdetail_url),
-                                                    {exam.pruefungsart.clone()}
-                                                }
-                                            }
-                                            td {
-                                                if let Some(courseprep_url) = &exam.courseprep_url {
-                                                    a { href: format!("https://www.tucan.tu-darmstadt.de{}", courseprep_url),
+                                                td {
+                                                    if let Some(courseprep_url) = &exam.courseprep_url {
+                                                        a { href: format!("https://www.tucan.tu-darmstadt.de{}", courseprep_url),
+                                                            {exam.date.clone()}
+                                                        }
+                                                    } else {
                                                         {exam.date.clone()}
                                                     }
-                                                } else {
-                                                    {exam.date.clone()}
                                                 }
                                             }
                                         }
-                                    }
-                                })
+                                    })
+                            }
+                        
                         }
                     }
                 }

@@ -1,14 +1,17 @@
+use std::{str::FromStr, sync::LazyLock};
+
 use crate::{
     TucanConnector, authenticated_retryable_get,
     head::{footer, html_head, logged_in_head, logged_out_head},
 };
 use html_handler::{InElement, Root, parse_document};
 use log::info;
+use regex::Regex;
 use scraper::CaseSensitivity;
 use time::{Duration, OffsetDateTime};
 use tucant_types::{
-    LoginResponse, RevalidationStrategy, TucanError,
-    student_result::{CourseOfStudySelection, StudentResultEntry, StudentResultLevel, StudentResultResponse},
+    Grade, LoginResponse, RevalidationStrategy, TucanError,
+    student_result::{CourseOfStudySelection, StudentResultEntry, StudentResultLevel, StudentResultResponse, StudentResultRules},
 };
 
 /// 0 is the default
@@ -104,13 +107,48 @@ fn part0<'a, T>(html_handler: InElement<'a, T>, level: &str) -> (InElement<'a, T
             id,
             name: name_and_resultdetails_url.clone().either_into::<(String, Option<String>)>().0,
             resultdetails_url: name_and_resultdetails_url.either_into::<(String, Option<String>)>().1,
-            cp,
-            used_cp,
-            grade,
+            cp: cp.map(|v| v.trim_end_matches(",0").parse().unwrap()),
+            used_cp: used_cp.map(|v| v.trim_end_matches(",0").parse().unwrap()),
+            grade: grade.map(|g| Grade::from_str(&g).unwrap()),
             state
         };
     }
     (html_handler, (level_i, entries))
+}
+
+fn parse_rules(rules: &[String]) -> StudentResultRules {
+    static RULES_1: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^Es sind mindestens +(?P<min>\d+),0 Credits einzubringen. Die Ergebnisse von maximal +(?P<max>\d+),0 Credits gehen in die Notenberechnung ein.$").unwrap());
+    static RULES_2: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^Maximal +(?P<max>\d+),0 Credits gehen in die Notenberechnung ein.$").unwrap());
+    static RULES_3: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^In diesem Bereich sind +(?P<eq>\d+),0 Credits einzubringen.$").unwrap());
+    static RULES_4: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^Erforderliche Credits für Abschluss: +(?P<eq>\d+),0$").unwrap());
+    static RULES_5: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^Es sind mindestens +(?P<min>\d+),0 Credits einzubringen.$").unwrap());
+    static RULES_6: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^In diesem Bereich sind mindestens[[:space:]]+(?P<min>\d+)[[:space:]]+und maximal[[:space:]]+(?P<max>\d+) Module zu belegen.$").unwrap());
+    let mut result = StudentResultRules { min_cp: 0, max_cp: None, min_modules: 0, max_modules: None };
+    for rule in rules {
+        if let Some(c) = RULES_1.captures(rule) {
+            result.min_cp = c["min"].parse().unwrap();
+            result.max_cp = Some(c["max"].parse().unwrap());
+        } else if let Some(c) = RULES_2.captures(rule) {
+            result.max_cp = Some(c["max"].parse().unwrap());
+        } else if let Some(c) = RULES_3.captures(rule) {
+            result.min_cp = c["eq"].parse().unwrap();
+            result.max_cp = Some(c["eq"].parse().unwrap());
+        } else if let Some(c) = RULES_4.captures(rule) {
+            result.min_cp = c["eq"].parse().unwrap();
+            result.max_cp = Some(c["eq"].parse().unwrap());
+        } else if let Some(c) = RULES_5.captures(rule) {
+            result.min_cp = c["min"].parse().unwrap();
+        } else if let Some(c) = RULES_6.captures(rule) {
+            result.min_modules = c["min"].parse().unwrap();
+            let max: u64 = c["max"].parse().unwrap();
+            if max != 0 {
+                result.max_modules = Some(max);
+            }
+        } else {
+            panic!("{}", rule);
+        }
+    }
+    result
 }
 
 fn part1<'a, T>(html_handler: InElement<'a, T>, level: &str, name: (String, Vec<StudentResultEntry>), children: Vec<StudentResultLevel>) -> (InElement<'a, T>, StudentResultLevel) {
@@ -147,10 +185,10 @@ fn part1<'a, T>(html_handler: InElement<'a, T>, level: &str, name: (String, Vec<
             let rules = while html_handler.peek().is_some() && html_handler.peek().unwrap().first_child().unwrap().value().as_element().unwrap().has_class(level, CaseSensitivity::CaseSensitive) {
                 <tr>
                     <td colspan="   7" class={|v| assert_eq!(v, level)}>
-                        rules
+                        rule
                     </td>
                 </tr>
-            } => rules;
+            } => rule;
         } => {
             let (sum_cp, sum_used_cp) = sum_cp_and_used_cp.either_into();
             (sum_cp, sum_used_cp, state, rules)
@@ -161,10 +199,10 @@ fn part1<'a, T>(html_handler: InElement<'a, T>, level: &str, name: (String, Vec<
         StudentResultLevel {
             name: name.0,
             entries: name.1,
-            sum_cp: optional.clone().and_then(|o| o.0),
-            sum_used_cp: optional.clone().and_then(|o| o.1),
+            sum_cp: optional.clone().and_then(|o| o.0).map(|v| v.trim_end_matches(",0").parse().unwrap()),
+            sum_used_cp: optional.clone().and_then(|o| o.1).map(|v| v.trim_end_matches(",0").parse().unwrap()),
             state: optional.clone().map(|o| o.2),
-            rules: optional.map(|o| o.3).unwrap_or_default(),
+            rules: parse_rules(&optional.map(|o| o.3).unwrap_or_default()),
             children,
         },
     )
@@ -212,11 +250,11 @@ fn student_result_internal(login_response: &LoginResponse, content: &str) -> Res
                                                         <option value=value selected="selected">
                                                             name
                                                         </option>
-                                                    } => CourseOfStudySelection { name, value, selected: true } else {
+                                                    } => CourseOfStudySelection { name, value: value.parse().unwrap(), selected: true } else {
                                                         <option value=value>
                                                             name
                                                         </option>
-                                                    } => CourseOfStudySelection { name, value, selected: false };
+                                                    } => CourseOfStudySelection { name, value: value.parse().unwrap(), selected: false };
                                                 } => course_of_study.either_into::<CourseOfStudySelection>();
                                             </select>
                                             <input id="Refresh" name="Refresh" type="submit" value="Aktualisieren" class="img img_arrowReload pageElementLeft update"></input>
@@ -315,7 +353,7 @@ fn student_result_internal(login_response: &LoginResponse, content: &str) -> Res
     html_handler.end_document();
 
     Ok(StudentResultResponse {
-        course_of_study: course_of_study.unwrap_or_else(|| vec![CourseOfStudySelection { name: selected_course_of_study, selected: true, value: "default".to_owned() }]),
+        course_of_study: course_of_study.unwrap_or_else(|| vec![CourseOfStudySelection { name: selected_course_of_study, selected: true, value: 0 }]),
         level0: level0_contents,
         total_gpa,
         main_gpa,

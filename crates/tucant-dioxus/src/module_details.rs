@@ -83,28 +83,30 @@ pub fn ModuleDetails(module: ReadOnlySignal<ModuleDetailsRequest>) -> Element {
                                         }
                                     }
                                 }
-                                table { class: "table",
-                                    thead {
-                                        tr {
-                                            th { scope: "col", {"Nummer"} }
-                                            th { scope: "col", {"Name"} }
-                                            th { scope: "col", {"Semester"} }
+                                div { class: "table-responsive",
+                                    table { class: "table",
+                                        thead {
+                                            tr {
+                                                th { scope: "col", {"Nummer"} }
+                                                th { scope: "col", {"Name"} }
+                                                th { scope: "col", {"Semester"} }
+                                            }
                                         }
-                                    }
-                                    tbody {
-                                        {
-                                            kurskategorie
-                                                .kurse
-                                                .iter()
-                                                .map(|kurs| {
-                                                    rsx! {
-                                                        tr {
-                                                            th { scope: "row", {kurs.course_id.clone()} }
-                                                            td { {kurs.name.clone()} }
-                                                            td { {kurs.semester.clone()} }
+                                        tbody {
+                                            {
+                                                kurskategorie
+                                                    .kurse
+                                                    .iter()
+                                                    .map(|kurs| {
+                                                        rsx! {
+                                                            tr {
+                                                                th { scope: "row", {kurs.course_id.clone()} }
+                                                                td { {kurs.name.clone()} }
+                                                                td { {kurs.semester.clone()} }
+                                                            }
                                                         }
-                                                    }
-                                                })
+                                                    })
+                                            }
                                         }
                                     }
                                 }
@@ -148,28 +150,30 @@ pub fn ModuleDetails(module: ReadOnlySignal<ModuleDetailsRequest>) -> Element {
                                         span { class: "badge text-bg-secondary", {"Pflicht"} }
                                     }
                                 }
-                                table { class: "table",
-                                    thead {
-                                        tr {
-                                            th { scope: "col", {"Name"} }
-                                            th { scope: "col", {"Datum"} }
-                                            th { scope: "col", {"Prüfende"} }
+                                div { class: "table-responsive",
+                                    table { class: "table",
+                                        thead {
+                                            tr {
+                                                th { scope: "col", {"Name"} }
+                                                th { scope: "col", {"Datum"} }
+                                                th { scope: "col", {"Prüfende"} }
+                                            }
                                         }
-                                    }
-                                    tbody {
-                                        {
-                                            pruefung
-                                                .termine
-                                                .iter()
-                                                .map(|termin| {
-                                                    rsx! {
-                                                        tr {
-                                                            th { scope: "row", {termin.subname.clone()} }
-                                                            td { {termin.date.clone()} }
-                                                            td { {termin.examiner.clone()} }
+                                        tbody {
+                                            {
+                                                pruefung
+                                                    .termine
+                                                    .iter()
+                                                    .map(|termin| {
+                                                        rsx! {
+                                                            tr {
+                                                                th { scope: "row", {termin.subname.clone()} }
+                                                                td { {termin.date.clone()} }
+                                                                td { {termin.examiner.clone()} }
+                                                            }
                                                         }
-                                                    }
-                                                })
+                                                    })
+                                            }
                                         }
                                     }
                                 }

@@ -23,7 +23,7 @@ pub fn Vorlesungsverzeichnisse(data: ReadOnlySignal<Option<MlsStart>>) -> Elemen
                                 },
                                 class: "dropdown-item bg-success {disabled}",
                                 "data-bs-target": "#navbarSupportedContent",
-                                "data-bs-toggle": "collapse",
+                                "data-bs-hide": "collapse",
                                 "{name}"
                                 if data().is_none() {
                                     " "
@@ -57,7 +57,7 @@ pub fn NavbarLoggedIn(current_session: ReadOnlySignal<LoginResponse>, data: Read
                         to: Route::Overview {},
                         class: "dropdown-item bg-success",
                         "data-bs-target": "#navbarSupportedContent",
-                        "data-bs-toggle": "collapse",
+                        "data-bs-hide": "collapse",
                         "Aktuelles"
                     }
                 }
@@ -105,7 +105,7 @@ pub fn NavbarLoggedIn(current_session: ReadOnlySignal<LoginResponse>, data: Read
                             }),
                         class: "dropdown-item bg-success {disabled}",
                         "data-bs-target": "#navbarSupportedContent",
-                        "data-bs-toggle": "collapse",
+                        "data-bs-hide": "collapse",
                         "Vorlesungsverzeichnis"
                         if data().is_none() {
                             " "
@@ -253,7 +253,7 @@ pub fn NavbarLoggedIn(current_session: ReadOnlySignal<LoginResponse>, data: Read
                         },
                         class: "dropdown-item bg-success",
                         "data-bs-target": "#navbarSupportedContent",
-                        "data-bs-toggle": "collapse",
+                        "data-bs-hide": "collapse",
                         {"Meine Semestermodule"}
                     }
                 }
@@ -264,7 +264,7 @@ pub fn NavbarLoggedIn(current_session: ReadOnlySignal<LoginResponse>, data: Read
                         },
                         class: "dropdown-item bg-success",
                         "data-bs-target": "#navbarSupportedContent",
-                        "data-bs-toggle": "collapse",
+                        "data-bs-hide": "collapse",
                         {"Meine Module"}
                     }
                 }
@@ -275,7 +275,7 @@ pub fn NavbarLoggedIn(current_session: ReadOnlySignal<LoginResponse>, data: Read
                         },
                         class: "dropdown-item bg-success",
                         "data-bs-target": "#navbarSupportedContent",
-                        "data-bs-toggle": "collapse",
+                        "data-bs-hide": "collapse",
                         {"Meine Veranstaltungen"}
                     }
                 }
@@ -296,7 +296,7 @@ pub fn NavbarLoggedIn(current_session: ReadOnlySignal<LoginResponse>, data: Read
                         },
                         class: "dropdown-item bg-success",
                         "data-bs-target": "#navbarSupportedContent",
-                        "data-bs-toggle": "collapse",
+                        "data-bs-hide": "collapse",
                         {"Anmeldung"}
                     }
                 }
@@ -342,7 +342,7 @@ pub fn NavbarLoggedIn(current_session: ReadOnlySignal<LoginResponse>, data: Read
                         },
                         class: "dropdown-item bg-success",
                         "data-bs-target": "#navbarSupportedContent",
-                        "data-bs-toggle": "collapse",
+                        "data-bs-hide": "collapse",
                         {"Meine Prüfungen"}
                     }
                 }
@@ -383,7 +383,7 @@ pub fn NavbarLoggedIn(current_session: ReadOnlySignal<LoginResponse>, data: Read
                         },
                         class: "dropdown-item bg-success",
                         "data-bs-target": "#navbarSupportedContent",
-                        "data-bs-toggle": "collapse",
+                        "data-bs-hide": "collapse",
                         {"Modulergebnisse"}
                     }
                 }
@@ -394,7 +394,7 @@ pub fn NavbarLoggedIn(current_session: ReadOnlySignal<LoginResponse>, data: Read
                         },
                         class: "dropdown-item bg-success",
                         "data-bs-target": "#navbarSupportedContent",
-                        "data-bs-toggle": "collapse",
+                        "data-bs-hide": "collapse",
                         {"Prüfungsergebnisse"}
                     }
                 }
@@ -405,7 +405,7 @@ pub fn NavbarLoggedIn(current_session: ReadOnlySignal<LoginResponse>, data: Read
                         },
                         class: "dropdown-item bg-success",
                         "data-bs-target": "#navbarSupportedContent",
-                        "data-bs-toggle": "collapse",
+                        "data-bs-hide": "collapse",
                         {"Leistungsspiegel"}
                     }
                 }
@@ -449,7 +449,7 @@ pub fn NavbarLoggedIn(current_session: ReadOnlySignal<LoginResponse>, data: Read
                         to: Route::MyDocuments {},
                         class: "dropdown-item bg-success",
                         "data-bs-target": "#navbarSupportedContent",
-                        "data-bs-toggle": "collapse",
+                        "data-bs-hide": "collapse",
                         {"Meine Dokumente"}
                     }
                 }
@@ -528,7 +528,7 @@ pub fn NavbarLoggedIn(current_session: ReadOnlySignal<LoginResponse>, data: Read
                         to: Route::MyDocuments {},
                         class: "dropdown-item bg-success",
                         "data-bs-target": "#navbarSupportedContent",
-                        "data-bs-toggle": "collapse",
+                        "data-bs-hide": "collapse",
                         {"Meine Dokumente"}
                     }
                 }

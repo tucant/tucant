@@ -61,51 +61,53 @@ pub fn CourseResults(semester: ReadOnlySignal<SemesterId>) -> Element {
                             })
                     }
                 }
-                table { class: "table",
-                    thead {
-                        tr {
-                            th { scope: "col", {"Nr"} }
-                            th { scope: "col", {"Name"} }
-                            th { scope: "col", {"Credits"} }
-                            th { scope: "col", {"Note"} }
-                            th { scope: "col", {"Status"} }
-                            th { scope: "col", {"Prüfungen"} }
-                            th { scope: "col", {"Ø"} }
+                div { class: "table-responsive",
+                    table { class: "table",
+                        thead {
+                            tr {
+                                th { scope: "col", {"Nr"} }
+                                th { scope: "col", {"Name"} }
+                                th { scope: "col", {"Credits"} }
+                                th { scope: "col", {"Note"} }
+                                th { scope: "col", {"Status"} }
+                                th { scope: "col", {"Prüfungen"} }
+                                th { scope: "col", {"Ø"} }
+                            }
                         }
-                    }
-                    tbody {
-                        {
-                            course_results
-                                .results
-                                .iter()
-                                .map(|exam| {
-                                    rsx! {
-                                        tr {
-                                            th { scope: "row", {exam.nr.clone()} }
-                                            td { {exam.name.clone()} }
-                                            td { {exam.credits.clone()} }
-                                            td { {exam.grade.clone().unwrap_or_else(|| "-".to_owned())} }
-                                            td { {exam.status.clone().unwrap_or_default().clone()} }
-                                            td {
-                                                if let Some(pruefungen_url) = &exam.pruefungen_url {
-                                                    a { href: format!("https://www.tucan.tu-darmstadt.de{}", pruefungen_url),
-                                                        {"Prüfungen"}
+                        tbody {
+                            {
+                                course_results
+                                    .results
+                                    .iter()
+                                    .map(|exam| {
+                                        rsx! {
+                                            tr {
+                                                th { scope: "row", {exam.nr.clone()} }
+                                                td { {exam.name.clone()} }
+                                                td { {exam.credits.clone()} }
+                                                td { {exam.grade.clone().unwrap_or_else(|| "-".to_owned())} }
+                                                td { {exam.status.clone().unwrap_or_default().clone()} }
+                                                td {
+                                                    if let Some(pruefungen_url) = &exam.pruefungen_url {
+                                                        a { href: format!("https://www.tucan.tu-darmstadt.de{}", pruefungen_url),
+                                                            {"Prüfungen"}
+                                                        }
                                                     }
                                                 }
-                                            }
-                                            td {
-                                                if let Some(average_url) = &exam.average_url {
-                                                    Link {
-                                                        to: Route::GradeOverview {
-                                                            gradeoverview: average_url.clone(),
-                                                        },
-                                                        "Ø"
+                                                td {
+                                                    if let Some(average_url) = &exam.average_url {
+                                                        Link {
+                                                            to: Route::GradeOverview {
+                                                                gradeoverview: average_url.clone(),
+                                                            },
+                                                            "Ø"
+                                                        }
                                                     }
                                                 }
                                             }
                                         }
-                                    }
-                                })
+                                    })
+                            }
                         }
                     }
                 }
