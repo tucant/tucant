@@ -18,11 +18,11 @@ fn main() -> Result<(), TucanError> {
     tokio::runtime::Builder::new_current_thread().enable_all().build().unwrap().block_on(async_main())
 }
 
-fn validate(level: &StudentResultLevel) -> (u64, u64) {
+fn validate(errors: &mut Vec<String>, level: &StudentResultLevel) -> (u64, u64) {
     let mut cp = 0;
     let mut modules = 0;
     for level in &level.children {
-        let inner = validate(&level);
+        let inner = validate(errors, &level);
         cp += inner.0;
         modules += inner.1;
     }
@@ -33,10 +33,10 @@ fn validate(level: &StudentResultLevel) -> (u64, u64) {
         modules += 1;
     }
     if cp > level.rules.max_cp.unwrap_or(u64::MAX) || cp < level.rules.min_cp {
-        panic!("invalid cp")
+        errors.push(format!("invalid cp for {}", level.name))
     }
     if modules > level.rules.max_modules.unwrap_or(u64::MAX) || modules < level.rules.min_modules {
-        panic!("invalid module count")
+        errors.push(format!("invalid module count for {}", level.name))
     }
     (cp, modules)
 }
@@ -62,13 +62,17 @@ async fn async_main() -> Result<(), TucanError> {
     let student_result = tucan.student_result(&login_response, RevalidationStrategy::cache(), bachelor).await.unwrap();
     println!("{:#?}", student_result);
 
-    validate(&student_result.level0);
+    let mut errors = Vec::new();
+    validate(&mut errors, &student_result.level0);
+    println!("{:#?}", errors);
 
     let master = course_of_studies.course_of_study.iter().find(|v| v.name == "M.Sc. Informatik (2023)").unwrap().value;
     let student_result = tucan.student_result(&login_response, RevalidationStrategy::cache(), master).await.unwrap();
     println!("{:#?}", student_result);
 
-    validate(&student_result.level0);
+    let mut errors = Vec::new();
+    validate(&mut errors, &student_result.level0);
+    println!("{:#?}", errors);
 
     Ok(())
 }
