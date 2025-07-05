@@ -13,7 +13,7 @@ pub mod registration;
 pub mod student_result;
 pub mod vv;
 
-use std::{convert::Infallible, str::FromStr};
+use std::{convert::Infallible, fmt::Display, str::FromStr};
 
 use axum_core::response::{IntoResponse, Response};
 use coursedetails::{CourseDetailsRequest, CourseDetailsResponse};
@@ -163,6 +163,66 @@ pub struct Semesterauswahl {
     pub name: String,
     pub value: SemesterId,
     pub selected: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema, PartialEq, Eq)]
+pub enum Grade {
+    G1_0,
+    G1_3,
+    G1_7,
+    G2_0,
+    G2_3,
+    G2_7,
+    G3_0,
+    G3_3,
+    G3_7,
+    G4_0,
+    G5_0,
+    B,
+    NB,
+}
+
+impl FromStr for Grade {
+    type Err = Infallible;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(match s {
+            "1,0" => Self::G1_0,
+            "1,3" => Self::G1_3,
+            "1,7" => Self::G1_7,
+            "2,0" => Self::G2_0,
+            "2,3" => Self::G2_3,
+            "2,7" => Self::G2_7,
+            "3,0" => Self::G3_0,
+            "3,3" => Self::G3_3,
+            "3,7" => Self::G3_7,
+            "4,0" => Self::G4_0,
+            "5,0" => Self::G5_0,
+            "b" => Self::B,
+            "nb" => Self::NB,
+            s => panic!("{}", s),
+        })
+    }
+}
+
+impl Display for Grade {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::G1_0 => write!(f, "1,0"),
+            Self::G1_3 => todo!(),
+            Self::G1_7 => todo!(),
+            Self::G2_0 => todo!(),
+            Self::G2_3 => todo!(),
+            Self::G2_7 => todo!(),
+            Self::G3_0 => todo!(),
+            Self::G3_3 => todo!(),
+            Self::G3_7 => todo!(),
+            Self::G4_0 => todo!(),
+            Self::G5_0 => todo!(),
+            Self::B => todo!(),
+            Self::NB => todo!(),
+        }
+    }
 }
 
 #[dynosaur::dynosaur(pub DynTucan)]

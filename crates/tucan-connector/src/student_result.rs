@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use crate::{
     TucanConnector, authenticated_retryable_get,
     head::{footer, html_head, logged_in_head, logged_out_head},
@@ -7,7 +9,7 @@ use log::info;
 use scraper::CaseSensitivity;
 use time::{Duration, OffsetDateTime};
 use tucant_types::{
-    LoginResponse, RevalidationStrategy, TucanError,
+    Grade, LoginResponse, RevalidationStrategy, TucanError,
     student_result::{CourseOfStudySelection, StudentResultEntry, StudentResultLevel, StudentResultResponse},
 };
 
@@ -104,9 +106,9 @@ fn part0<'a, T>(html_handler: InElement<'a, T>, level: &str) -> (InElement<'a, T
             id,
             name: name_and_resultdetails_url.clone().either_into::<(String, Option<String>)>().0,
             resultdetails_url: name_and_resultdetails_url.either_into::<(String, Option<String>)>().1,
-            cp,
-            used_cp,
-            grade,
+            cp: cp.map(|v| v.trim_end_matches(",0").parse().unwrap()),
+            used_cp: used_cp.map(|v| v.trim_end_matches(",0").parse().unwrap()),
+            grade: grade.map(|g| Grade::from_str(&g).unwrap()),
             state
         };
     }
@@ -161,8 +163,8 @@ fn part1<'a, T>(html_handler: InElement<'a, T>, level: &str, name: (String, Vec<
         StudentResultLevel {
             name: name.0,
             entries: name.1,
-            sum_cp: optional.clone().and_then(|o| o.0),
-            sum_used_cp: optional.clone().and_then(|o| o.1),
+            sum_cp: optional.clone().and_then(|o| o.0).map(|v| v.trim_end_matches(",0").parse().unwrap()),
+            sum_used_cp: optional.clone().and_then(|o| o.1).map(|v| v.trim_end_matches(",0").parse().unwrap()),
             state: optional.clone().map(|o| o.2),
             rules: optional.map(|o| o.3).unwrap_or_default(),
             children,
@@ -212,11 +214,11 @@ fn student_result_internal(login_response: &LoginResponse, content: &str) -> Res
                                                         <option value=value selected="selected">
                                                             name
                                                         </option>
-                                                    } => CourseOfStudySelection { name, value, selected: true } else {
+                                                    } => CourseOfStudySelection { name, value: value.parse().unwrap(), selected: true } else {
                                                         <option value=value>
                                                             name
                                                         </option>
-                                                    } => CourseOfStudySelection { name, value, selected: false };
+                                                    } => CourseOfStudySelection { name, value: value.parse().unwrap(), selected: false };
                                                 } => course_of_study.either_into::<CourseOfStudySelection>();
                                             </select>
                                             <input id="Refresh" name="Refresh" type="submit" value="Aktualisieren" class="img img_arrowReload pageElementLeft update"></input>
@@ -315,7 +317,7 @@ fn student_result_internal(login_response: &LoginResponse, content: &str) -> Res
     html_handler.end_document();
 
     Ok(StudentResultResponse {
-        course_of_study: course_of_study.unwrap_or_else(|| vec![CourseOfStudySelection { name: selected_course_of_study, selected: true, value: "default".to_owned() }]),
+        course_of_study: course_of_study.unwrap_or_else(|| vec![CourseOfStudySelection { name: selected_course_of_study, selected: true, value: 0 }]),
         level0: level0_contents,
         total_gpa,
         main_gpa,

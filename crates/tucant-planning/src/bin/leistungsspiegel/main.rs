@@ -33,8 +33,8 @@ async fn async_main() -> Result<(), TucanError> {
         .unwrap();
 
     let course_of_studies = tucan.student_result(&login_response, RevalidationStrategy::cache(), 0).await.unwrap();
-    let bachelor = course_of_studies.course_of_study.iter().find(|v| v.name == "B.Sc. Informatik (2015)").unwrap().value.parse().unwrap();
+    let bachelor = course_of_studies.course_of_study.iter().find(|v| v.name == "B.Sc. Informatik (2015)").unwrap().value;
     let student_result = tucan.student_result(&login_response, RevalidationStrategy::cache(), bachelor).await.unwrap();
-    println!("{:?}", student_result.level0);
+    println!("{:#?}", student_result.level0);
     Ok(())
 }
