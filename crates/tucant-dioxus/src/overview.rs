@@ -37,79 +37,83 @@ pub fn Overview() -> Element {
                     }
                 }
                 h2 { {"Stundenplan"} }
-                table { class: "table",
-                    thead {
-                        tr {
-                            th { scope: "col", {"Kurs"} }
-                            th { scope: "col", {"Von"} }
-                            th { scope: "col", {"Bis"} }
+                div { class: "table-responsive",
+                    table { class: "table",
+                        thead {
+                            tr {
+                                th { scope: "col", {"Kurs"} }
+                                th { scope: "col", {"Von"} }
+                                th { scope: "col", {"Bis"} }
+                            }
                         }
-                    }
-                    tbody {
-                        {
-                            mlsstart
-                                .stundenplan
-                                .iter()
-                                .map(|stundenplaneintrag| {
-                                    rsx! {
-                                        tr {
-                                            th { scope: "row",
-                                                Link {
-                                                    to: Route::CourseDetails {
-                                                        course: stundenplaneintrag.coursedetails_url.clone(),
-                                                    },
-                                                    {stundenplaneintrag.course_name.clone()}
+                        tbody {
+                            {
+                                mlsstart
+                                    .stundenplan
+                                    .iter()
+                                    .map(|stundenplaneintrag| {
+                                        rsx! {
+                                            tr {
+                                                th { scope: "row",
+                                                    Link {
+                                                        to: Route::CourseDetails {
+                                                            course: stundenplaneintrag.coursedetails_url.clone(),
+                                                        },
+                                                        {stundenplaneintrag.course_name.clone()}
+                                                    }
                                                 }
-                                            }
-                                            td {
-                                                a { href: format!("https://www.tucan.tu-darmstadt.de{}", stundenplaneintrag.courseprep_url),
-                                                    {stundenplaneintrag.from.clone()}
+                                                td {
+                                                    a { href: format!("https://www.tucan.tu-darmstadt.de{}", stundenplaneintrag.courseprep_url),
+                                                        {stundenplaneintrag.from.clone()}
+                                                    }
                                                 }
-                                            }
-                                            td {
-                                                a { href: format!("https://www.tucan.tu-darmstadt.de{}", stundenplaneintrag.courseprep_url),
-                                                    {stundenplaneintrag.to.clone()}
+                                                td {
+                                                    a { href: format!("https://www.tucan.tu-darmstadt.de{}", stundenplaneintrag.courseprep_url),
+                                                        {stundenplaneintrag.to.clone()}
+                                                    }
                                                 }
                                             }
                                         }
-                                    }
-                                })
+                                    })
+                            }
                         }
                     }
                 }
                 h2 { {"Nachrichten"} }
-                table { class: "table",
-                    thead {
-                        tr {
-                            th { scope: "col", {"Datum"} }
-                            th { scope: "col", {"Absender"} }
-                            th { scope: "col", {"Nachricht"} }
-                            th { scope: "col", {"Löschen"} }
+                div { class: "table-responsive",
+                    table { class: "table",
+                        thead {
+                            tr {
+                                th { scope: "col", {"Datum"} }
+                                th { scope: "col", {"Absender"} }
+                                th { scope: "col", {"Nachricht"} }
+                                th { scope: "col", {"Löschen"} }
+                            }
                         }
-                    }
-                    tbody {
-                        {
-                            mlsstart
-                                .messages
-                                .iter()
-                                .map(|nachricht| {
-                                    rsx! {
-                                        tr {
-                                            th { scope: "row", {nachricht.date.clone()} }
-                                            td { {nachricht.source.clone()} }
-                                            td {
-                                                a { href: format!("https://www.tucan.tu-darmstadt.de{}", nachricht.url),
-                                                    {nachricht.message.clone()}
+                        tbody {
+                            {
+                                mlsstart
+                                    .messages
+                                    .iter()
+                                    .map(|nachricht| {
+                                        rsx! {
+                                            tr {
+                                                th { scope: "row", {nachricht.date.clone()} }
+                                                td { {nachricht.source.clone()} }
+                                                td {
+                                                    a { href: format!("https://www.tucan.tu-darmstadt.de{}", nachricht.url),
+                                                        {nachricht.message.clone()}
+                                                    }
                                                 }
-                                            }
-                                            td {
-                                                a { href: format!("https://www.tucan.tu-darmstadt.de{}", nachricht.delete_url),
-                                                    {"Löschen"}
+                                                td {
+                                                    a { href: format!("https://www.tucan.tu-darmstadt.de{}", nachricht.delete_url),
+                                                        {"Löschen"}
+                                                    }
                                                 }
                                             }
                                         }
-                                    }
-                                })
+                                    })
+                            }
                         }
                     }
                 }

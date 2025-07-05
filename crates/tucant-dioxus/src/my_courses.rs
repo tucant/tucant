@@ -68,37 +68,39 @@ pub fn MyCourses(semester: ReadOnlySignal<SemesterId>) -> Element {
                         .map(|section| {
                             rsx! {
                                 h2 { {section.0.clone()} }
-                                table { class: "table",
-                                    thead {
-                                        tr {
-                                            th { scope: "col", {"NR"} }
-                                            th { scope: "col", {"Name"} }
-                                            th { scope: "col", {"Zeitraum"} }
-                                            th { scope: "col", {"Standort"} }
+                                div { class: "table-responsive",
+                                    table { class: "table",
+                                        thead {
+                                            tr {
+                                                th { scope: "col", {"NR"} }
+                                                th { scope: "col", {"Name"} }
+                                                th { scope: "col", {"Zeitraum"} }
+                                                th { scope: "col", {"Standort"} }
+                                            }
                                         }
-                                    }
-                                    tbody {
-                                        {
-                                            section
-                                                .1
-                                                .iter()
-                                                .map(|course| {
-                                                    rsx! {
-                                                        tr {
-                                                            th { scope: "row", {course.nr.clone()} }
-                                                            td {
-                                                                Link {
-                                                                    to: Route::CourseDetails {
-                                                                        course: course.url.clone(),
-                                                                    },
-                                                                    {course.title.clone()}
+                                        tbody {
+                                            {
+                                                section
+                                                    .1
+                                                    .iter()
+                                                    .map(|course| {
+                                                        rsx! {
+                                                            tr {
+                                                                th { scope: "row", {course.nr.clone()} }
+                                                                td {
+                                                                    Link {
+                                                                        to: Route::CourseDetails {
+                                                                            course: course.url.clone(),
+                                                                        },
+                                                                        {course.title.clone()}
+                                                                    }
                                                                 }
+                                                                td { {course.date_range.clone()} }
+                                                                td { {course.location.clone()} }
                                                             }
-                                                            td { {course.date_range.clone()} }
-                                                            td { {course.location.clone()} }
                                                         }
-                                                    }
-                                                })
+                                                    })
+                                            }
                                         }
                                     }
                                 }

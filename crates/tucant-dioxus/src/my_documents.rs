@@ -36,34 +36,36 @@ pub fn MyDocuments() -> Element {
                         }
                     }
                 }
-                table { class: "table",
-                    thead {
-                        tr {
-                            th { scope: "col", {"Name"} }
-                            th { scope: "col", {"Datum"} }
-                            th { scope: "col", {"URL"} }
+                div { class: "table-responsive",
+                    table { class: "table",
+                        thead {
+                            tr {
+                                th { scope: "col", {"Name"} }
+                                th { scope: "col", {"Datum"} }
+                                th { scope: "col", {"URL"} }
+                            }
                         }
-                    }
-                    tbody {
-                        {
-                            documents
-                                .documents
-                                .iter()
-                                .map(|document| {
-                                    rsx! {
-                                        tr {
-                                            th { scope: "row", {document.name.clone()} }
-                                            td {
-                                                {document.date.clone()}
-                                                {" "}
-                                                {document.time.clone()}
-                                            }
-                                            td {
-                                                a { href: format!("https://www.tucan.tu-darmstadt.de{}", document.url), {"Download"} }
+                        tbody {
+                            {
+                                documents
+                                    .documents
+                                    .iter()
+                                    .map(|document| {
+                                        rsx! {
+                                            tr {
+                                                th { scope: "row", {document.name.clone()} }
+                                                td {
+                                                    {document.date.clone()}
+                                                    {" "}
+                                                    {document.time.clone()}
+                                                }
+                                                td {
+                                                    a { href: format!("https://www.tucan.tu-darmstadt.de{}", document.url), {"Download"} }
+                                                }
                                             }
                                         }
-                                    }
-                                })
+                                    })
+                            }
                         }
                     }
                 }

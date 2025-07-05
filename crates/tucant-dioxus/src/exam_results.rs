@@ -61,41 +61,43 @@ pub fn ExamResults(semester: ReadOnlySignal<SemesterId>) -> Element {
                             })
                     }
                 }
-                table { class: "table",
-                    thead {
-                        tr {
-                            th { scope: "col", {"Name"} }
-                            th { scope: "col", {"Art"} }
-                            th { scope: "col", {"Datum"} }
-                            th { scope: "col", {"Note"} }
-                            th { scope: "col", {"Ø"} }
+                div { class: "table-responsive",
+                    table { class: "table",
+                        thead {
+                            tr {
+                                th { scope: "col", {"Name"} }
+                                th { scope: "col", {"Art"} }
+                                th { scope: "col", {"Datum"} }
+                                th { scope: "col", {"Note"} }
+                                th { scope: "col", {"Ø"} }
+                            }
                         }
-                    }
-                    tbody {
-                        {
-                            exam_results
-                                .results
-                                .iter()
-                                .map(|exam| {
-                                    rsx! {
-                                        tr {
-                                            th { scope: "row", {exam.name.clone()} }
-                                            td { {exam.exam_type.clone()} }
-                                            td { {exam.date.clone().unwrap_or_else(|| "-".to_owned())} }
-                                            td { {exam.grade.clone()} }
-                                            td {
-                                                if let Some(average_url) = &exam.average_url {
-                                                    Link {
-                                                        to: Route::GradeOverview {
-                                                            gradeoverview: average_url.clone(),
-                                                        },
-                                                        "Ø"
+                        tbody {
+                            {
+                                exam_results
+                                    .results
+                                    .iter()
+                                    .map(|exam| {
+                                        rsx! {
+                                            tr {
+                                                th { scope: "row", {exam.name.clone()} }
+                                                td { {exam.exam_type.clone()} }
+                                                td { {exam.date.clone().unwrap_or_else(|| "-".to_owned())} }
+                                                td { {exam.grade.clone()} }
+                                                td {
+                                                    if let Some(average_url) = &exam.average_url {
+                                                        Link {
+                                                            to: Route::GradeOverview {
+                                                                gradeoverview: average_url.clone(),
+                                                            },
+                                                            "Ø"
+                                                        }
                                                     }
                                                 }
                                             }
                                         }
-                                    }
-                                })
+                                    })
+                            }
                         }
                     }
                 }
