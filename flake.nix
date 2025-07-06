@@ -116,6 +116,7 @@
           (craneLib.fileset.commonCargoSources ./crates/html-handler)
           ./crates/tucant-dioxus/assets/bootstrap.css
           ./crates/tucant-dioxus/assets/bootstrap.bundle.min.js
+          ./crates/tucant-dioxus/assets/bootstrap.patch.js
         ];
 
         client = craneLib.buildPackage (commonArgs // {
