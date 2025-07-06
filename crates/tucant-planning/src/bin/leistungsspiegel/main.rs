@@ -4,18 +4,22 @@ use std::sync::Arc;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::u64;
 
-use futures_util::stream::FuturesUnordered;
-use futures_util::{FutureExt, StreamExt};
+use futures_util::stream::{self, FuturesUnordered};
+use futures_util::{FutureExt, Stream, StreamExt};
 use tucan_connector::TucanConnector;
 use tucant_types::coursedetails::CourseDetailsRequest;
-use tucant_types::registration::{AnmeldungRequest, RegistrationState};
+use tucant_types::registration::{AnmeldungModule, AnmeldungRequest, RegistrationState};
 use tucant_types::student_result::StudentResultLevel;
 use tucant_types::{LoginRequest, RevalidationStrategy, Tucan};
 use tucant_types::{LoginResponse, TucanError};
 
 fn main() -> Result<(), TucanError> {
     dotenvy::dotenv().unwrap();
-    tokio::runtime::Builder::new_current_thread().enable_all().build().unwrap().block_on(async_main())
+    tokio::runtime::Builder::new_current_thread()
+        .enable_all()
+        .build()
+        .unwrap()
+        .block_on(async_main())
 }
 
 fn validate(errors: &mut Vec<String>, level: &StudentResultLevel) -> (u64, u64) {
@@ -57,22 +61,125 @@ async fn async_main() -> Result<(), TucanError> {
         .await
         .unwrap();
 
-    let course_of_studies = tucan.student_result(&login_response, RevalidationStrategy::cache(), 0).await.unwrap();
-    let bachelor = course_of_studies.course_of_study.iter().find(|v| v.name == "B.Sc. Informatik (2015)").unwrap().value;
-    let student_result = tucan.student_result(&login_response, RevalidationStrategy::cache(), bachelor).await.unwrap();
+    let course_of_studies = tucan
+        .student_result(&login_response, RevalidationStrategy::cache(), 0)
+        .await
+        .unwrap();
+    let bachelor = course_of_studies
+        .course_of_study
+        .iter()
+        .find(|v| v.name == "B.Sc. Informatik (2015)")
+        .unwrap()
+        .value;
+    let student_result = tucan
+        .student_result(&login_response, RevalidationStrategy::cache(), bachelor)
+        .await
+        .unwrap();
     println!("{:#?}", student_result);
 
     let mut errors = Vec::new();
     validate(&mut errors, &student_result.level0);
     println!("{:#?}", errors);
 
-    let master = course_of_studies.course_of_study.iter().find(|v| v.name == "M.Sc. Informatik (2023)").unwrap().value;
-    let student_result = tucan.student_result(&login_response, RevalidationStrategy::cache(), master).await.unwrap();
+    let master = course_of_studies
+        .course_of_study
+        .iter()
+        .find(|v| v.name == "M.Sc. Informatik (2023)")
+        .unwrap()
+        .value;
+    let student_result = tucan
+        .student_result(&login_response, RevalidationStrategy::cache(), master)
+        .await
+        .unwrap();
     println!("{:#?}", student_result);
+
+    let fetcher = Arc::new(Fetcher::new());
+
+    let stream = fetcher.recursive_anmeldung(
+        tucan,
+        login_response,
+        AnmeldungRequest::default(),
+        String::new(),
+    );
+
+    // TODO add modules from fetcher that are not already in leistungsspiegel
 
     let mut errors = Vec::new();
     validate(&mut errors, &student_result.level0);
     println!("{:#?}", errors);
 
     Ok(())
+}
+
+struct Fetcher {}
+
+impl Fetcher {
+    pub const fn new() -> Self {
+        Self {}
+    }
+
+    fn recursive_anmeldung(
+        self: Arc<Self>,
+        tucan: TucanConnector,
+        login_response: LoginResponse,
+        anmeldung_request: AnmeldungRequest,
+        path: String,
+    ) -> impl Stream<Item = AnmeldungModule> + Send {
+        let stream = {
+            let tucan = tucan.clone();
+            let login_response = login_response.clone();
+            async move {
+                tucan
+                    .anmeldung(
+                        login_response.clone(),
+                        RevalidationStrategy::cache(),
+                        anmeldung_request.clone(),
+                    )
+                    .await
+                    .unwrap()
+            }
+        }
+        .into_stream();
+        stream.flat_map(move |anmeldung_response| {
+            stream::iter(anmeldung_response.entries.into_iter().filter_map(|entry| {
+                if let Some(module) = &entry.module {
+                    if matches!(
+                        &module.registration_state,
+                        RegistrationState::Registered { unregister_link: _ }
+                    ) {
+                        Some(module.clone())
+                    } else {
+                        None
+                    }
+                } else {
+                    None
+                }
+            }))
+            .chain(
+                stream::iter(
+                    anmeldung_response
+                        .submenus
+                        .into_iter()
+                        .filter(|entry| entry.0 != "Zusätzliche Leistungen"),
+                )
+                .flat_map({
+                    let path = path.clone();
+                    let self_clone = self.clone();
+                    let tucan = tucan.clone();
+                    let login_response = login_response.clone();
+                    move |entry| {
+                        self_clone
+                            .clone()
+                            .recursive_anmeldung(
+                                tucan.clone(),
+                                login_response.clone(),
+                                entry.1.clone(),
+                                path.clone() + " > " + &entry.0,
+                            )
+                            .boxed()
+                    }
+                }),
+            )
+        })
+    }
 }
