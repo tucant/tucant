@@ -5840,6 +5840,7 @@ version = "0.1.2"
 dependencies = [
  "dotenvy",
  "futures-util",
+ "itertools",
  "tokio",
  "tucan-connector",
  "tucant-types",

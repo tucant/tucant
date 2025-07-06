@@ -11,6 +11,7 @@ tucant-types = { path = "../tucant-types" }
 futures-util = { version = "0.3", features = ["io"] }
 dotenvy = "0.15"
 tokio = { features = ["full"], version = "1" }
+itertools = "0.14.0"
 
 [lints]
 workspace = true

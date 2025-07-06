@@ -7,6 +7,7 @@ use std::u64;
 
 use futures_util::stream::{self, FuturesUnordered};
 use futures_util::{FutureExt, Stream, StreamExt};
+use itertools::Itertools;
 use tucan_connector::TucanConnector;
 use tucant_types::coursedetails::CourseDetailsRequest;
 use tucant_types::registration::{AnmeldungModule, AnmeldungRequest, RegistrationState};
@@ -103,6 +104,7 @@ async fn async_main() -> Result<(), TucanError> {
         Vec::new(),
     ));
     while let Some((module, path)) = stream.next().await {
+        let path: Vec<_> = path.into_iter().unique().collect();
         println!("{:?}", path);
         let mut level = &mut student_result.level0;
         for element in path {
