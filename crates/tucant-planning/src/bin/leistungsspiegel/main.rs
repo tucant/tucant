@@ -104,17 +104,18 @@ async fn async_main() -> Result<(), TucanError> {
         Vec::new(),
     ));
     while let Some((module, path)) = stream.next().await {
-        let path: Vec<_> = path.into_iter().unique().collect();
-        println!("{:?}", path);
         let mut level = &mut student_result.level0;
         for element in path {
-            level = level
+            if let Some(inner) = level
                 .children
                 .iter_mut()
                 .find(|child| child.name == element)
-                .expect(&element);
+            {
+                level = inner;
+            } else {
+                break;
+            }
         }
-        println!("target level: {:?}", level);
         level.entries.push(StudentResultEntry {
             id: module.id,
             name: module.name,
