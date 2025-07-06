@@ -127,7 +127,7 @@ pub fn MyExams(semester: ReadOnlySignal<SemesterId>) -> Element {
                                             }
                                         })
                                 }
-                            
+
                             }
                         }
                     }
