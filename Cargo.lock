@@ -5841,6 +5841,7 @@ dependencies = [
  "dotenvy",
  "futures-util",
  "itertools",
+ "serde",
  "serde_json",
  "tokio",
  "tucan-connector",

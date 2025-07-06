@@ -5,11 +5,16 @@ use std::sync::atomic::{AtomicU64, Ordering};
 
 use futures_util::stream::FuturesUnordered;
 use futures_util::{FutureExt, StreamExt};
+use serde::{Deserialize, Serialize};
 use tokio::fs::File;
 use tokio::io::{AsyncSeekExt, AsyncWriteExt as _};
 use tucan_connector::TucanConnector;
 use tucant_types::coursedetails::CourseDetailsRequest;
-use tucant_types::registration::{AnmeldungRequest, RegistrationState};
+use tucant_types::moduledetails::ModuleDetailsRequest;
+use tucant_types::registration::{
+    AnmeldungCourse, AnmeldungEntry, AnmeldungModule, AnmeldungRequest, AnmeldungResponse,
+    RegistrationState,
+};
 use tucant_types::{LoginRequest, RevalidationStrategy, Tucan};
 use tucant_types::{LoginResponse, TucanError};
 
@@ -59,6 +64,72 @@ struct Fetcher {
     anmeldung_file: File,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExportableAnmeldungResponse {
+    pub path: Vec<(String, AnmeldungRequest)>,
+    pub submenus: Vec<(String, AnmeldungRequest)>,
+    pub entries: Vec<ExportableAnmeldungEntry>,
+}
+
+impl From<AnmeldungResponse> for ExportableAnmeldungResponse {
+    fn from(value: AnmeldungResponse) -> Self {
+        Self {
+            path: value.path,
+            submenus: value.submenus,
+            entries: value.entries.into_iter().map(Into::into).collect(),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExportableAnmeldungEntry {
+    pub module: Option<ExportableAnmeldungModule>,
+    pub courses: Vec<ExportableAnmeldungCourse>,
+}
+
+impl From<AnmeldungEntry> for ExportableAnmeldungEntry {
+    fn from(value: AnmeldungEntry) -> Self {
+        Self {
+            module: value.module.map(Into::into),
+            courses: value.courses.into_iter().map(|e| e.1.into()).collect(),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExportableAnmeldungModule {
+    pub url: ModuleDetailsRequest,
+    pub id: String,
+    pub name: String,
+}
+
+impl From<AnmeldungModule> for ExportableAnmeldungModule {
+    fn from(value: AnmeldungModule) -> Self {
+        Self {
+            url: value.url,
+            id: value.id,
+            name: value.name,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExportableAnmeldungCourse {
+    pub url: CourseDetailsRequest,
+    pub id: String,
+    pub name: String,
+}
+
+impl From<AnmeldungCourse> for ExportableAnmeldungCourse {
+    fn from(value: AnmeldungCourse) -> Self {
+        Self {
+            url: value.url,
+            id: value.id,
+            name: value.name,
+        }
+    }
+}
+
 impl Fetcher {
     pub async fn new() -> Self {
         let mut file = File::create_new("registration.json").await.unwrap();
@@ -84,6 +155,7 @@ impl Fetcher {
                 )
                 .await
                 .unwrap();
+            let anmeldung_response = ExportableAnmeldungResponse::from(anmeldung_response);
 
             let mut output = serde_json::to_string(&anmeldung_response).unwrap();
             output.push_str(",\n");
