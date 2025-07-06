@@ -10,7 +10,7 @@ use futures_util::{FutureExt, Stream, StreamExt};
 use tucan_connector::TucanConnector;
 use tucant_types::coursedetails::CourseDetailsRequest;
 use tucant_types::registration::{AnmeldungModule, AnmeldungRequest, RegistrationState};
-use tucant_types::student_result::StudentResultLevel;
+use tucant_types::student_result::{StudentResultEntry, StudentResultLevel};
 use tucant_types::{LoginRequest, RevalidationStrategy, Tucan};
 use tucant_types::{LoginResponse, TucanError};
 
@@ -88,7 +88,7 @@ async fn async_main() -> Result<(), TucanError> {
         .find(|v| v.name == "M.Sc. Informatik (2023)")
         .unwrap()
         .value;
-    let student_result = tucan
+    let mut student_result = tucan
         .student_result(&login_response, RevalidationStrategy::cache(), master)
         .await
         .unwrap();
@@ -100,15 +100,35 @@ async fn async_main() -> Result<(), TucanError> {
         tucan,
         login_response,
         AnmeldungRequest::default(),
-        String::new(),
+        Vec::new(),
     ));
-    while let Some(module) = stream.next().await {}
+    while let Some((module, path)) = stream.next().await {
+        println!("{:?}", path);
+        let mut level = &mut student_result.level0;
+        for element in path {
+            level = level
+                .children
+                .iter_mut()
+                .find(|child| child.name == element)
+                .expect(&element);
+        }
+        println!("target level: {:?}", level);
+        level.entries.push(StudentResultEntry {
+            id: module.id,
+            name: module.name,
+            resultdetails_url: None,
+            cp: None,
+            used_cp: None,
+            grade: None,
+            state: String::new(),
+        });
+    }
 
     // TODO add modules from fetcher that are not already in leistungsspiegel
 
     let mut errors = Vec::new();
     validate(&mut errors, &student_result.level0);
-    println!("{:#?}", errors);
+    println!("{}: {:#?}", errors.len(), errors);
 
     Ok(())
 }
@@ -125,8 +145,8 @@ impl Fetcher {
         tucan: TucanConnector,
         login_response: LoginResponse,
         anmeldung_request: AnmeldungRequest,
-        path: String,
-    ) -> impl Stream<Item = (AnmeldungModule, String)> + Send {
+        path: Vec<String>,
+    ) -> impl Stream<Item = (AnmeldungModule, Vec<String>)> + Send {
         let stream = {
             let tucan = tucan.clone();
             let login_response = login_response.clone();
@@ -178,7 +198,11 @@ impl Fetcher {
                                 tucan.clone(),
                                 login_response.clone(),
                                 entry.1.clone(),
-                                path.clone() + " > " + &entry.0,
+                                {
+                                    let mut path = path.clone();
+                                    path.push(entry.0);
+                                    path
+                                },
                             )
                             .boxed()
                     }
