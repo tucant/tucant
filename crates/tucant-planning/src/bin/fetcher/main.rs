@@ -43,19 +43,23 @@ async fn async_main() -> Result<(), TucanError> {
         .await
         .unwrap();
 
-    let mut fetcher = Arc::new(Fetcher::new().await);
-
-    fetcher
-        .clone()
-        .recursive_anmeldung(&tucan, &login_response, AnmeldungRequest::default())
-        .await;
-    let mut file = fetcher.anmeldung_file.try_clone().await.unwrap();
-    file.seek(std::io::SeekFrom::Current(-2)).await.unwrap();
-    file.write_all(b"\n]\n").await.unwrap();
-
-    //fetcher.anmeldung_file.flush().await?;
-    //fetcher.module_file.flush().await?;
-    //fetcher.course_file.flush().await?;
+    let anmeldung_response = tucan
+                .anmeldung(
+                    login_response.clone(),
+                    RevalidationStrategy::cache(),
+                    AnmeldungRequest::default(),
+                )
+                .await
+                .unwrap();
+    for course_of_study in anmeldung_response.studiumsauswahl {
+        let mut file = File::create_new(format!("registration{}_{}.json", course_of_study.value, course_of_study.name)).await.unwrap();
+        file.write_all(b"[\n").await.unwrap();
+       
+       recursive_anmeldung(file.try_clone().await.unwrap(), &tucan, &login_response, course_of_study.value)
+            .await;
+        file.seek(std::io::SeekFrom::Current(-2)).await.unwrap();
+        file.write_all(b"\n]\n").await.unwrap();
+    }
 
     Ok(())
 }
@@ -130,58 +134,46 @@ impl From<AnmeldungCourse> for ExportableAnmeldungCourse {
     }
 }
 
-impl Fetcher {
-    pub async fn new() -> Self {
-        let mut file = File::create_new("registration.json").await.unwrap();
-        file.write_all(b"[\n").await.unwrap();
-        Self {
-            anmeldung_file: file,
-        }
-    }
+#[expect(clippy::manual_async_fn)]
+fn recursive_anmeldung<'a, 'b>(
+    file: File,
+    tucan: &'a TucanConnector,
+    login_response: &'b LoginResponse,
+    anmeldung_request: AnmeldungRequest,
+) -> impl Future<Output = ()> + Send + use<'a, 'b> {
+    async move {
+        let anmeldung_response = tucan
+            .anmeldung(
+                login_response.clone(),
+                RevalidationStrategy::cache(),
+                anmeldung_request.clone(),
+            )
+            .await
+            .unwrap();
+        // let anmeldung_response = ExportableAnmeldungResponse::from(anmeldung_response);
 
-    #[expect(clippy::manual_async_fn)]
-    fn recursive_anmeldung<'a, 'b>(
-        self: Arc<Self>,
-        tucan: &'a TucanConnector,
-        login_response: &'b LoginResponse,
-        anmeldung_request: AnmeldungRequest,
-    ) -> impl Future<Output = ()> + Send + use<'a, 'b> {
-        async move {
-            let anmeldung_response = tucan
-                .anmeldung(
-                    login_response.clone(),
-                    RevalidationStrategy::cache(),
-                    anmeldung_request.clone(),
-                )
-                .await
-                .unwrap();
-            let anmeldung_response = ExportableAnmeldungResponse::from(anmeldung_response);
+        let mut output = serde_json::to_string(&anmeldung_response).unwrap();
+        output.push_str(",\n");
+        let len = file
+            .try_clone()
+            .await
+            .unwrap()
+            .write(output.as_bytes())
+            .await
+            .unwrap();
+        assert_eq!(len, output.len());
 
-            let mut output = serde_json::to_string(&anmeldung_response).unwrap();
-            output.push_str(",\n");
-            let len = self
-                .anmeldung_file
-                .try_clone()
-                .await
-                .unwrap()
-                .write(output.as_bytes())
-                .await
-                .unwrap();
-            assert_eq!(len, output.len());
-
-            let results: FuturesUnordered<_> = anmeldung_response
-                .submenus
-                .iter()
-                .map(|entry| {
-                    async {
-                        self.clone()
-                            .recursive_anmeldung(tucan, login_response, entry.1.clone())
-                            .await;
-                    }
-                    .boxed()
-                })
-                .collect();
-            results.collect::<Vec<()>>().await;
-        }
+        let results: FuturesUnordered<_> = anmeldung_response
+            .submenus
+            .iter()
+            .map(|entry| {
+                async {
+                    recursive_anmeldung(file.try_clone().await.unwrap(), tucan, login_response, entry.1.clone())
+                        .await;
+                }
+                .boxed()
+            })
+            .collect();
+        results.collect::<Vec<()>>().await;
     }
 }

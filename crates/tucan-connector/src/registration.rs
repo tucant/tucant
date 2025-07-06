@@ -136,11 +136,11 @@ fn anmeldung_internal(
                                                             <option value=value selected="selected">
                                                                 name
                                                             </option>
-                                                        } => Studiumsauswahl { name, value, selected: true } else {
+                                                        } => Studiumsauswahl { name, value: AnmeldungRequest::parse(&format!("-N{value},-N0,-N0,-N0")), selected: true } else {
                                                             <option value=value>
                                                                 name
                                                             </option>
-                                                        } => Studiumsauswahl { name, value, selected: false };
+                                                        } => Studiumsauswahl { name, value: AnmeldungRequest::parse(&format!("-N{value},-N0,-N0,-N0")), selected: false };
                                                     } => studiumsauswahl.either_into();
                                                 </select>
                                                 <input name="Aktualisieren" type="submit" value="Aktualisieren" class="img img_arrowReload pageElementLeft"></input>
