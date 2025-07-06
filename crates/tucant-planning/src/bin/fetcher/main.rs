@@ -6,7 +6,7 @@ use std::sync::atomic::{AtomicU64, Ordering};
 use futures_util::stream::FuturesUnordered;
 use futures_util::{FutureExt, StreamExt};
 use tokio::fs::File;
-use tokio::io::AsyncWriteExt as _;
+use tokio::io::{AsyncSeekExt, AsyncWriteExt as _};
 use tucan_connector::TucanConnector;
 use tucant_types::coursedetails::CourseDetailsRequest;
 use tucant_types::registration::{AnmeldungRequest, RegistrationState};
@@ -44,14 +44,9 @@ async fn async_main() -> Result<(), TucanError> {
         .clone()
         .recursive_anmeldung(&tucan, &login_response, AnmeldungRequest::default())
         .await;
-    fetcher
-        .anmeldung_file
-        .try_clone()
-        .await
-        .unwrap()
-        .write_all(b"]\n")
-        .await
-        .unwrap();
+    let mut file = fetcher.anmeldung_file.try_clone().await.unwrap();
+    file.seek(std::io::SeekFrom::Current(-2)).await.unwrap();
+    file.write_all(b"\n]\n").await.unwrap();
 
     //fetcher.anmeldung_file.flush().await?;
     //fetcher.module_file.flush().await?;
@@ -91,7 +86,7 @@ impl Fetcher {
                 .unwrap();
 
             let mut output = serde_json::to_string(&anmeldung_response).unwrap();
-            output.push('\n');
+            output.push_str(",\n");
             let len = self
                 .anmeldung_file
                 .try_clone()
