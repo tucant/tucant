@@ -10,6 +10,7 @@ use futures_util::{FutureExt, Stream, StreamExt};
 use itertools::Itertools;
 use tucan_connector::TucanConnector;
 use tucant_types::coursedetails::CourseDetailsRequest;
+use tucant_types::moduledetails::ModuleDetailsResponse;
 use tucant_types::registration::{AnmeldungModule, AnmeldungRequest, RegistrationState};
 use tucant_types::student_result::{StudentResultEntry, StudentResultLevel};
 use tucant_types::{LoginRequest, RevalidationStrategy, Tucan};
@@ -103,7 +104,7 @@ async fn async_main() -> Result<(), TucanError> {
         AnmeldungRequest::default(),
         Vec::new(),
     ));
-    while let Some((module, path)) = stream.next().await {
+    while let Some((module, path, module_details)) = stream.next().await {
         let mut level = &mut student_result.level0;
         for element in path {
             if let Some(inner) = level
@@ -120,8 +121,8 @@ async fn async_main() -> Result<(), TucanError> {
             id: module.id,
             name: module.name,
             resultdetails_url: None,
-            cp: None, // TODO FIXME
-            used_cp: None,
+            cp: module_details.credits,
+            used_cp: module_details.credits,
             grade: None,
             state: String::new(),
         });
@@ -149,7 +150,7 @@ impl Fetcher {
         login_response: LoginResponse,
         anmeldung_request: AnmeldungRequest,
         path: Vec<String>,
-    ) -> impl Stream<Item = (AnmeldungModule, Vec<String>)> + Send {
+    ) -> impl Stream<Item = (AnmeldungModule, Vec<String>, ModuleDetailsResponse)> + Send {
         let stream = {
             let tucan = tucan.clone();
             let login_response = login_response.clone();
@@ -189,14 +190,15 @@ impl Fetcher {
                     let tucan = tucan.clone();
                     let login_response = login_response.clone();
                     async move {
-                        tucan
+                        let module_details = tucan
                             .module_details(
                                 &login_response,
                                 RevalidationStrategy::cache(),
                                 module.url.clone(),
                             )
-                            .await;
-                        (module, path)
+                            .await
+                            .unwrap();
+                        (module, path, module_details)
                     }
                 })
                 .collect::<FuturesUnordered<_>>()
