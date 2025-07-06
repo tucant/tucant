@@ -62,7 +62,6 @@
               )
               ./tucant-extension/bootstrap.bundle.min.js
               ./tucant-extension/bootstrap.css
-              ./rustfmt.toml
             ];
           };
           pname = "tucant-workspace-native";
@@ -194,7 +193,6 @@
             ./flake.lock
             ./Dockerfile
             ./README.md
-            ./rustfmt.toml
           ];
         };
 

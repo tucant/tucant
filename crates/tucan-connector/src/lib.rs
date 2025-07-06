@@ -87,7 +87,7 @@ static COURSEDETAILS_REGEX: LazyLock<Regex> = LazyLock::new(|| {
 
 type MyClient = reqwest::Client;
 
-#[derive(Clone)]
+#[cfg_attr(not(target_arch = "wasm32"), derive(Clone))]
 pub struct TucanConnector {
     pub client: MyClient,
     pub database: Database,

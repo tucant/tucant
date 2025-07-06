@@ -1,4 +1,4 @@
-#[derive(Clone)]
+#[cfg_attr(not(target_arch = "wasm32"), derive(Clone))]
 pub struct Database {
     #[cfg(target_arch = "wasm32")]
     database: send_wrapper::SendWrapper<indexed_db::Database<std::io::Error>>,
