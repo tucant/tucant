@@ -1,5 +1,6 @@
 use std::future::Future;
 use std::panic::AssertUnwindSafe;
+use std::pin::pin;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::u64;
@@ -95,12 +96,13 @@ async fn async_main() -> Result<(), TucanError> {
 
     let fetcher = Arc::new(Fetcher::new());
 
-    let stream = fetcher.recursive_anmeldung(
+    let mut stream = pin!(fetcher.recursive_anmeldung(
         tucan,
         login_response,
         AnmeldungRequest::default(),
         String::new(),
-    );
+    ));
+    while let Some(module) = stream.next().await {}
 
     // TODO add modules from fetcher that are not already in leistungsspiegel
 
@@ -124,7 +126,7 @@ impl Fetcher {
         login_response: LoginResponse,
         anmeldung_request: AnmeldungRequest,
         path: String,
-    ) -> impl Stream<Item = AnmeldungModule> + Send {
+    ) -> impl Stream<Item = (AnmeldungModule, String)> + Send {
         let stream = {
             let tucan = tucan.clone();
             let login_response = login_response.clone();
@@ -141,18 +143,20 @@ impl Fetcher {
         }
         .into_stream();
         stream.flat_map(move |anmeldung_response| {
-            stream::iter(anmeldung_response.entries.into_iter().filter_map(|entry| {
-                if let Some(module) = &entry.module {
-                    if matches!(
-                        &module.registration_state,
-                        RegistrationState::Registered { unregister_link: _ }
-                    ) {
-                        Some(module.clone())
-                    } else {
-                        None
-                    }
-                } else {
-                    None
+            let path = path.clone();
+            stream::iter(anmeldung_response.entries.into_iter().filter_map({
+                let path = path.clone();
+                move |entry| {
+                    entry.module.as_ref().and_then(|module| {
+                        if matches!(
+                            &module.registration_state,
+                            RegistrationState::Registered { unregister_link: _ }
+                        ) {
+                            Some((module.clone(), path.clone()))
+                        } else {
+                            None
+                        }
+                    })
                 }
             }))
             .chain(
