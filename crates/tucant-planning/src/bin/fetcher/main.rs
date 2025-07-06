@@ -70,7 +70,7 @@ struct Fetcher {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ExportableAnmeldungResponse {
-    pub path: Vec<(String, AnmeldungRequest)>,
+    pub path: (String, AnmeldungRequest),
     pub submenus: Vec<(String, AnmeldungRequest)>,
     pub entries: Vec<ExportableAnmeldungEntry>,
 }
@@ -78,7 +78,7 @@ pub struct ExportableAnmeldungResponse {
 impl From<AnmeldungResponse> for ExportableAnmeldungResponse {
     fn from(value: AnmeldungResponse) -> Self {
         Self {
-            path: value.path,
+            path: value.path.last().unwrap().clone(),
             submenus: value.submenus,
             entries: value.entries.into_iter().map(Into::into).collect(),
         }
@@ -150,7 +150,7 @@ fn recursive_anmeldung<'a, 'b>(
             )
             .await
             .unwrap();
-        // let anmeldung_response = ExportableAnmeldungResponse::from(anmeldung_response);
+        let anmeldung_response = ExportableAnmeldungResponse::from(anmeldung_response);
 
         let mut output = serde_json::to_string(&anmeldung_response).unwrap();
         output.push_str(",\n");
