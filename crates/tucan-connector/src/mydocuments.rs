@@ -10,13 +10,18 @@ use crate::{
     head::{footer, html_head, logged_in_head},
 };
 
-pub async fn my_documents(tucan: &TucanConnector, login_response: &LoginResponse, revalidation_strategy: RevalidationStrategy) -> Result<MyDocumentsResponse, TucanError> {
+pub async fn my_documents(
+    tucan: &TucanConnector,
+    login_response: &LoginResponse,
+    revalidation_strategy: RevalidationStrategy,
+) -> Result<MyDocumentsResponse, TucanError> {
     let key = "unparsed_mydocuments";
 
     let old_content_and_date = tucan.database.get::<(String, OffsetDateTime)>(key).await;
     if revalidation_strategy.max_age != 0 {
         if let Some((content, date)) = &old_content_and_date {
-            if OffsetDateTime::now_utc() - *date < Duration::seconds(revalidation_strategy.max_age) {
+            if OffsetDateTime::now_utc() - *date < Duration::seconds(revalidation_strategy.max_age)
+            {
                 return my_documents_internal(login_response, content);
             }
         }
@@ -26,8 +31,12 @@ pub async fn my_documents(tucan: &TucanConnector, login_response: &LoginResponse
         return Err(TucanError::NotCached);
     };
 
-    let url = format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=CREATEDOCUMENT&ARGUMENTS=-N{:015},-N000557,", login_response.id);
-    let (content, date) = authenticated_retryable_get(tucan, &url, &login_response.cookie_cnsc).await?;
+    let url = format!(
+        "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=CREATEDOCUMENT&ARGUMENTS=-N{:015},-N000557,",
+        login_response.id
+    );
+    let (content, date) =
+        authenticated_retryable_get(tucan, &url, &login_response.cookie_cnsc).await?;
     let result = my_documents_internal(login_response, &content)?;
     if invalidate_dependents && old_content_and_date.as_ref().map(|m| &m.0) != Some(&content) {
         // TODO invalidate cached ones?
@@ -39,7 +48,10 @@ pub async fn my_documents(tucan: &TucanConnector, login_response: &LoginResponse
     Ok(result)
 }
 
-fn my_documents_internal(login_response: &LoginResponse, content: &str) -> Result<MyDocumentsResponse, TucanError> {
+fn my_documents_internal(
+    login_response: &LoginResponse,
+    content: &str,
+) -> Result<MyDocumentsResponse, TucanError> {
     let document = parse_document(content);
     let html_handler = Root::new(document.root());
     let html_handler = html_handler.document_start();
@@ -105,7 +117,12 @@ fn my_documents_internal(login_response: &LoginResponse, content: &str) -> Resul
                                                 </a>
                                             </td>
                                         </tr>
-                                    } => Document { name, date, time, url };
+                                    } => Document {
+                                        name,
+                                        date,
+                                        time,
+                                        url
+                                    };
                                 </tbody>
                             </table>
                             <input name="APPNAME" type="hidden" value="CampusNet"></input>

@@ -1,10 +1,12 @@
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 
+use crate::Grade;
+
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct CourseOfStudySelection {
     pub name: String,
-    pub value: String,
+    pub value: u64,
     pub selected: bool,
 }
 
@@ -13,9 +15,9 @@ pub struct StudentResultEntry {
     pub id: String,
     pub name: String,
     pub resultdetails_url: Option<String>,
-    pub cp: Option<String>,
-    pub used_cp: Option<String>,
-    pub grade: Option<String>,
+    pub cp: Option<u64>,
+    pub used_cp: Option<u64>,
+    pub grade: Option<Grade>,
     pub state: String,
 }
 
@@ -23,11 +25,10 @@ pub struct StudentResultEntry {
 pub struct StudentResultLevel {
     pub name: String,
     pub entries: Vec<StudentResultEntry>,
-    pub sum_cp: Option<String>,
-    pub sum_used_cp: Option<String>,
+    pub sum_cp: Option<u64>,
+    pub sum_used_cp: Option<u64>,
     pub state: Option<String>,
-    /// can be 0-2 rules, first one is module count, second one is cp
-    pub rules: Vec<String>,
+    pub rules: StudentResultRules,
     pub children: Vec<StudentResultLevel>,
 }
 
@@ -37,4 +38,12 @@ pub struct StudentResultResponse {
     pub level0: StudentResultLevel,
     pub total_gpa: String,
     pub main_gpa: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema, PartialEq, Eq)]
+pub struct StudentResultRules {
+    pub min_cp: u64,
+    pub max_cp: Option<u64>,
+    pub min_modules: u64,
+    pub max_modules: Option<u64>,
 }

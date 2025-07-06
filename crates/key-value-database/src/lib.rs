@@ -1,3 +1,4 @@
+#[cfg_attr(not(target_arch = "wasm32"), derive(Clone))]
 pub struct Database {
     #[cfg(target_arch = "wasm32")]
     database: send_wrapper::SendWrapper<indexed_db::Database<std::io::Error>>,
@@ -23,20 +24,39 @@ impl Database {
                 .await
                 .unwrap();
 
-            Self { database: send_wrapper::SendWrapper::new(database) }
+            Self {
+                database: send_wrapper::SendWrapper::new(database),
+            }
         }
         #[cfg(not(target_arch = "wasm32"))]
         {
             let database = if cfg!(target_os = "android") {
-                tokio::fs::create_dir_all("/data/data/com.example.TucantDioxus/files").await.unwrap();
-                sqlx::SqlitePool::connect("sqlite:///data/data/com.example.TucantDioxus/files/data.db?mode=rwc").await.unwrap()
+                tokio::fs::create_dir_all("/data/data/com.example.TucantDioxus/files")
+                    .await
+                    .unwrap();
+                sqlx::SqlitePool::connect(
+                    "sqlite:///data/data/com.example.TucantDioxus/files/data.db?mode=rwc",
+                )
+                .await
+                .unwrap()
             } else {
-                sqlx::SqlitePool::connect("sqlite://data.db?mode=rwc").await.unwrap()
+                sqlx::SqlitePool::connect("sqlite://data.db?mode=rwc")
+                    .await
+                    .unwrap()
             };
-            let version: u32 = sqlx::query_scalar("PRAGMA user_version").fetch_one(&database).await.unwrap();
+            let version: u32 = sqlx::query_scalar("PRAGMA user_version")
+                .fetch_one(&database)
+                .await
+                .unwrap();
             if version != 2 {
-                sqlx::query("DROP TABLE IF EXISTS store").execute(&database).await.unwrap();
-                sqlx::query("PRAGMA user_version = 2").execute(&database).await.unwrap();
+                sqlx::query("DROP TABLE IF EXISTS store")
+                    .execute(&database)
+                    .await
+                    .unwrap();
+                sqlx::query("PRAGMA user_version = 2")
+                    .execute(&database)
+                    .await
+                    .unwrap();
             }
             sqlx::query("CREATE TABLE IF NOT EXISTS store (key TEXT PRIMARY KEY NOT NULL, value TEXT NOT NULL)").execute(&database).await.unwrap();
             Self { database }
@@ -47,7 +67,12 @@ impl Database {
     pub async fn new_test() -> Self {
         let url = "sqlite://data_test.db?mode=rwc"; //format!("sqlite://{}?mode=rwc", tempfile.path().to_str().unwrap());
         let database = sqlx::SqlitePool::connect(url).await.unwrap();
-        sqlx::query("CREATE TABLE IF NOT EXISTS store (key TEXT PRIMARY KEY NOT NULL, value TEXT NOT NULL)").execute(&database).await.unwrap();
+        sqlx::query(
+            "CREATE TABLE IF NOT EXISTS store (key TEXT PRIMARY KEY NOT NULL, value TEXT NOT NULL)",
+        )
+        .execute(&database)
+        .await
+        .unwrap();
         Self { database }
     }
 
@@ -75,7 +100,11 @@ impl Database {
                 value: String,
             }
 
-            let result = sqlx::query_as::<_, Value>("SELECT value FROM store WHERE key = ?").bind(key).fetch_optional(&self.database).await.unwrap();
+            let result = sqlx::query_as::<_, Value>("SELECT value FROM store WHERE key = ?")
+                .bind(key)
+                .fetch_optional(&self.database)
+                .await
+                .unwrap();
             result.map(|result| serde_json::from_str(&result.value).unwrap())
         }
     }
@@ -126,7 +155,11 @@ impl Database {
         }
         #[cfg(not(target_arch = "wasm32"))]
         {
-            sqlx::query("DELETE FROM store WHERE key IN (SELECT value FROM json_each(?))").bind(serde_json::to_string(&keys).unwrap()).execute(&self.database).await.unwrap();
+            sqlx::query("DELETE FROM store WHERE key IN (SELECT value FROM json_each(?))")
+                .bind(serde_json::to_string(&keys).unwrap())
+                .execute(&self.database)
+                .await
+                .unwrap();
         }
     }
 }

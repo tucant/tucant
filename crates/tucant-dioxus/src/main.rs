@@ -8,6 +8,7 @@ use wasm_bindgen::prelude::*;
 
 const BOOTSTRAP_CSS: Asset = asset!("/assets/bootstrap.css");
 const BOOTSTRAP_JS: Asset = asset!("/assets/bootstrap.bundle.min.js");
+const BOOTSTRAP_PATCH_JS: Asset = asset!("/assets/bootstrap.patch.js");
 
 #[wasm_bindgen]
 extern "C" {
@@ -49,16 +50,22 @@ pub async fn main() {
     let launcher = dioxus::LaunchBuilder::new();
 
     #[cfg(feature = "web")]
-    let launcher = launcher.with_cfg(dioxus::web::Config::new().history(std::rc::Rc::new(dioxus::web::HashHistory::new(false))));
+    let launcher = launcher.with_cfg(
+        dioxus::web::Config::new().history(std::rc::Rc::new(dioxus::web::HashHistory::new(false))),
+    );
 
     let login_response = tucant_dioxus::login_response().await;
     let launcher = launcher.with_context(login_response);
 
     #[cfg(feature = "api")]
-    let launcher = launcher.with_context(RcTucanType(tucant_types::DynTucan::new_arc(tucant_dioxus::api_server::ApiServerTucan::new())));
+    let launcher = launcher.with_context(RcTucanType(tucant_types::DynTucan::new_arc(
+        tucant_dioxus::api_server::ApiServerTucan::new(),
+    )));
 
     #[cfg(any(feature = "direct", feature = "desktop", feature = "mobile"))]
-    let launcher = launcher.with_context(RcTucanType(tucant_types::DynTucan::new_arc(tucan_connector::TucanConnector::new().await.unwrap())));
+    let launcher = launcher.with_context(RcTucanType(tucant_types::DynTucan::new_arc(
+        tucan_connector::TucanConnector::new().await.unwrap(),
+    )));
 
     launcher.launch(App);
 }
@@ -73,5 +80,6 @@ fn App() -> Element {
         document::Link { rel: "stylesheet", href: BOOTSTRAP_CSS }
         Router::<Route> {}
         script { src: BOOTSTRAP_JS }
+        script { src: BOOTSTRAP_PATCH_JS }
     }
 }

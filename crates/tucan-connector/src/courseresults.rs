@@ -14,13 +14,19 @@ use crate::{
     head::{footer, html_head, logged_in_head},
 };
 
-pub async fn courseresults(tucan: &TucanConnector, login_response: &LoginResponse, revalidation_strategy: RevalidationStrategy, semester: SemesterId) -> Result<ModuleResultsResponse, TucanError> {
+pub async fn courseresults(
+    tucan: &TucanConnector,
+    login_response: &LoginResponse,
+    revalidation_strategy: RevalidationStrategy,
+    semester: SemesterId,
+) -> Result<ModuleResultsResponse, TucanError> {
     let key = format!("unparsed_courseresults.{}", semester.inner());
 
     let old_content_and_date = tucan.database.get::<(String, OffsetDateTime)>(&key).await;
     if revalidation_strategy.max_age != 0 {
         if let Some((content, date)) = &old_content_and_date {
-            if OffsetDateTime::now_utc() - *date < Duration::seconds(revalidation_strategy.max_age) {
+            if OffsetDateTime::now_utc() - *date < Duration::seconds(revalidation_strategy.max_age)
+            {
                 return courseresults_internal(login_response, content);
             }
         }
@@ -41,7 +47,8 @@ pub async fn courseresults(tucan: &TucanConnector, login_response: &LoginRespons
             format!("-N{}", semester.inner())
         }
     );
-    let (content, date) = authenticated_retryable_get(tucan, &url, &login_response.cookie_cnsc).await?;
+    let (content, date) =
+        authenticated_retryable_get(tucan, &url, &login_response.cookie_cnsc).await?;
     let result = courseresults_internal(login_response, &content)?;
     if invalidate_dependents && old_content_and_date.as_ref().map(|m| &m.0) != Some(&content) {
         // TODO invalidate cached ones?
@@ -54,7 +61,10 @@ pub async fn courseresults(tucan: &TucanConnector, login_response: &LoginRespons
 }
 
 #[expect(clippy::too_many_lines)]
-fn courseresults_internal(login_response: &LoginResponse, content: &str) -> Result<ModuleResultsResponse, TucanError> {
+fn courseresults_internal(
+    login_response: &LoginResponse,
+    content: &str,
+) -> Result<ModuleResultsResponse, TucanError> {
     let document = parse_document(content);
     let html_handler = Root::new(document.root());
     let html_handler = html_handler.document_start();
@@ -95,15 +105,30 @@ fn courseresults_internal(login_response: &LoginResponse, content: &str) -> Resu
                                         </label>
                                         <select id="semester" name="semester" onchange=_onchange class="tabledata">
                                             let semester = while html_handler.peek().is_some() {
-                                                let option = if html_handler.peek().unwrap().value().as_element().unwrap().attr("selected").is_some() {
+                                                let option = if html_handler
+                                                    .peek()
+                                                    .unwrap()
+                                                    .value()
+                                                    .as_element()
+                                                    .unwrap()
+                                                    .attr("selected")
+                                                    .is_some() {
                                                     <option value=value selected="selected">
                                                         name
                                                     </option>
-                                                } => Semesterauswahl { name, value: SemesterId::from_str(&value).unwrap(), selected: true } else {
+                                                } => Semesterauswahl {
+                                                    name,
+                                                    value: SemesterId::from_str(&value).unwrap(),
+                                                    selected: true
+                                                } else {
                                                     <option value=value>
                                                         name
                                                     </option>
-                                                } => Semesterauswahl { name, value: SemesterId::from_str(&value).unwrap(), selected: false };
+                                                } => Semesterauswahl {
+                                                    name,
+                                                    value: SemesterId::from_str(&value).unwrap(),
+                                                    selected: false
+                                                };
                                             } => option.either_into();
                                         </select>
                                         <input name="Refresh" type="submit" value="Aktualisieren" class="img img_arrowReload"></input>
@@ -180,10 +205,20 @@ fn courseresults_internal(login_response: &LoginResponse, content: &str) -> Resu
                                                 <script type="text/javascript">
                                                     _script
                                                 </script>
-                                            } => GradeOverviewRequest::parse(&GRADEOVERVIEW_REGEX.replace(&average_url, ""));
+                                            } => GradeOverviewRequest::parse(
+                                                &GRADEOVERVIEW_REGEX.replace(&average_url, "")
+                                            );
                                         </td>
                                     </tr>
-                                } => ModuleResult { nr, name, grade, credits, status, pruefungen_url, average_url };
+                                } => ModuleResult {
+                                    nr,
+                                    name,
+                                    grade,
+                                    credits,
+                                    status,
+                                    pruefungen_url,
+                                    average_url
+                                };
                                 <tr>
                                     <th colspan="2">
                                         "Semester-GPA"
@@ -206,5 +241,10 @@ fn courseresults_internal(login_response: &LoginResponse, content: &str) -> Resu
         use footer(html_handler, login_response.id, 326);
     }
     html_handler.end_document();
-    Ok(ModuleResultsResponse { semester, results, average_grade, sum_credits })
+    Ok(ModuleResultsResponse {
+        semester,
+        results,
+        average_grade,
+        sum_credits,
+    })
 }

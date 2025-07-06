@@ -38,8 +38,8 @@
           src = pkgs.fetchFromGitHub {
             owner = "mohe2015";
             repo = "dioxus";
-            rev = "dcff78d56082bfdc50bf26b599052459e22a0623";
-            hash = "sha256-MsFRfml9hwE6l6fUKjM0KEaNOVr+5qonZKYYs6GqVMk=";
+            rev = "8711b6af3e98780a2be2871d6bc50866b8813f07";
+            hash = "sha256-IVjauXjiOYBiD2xqja8p5ZAJfeB4s6VA0zikucDrGb8=";
           };
           doCheck = false;
           strictDeps = true;
@@ -62,7 +62,6 @@
               )
               ./tucant-extension/bootstrap.bundle.min.js
               ./tucant-extension/bootstrap.css
-              ./rustfmt.toml
             ];
           };
           pname = "tucant-workspace-native";
@@ -117,6 +116,7 @@
           (craneLib.fileset.commonCargoSources ./crates/html-handler)
           ./crates/tucant-dioxus/assets/bootstrap.css
           ./crates/tucant-dioxus/assets/bootstrap.bundle.min.js
+          ./crates/tucant-dioxus/assets/bootstrap.patch.js
         ];
 
         client = craneLib.buildPackage (commonArgs // {
@@ -194,7 +194,6 @@
             ./flake.lock
             ./Dockerfile
             ./README.md
-            ./rustfmt.toml
           ];
         };
 
