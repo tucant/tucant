@@ -1,0 +1,120 @@
+use std::future::Future;
+use std::panic::AssertUnwindSafe;
+use std::sync::Arc;
+use std::sync::atomic::{AtomicU64, Ordering};
+
+use futures_util::stream::FuturesUnordered;
+use futures_util::{FutureExt, StreamExt};
+use tokio::fs::File;
+use tokio::io::AsyncWriteExt as _;
+use tucan_connector::TucanConnector;
+use tucant_types::coursedetails::CourseDetailsRequest;
+use tucant_types::registration::{AnmeldungRequest, RegistrationState};
+use tucant_types::{LoginRequest, RevalidationStrategy, Tucan};
+use tucant_types::{LoginResponse, TucanError};
+
+fn main() -> Result<(), TucanError> {
+    dotenvy::dotenv().unwrap();
+    tokio::runtime::Builder::new_current_thread()
+        .enable_all()
+        .build()
+        .unwrap()
+        .block_on(async_main())
+}
+
+async fn async_main() -> Result<(), TucanError> {
+    let tucan = TucanConnector::new().await?;
+
+    /*let login_response = LoginResponse {
+        id: std::env::var("SESSION_ID").unwrap().parse().unwrap(),
+        cookie_cnsc: std::env::var("SESSION_KEY").unwrap(),
+    };*/
+
+    let login_response = tucan
+        .login(LoginRequest {
+            username: std::env::var("TUCAN_USERNAME").expect("env variable TUCAN_USERNAME missing"),
+            password: std::env::var("TUCAN_PASSWORD").expect("env variable TUCAN_PASSWORD missing"),
+        })
+        .await
+        .unwrap();
+
+    let mut fetcher = Arc::new(Fetcher::new().await);
+
+    fetcher
+        .clone()
+        .recursive_anmeldung(&tucan, &login_response, AnmeldungRequest::default())
+        .await;
+    fetcher
+        .anmeldung_file
+        .try_clone()
+        .await
+        .unwrap()
+        .write_all(b"]\n")
+        .await
+        .unwrap();
+
+    //fetcher.anmeldung_file.flush().await?;
+    //fetcher.module_file.flush().await?;
+    //fetcher.course_file.flush().await?;
+
+    Ok(())
+}
+
+struct Fetcher {
+    anmeldung_file: File,
+}
+
+impl Fetcher {
+    pub async fn new() -> Self {
+        let mut file = File::create_new("registration.json").await.unwrap();
+        file.write_all(b"[\n").await.unwrap();
+        Self {
+            anmeldung_file: file,
+        }
+    }
+
+    #[expect(clippy::manual_async_fn)]
+    fn recursive_anmeldung<'a, 'b>(
+        self: Arc<Self>,
+        tucan: &'a TucanConnector,
+        login_response: &'b LoginResponse,
+        anmeldung_request: AnmeldungRequest,
+    ) -> impl Future<Output = ()> + Send + use<'a, 'b> {
+        async move {
+            let anmeldung_response = tucan
+                .anmeldung(
+                    login_response.clone(),
+                    RevalidationStrategy::cache(),
+                    anmeldung_request.clone(),
+                )
+                .await
+                .unwrap();
+
+            let mut output = serde_json::to_string(&anmeldung_response).unwrap();
+            output.push('\n');
+            let len = self
+                .anmeldung_file
+                .try_clone()
+                .await
+                .unwrap()
+                .write(output.as_bytes())
+                .await
+                .unwrap();
+            assert_eq!(len, output.len());
+
+            let results: FuturesUnordered<_> = anmeldung_response
+                .submenus
+                .iter()
+                .map(|entry| {
+                    async {
+                        self.clone()
+                            .recursive_anmeldung(tucan, login_response, entry.1.clone())
+                            .await;
+                    }
+                    .boxed()
+                })
+                .collect();
+            results.collect::<Vec<()>>().await;
+        }
+    }
+}
