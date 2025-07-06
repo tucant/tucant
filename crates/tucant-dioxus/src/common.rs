@@ -4,15 +4,75 @@ use tucant_types::{LoginResponse, RevalidationStrategy, TucanError};
 
 use crate::RcTucanType;
 
-pub fn use_authenticated_data_loader<I: Clone + PartialEq + 'static, O: Clone + 'static>(handler: impl AsyncFn(RcTucanType, LoginResponse, RevalidationStrategy, I) -> Result<O, TucanError> + Copy + 'static, request: ReadOnlySignal<I>, cache_age_seconds: i64, max_stale_age_seconds: i64, render: impl Fn(O, Callback<MouseEvent>) -> Element) -> Element {
-    use_data_loader(true, async move |tucan: RcTucanType, current_session: Option<LoginResponse>, revalidation_strategy, additional| handler(tucan, current_session.unwrap(), revalidation_strategy, additional).await, request, cache_age_seconds, max_stale_age_seconds, render)
+pub fn use_authenticated_data_loader<I: Clone + PartialEq + 'static, O: Clone + 'static>(
+    handler: impl AsyncFn(RcTucanType, LoginResponse, RevalidationStrategy, I) -> Result<O, TucanError>
+        + Copy
+        + 'static,
+    request: ReadOnlySignal<I>,
+    cache_age_seconds: i64,
+    max_stale_age_seconds: i64,
+    render: impl Fn(O, Callback<MouseEvent>) -> Element,
+) -> Element {
+    use_data_loader(
+        true,
+        async move |tucan: RcTucanType,
+                    current_session: Option<LoginResponse>,
+                    revalidation_strategy,
+                    additional| {
+            handler(
+                tucan,
+                current_session.unwrap(),
+                revalidation_strategy,
+                additional,
+            )
+            .await
+        },
+        request,
+        cache_age_seconds,
+        max_stale_age_seconds,
+        render,
+    )
 }
 
-pub fn use_unauthenticated_data_loader<I: Clone + PartialEq + 'static, O: Clone + 'static>(handler: impl AsyncFn(RcTucanType, Option<LoginResponse>, RevalidationStrategy, I) -> Result<O, TucanError> + Copy + 'static, request: ReadOnlySignal<I>, cache_age_seconds: i64, max_stale_age_seconds: i64, render: impl Fn(O, Callback<MouseEvent>) -> Element) -> Element {
-    use_data_loader(false, handler, request, cache_age_seconds, max_stale_age_seconds, render)
+pub fn use_unauthenticated_data_loader<I: Clone + PartialEq + 'static, O: Clone + 'static>(
+    handler: impl AsyncFn(
+            RcTucanType,
+            Option<LoginResponse>,
+            RevalidationStrategy,
+            I,
+        ) -> Result<O, TucanError>
+        + Copy
+        + 'static,
+    request: ReadOnlySignal<I>,
+    cache_age_seconds: i64,
+    max_stale_age_seconds: i64,
+    render: impl Fn(O, Callback<MouseEvent>) -> Element,
+) -> Element {
+    use_data_loader(
+        false,
+        handler,
+        request,
+        cache_age_seconds,
+        max_stale_age_seconds,
+        render,
+    )
 }
 
-fn use_data_loader<I: Clone + PartialEq + 'static, O: Clone + 'static>(authentication_required: bool, handler: impl AsyncFn(RcTucanType, Option<LoginResponse>, RevalidationStrategy, I) -> Result<O, TucanError> + Copy + 'static, request: ReadOnlySignal<I>, cache_age_seconds: i64, max_stale_age_seconds: i64, render: impl Fn(O, Callback<MouseEvent>) -> Element) -> Element {
+fn use_data_loader<I: Clone + PartialEq + 'static, O: Clone + 'static>(
+    authentication_required: bool,
+    handler: impl AsyncFn(
+            RcTucanType,
+            Option<LoginResponse>,
+            RevalidationStrategy,
+            I,
+        ) -> Result<O, TucanError>
+        + Copy
+        + 'static,
+    request: ReadOnlySignal<I>,
+    cache_age_seconds: i64,
+    max_stale_age_seconds: i64,
+    render: impl Fn(O, Callback<MouseEvent>) -> Element,
+) -> Element {
     use reqwest::StatusCode;
 
     let tucan: RcTucanType = use_context();
@@ -33,12 +93,32 @@ fn use_data_loader<I: Clone + PartialEq + 'static, O: Clone + 'static>(authentic
                     return;
                 }
                 loading.set(true);
-                match handler(tucan.clone(), current_session_handle(), RevalidationStrategy { max_age: cache_age_seconds, invalidate_dependents: Some(true) }, request()).await {
+                match handler(
+                    tucan.clone(),
+                    current_session_handle(),
+                    RevalidationStrategy {
+                        max_age: cache_age_seconds,
+                        invalidate_dependents: Some(true),
+                    },
+                    request(),
+                )
+                .await
+                {
                     Ok(response) => {
                         data.set(Ok(Some(response)));
                         loading.set(false);
 
-                        match handler(tucan.clone(), current_session_handle(), RevalidationStrategy { max_age: max_stale_age_seconds, invalidate_dependents: Some(true) }, request()).await {
+                        match handler(
+                            tucan.clone(),
+                            current_session_handle(),
+                            RevalidationStrategy {
+                                max_age: max_stale_age_seconds,
+                                invalidate_dependents: Some(true),
+                            },
+                            request(),
+                        )
+                        .await
+                        {
                             Ok(response) => data.set(Ok(Some(response))),
                             Err(error) => {
                                 info!("ignoring error when refetching: {}", error)
@@ -48,7 +128,9 @@ fn use_data_loader<I: Clone + PartialEq + 'static, O: Clone + 'static>(authentic
                     Err(error) => {
                         log::error!("{}", error);
                         match error {
-                            TucanError::Http(ref req) if req.status() == Some(StatusCode::UNAUTHORIZED) => {
+                            TucanError::Http(ref req)
+                                if req.status() == Some(StatusCode::UNAUTHORIZED) =>
+                            {
                                 current_session_handle.set(None);
                                 data.set(Err("Unauthorized".to_owned()))
                             }
@@ -93,7 +175,9 @@ fn use_data_loader<I: Clone + PartialEq + 'static, O: Clone + 'static>(authentic
                                     current_session_handle.set(None);
                                 } else {
                                     // some vv urls are not available without authentication
-                                    data.set(Err("Not accessible without authentication".to_owned()));
+                                    data.set(Err(
+                                        "Not accessible without authentication".to_owned()
+                                    ));
                                 }
                             }
                             _ => {
@@ -117,7 +201,17 @@ fn use_data_loader<I: Clone + PartialEq + 'static, O: Clone + 'static>(authentic
             loading.set(true);
             let tucan = tucan.clone();
             spawn(async move {
-                match handler(tucan.clone(), current_session_handle(), RevalidationStrategy { max_age: 0, invalidate_dependents: Some(true) }, request()).await {
+                match handler(
+                    tucan.clone(),
+                    current_session_handle(),
+                    RevalidationStrategy {
+                        max_age: 0,
+                        invalidate_dependents: Some(true),
+                    },
+                    request(),
+                )
+                .await
+                {
                     Ok(response) => {
                         data.set(Ok(Some(response)));
                         loading.set(false);
@@ -125,7 +219,9 @@ fn use_data_loader<I: Clone + PartialEq + 'static, O: Clone + 'static>(authentic
                     Err(error) => {
                         log::error!("{}", error);
                         match error {
-                            TucanError::Http(ref req) if req.status() == Some(StatusCode::UNAUTHORIZED) => {
+                            TucanError::Http(ref req)
+                                if req.status() == Some(StatusCode::UNAUTHORIZED) =>
+                            {
                                 current_session_handle.set(None);
                                 data.set(Err("Unauthorized".to_owned()))
                             }

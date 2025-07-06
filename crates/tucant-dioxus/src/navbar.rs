@@ -3,7 +3,10 @@ use log::error;
 use reqwest::StatusCode;
 use tucant_types::{LoginResponse, RevalidationStrategy, Tucan, TucanError};
 
-use crate::{RcTucanType, Route, login_component::LoginComponent, logout_component::LogoutComponent, navbar_logged_in::NavbarLoggedIn, navbar_logged_out::NavbarLoggedOut};
+use crate::{
+    login_component::LoginComponent, logout_component::LogoutComponent,
+    navbar_logged_in::NavbarLoggedIn, navbar_logged_out::NavbarLoggedOut, RcTucanType, Route,
+};
 
 //use crate::{LoginComponent, LogoutComponent, RcTucanType, navbar_logged_in::NavbarLoggedIn, navbar_logged_out::NavbarLoggedOut};
 
@@ -19,13 +22,18 @@ pub fn Navbar() -> Element {
         let tucan = tucan.clone();
         async move {
             if let Some(the_current_session) = current_session() {
-                match tucan.after_login(&the_current_session, RevalidationStrategy::cache()).await {
+                match tucan
+                    .after_login(&the_current_session, RevalidationStrategy::cache())
+                    .await
+                {
                     Ok(response) => Ok(Some(response)),
                     Err(error) => {
                         // TODO pass through tucanerror from server
                         error!("{}", error);
                         match error {
-                            TucanError::Http(ref req) if req.status() == Some(StatusCode::UNAUTHORIZED) => {
+                            TucanError::Http(ref req)
+                                if req.status() == Some(StatusCode::UNAUTHORIZED) =>
+                            {
                                 current_session.set(None);
                                 Err("Unauthorized".to_owned())
                             }

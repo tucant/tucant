@@ -23,7 +23,13 @@ pub fn LoginComponent() -> Element {
             password.set("".to_owned());
 
             loading.set(true);
-            match tucan.login(LoginRequest { username: username(), password: password_string }).await {
+            match tucan
+                .login(LoginRequest {
+                    username: username(),
+                    password: password_string,
+                })
+                .await
+            {
                 Ok(response) => {
                     #[cfg(feature = "direct")]
                     web_extensions_sys::chrome()
@@ -44,7 +50,10 @@ pub fn LoginComponent() -> Element {
                         .await;
 
                     #[cfg(not(any(feature = "direct", feature = "api")))]
-                    keyring::Entry::new("tucant", "session").unwrap().set_password(&serde_json::to_string(&response).unwrap()).unwrap();
+                    keyring::Entry::new("tucant", "session")
+                        .unwrap()
+                        .set_password(&serde_json::to_string(&response).unwrap())
+                        .unwrap();
 
                     current_session.set(Some(response.clone()));
                     error_message.set(None);
@@ -58,7 +67,11 @@ pub fn LoginComponent() -> Element {
         }
     };
 
-    let is_invalid = if error_message().is_some() { "is-invalid" } else { "" };
+    let is_invalid = if error_message().is_some() {
+        "is-invalid"
+    } else {
+        ""
+    };
     rsx! {
         form { onsubmit: on_submit, class: "d-flex",
             input {

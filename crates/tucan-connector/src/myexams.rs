@@ -15,13 +15,19 @@ use crate::{
     registration::MODULEDETAILS_REGEX,
 };
 
-pub async fn my_exams(tucan: &TucanConnector, login_response: &LoginResponse, revalidation_strategy: RevalidationStrategy, semester: SemesterId) -> Result<MyExamsResponse, TucanError> {
+pub async fn my_exams(
+    tucan: &TucanConnector,
+    login_response: &LoginResponse,
+    revalidation_strategy: RevalidationStrategy,
+    semester: SemesterId,
+) -> Result<MyExamsResponse, TucanError> {
     let key = format!("unparsed_myexams.{}", semester.inner());
 
     let old_content_and_date = tucan.database.get::<(String, OffsetDateTime)>(&key).await;
     if revalidation_strategy.max_age != 0 {
         if let Some((content, date)) = &old_content_and_date {
-            if OffsetDateTime::now_utc() - *date < Duration::seconds(revalidation_strategy.max_age) {
+            if OffsetDateTime::now_utc() - *date < Duration::seconds(revalidation_strategy.max_age)
+            {
                 return my_exams_internal(login_response, content);
             }
         }
@@ -42,7 +48,8 @@ pub async fn my_exams(tucan: &TucanConnector, login_response: &LoginResponse, re
             format!("-N{}", semester.inner())
         }
     );
-    let (content, date) = authenticated_retryable_get(tucan, &url, &login_response.cookie_cnsc).await?;
+    let (content, date) =
+        authenticated_retryable_get(tucan, &url, &login_response.cookie_cnsc).await?;
     let result = my_exams_internal(login_response, &content)?;
     if invalidate_dependents && old_content_and_date.as_ref().map(|m| &m.0) != Some(&content) {
         // TODO invalidate cached ones?
@@ -55,7 +62,10 @@ pub async fn my_exams(tucan: &TucanConnector, login_response: &LoginResponse, re
 }
 
 #[expect(clippy::too_many_lines)]
-fn my_exams_internal(login_response: &LoginResponse, content: &str) -> Result<MyExamsResponse, TucanError> {
+fn my_exams_internal(
+    login_response: &LoginResponse,
+    content: &str,
+) -> Result<MyExamsResponse, TucanError> {
     let document = parse_document(content);
     let html_handler = Root::new(document.root());
     let html_handler = html_handler.document_start();
@@ -94,15 +104,30 @@ fn my_exams_internal(login_response: &LoginResponse, content: &str) -> Result<My
                                         </label>
                                         <select id="semester" name="semester" onchange=_onchange class="tabledata">
                                             let semester = while html_handler.peek().is_some() {
-                                                let option = if html_handler.peek().unwrap().value().as_element().unwrap().attr("selected").is_some() {
+                                                let option = if html_handler
+                                                    .peek()
+                                                    .unwrap()
+                                                    .value()
+                                                    .as_element()
+                                                    .unwrap()
+                                                    .attr("selected")
+                                                    .is_some() {
                                                     <option value=value selected="selected">
                                                         name
                                                     </option>
-                                                } => Semesterauswahl { name, value: SemesterId::from_str(&value).unwrap(), selected: true } else {
+                                                } => Semesterauswahl {
+                                                    name,
+                                                    value: SemesterId::from_str(&value).unwrap(),
+                                                    selected: true
+                                                } else {
                                                     <option value=value>
                                                         name
                                                     </option>
-                                                } => Semesterauswahl { name, value: SemesterId::from_str(&value).unwrap(), selected: false };
+                                                } => Semesterauswahl {
+                                                    name,
+                                                    value: SemesterId::from_str(&value).unwrap(),
+                                                    selected: false
+                                                };
                                             } => option.either_into();
                                         </select>
                                         <input name="Refresh" type="submit" value="Aktualisieren" class="img img_arrowReload"></input>
@@ -148,13 +173,28 @@ fn my_exams_internal(login_response: &LoginResponse, content: &str) -> Result<My
                                             course_id
                                         </td>
                                         <td class="tbdata">
-                                            let res = if html_handler.peek().unwrap().value().as_element().unwrap().attr("name").is_some() {
+                                            let res = if html_handler
+                                                .peek()
+                                                .unwrap()
+                                                .value()
+                                                .as_element()
+                                                .unwrap()
+                                                .attr("name")
+                                                .is_some() {
                                                 <a class="link" name="eventLink" href=coursedetails_url>
                                                     name
                                                 </a>
                                                 <br></br>
                                                 tuple_of_courses
-                                            } => (name, Some(CourseDetailsRequest::parse(&COURSEDETAILS_REGEX.replace(&coursedetails_url, ""))), None, Some(tuple_of_courses)) else {
+                                            } => (
+                                                name,
+                                                Some(CourseDetailsRequest::parse(
+                                                    &COURSEDETAILS_REGEX
+                                                        .replace(&coursedetails_url, "")
+                                                )),
+                                                None,
+                                                Some(tuple_of_courses)
+                                            ) else {
                                                 <a class="link" href=moduledetails_url>
                                                     name
                                                 </a>
@@ -168,7 +208,15 @@ fn my_exams_internal(login_response: &LoginResponse, content: &str) -> Result<My
                                                     _submitted_date
                                                     <br></br>
                                                 } => ();
-                                            } => (name, None, Some(ModuleDetailsRequest::parse(&MODULEDETAILS_REGEX.replace(&moduledetails_url, ""))), None);
+                                            } => (
+                                                name,
+                                                None,
+                                                Some(ModuleDetailsRequest::parse(
+                                                    &MODULEDETAILS_REGEX
+                                                        .replace(&moduledetails_url, "")
+                                                )),
+                                                None
+                                            );
                                         </td>
                                         <td class="tbdata">
                                             <a class="link" href=examdetail_url>
@@ -196,14 +244,50 @@ fn my_exams_internal(login_response: &LoginResponse, content: &str) -> Result<My
                                     </tr>
                                 } => Exam {
                                     id: course_id,
-                                    name: res.clone().either_into::<(String, Option<CourseDetailsRequest>, Option<ModuleDetailsRequest>, Option<String>)>().0,
-                                    coursedetails_url: res.clone().either_into::<(String, Option<CourseDetailsRequest>, Option<ModuleDetailsRequest>, Option<String>)>().1,
-                                    moduledetails_url: res.clone().either_into::<(String, Option<CourseDetailsRequest>, Option<ModuleDetailsRequest>, Option<String>)>().2,
-                                    tuple_of_courses: res.either_into::<(String, Option<CourseDetailsRequest>, Option<ModuleDetailsRequest>, Option<String>)>().3,
+                                    name: res
+                                        .clone()
+                                        .either_into::<(
+                                            String,
+                                            Option<CourseDetailsRequest>,
+                                            Option<ModuleDetailsRequest>,
+                                            Option<String>
+                                        )>()
+                                        .0,
+                                    coursedetails_url: res
+                                        .clone()
+                                        .either_into::<(
+                                            String,
+                                            Option<CourseDetailsRequest>,
+                                            Option<ModuleDetailsRequest>,
+                                            Option<String>
+                                        )>()
+                                        .1,
+                                    moduledetails_url: res
+                                        .clone()
+                                        .either_into::<(
+                                            String,
+                                            Option<CourseDetailsRequest>,
+                                            Option<ModuleDetailsRequest>,
+                                            Option<String>
+                                        )>()
+                                        .2,
+                                    tuple_of_courses: res
+                                        .either_into::<(
+                                            String,
+                                            Option<CourseDetailsRequest>,
+                                            Option<ModuleDetailsRequest>,
+                                            Option<String>
+                                        )>()
+                                        .3,
                                     examdetail_url,
                                     pruefungsart,
-                                    date: date_and_courseprep.clone().either_into::<(String, Option<String>)>().0,
-                                    courseprep_url: date_and_courseprep.either_into::<(String, Option<String>)>().1,
+                                    date: date_and_courseprep
+                                        .clone()
+                                        .either_into::<(String, Option<String>)>()
+                                        .0,
+                                    courseprep_url: date_and_courseprep
+                                        .either_into::<(String, Option<String>)>()
+                                        .1,
                                     examunreg_url: examunreg_url.right(),
                                 };
                             </tbody>

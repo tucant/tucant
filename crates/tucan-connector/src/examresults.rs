@@ -14,13 +14,19 @@ use crate::{
     head::{footer, html_head, logged_in_head},
 };
 
-pub async fn examresults(tucan: &TucanConnector, login_response: &LoginResponse, revalidation_strategy: RevalidationStrategy, semester: SemesterId) -> Result<ExamResultsResponse, TucanError> {
+pub async fn examresults(
+    tucan: &TucanConnector,
+    login_response: &LoginResponse,
+    revalidation_strategy: RevalidationStrategy,
+    semester: SemesterId,
+) -> Result<ExamResultsResponse, TucanError> {
     let key = format!("unparsed_examresults.{}", semester.inner());
 
     let old_content_and_date = tucan.database.get::<(String, OffsetDateTime)>(&key).await;
     if revalidation_strategy.max_age != 0 {
         if let Some((content, date)) = &old_content_and_date {
-            if OffsetDateTime::now_utc() - *date < Duration::seconds(revalidation_strategy.max_age) {
+            if OffsetDateTime::now_utc() - *date < Duration::seconds(revalidation_strategy.max_age)
+            {
                 return examresults_internal(login_response, content);
             }
         }
@@ -41,7 +47,8 @@ pub async fn examresults(tucan: &TucanConnector, login_response: &LoginResponse,
             format!("-N{}", semester.inner())
         }
     );
-    let (content, date) = authenticated_retryable_get(tucan, &url, &login_response.cookie_cnsc).await?;
+    let (content, date) =
+        authenticated_retryable_get(tucan, &url, &login_response.cookie_cnsc).await?;
     let result = examresults_internal(login_response, &content)?;
     if invalidate_dependents && old_content_and_date.as_ref().map(|m| &m.0) != Some(&content) {
         // TODO invalidate cached ones?
@@ -54,7 +61,10 @@ pub async fn examresults(tucan: &TucanConnector, login_response: &LoginResponse,
 }
 
 #[expect(clippy::too_many_lines)]
-fn examresults_internal(login_response: &LoginResponse, content: &str) -> Result<ExamResultsResponse, TucanError> {
+fn examresults_internal(
+    login_response: &LoginResponse,
+    content: &str,
+) -> Result<ExamResultsResponse, TucanError> {
     let document = parse_document(content);
     let html_handler = Root::new(document.root());
     let html_handler = html_handler.document_start();
@@ -96,15 +106,30 @@ fn examresults_internal(login_response: &LoginResponse, content: &str) -> Result
                                         </label>
                                         <select id="semester" name="semester" onchange=_onchange class="tabledata">
                                             let semester = while html_handler.peek().is_some() {
-                                                let option = if html_handler.peek().unwrap().value().as_element().unwrap().attr("selected").is_some() {
+                                                let option = if html_handler
+                                                    .peek()
+                                                    .unwrap()
+                                                    .value()
+                                                    .as_element()
+                                                    .unwrap()
+                                                    .attr("selected")
+                                                    .is_some() {
                                                     <option value=value selected="selected">
                                                         name
                                                     </option>
-                                                } => Semesterauswahl { name, value: SemesterId::from_str(&value).unwrap(), selected: true } else {
+                                                } => Semesterauswahl {
+                                                    name,
+                                                    value: SemesterId::from_str(&value).unwrap(),
+                                                    selected: true
+                                                } else {
                                                     <option value=value>
                                                         name
                                                     </option>
-                                                } => Semesterauswahl { name, value: SemesterId::from_str(&value).unwrap(), selected: false };
+                                                } => Semesterauswahl {
+                                                    name,
+                                                    value: SemesterId::from_str(&value).unwrap(),
+                                                    selected: false
+                                                };
                                             } => option.either_into();
                                         </select>
                                         <input name="Refresh" type="submit" value="Aktualisieren" class="img img_arrowReload"></input>
@@ -185,12 +210,22 @@ fn examresults_internal(login_response: &LoginResponse, content: &str) -> Result
                                                 <script type="text/javascript">
                                                     _popup_script
                                                 </script>
-                                            } => GradeOverviewRequest::parse(&GRADEOVERVIEW_REGEX.replace(&average_url, ""));
+                                            } => GradeOverviewRequest::parse(
+                                                &GRADEOVERVIEW_REGEX.replace(&average_url, "")
+                                            );
                                         </td>
                                     </tr>
                                 } => {
                                     let (id, name) = id_and_name.split_once('\n').unwrap();
-                                    ExamResult { id: id.trim().to_owned(), name: name.trim().to_owned(), exam_type, date, grade, grade_text, average_url }
+                                    ExamResult {
+                                        id: id.trim().to_owned(),
+                                        name: name.trim().to_owned(),
+                                        exam_type,
+                                        date,
+                                        grade,
+                                        grade_text,
+                                        average_url,
+                                    }
                                 };
                             </tbody>
                         </table>

@@ -93,11 +93,17 @@ pub enum TucanError {
 impl IntoResponse for TucanError {
     fn into_response(self) -> Response {
         match self {
-            Self::Http(error) => (StatusCode::INTERNAL_SERVER_ERROR, error.to_string()).into_response(),
-            Self::Io(error) => (StatusCode::INTERNAL_SERVER_ERROR, error.to_string()).into_response(),
+            Self::Http(error) => {
+                (StatusCode::INTERNAL_SERVER_ERROR, error.to_string()).into_response()
+            }
+            Self::Io(error) => {
+                (StatusCode::INTERNAL_SERVER_ERROR, error.to_string()).into_response()
+            }
             Self::Timeout => (StatusCode::UNAUTHORIZED, "session timeout").into_response(),
             Self::AccessDenied => (StatusCode::FORBIDDEN, "access denied").into_response(),
-            Self::InvalidCredentials => (StatusCode::UNAUTHORIZED, "invalid credentials").into_response(),
+            Self::InvalidCredentials => {
+                (StatusCode::UNAUTHORIZED, "invalid credentials").into_response()
+            }
             Self::NotCached => (StatusCode::NOT_FOUND, "not cached").into_response(),
         }
     }
@@ -113,14 +119,20 @@ pub struct RevalidationStrategy {
 
 impl Default for RevalidationStrategy {
     fn default() -> Self {
-        Self { max_age: 0, invalidate_dependents: Some(false) }
+        Self {
+            max_age: 0,
+            invalidate_dependents: Some(false),
+        }
     }
 }
 
 impl RevalidationStrategy {
     #[must_use]
     pub const fn cache() -> Self {
-        Self { max_age: i64::MAX, invalidate_dependents: Some(true) }
+        Self {
+            max_age: i64::MAX,
+            invalidate_dependents: Some(true),
+        }
     }
 }
 
@@ -131,7 +143,11 @@ impl FromStr for SemesterId {
     type Err = Infallible;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        if s == "999" { Ok(Self("all".to_owned())) } else { Ok(Self(s.to_owned())) }
+        if s == "999" {
+            Ok(Self("all".to_owned()))
+        } else {
+            Ok(Self(s.to_owned()))
+        }
     }
 }
 
@@ -227,35 +243,104 @@ impl Display for Grade {
 
 #[dynosaur::dynosaur(pub DynTucan)]
 pub trait Tucan: Send + Sync {
-    fn login(&self, request: LoginRequest) -> impl std::future::Future<Output = Result<LoginResponse, TucanError>>;
+    fn login(
+        &self,
+        request: LoginRequest,
+    ) -> impl std::future::Future<Output = Result<LoginResponse, TucanError>>;
 
     fn welcome(&self) -> impl std::future::Future<Output = Result<LoggedOutHead, TucanError>>;
 
-    fn after_login(&self, request: &LoginResponse, revalidation_strategy: RevalidationStrategy) -> impl std::future::Future<Output = Result<MlsStart, TucanError>>;
+    fn after_login(
+        &self,
+        request: &LoginResponse,
+        revalidation_strategy: RevalidationStrategy,
+    ) -> impl std::future::Future<Output = Result<MlsStart, TucanError>>;
 
-    fn logout(&self, request: &LoginResponse) -> impl std::future::Future<Output = Result<(), TucanError>>;
+    fn logout(
+        &self,
+        request: &LoginResponse,
+    ) -> impl std::future::Future<Output = Result<(), TucanError>>;
 
-    fn my_modules(&self, request: &LoginResponse, revalidation_strategy: RevalidationStrategy, semester: SemesterId) -> impl std::future::Future<Output = Result<MyModulesResponse, TucanError>>;
+    fn my_modules(
+        &self,
+        request: &LoginResponse,
+        revalidation_strategy: RevalidationStrategy,
+        semester: SemesterId,
+    ) -> impl std::future::Future<Output = Result<MyModulesResponse, TucanError>>;
 
-    fn my_courses(&self, request: &LoginResponse, revalidation_strategy: RevalidationStrategy, semester: SemesterId) -> impl std::future::Future<Output = Result<MyCoursesResponse, TucanError>>;
+    fn my_courses(
+        &self,
+        request: &LoginResponse,
+        revalidation_strategy: RevalidationStrategy,
+        semester: SemesterId,
+    ) -> impl std::future::Future<Output = Result<MyCoursesResponse, TucanError>>;
 
-    fn my_exams(&self, request: &LoginResponse, revalidation_strategy: RevalidationStrategy, semester: SemesterId) -> impl std::future::Future<Output = Result<MyExamsResponse, TucanError>>;
+    fn my_exams(
+        &self,
+        request: &LoginResponse,
+        revalidation_strategy: RevalidationStrategy,
+        semester: SemesterId,
+    ) -> impl std::future::Future<Output = Result<MyExamsResponse, TucanError>>;
 
-    fn exam_results(&self, request: &LoginResponse, revalidation_strategy: RevalidationStrategy, semester: SemesterId) -> impl std::future::Future<Output = Result<ExamResultsResponse, TucanError>>;
+    fn exam_results(
+        &self,
+        request: &LoginResponse,
+        revalidation_strategy: RevalidationStrategy,
+        semester: SemesterId,
+    ) -> impl std::future::Future<Output = Result<ExamResultsResponse, TucanError>>;
 
-    fn course_results(&self, request: &LoginResponse, revalidation_strategy: RevalidationStrategy, semester: SemesterId) -> impl std::future::Future<Output = Result<ModuleResultsResponse, TucanError>>;
+    fn course_results(
+        &self,
+        request: &LoginResponse,
+        revalidation_strategy: RevalidationStrategy,
+        semester: SemesterId,
+    ) -> impl std::future::Future<Output = Result<ModuleResultsResponse, TucanError>>;
 
-    fn my_documents(&self, request: &LoginResponse, revalidation_strategy: RevalidationStrategy) -> impl std::future::Future<Output = Result<MyDocumentsResponse, TucanError>>;
+    fn my_documents(
+        &self,
+        request: &LoginResponse,
+        revalidation_strategy: RevalidationStrategy,
+    ) -> impl std::future::Future<Output = Result<MyDocumentsResponse, TucanError>>;
 
-    fn anmeldung(&self, login_response: LoginResponse, revalidation_strategy: RevalidationStrategy, request: AnmeldungRequest) -> impl std::future::Future<Output = Result<AnmeldungResponse, TucanError>>;
+    fn anmeldung(
+        &self,
+        login_response: LoginResponse,
+        revalidation_strategy: RevalidationStrategy,
+        request: AnmeldungRequest,
+    ) -> impl std::future::Future<Output = Result<AnmeldungResponse, TucanError>>;
 
-    fn module_details(&self, login_response: &LoginResponse, revalidation_strategy: RevalidationStrategy, request: ModuleDetailsRequest) -> impl std::future::Future<Output = Result<ModuleDetailsResponse, TucanError>>;
+    fn module_details(
+        &self,
+        login_response: &LoginResponse,
+        revalidation_strategy: RevalidationStrategy,
+        request: ModuleDetailsRequest,
+    ) -> impl std::future::Future<Output = Result<ModuleDetailsResponse, TucanError>>;
 
-    fn course_details(&self, login_response: &LoginResponse, revalidation_strategy: RevalidationStrategy, request: CourseDetailsRequest) -> impl std::future::Future<Output = Result<CourseDetailsResponse, TucanError>>;
+    fn course_details(
+        &self,
+        login_response: &LoginResponse,
+        revalidation_strategy: RevalidationStrategy,
+        request: CourseDetailsRequest,
+    ) -> impl std::future::Future<Output = Result<CourseDetailsResponse, TucanError>>;
 
-    fn vv(&self, login_response: Option<&LoginResponse>, revalidation_strategy: RevalidationStrategy, action: ActionRequest) -> impl std::future::Future<Output = Result<Vorlesungsverzeichnis, TucanError>>;
+    fn vv(
+        &self,
+        login_response: Option<&LoginResponse>,
+        revalidation_strategy: RevalidationStrategy,
+        action: ActionRequest,
+    ) -> impl std::future::Future<Output = Result<Vorlesungsverzeichnis, TucanError>>;
 
-    fn student_result(&self, login_response: &LoginResponse, revalidation_strategy: RevalidationStrategy, course_of_study: u64) -> impl std::future::Future<Output = Result<StudentResultResponse, TucanError>>;
+    fn student_result(
+        &self,
+        login_response: &LoginResponse,
+        revalidation_strategy: RevalidationStrategy,
+        course_of_study: u64,
+    ) -> impl std::future::Future<Output = Result<StudentResultResponse, TucanError>>;
 
-    fn gradeoverview(&self, login_response: &LoginResponse, revalidation_strategy: RevalidationStrategy, gradeoverview: GradeOverviewRequest) -> impl std::future::Future<Output = Result<GradeOverviewResponse, TucanError>>;
+    fn gradeoverview(
+        &self,
+        login_response: &LoginResponse,
+        revalidation_strategy: RevalidationStrategy,
+        gradeoverview: GradeOverviewRequest,
+    ) -> impl std::future::Future<Output = Result<GradeOverviewResponse, TucanError>>;
 }

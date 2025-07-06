@@ -1,5 +1,5 @@
 use dioxus::prelude::*;
-use tucant_types::{LoginResponse, SemesterId, mlsstart::MlsStart, registration::AnmeldungRequest};
+use tucant_types::{mlsstart::MlsStart, registration::AnmeldungRequest, LoginResponse, SemesterId};
 
 use crate::Route;
 
@@ -39,7 +39,10 @@ pub fn Vorlesungsverzeichnisse(data: ReadOnlySignal<Option<MlsStart>>) -> Elemen
 }
 
 #[component]
-pub fn NavbarLoggedIn(current_session: ReadOnlySignal<LoginResponse>, data: ReadOnlySignal<Option<MlsStart>>) -> Element {
+pub fn NavbarLoggedIn(
+    current_session: ReadOnlySignal<LoginResponse>,
+    data: ReadOnlySignal<Option<MlsStart>>,
+) -> Element {
     let disabled = data().is_none().then_some("disabled").unwrap_or_default();
     rsx! {
         li { class: "nav-item dropdown",

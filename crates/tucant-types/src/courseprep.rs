@@ -49,7 +49,10 @@ impl CoursePrepRequest {
         // seems like we need to fix some stuff
         // CODA or MOFF
         // having -A with nothing here is a custom appointment just for you
-        static COURSE_DETAILS_REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^-N0,-N(?P<timetable>\d+),-A(?P<type>[a-zA-Z0-9_~-]*),-N(?P<course>\d+)$").unwrap());
+        static COURSE_DETAILS_REGEX: LazyLock<Regex> = LazyLock::new(|| {
+            Regex::new(r"^-N0,-N(?P<timetable>\d+),-A(?P<type>[a-zA-Z0-9_~-]*),-N(?P<course>\d+)$")
+                .unwrap()
+        });
         let c = &COURSE_DETAILS_REGEX.captures(input).expect(input);
         Self {
             timetable_id: c["timetable"].parse().unwrap(),
