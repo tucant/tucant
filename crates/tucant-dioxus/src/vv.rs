@@ -51,7 +51,9 @@ pub fn Vorlesungsverzeichnis(vv: ReadOnlySignal<ActionRequest>) -> Element {
                             }
                         }
                     }
-                    nav { style: "min-height: 5.5rem", "aria-label": "breadcrumb",
+                    nav {
+                        style: "min-height: 5.5rem",
+                        "aria-label": "breadcrumb",
                         ol { class: "breadcrumb",
                             {
                                 data.path
