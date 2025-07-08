@@ -86,7 +86,7 @@ def parse_module(module):
 
 if __name__ == "__main__":
     pdf = pdfplumber.open("/home/moritz/Downloads/2023_05_11_MHB_MSC_INF.pdf")
-    handle_page([], 544, pdf.pages[544])
+    # handle_page([], 544, pdf.pages[544])
     try:
         output = json.load(open("stage1.json", 'r'))
     except (IOError, ValueError):
