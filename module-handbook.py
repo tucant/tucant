@@ -16,7 +16,7 @@ def persist_to_file(file_name):
     return decorator
 
 #@persist_to_file('cache.dat')
-def handle_page(page_idx, page):
+def handle_page(output, page_idx, page):
     if len(page.rects) == 0:
         print(f"skipping page {page_idx}")
         return
@@ -38,6 +38,7 @@ def handle_page(page_idx, page):
     #im.draw_rects(rects)
     #im.debug_tablefinder(table_settings)
     #im.show()
+    parsed_rows = []
     for row in table.rows:
         cropped_table_settings = dict(
             vertical_strategy="explicit",
@@ -50,18 +51,24 @@ def handle_page(page_idx, page):
         #im.debug_tablefinder()
         cropped_table = cropped_page.extract_table()
         print(cropped_table)
+        parsed_rows.append(cropped_table)
         # one cell is never a table
         #if page_idx == 5:
         #    im = cropped_page.to_image(resolution=150)
         #    im.debug_tablefinder()
         #    im.show()
-
+    if parsed_rows[0] is None:
+        output.append(parsed_rows)
+    else:
+        output[-1].extend(parsed_rows)
 
 # pkill gwenview
 
 if __name__ == "__main__":
     pdf = pdfplumber.open("/home/moritz/Downloads/2023_05_11_MHB_MSC_INF.pdf")
+    output = []
     for page_idx in range(4, len(pdf.pages)):
         print(f"page {page_idx}")
         page = pdf.pages[page_idx]
-        handle_page(page_idx, page)
+        handle_page(output, page_idx, page)
+    print(output)
