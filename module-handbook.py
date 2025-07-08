@@ -17,4 +17,16 @@ with pdfplumber.open("/home/moritz/Downloads/2023_05_11_MHB_MSC_INF.pdf") as pdf
     im = page.to_image(resolution=150)
     #im.draw_rects(rects)
     im.debug_tablefinder(table_settings)
+    #im.show()
+    row = table.rows[3]
+    cropped_table_settings = dict(
+        vertical_strategy="explicit",
+        horizontal_strategy="explicit",
+        explicit_vertical_lines=rects,
+        explicit_horizontal_lines=rects
+    )
+    cropped_page = page.crop(row.bbox, strict = False)
+    im = cropped_page.to_image(resolution=150)
+    im.debug_tablefinder(cropped_table_settings)
+    print(cropped_page.extract_table(cropped_table_settings))
     im.show()
