@@ -66,9 +66,13 @@ def handle_page(output, page_idx, page):
 
 if __name__ == "__main__":
     pdf = pdfplumber.open("/home/moritz/Downloads/2023_05_11_MHB_MSC_INF.pdf")
-    output = []
+    try:
+        output = json.load(open("stage1.json", 'r'))
+    except (IOError, ValueError):
+        output = []
     for page_idx in range(4, len(pdf.pages)):
         print(f"page {page_idx}")
         page = pdf.pages[page_idx]
         handle_page(output, page_idx, page)
     print(output)
+    json.dump(output, open("stage1.json", 'w'))
