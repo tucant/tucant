@@ -66,6 +66,15 @@ def handle_page(output, page_idx, page):
 
 # pkill gwenview
 
+def parse_module(module):
+    module_name = module[0][0][0].lstrip("Modulname\n")
+    modul_nr = module[1][0][0].lstrip("Modul Nr.\n").replace("\n", "")
+    leistungspunkte = module[1][0][1].lstrip("Leistungspun\nkte\n").rstrip(" CP")
+
+    print(module_name)
+    print(modul_nr)
+    print(leistungspunkte)
+
 if __name__ == "__main__":
     pdf = pdfplumber.open("/home/moritz/Downloads/2023_05_11_MHB_MSC_INF.pdf")
     try:
@@ -77,4 +86,6 @@ if __name__ == "__main__":
             page = pdf.pages[page_idx]
             handle_page(output, page_idx, page)
         json.dump(output, open("stage1.json", 'w'))
-    print(output)
+    #print(output)
+    for module in output:
+        parse_module(module)
