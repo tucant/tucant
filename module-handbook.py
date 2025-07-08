@@ -1,21 +1,6 @@
 import pdfplumber
 import json
 
-def persist_to_file(file_name):
-    def decorator(original_func):
-        try:
-            cache = json.load(open(file_name, 'r'))
-        except (IOError, ValueError):
-            cache = {}
-        def new_func(param1, param2):
-            if str(param1) not in cache:
-                cache[str(param1)] = original_func(param1, param2)
-                json.dump(cache, open(file_name, 'w'))
-            return cache[str(param1)]
-        return new_func
-    return decorator
-
-#@persist_to_file('cache.dat')
 def handle_page(output, page_idx, page):
     if len(page.rects) == 0:
         print(f"skipping page {page_idx}")
@@ -70,10 +55,21 @@ def parse_module(module):
     module_name = module[0][0][0].lstrip("Modulname\n")
     modul_nr = module[1][0][0].lstrip("Modul Nr.\n").replace("\n", "")
     leistungspunkte = module[1][0][1].lstrip("Leistungspun\nkte\n").rstrip(" CP")
+    arbeitsaufwand = module[1][0][2].lstrip("Arbeitsaufwand\n").rstrip(" h")
+    selbststudium = module[1][0][3].lstrip("Selbststudium\n").rstrip(" h")
+    moduldauer = module[1][0][4].lstrip("Moduldauer\n").rstrip(" Semester")
+    angebotsturnus = module[1][0][5].lstrip("Angebotsturnus\n").replace("\n", " ")
+    sprache = module[2][0][0].lstrip("Sprache\n")
+    modulverantwortliche_person = module[2][0][1].lstrip("Modulverantwortliche Person\n").replace("\n", " ")
 
-    print(module_name)
-    print(modul_nr)
-    print(leistungspunkte)
+    #print(module_name)
+    #print(modul_nr)
+    #print(leistungspunkte)
+    #print(arbeitsaufwand)
+    #print(selbststudium)
+    #print(moduldauer)
+    #print(angebotsturnus)
+    print(modulverantwortliche_person)
 
 if __name__ == "__main__":
     pdf = pdfplumber.open("/home/moritz/Downloads/2023_05_11_MHB_MSC_INF.pdf")
