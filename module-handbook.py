@@ -25,8 +25,8 @@ with pdfplumber.open("/home/moritz/Downloads/2023_05_11_MHB_MSC_INF.pdf") as pdf
         explicit_vertical_lines=rects,
         explicit_horizontal_lines=rects
     )
-    cropped_page = page.crop(row.bbox, strict = False)
+    cropped_page = page.crop((row.bbox[0], row.bbox[1]-1, row.bbox[2], row.bbox[3]), strict = False)
     im = cropped_page.to_image(resolution=150)
-    im.debug_tablefinder(cropped_table_settings)
-    print(cropped_page.extract_table(cropped_table_settings))
+    im.debug_tablefinder()
+    print(cropped_page.extract_table())
     im.show()
