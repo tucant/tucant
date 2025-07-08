@@ -62,6 +62,15 @@ def parse_module(module):
     sprache = module[2][0][0].lstrip("Sprache\n")
     modulverantwortliche_person = module[2][0][1].lstrip("Modulverantwortliche Person\n").replace("\n", " ")
 
+    assert module[3][0][0] == "1"
+    assert module[3][0][1] == "Kurse des Moduls"
+    assert module[3][1][1].replace("\n", " ") == "Kurs Nr."
+    assert module[3][1][2] == "Kursname"
+    assert module[3][1][3] == "Arbeitsaufwand\n(CP)"
+    assert module[3][1][4] == "Lehrform"
+    assert module[3][1][5] == "SWS"
+
+
     #print(module_name)
     #print(modul_nr)
     #print(leistungspunkte)
