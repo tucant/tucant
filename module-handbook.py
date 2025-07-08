@@ -1,6 +1,8 @@
 import pdfplumber
 import json
 
+# pkill gwenview
+
 def handle_page(output, page_idx, page):
     if len(page.rects) == 0:
         print(f"skipping page {page_idx}")
@@ -18,11 +20,12 @@ def handle_page(output, page_idx, page):
     table = page.find_table(table_settings)
     if table is None:
         return
-    #print(table.extract())
-    #im = page.to_image(resolution=150)
-    #im.draw_rects(rects)
-    #im.debug_tablefinder(table_settings)
-    #im.show()
+    if page_idx == 544:
+        #print(table.extract())
+        im = page.to_image(resolution=150)
+        im.draw_rects(rects)
+        im.debug_tablefinder(table_settings)
+        im.show()
     parsed_rows = []
     for row in table.rows:
         cropped_table_settings = dict(
@@ -39,17 +42,14 @@ def handle_page(output, page_idx, page):
             cropped_table = [[cropped_page.extract_text()]]
         parsed_rows.append(cropped_table)
         # one cell is never a table
-        #if page_idx == 5:
+        #if page_idx == 544:
         #    im = cropped_page.to_image(resolution=150)
         #    im.debug_tablefinder()
         #    im.show()
-    print(parsed_rows[0])
     if parsed_rows[0][0][0].startswith("Modulname"):
         output.append(parsed_rows)
     else:
         output[-1].extend(parsed_rows)
-
-# pkill gwenview
 
 def parse_module(module):
     module_name = module[0][0][0].lstrip("Modulname\n")
@@ -70,6 +70,9 @@ def parse_module(module):
     assert module[3][1][4] == "Lehrform"
     assert module[3][1][5] == "SWS"
 
+    for course in module[3][2:]:
+        kurs_nr = course[1]
+        print(course)
 
     #print(module_name)
     #print(modul_nr)
@@ -78,10 +81,11 @@ def parse_module(module):
     #print(selbststudium)
     #print(moduldauer)
     #print(angebotsturnus)
-    print(modulverantwortliche_person)
+    #print(modulverantwortliche_person)
 
 if __name__ == "__main__":
     pdf = pdfplumber.open("/home/moritz/Downloads/2023_05_11_MHB_MSC_INF.pdf")
+    handle_page([], 544, pdf.pages[544])
     try:
         output = json.load(open("stage1.json", 'r'))
     except (IOError, ValueError):
