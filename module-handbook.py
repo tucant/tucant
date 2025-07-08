@@ -15,7 +15,8 @@ def handle_page(output, page_idx, page):
         vertical_strategy="explicit",
         horizontal_strategy="explicit",
         explicit_vertical_lines=[leftmost_rect["x0"], rightmost_rect["x1"]],
-        explicit_horizontal_lines=rects
+        explicit_horizontal_lines=rects,
+        intersection_tolerance=10,
     )
     table = page.find_table(table_settings)
     if table is None:
