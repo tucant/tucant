@@ -1,14 +1,25 @@
 import pdfplumber
+import json
 
-# pkill gwenview
+def persist_to_file(file_name):
+    def decorator(original_func):
+        try:
+            cache = json.load(open(file_name, 'r'))
+        except (IOError, ValueError):
+            cache = {}
+        def new_func(param1, param2):
+            if str(param1) not in cache:
+                cache[str(param1)] = original_func(param1, param2)
+                json.dump(cache, open(file_name, 'w'))
+            return cache[str(param1)]
+        return new_func
+    return decorator
 
-pdf = pdfplumber.open("/home/moritz/Downloads/2023_05_11_MHB_MSC_INF.pdf")
-for page_idx in range(4, len(pdf.pages)):
-    print(f"page {page_idx}")
-    page = pdf.pages[page_idx]
+@persist_to_file('cache.dat')
+def handle_page(page_idx, page):
     if len(page.rects) == 0:
         print(f"skipping page {page_idx}")
-        continue
+        return
     # maxwidth_rect = max(page.rects, key=lambda rect: rect["width"])
     rects = list(filter(lambda rect: rect["width"] < 499, page.rects))
     leftmost_rect = min(rects, key=lambda rect: rect["x0"])
@@ -21,7 +32,7 @@ for page_idx in range(4, len(pdf.pages)):
     )
     table = page.find_table(table_settings)
     if table is None:
-        continue
+        return
     #im = page.to_image(resolution=150)
     #im.draw_rects(rects)
     #im.debug_tablefinder(table_settings)
@@ -43,3 +54,13 @@ for page_idx in range(4, len(pdf.pages)):
         #    im = cropped_page.to_image(resolution=150)
         #    im.debug_tablefinder()
         #    im.show()
+
+
+# pkill gwenview
+
+if __name__ == "__main__":
+    pdf = pdfplumber.open("/home/moritz/Downloads/2023_05_11_MHB_MSC_INF.pdf")
+    for page_idx in range(4, len(pdf.pages)):
+        print(f"page {page_idx}")
+        page = pdf.pages[page_idx]
+        handle_page(page_idx, page)
