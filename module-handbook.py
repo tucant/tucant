@@ -50,14 +50,16 @@ def handle_page(output, page_idx, page):
         #im = cropped_page.to_image(resolution=150)
         #im.debug_tablefinder()
         cropped_table = cropped_page.extract_table()
-        print(cropped_table)
+        if cropped_table is None:
+            cropped_table = [[cropped_page.extract_text()]]
         parsed_rows.append(cropped_table)
         # one cell is never a table
         #if page_idx == 5:
         #    im = cropped_page.to_image(resolution=150)
         #    im.debug_tablefinder()
         #    im.show()
-    if parsed_rows[0] is None:
+    print(parsed_rows[0])
+    if parsed_rows[0][0][0].startswith("Modulname"):
         output.append(parsed_rows)
     else:
         output[-1].extend(parsed_rows)
@@ -70,9 +72,9 @@ if __name__ == "__main__":
         output = json.load(open("stage1.json", 'r'))
     except (IOError, ValueError):
         output = []
-    for page_idx in range(4, len(pdf.pages)):
-        print(f"page {page_idx}")
-        page = pdf.pages[page_idx]
-        handle_page(output, page_idx, page)
+        for page_idx in range(4, len(pdf.pages)):
+            print(f"page {page_idx}")
+            page = pdf.pages[page_idx]
+            handle_page(output, page_idx, page)
+        json.dump(output, open("stage1.json", 'w'))
     print(output)
-    json.dump(output, open("stage1.json", 'w'))
