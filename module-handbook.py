@@ -15,7 +15,7 @@ def persist_to_file(file_name):
         return new_func
     return decorator
 
-@persist_to_file('cache.dat')
+#@persist_to_file('cache.dat')
 def handle_page(page_idx, page):
     if len(page.rects) == 0:
         print(f"skipping page {page_idx}")
@@ -33,6 +33,7 @@ def handle_page(page_idx, page):
     table = page.find_table(table_settings)
     if table is None:
         return
+    #print(table.extract())
     #im = page.to_image(resolution=150)
     #im.draw_rects(rects)
     #im.debug_tablefinder(table_settings)
@@ -50,7 +51,7 @@ def handle_page(page_idx, page):
         cropped_table = cropped_page.extract_table()
         print(cropped_table)
         # one cell is never a table
-        #if cropped_table is None:
+        #if page_idx == 5:
         #    im = cropped_page.to_image(resolution=150)
         #    im.debug_tablefinder()
         #    im.show()
