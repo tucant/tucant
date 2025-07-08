@@ -19,7 +19,6 @@ for page_idx in range(4, len(pdf.pages)):
         explicit_vertical_lines=[leftmost_rect["x0"], rightmost_rect["x1"]],
         explicit_horizontal_lines=rects
     )
-    print(rects)
     table = page.find_table(table_settings)
     if table is None:
         continue
@@ -34,8 +33,13 @@ for page_idx in range(4, len(pdf.pages)):
             explicit_vertical_lines=rects,
             explicit_horizontal_lines=rects
         )
-        cropped_page = page.crop((row.bbox[0], row.bbox[1]-1, row.bbox[2], row.bbox[3]), strict = False)
+        cropped_page = page.crop((row.bbox[0]-1, row.bbox[1]-1.0, row.bbox[2]+1, row.bbox[3]+1.0), strict = False)
         #im = cropped_page.to_image(resolution=150)
         #im.debug_tablefinder()
-        print(cropped_page.extract_table())
-    #im.show()
+        cropped_table = cropped_page.extract_table()
+        print(cropped_table)
+        # one cell is never a table
+        #if cropped_table is None:
+        #    im = cropped_page.to_image(resolution=150)
+        #    im.debug_tablefinder()
+        #    im.show()
