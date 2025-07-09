@@ -50,10 +50,10 @@ def handle_page(output, page_idx, page):
             cropped_table = [[cropped_page.extract_text()]]
         parsed_rows.append(cropped_table)
         #if page_idx == 3700:
-        im = cropped_page.to_image(resolution=150)
-        im.draw_rects(rects)
+        #im = cropped_page.to_image(resolution=150)
+        #im.draw_rects(rects)
         #im.debug_tablefinder(cropped_table_settings)
-        im.show()
+        #im.show()
         print(cropped_table)
     if parsed_rows[0][0][0].startswith("Modulname"):
         output.append(parsed_rows)
