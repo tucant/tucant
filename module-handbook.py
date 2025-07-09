@@ -23,14 +23,14 @@ def handle_page(output, page_idx, page):
     if table is None:
         return
     table_text = table.extract()
-    if page_idx == 494:
+    #if page_idx == 494:
         #print(table.extract())
-        im = page.to_image(resolution=150)
-        im.draw_rects(page.rects)
-        im.debug_tablefinder(table_settings)
-        im.show()
+    #im = page.to_image(resolution=150)
+    #im.draw_rects([leftmost_rect, rightmost_rect])
+    #im.debug_tablefinder(table_settings)
+    #im.show()
     parsed_rows = []
-    if table_text[0][0] == "Modulbeschreibung":
+    if table_text[0][0].endswith("odulbeschreibung"):
         rows = table.rows[2:]
     else:
         rows = table.rows
@@ -48,6 +48,7 @@ def handle_page(output, page_idx, page):
             #explicit_horizontal_lines=cropped_page.rects,
         )
         if len(rects) < 2:
+            print(table_text)
             im = cropped_page.to_image(resolution=150)
             im.draw_rects(rects)
             im.show()
@@ -122,7 +123,7 @@ if __name__ == "__main__":
     os.system("pkill gwenview")
     pdf = pdfplumber.open("/home/moritz/Downloads/2023_05_11_MHB_MSC_INF.pdf")
     handle_page([], 494, pdf.pages[494])
-    exit(0)
+    #exit(0)
     try:
         output = json.load(open("stage1.json", 'r'))
     except (IOError, ValueError):
