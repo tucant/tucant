@@ -23,7 +23,7 @@ def handle_page(output, page_idx, page):
     table = page.find_table(table_settings)
     if table is None:
         return
-    if page_idx == 5180:
+    if page_idx == 494:
         #print(table.extract())
         im = page.to_image(resolution=150)
         im.draw_rects(rects)
@@ -43,6 +43,10 @@ def handle_page(output, page_idx, page):
             #horizontal_strategy="explicit",
             #explicit_horizontal_lines=cropped_page.rects,
         )
+        if len(rects) < 2:
+            im = cropped_page.to_image(resolution=150)
+            im.draw_rects(rects)
+            im.show()
         cropped_table = cropped_page.find_table(cropped_table_settings)
         # one cell is never a table
         if cropped_table is None:
@@ -113,8 +117,8 @@ def parse_module(module):
 if __name__ == "__main__":
     os.system("pkill gwenview")
     pdf = pdfplumber.open("/home/moritz/Downloads/2023_05_11_MHB_MSC_INF.pdf")
-    #handle_page([], 37, pdf.pages[37])
-    #exit(0)
+    handle_page([], 494, pdf.pages[494])
+    exit(0)
     try:
         output = json.load(open("stage1.json", 'r'))
     except (IOError, ValueError):
