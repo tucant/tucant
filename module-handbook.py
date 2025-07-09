@@ -8,29 +8,33 @@ def handle_page(output, page_idx, page):
     if len(page.rects) == 0:
         print(f"skipping page {page_idx}")
         return
-    # maxwidth_rect = max(page.rects, key=lambda rect: rect["width"])
-    rects = list(filter(lambda rect: rect["width"] < 499, page.rects))
-    leftmost_rect = min(rects, key=lambda rect: rect["x0"])
-    rightmost_rect = max(rects, key=lambda rect: rect["x1"])
+    rects_without_heading_rect = list(filter(lambda rect: rect["width"] < 499, page.rects))
+    leftmost_rect = min(rects_without_heading_rect, key=lambda rect: rect["x0"])
+    rightmost_rect = max(rects_without_heading_rect, key=lambda rect: rect["x1"])
     table_settings=dict(
         vertical_strategy="explicit",
         horizontal_strategy="explicit",
         explicit_vertical_lines=[leftmost_rect["x0"], rightmost_rect["x1"]],
-        explicit_horizontal_lines=rects,
+        explicit_horizontal_lines=page.rects,
         intersection_tolerance=10,
         snap_tolerance=10,
     )
     table = page.find_table(table_settings)
     if table is None:
         return
+    table_text = table.extract()
     if page_idx == 494:
         #print(table.extract())
         im = page.to_image(resolution=150)
-        im.draw_rects(rects)
+        im.draw_rects(page.rects)
         im.debug_tablefinder(table_settings)
         im.show()
     parsed_rows = []
-    for row in table.rows:
+    if table_text[0][0] == "Modulbeschreibung":
+        rows = table.rows[2:]
+    else:
+        rows = table.rows
+    for row in rows:
         cropped_page = page.crop((row.bbox[0]-1, row.bbox[1]-1.0, row.bbox[2]+1, row.bbox[3]+1.0), strict = False)
         #cropped_left_to_right = sorted(cropped_page.rects, key=lambda rect: rect["x0"])
         #print(cropped_left_to_right[1])
