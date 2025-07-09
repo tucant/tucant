@@ -31,21 +31,30 @@ def handle_page(output, page_idx, page):
         im.show()
     parsed_rows = []
     for row in table.rows:
+        cropped_page = page.crop((row.bbox[0]-1, row.bbox[1]-1.0, row.bbox[2]+1, row.bbox[3]+1.0), strict = False)
+        #cropped_left_to_right = sorted(cropped_page.rects, key=lambda rect: rect["x0"])
+        #print(cropped_left_to_right[1])
+        rects = list(filter(lambda rect: rect["x1"] < 100 or rect["x0"] > 525, cropped_page.rects))
         cropped_table_settings = dict(
             intersection_tolerance=10,
             snap_tolerance=10,
+            vertical_strategy="explicit",
+            explicit_vertical_lines=rects,
+            #horizontal_strategy="explicit",
+            #explicit_horizontal_lines=cropped_page.rects,
         )
-        cropped_page = page.crop((row.bbox[0]-1, row.bbox[1]-1.0, row.bbox[2]+1, row.bbox[3]+1.0), strict = False)
+        print(cropped_table_settings)
         cropped_table = cropped_page.extract_table(cropped_table_settings)
         # one cell is never a table
         if cropped_table is None:
             cropped_table = [[cropped_page.extract_text()]]
         parsed_rows.append(cropped_table)
-        if page_idx == 3700:
-            im = cropped_page.to_image(resolution=150)
-            im.debug_tablefinder(cropped_table_settings)
-            im.show()
-            print(cropped_table)
+        #if page_idx == 3700:
+        im = cropped_page.to_image(resolution=150)
+        im.draw_rects(rects)
+        #im.debug_tablefinder(cropped_table_settings)
+        im.show()
+        print(cropped_table)
     if parsed_rows[0][0][0].startswith("Modulname"):
         output.append(parsed_rows)
     else:
@@ -101,7 +110,7 @@ if __name__ == "__main__":
             print(f"page {page_idx}")
             page = pdf.pages[page_idx]
             handle_page(output, page_idx, page)
-        json.dump(output, open("stage1.json", 'w'))
+        #json.dump(output, open("stage1.json", 'w'))
     #print(output)
     for module in output:
         parse_module(module)
