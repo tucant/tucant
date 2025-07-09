@@ -43,18 +43,31 @@ def handle_page(output, page_idx, page):
             #horizontal_strategy="explicit",
             #explicit_horizontal_lines=cropped_page.rects,
         )
-        print(cropped_table_settings)
-        cropped_table = cropped_page.extract_table(cropped_table_settings)
+        cropped_table = cropped_page.find_table(cropped_table_settings)
         # one cell is never a table
         if cropped_table is None:
-            cropped_table = [[cropped_page.extract_text()]]
-        parsed_rows.append(cropped_table)
+            cropped_table_text = [[cropped_page.extract_text()]]
+        else:
+            cropped_table_text = cropped_table.extract()
+        parsed_rows.append(cropped_table_text)
         #if page_idx == 3700:
         #im = cropped_page.to_image(resolution=150)
         #im.draw_rects(rects)
         #im.debug_tablefinder(cropped_table_settings)
         #im.show()
-        print(cropped_table)
+        if cropped_table_text[0][0] == "1":
+            course_row = cropped_table.rows[2]
+            inner_cropped_page = cropped_page.crop((course_row.bbox[0]-1, course_row.bbox[1]-1.0, course_row.bbox[2]+1, course_row.bbox[3]+1.0), strict = False)
+            inner_cropped_table_settings =dict(
+                intersection_tolerance=10,
+                snap_tolerance=10,
+            )
+            abc = inner_cropped_page.extract_table(inner_cropped_table_settings)
+            print(abc)
+            if abc is None:
+                im = inner_cropped_page.to_image(resolution=150)
+                im.debug_tablefinder(inner_cropped_table_settings)
+                im.show()
     if parsed_rows[0][0][0].startswith("Modulname"):
         output.append(parsed_rows)
     else:
