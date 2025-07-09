@@ -21,7 +21,7 @@ def handle_page(output, page_idx, page):
     table = page.find_table(table_settings)
     if table is None:
         return
-    if page_idx == 544:
+    if page_idx == 5180:
         #print(table.extract())
         im = page.to_image(resolution=150)
         im.draw_rects(rects)
@@ -30,23 +30,19 @@ def handle_page(output, page_idx, page):
     parsed_rows = []
     for row in table.rows:
         cropped_table_settings = dict(
-            vertical_strategy="explicit",
-            horizontal_strategy="explicit",
-            explicit_vertical_lines=rects,
-            explicit_horizontal_lines=rects
+            intersection_tolerance=10,
         )
         cropped_page = page.crop((row.bbox[0]-1, row.bbox[1]-1.0, row.bbox[2]+1, row.bbox[3]+1.0), strict = False)
-        #im = cropped_page.to_image(resolution=150)
-        #im.debug_tablefinder()
-        cropped_table = cropped_page.extract_table()
+        cropped_table = cropped_page.extract_table(cropped_table_settings)
         if cropped_table is None:
             cropped_table = [[cropped_page.extract_text()]]
         parsed_rows.append(cropped_table)
         # one cell is never a table
-        #if page_idx == 544:
-        #    im = cropped_page.to_image(resolution=150)
-        #    im.debug_tablefinder()
-        #    im.show()
+        if page_idx == 518:
+            im = cropped_page.to_image(resolution=150)
+            im.debug_tablefinder(cropped_table_settings)
+            im.show()
+            print(cropped_table)
     if parsed_rows[0][0][0].startswith("Modulname"):
         output.append(parsed_rows)
     else:
@@ -72,8 +68,11 @@ def parse_module(module):
     assert module[3][1][5] == "SWS"
 
     for course in module[3][2:]:
-        kurs_nr = course[1]
+        if course == [None, '', '', '', '', '']:
+            continue
+        kurs_nr = course[1].replace("\n", "")
         print(course)
+        print(kurs_nr)
 
     #print(module_name)
     #print(modul_nr)
@@ -86,7 +85,8 @@ def parse_module(module):
 
 if __name__ == "__main__":
     pdf = pdfplumber.open("/home/moritz/Downloads/2023_05_11_MHB_MSC_INF.pdf")
-    # handle_page([], 544, pdf.pages[544])
+    handle_page([], 518, pdf.pages[518])
+    exit(0)
     try:
         output = json.load(open("stage1.json", 'r'))
     except (IOError, ValueError):

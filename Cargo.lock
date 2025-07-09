@@ -5573,10 +5573,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "tucan-module-handbook"
-version = "0.1.2"
-
-[[package]]
 name = "tucant-api"
 version = "0.1.2"
 dependencies = [
