@@ -1,5 +1,6 @@
 import pdfplumber
 import json
+import os
 
 # pkill gwenview
 
@@ -17,6 +18,7 @@ def handle_page(output, page_idx, page):
         explicit_vertical_lines=[leftmost_rect["x0"], rightmost_rect["x1"]],
         explicit_horizontal_lines=rects,
         intersection_tolerance=10,
+        snap_tolerance=10,
     )
     table = page.find_table(table_settings)
     if table is None:
@@ -31,14 +33,15 @@ def handle_page(output, page_idx, page):
     for row in table.rows:
         cropped_table_settings = dict(
             intersection_tolerance=10,
+            snap_tolerance=10,
         )
         cropped_page = page.crop((row.bbox[0]-1, row.bbox[1]-1.0, row.bbox[2]+1, row.bbox[3]+1.0), strict = False)
         cropped_table = cropped_page.extract_table(cropped_table_settings)
+        # one cell is never a table
         if cropped_table is None:
             cropped_table = [[cropped_page.extract_text()]]
         parsed_rows.append(cropped_table)
-        # one cell is never a table
-        if page_idx == 518:
+        if page_idx == 3700:
             im = cropped_page.to_image(resolution=150)
             im.debug_tablefinder(cropped_table_settings)
             im.show()
@@ -59,6 +62,8 @@ def parse_module(module):
     sprache = module[2][0][0].lstrip("Sprache\n")
     modulverantwortliche_person = module[2][0][1].lstrip("Modulverantwortliche Person\n").replace("\n", " ")
 
+    print(module_name)
+    print(module[3][1])
     assert module[3][0][0] == "1"
     assert module[3][0][1] == "Kurse des Moduls"
     assert module[3][1][1].replace("\n", " ") == "Kurs Nr."
@@ -71,8 +76,8 @@ def parse_module(module):
         if course == [None, '', '', '', '', '']:
             continue
         kurs_nr = course[1].replace("\n", "")
-        print(course)
-        print(kurs_nr)
+        #print(course)
+        #print(kurs_nr)
 
     #print(module_name)
     #print(modul_nr)
@@ -84,9 +89,10 @@ def parse_module(module):
     #print(modulverantwortliche_person)
 
 if __name__ == "__main__":
+    os.system("pkill gwenview")
     pdf = pdfplumber.open("/home/moritz/Downloads/2023_05_11_MHB_MSC_INF.pdf")
-    handle_page([], 518, pdf.pages[518])
-    exit(0)
+    #handle_page([], 37, pdf.pages[37])
+    #exit(0)
     try:
         output = json.load(open("stage1.json", 'r'))
     except (IOError, ValueError):
