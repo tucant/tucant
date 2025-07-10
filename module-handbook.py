@@ -30,7 +30,7 @@ def handle_page(output, page_idx, page):
     #im.debug_tablefinder(table_settings)
     #im.show()
     parsed_rows = []
-    if table_text[0][0].endswith("odulbeschreibung"):
+    if table_text[0][0].endswith("odulbeschreibung") or table_text[0][0] == "":
         rows = table.rows[2:]
     else:
         rows = table.rows
@@ -72,7 +72,7 @@ def handle_page(output, page_idx, page):
                 snap_tolerance=10,
             )
             abc = inner_cropped_page.extract_table(inner_cropped_table_settings)
-            print(abc)
+            #print(abc)
             if abc is None:
                 im = inner_cropped_page.to_image(resolution=150)
                 im.debug_tablefinder(inner_cropped_table_settings)
