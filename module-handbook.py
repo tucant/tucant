@@ -78,9 +78,13 @@ def handle_page(output, page_idx, page):
                 im.debug_tablefinder(inner_cropped_table_settings)
                 im.show()
             parsed_rows.append(abc)
+        elif cropped_table_text[0][0] == "":
+            print(cropped_table_text)
+            # split onto next page, concatenate to previous page
+            print(output[-1][-1])
+            print(cropped_table_text[0][1])
+            output[-1][-1][0][1] += cropped_table_text[0][1]
         else:
-            # todo combine the one that is split
-            #print(cropped_table_text)
             parsed_rows.append(cropped_table_text)
     if parsed_rows[0][0][0].startswith("Modulname"):
         output.append(parsed_rows)
@@ -127,7 +131,7 @@ def parse_module(module):
 if __name__ == "__main__":
     os.system("pkill gwenview")
     pdf = pdfplumber.open("/home/moritz/Downloads/2023_05_11_MHB_MSC_INF.pdf")
-    handle_page([], 494, pdf.pages[494])
+    #handle_page([], 494, pdf.pages[494]) # if this is a continuing page, we need to parse the one before first
     #exit(0)
     try:
         output = json.load(open("stage1.json", 'r'))
