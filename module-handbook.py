@@ -103,15 +103,15 @@ def parse_module(module):
     modulverantwortliche_person = module[2][0][1].lstrip("Modulverantwortliche Person\n").replace("\n", " ")
 
     output_json = {
-        module_name: module_name,
-        modul_nr: modul_nr,
-        leistungspunkte: leistungspunkte,
-        arbeitsaufwand: arbeitsaufwand,
-        selbststudium: selbststudium,
-        moduldauer: moduldauer,
-        angebotsturnus: angebotsturnus,
-        sprache: sprache,
-        modulverantwortliche_person: modulverantwortliche_person,
+        "module_name": module_name,
+        "modul_nr": modul_nr,
+        "leistungspunkte": leistungspunkte,
+        "arbeitsaufwand": arbeitsaufwand,
+        "selbststudium": selbststudium,
+        "moduldauer": moduldauer,
+        "angebotsturnus": angebotsturnus,
+        "sprache": sprache,
+        "modulverantwortliche_person": modulverantwortliche_person,
         "kurse": []
     }
 
@@ -130,11 +130,11 @@ def parse_module(module):
         lehrform = course[3].replace("\n", " ")
         sws = course[4]
         course_json = {
-            kurs_nr: kurs_nr,
-            kursname: kursname,
-            cp: cp,
-            lehrform: lehrform,
-            sws: sws,
+            "kurs_nr": kurs_nr,
+            "kursname": kursname,
+            "cp": cp,
+            "lehrform": lehrform,
+            "sws": sws,
         }
         output_json["kurse"].append(course_json)
         #print(course)
