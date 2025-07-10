@@ -117,7 +117,14 @@ def parse_module(module):
         lehrform = course[3].replace("\n", " ")
         sws = course[4]
         #print(course)
-        print(sws)
+        #print(sws)
+
+    for information in module[4:]:
+        info = information[0][1].split("\n", 1)
+        if len(info) == 2:
+            print(info)
+        else:
+            print(info)
 
     #print(module_name)
     #print(modul_nr)
