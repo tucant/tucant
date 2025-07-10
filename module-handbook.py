@@ -102,6 +102,19 @@ def parse_module(module):
     sprache = module[2][0][0].lstrip("Sprache\n")
     modulverantwortliche_person = module[2][0][1].lstrip("Modulverantwortliche Person\n").replace("\n", " ")
 
+    output_json = {
+        module_name: module_name,
+        modul_nr: modul_nr,
+        leistungspunkte: leistungspunkte,
+        arbeitsaufwand: arbeitsaufwand,
+        selbststudium: selbststudium,
+        moduldauer: moduldauer,
+        angebotsturnus: angebotsturnus,
+        sprache: sprache,
+        modulverantwortliche_person: modulverantwortliche_person,
+        "kurse": []
+    }
+
     #assert module[3][0][0] == "1"
     #assert module[3][0][1] == "Kurse des Moduls"
     #assert module[3][1][1].replace("\n", " ") == "Kurs Nr."
@@ -116,15 +129,23 @@ def parse_module(module):
         cp = course[2]
         lehrform = course[3].replace("\n", " ")
         sws = course[4]
+        course_json = {
+            kurs_nr: kurs_nr,
+            kursname: kursname,
+            cp: cp,
+            lehrform: lehrform,
+            sws: sws,
+        }
+        output_json["kurse"].append(course_json)
         #print(course)
         #print(sws)
 
     for information in module[4:]:
         info = information[0][1].split("\n", 1)
         if len(info) == 2:
-            print(info)
+            output_json[info[0]] = info[1]
         else:
-            print(info)
+            output_json[info[0]] = ""
 
     #print(module_name)
     #print(modul_nr)
@@ -134,6 +155,7 @@ def parse_module(module):
     #print(moduldauer)
     #print(angebotsturnus)
     #print(modulverantwortliche_person)
+    return output_json
 
 if __name__ == "__main__":
     os.system("pkill gwenview")
@@ -151,5 +173,7 @@ if __name__ == "__main__":
             handle_page(output, page_idx, page)
         json.dump(output, open("stage1.json", 'w'))
     #print(output)
+    result_json = []
     for module in output:
-        parse_module(module)
+        result_json.append(parse_module(module))
+    json.dump(result_json, open("stage2.json", 'w'))
