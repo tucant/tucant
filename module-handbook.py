@@ -58,7 +58,6 @@ def handle_page(output, page_idx, page):
             cropped_table_text = [[cropped_page.extract_text()]]
         else:
             cropped_table_text = cropped_table.extract()
-        parsed_rows.append(cropped_table_text)
         #if page_idx == 3700:
         #im = cropped_page.to_image(resolution=150)
         #im.draw_rects(rects)
@@ -77,6 +76,11 @@ def handle_page(output, page_idx, page):
                 im = inner_cropped_page.to_image(resolution=150)
                 im.debug_tablefinder(inner_cropped_table_settings)
                 im.show()
+            parsed_rows.append(abc)
+        else:
+            # todo combine the one that is split
+            #print(cropped_table_text)
+            parsed_rows.append(cropped_table_text)
     if parsed_rows[0][0][0].startswith("Modulname"):
         output.append(parsed_rows)
     else:
@@ -132,7 +136,7 @@ if __name__ == "__main__":
             print(f"page {page_idx}")
             page = pdf.pages[page_idx]
             handle_page(output, page_idx, page)
-        #json.dump(output, open("stage1.json", 'w'))
-    #print(output)
+        json.dump(output, open("stage1.json", 'w'))
+    print(output)
     for module in output:
         parse_module(module)
