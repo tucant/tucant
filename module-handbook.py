@@ -83,7 +83,7 @@ def handle_page(output, page_idx, page):
             # split onto next page, concatenate to previous page
             print(output[-1][-1])
             print(cropped_table_text[0][1])
-            output[-1][-1][0][1] += cropped_table_text[0][1]
+            output[-1][-1][0][1] += "\n" + cropped_table_text[0][1]
         else:
             parsed_rows.append(cropped_table_text)
     if parsed_rows[0][0][0].startswith("Modulname"):
@@ -102,22 +102,22 @@ def parse_module(module):
     sprache = module[2][0][0].lstrip("Sprache\n")
     modulverantwortliche_person = module[2][0][1].lstrip("Modulverantwortliche Person\n").replace("\n", " ")
 
-    print(module_name)
-    print(module[3][1])
-    assert module[3][0][0] == "1"
-    assert module[3][0][1] == "Kurse des Moduls"
-    assert module[3][1][1].replace("\n", " ") == "Kurs Nr."
-    assert module[3][1][2] == "Kursname"
-    assert module[3][1][3] == "Arbeitsaufwand\n(CP)"
-    assert module[3][1][4] == "Lehrform"
-    assert module[3][1][5] == "SWS"
+    #assert module[3][0][0] == "1"
+    #assert module[3][0][1] == "Kurse des Moduls"
+    #assert module[3][1][1].replace("\n", " ") == "Kurs Nr."
+    #assert module[3][1][2] == "Kursname"
+    #assert module[3][1][3] == "Arbeitsaufwand\n(CP)"
+    #assert module[3][1][4] == "Lehrform"
+    #assert module[3][1][5] == "SWS"
 
-    for course in module[3][2:]:
-        if course == [None, '', '', '', '', '']:
-            continue
-        kurs_nr = course[1].replace("\n", "")
+    for course in module[3]:
+        kurs_nr = course[0].replace("\n", "")
+        kursname = course[1].replace("\n", " ")
+        cp = course[2]
+        lehrform = course[3].replace("\n", " ")
+        sws = course[4]
         #print(course)
-        #print(kurs_nr)
+        print(sws)
 
     #print(module_name)
     #print(modul_nr)
@@ -143,6 +143,6 @@ if __name__ == "__main__":
             page = pdf.pages[page_idx]
             handle_page(output, page_idx, page)
         json.dump(output, open("stage1.json", 'w'))
-    print(output)
+    #print(output)
     for module in output:
         parse_module(module)
