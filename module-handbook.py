@@ -38,7 +38,7 @@ def handle_page(output, page_idx, page):
         cropped_page = page.crop((row.bbox[0]-1, row.bbox[1]-1.0, row.bbox[2]+1, row.bbox[3]+1.0), strict = False)
         #cropped_left_to_right = sorted(cropped_page.rects, key=lambda rect: rect["x0"])
         #print(cropped_left_to_right[1])
-        rects = list(filter(lambda rect: rect["x1"] < 100 or rect["x0"] > 525, cropped_page.rects))
+        rects = cropped_page.rects #list(filter(lambda rect: rect["x1"] < 100 or rect["x0"] > 525, cropped_page.rects))
         cropped_table_settings = dict(
             intersection_tolerance=10,
             snap_tolerance=10,
@@ -47,11 +47,12 @@ def handle_page(output, page_idx, page):
             #horizontal_strategy="explicit",
             #explicit_horizontal_lines=cropped_page.rects,
         )
-        if len(rects) < 2:
-            print(table_text)
-            im = cropped_page.to_image(resolution=150)
-            im.draw_rects(rects)
-            im.show()
+        #if len(rects) < 2:
+        #print(table_text)
+        #im = cropped_page.to_image(resolution=150)
+        #im.draw_rects(rects)
+        #im.debug_tablefinder(cropped_table_settings)
+        #im.show()
         cropped_table = cropped_page.find_table(cropped_table_settings)
         # one cell is never a table
         if cropped_table is None:
@@ -66,7 +67,7 @@ def handle_page(output, page_idx, page):
         if cropped_table_text[0][0] == "1":
             course_row = cropped_table.rows[2]
             inner_cropped_page = cropped_page.crop((course_row.bbox[0]-1, course_row.bbox[1]-1.0, course_row.bbox[2]+1, course_row.bbox[3]+1.0), strict = False)
-            inner_cropped_table_settings =dict(
+            inner_cropped_table_settings = dict(
                 intersection_tolerance=10,
                 snap_tolerance=10,
             )
@@ -130,6 +131,7 @@ if __name__ == "__main__":
     #exit(0)
     try:
         output = json.load(open("stage1.json", 'r'))
+        #output = []
     except (IOError, ValueError):
         output = []
         for page_idx in range(4, len(pdf.pages)):
