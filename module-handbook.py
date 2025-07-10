@@ -177,3 +177,4 @@ if __name__ == "__main__":
     for module in output:
         result_json.append(parse_module(module))
     json.dump(result_json, open("stage2.json", 'w'))
+    print(set(map(lambda a: a["angebotsturnus"], result_json)))
