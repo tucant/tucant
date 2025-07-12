@@ -2,6 +2,7 @@ use std::{collections::HashMap, panic};
 
 use dioxus::prelude::*;
 use log::warn;
+use tucan_module_handbook::extract_modules;
 use tucant_dioxus::{RcTucanType, Route};
 use tucant_types::LoginResponse;
 use wasm_bindgen::prelude::*;
@@ -46,6 +47,8 @@ pub async fn main() {
     }));
     #[cfg(feature = "web")]
     console_log::init().unwrap();
+
+    extract_modules();
 
     let launcher = dioxus::LaunchBuilder::new();
 
