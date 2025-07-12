@@ -23,9 +23,9 @@ cookie = "0.18"
 web-extensions-sys = { optional = true, git = "https://github.com/mohe2015/web-extensions-sys", branch = "cookies" }
 tucan-connector = { optional = true, path = "../tucan-connector" }
 tracing = "0.1.41"
-plotters = { version = "0.3.7", default-features = false, features = ["svg_backend", "histogram"] }
-keyring = { version = "3", optional = true }
-android-keyring = { version = "0.2", optional = true }
+plotters = { git = "https://github.com/plotters-rs/plotters.git", default-features = false, features = ["svg_backend", "histogram"] }
+keyring = { version = "4.0.0-rc.1", optional = true }
+android-keyring = { version = "0.1.2", optional = true }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 tokio = { features = ["macros", "rt", "rt-multi-thread"], version = "1" }

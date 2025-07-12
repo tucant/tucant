@@ -53,7 +53,9 @@ rustup run nightly-2025-04-02 dx fmt
 cargo install dioxus-cli@0.7.0-alpha.3
 
 cd crates/tucant-dioxus/
-dx serve --platform web --features api --hotpatch
+PDFIUM_STATIC_LIB_PATH=/home/moritz/Downloads/wasm/release/lib/ dx serve --platform web --features api --verbose
+
+# the The specifier “env” was a bare specifier, but was not remapped to anything. Relative module specifiers must start with “./”, “../” or “/” error probably means that linking the library failed
 
 # in second tab
 bacon tucant-api
