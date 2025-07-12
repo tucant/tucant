@@ -180,3 +180,12 @@ cargo run --manifest-path /home/moritz/Documents/dioxus/packages/cli/Cargo.toml 
 dx serve --platform linux --hotpatch --verbose
 
 ```
+
+```
+
+conda create --name module-handbook python=3.11
+conda activate module-handbook
+~/.conda/envs/module-handbook/bin/pip install py2wasm pdfplumber
+~/.conda/envs/module-handbook/bin/py2wasm module-handbook.py -o test.wasm
+wasmer run test.wasm
+```
