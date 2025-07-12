@@ -7,6 +7,11 @@ import os
 def handle_page(output, page_idx, page):
     if len(page.rects) == 0:
         print(f"skipping page {page_idx}")
+        # left, upper, right, lower
+        crop1 = page.crop((0, 0, 400, 800))
+        im = crop1.to_image(resolution=150)
+        im.show()
+        print(crop1.extract_text())
         return
     rects_without_heading_rect = list(filter(lambda rect: rect["width"] < 499, page.rects))
     leftmost_rect = min(rects_without_heading_rect, key=lambda rect: rect["x0"])
@@ -79,10 +84,10 @@ def handle_page(output, page_idx, page):
                 im.show()
             parsed_rows.append(abc)
         elif cropped_table_text[0][0] == "":
-            print(cropped_table_text)
+            #print(cropped_table_text)
             # split onto next page, concatenate to previous page
-            print(output[-1][-1])
-            print(cropped_table_text[0][1])
+            #print(output[-1][-1])
+            #print(cropped_table_text[0][1])
             output[-1][-1][0][1] += "\n" + cropped_table_text[0][1]
         else:
             parsed_rows.append(cropped_table_text)
@@ -164,14 +169,13 @@ if __name__ == "__main__":
     #exit(0)
     try:
         output = json.load(open("stage1.json", 'r'))
-        #output = []
     except (IOError, ValueError):
         output = []
         for page_idx in range(4, len(pdf.pages)):
             print(f"page {page_idx}")
             page = pdf.pages[page_idx]
             handle_page(output, page_idx, page)
-        json.dump(output, open("stage1.json", 'w'))
+        #json.dump(output, open("stage1.json", 'w'))
     #print(output)
     result_json = []
     for module in output:
