@@ -21,13 +21,14 @@ const document = await getDocument("/home/moritz/Downloads/2023_05_11_MHB_MSC_IN
 
 for (let i = 1; i <= document.numPages; i++) {
     const page = await document.getPage(i)
+    const height = page.view[3]
     let svg = `<?xml version="1.0" encoding="UTF-8"?>
     <svg xmlns="http://www.w3.org/2000/svg"
         xmlns:xlink="http://www.w3.org/1999/xlink"
         version="1.1" baseProfile="full"
-        width="${page.view[2]}mm" height="${page.view[3]}mm"
-        viewBox="0 0 ${page.view[2]} ${page.view[3]}">
-        <rect width="${page.view[2]}mm" height="${page.view[3]}mm" fill="aliceblue" />`
+        width="${page.view[2]}mm" height="${height}mm"
+        viewBox="0 0 ${page.view[2]} ${height}">
+        <rect width="${page.view[2]}mm" height="${height}mm" fill="aliceblue" />`
 
     const opList = await page.getOperatorList();
 
@@ -46,10 +47,10 @@ for (let i = 1; i <= document.numPages; i++) {
             for (let i = 0, ii = path.length; i < ii;) {
                 switch (path[i++]) {
                     case DrawOPS.moveTo:
-                        svgPath += `M ${path[i++]},${path[i++]} `;
+                        svgPath += `M ${path[i++]},${height - path[i++]} `;
                         break;
                     case DrawOPS.lineTo:
-                        svgPath += `${path[i++]},${path[i++]} `;
+                        svgPath += `${path[i++]},${height - path[i++]} `;
                         break;
                     case DrawOPS.curveTo:
                         /*console.log(`bezierCurveTo ${path[i++]},
@@ -74,7 +75,10 @@ for (let i = 1; i <= document.numPages; i++) {
 
     const textContent = await page.getTextContent();
     textContent.items.forEach(textItem => {
-        svg += `<text x="${textItem.transform[4]}" y="${textItem.transform[5]}" fill="white">${textItem.str}</text>`
+        let tx = textItem.transform
+        var style = textContent.styles[textItem.fontName];
+        var fontSize = Math.sqrt((tx[2] * tx[2]) + (tx[3] * tx[3]));
+        svg += `<text x="${tx[4]}" y="${height - tx[5]}" fill="white" font-family="${style.fontFamily}" font-size="${fontSize}">${textItem.str}</text>`
     })
 
     svg += `</svg>`
