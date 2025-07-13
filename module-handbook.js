@@ -71,6 +71,12 @@ for (let i = 1; i <= document.numPages; i++) {
             svg += `<path stroke="white" d="${svgPath}" />`
         }
     }
+
+    const textContent = await page.getTextContent();
+    textContent.items.forEach(textItem => {
+        svg += `<text x="${textItem.transform[4]}" y="${textItem.transform[5]}" fill="white">${textItem.str}</text>`
+    })
+
     svg += `</svg>`
     await writeFile(`/tmp/test${i}.svg`, svg);
 }
