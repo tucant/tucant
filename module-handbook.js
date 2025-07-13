@@ -1,4 +1,5 @@
 import { getDocument, OPS } from "pdfjs-dist/legacy/build/pdf.mjs";
+import { writeFile } from 'node:fs/promises'
 
 const DrawOPS = {
     moveTo: 0,
@@ -16,12 +17,18 @@ const OPS_INVERTED = Object.fromEntries(
 const document = await getDocument("/home/moritz/Downloads/2023_05_11_MHB_MSC_INF.pdf").promise
 //console.log(document)
 
-let svg = `<svg>`
-
 // https://github.com/mozilla/pdf.js/blob/master/src/display/api.js
 
 for (let i = 1; i <= document.numPages; i++) {
     const page = await document.getPage(i)
+    let svg = `<?xml version="1.0" encoding="UTF-8"?>
+    <svg xmlns="http://www.w3.org/2000/svg"
+        xmlns:xlink="http://www.w3.org/1999/xlink"
+        version="1.1" baseProfile="full"
+        width="${page.view[2]}mm" height="${page.view[3]}mm"
+        viewBox="0 0 ${page.view[2]} ${page.view[3]}">
+        <rect width="${page.view[2]}mm" height="${page.view[3]}mm" fill="aliceblue" />`
+
     const opList = await page.getOperatorList();
 
     // Walk through operator list
@@ -61,11 +68,9 @@ for (let i = 1; i <= document.numPages; i++) {
                         break;
                 }
             }
-            svg += `<path d="${svgPath}" />`
+            svg += `<path stroke="white" d="${svgPath}" />`
         }
     }
+    svg += `</svg>`
+    await writeFile(`/tmp/test${i}.svg`, svg);
 }
-
-svg += `</svg>`
-
-console.log(svg)
