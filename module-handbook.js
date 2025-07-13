@@ -28,7 +28,7 @@ for (let i = 1; i <= document.numPages; i++) {
         version="1.1" baseProfile="full"
         width="${page.view[2]}mm" height="${height}mm"
         viewBox="0 0 ${page.view[2]} ${height}">
-        <rect width="${page.view[2]}mm" height="${height}mm" fill="aliceblue" />`
+        <rect width="${page.view[2]}mm" height="${height}mm" fill="black" />`
 
     const opList = await page.getOperatorList();
 
@@ -42,6 +42,9 @@ for (let i = 1; i <= document.numPages; i++) {
         // https://github.com/mozilla/pdf.js/blob/e0783cd07557134798e1fc882b043376bc8b8b6e/src/display/canvas.js#L1421
         if (opName === "constructPath") {
             let [op, data, minMax] = args;
+            if (op !== 23) {
+                continue;
+            }
             let [path] = data;
             let svgPath = "";
             for (let i = 0, ii = path.length; i < ii;) {
