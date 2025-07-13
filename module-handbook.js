@@ -16,6 +16,8 @@ const OPS_INVERTED = Object.fromEntries(
 const document = await getDocument("/home/moritz/Downloads/2023_05_11_MHB_MSC_INF.pdf").promise
 //console.log(document)
 
+let svg = `<svg>`
+
 // https://github.com/mozilla/pdf.js/blob/master/src/display/api.js
 
 for (let i = 1; i <= document.numPages; i++) {
@@ -28,36 +30,42 @@ for (let i = 1; i <= document.numPages; i++) {
         const args = opList.argsArray[i];
 
         const opName = OPS_INVERTED[fnId];
-        // console.log(`Operation: ${opName}`, args);
+        //console.log(`Operation: ${opName}`, args);
         // https://github.com/mozilla/pdf.js/blob/e0783cd07557134798e1fc882b043376bc8b8b6e/src/display/canvas.js#L1421
         if (opName === "constructPath") {
             let [op, data, minMax] = args;
             let [path] = data;
+            let svgPath = "";
             for (let i = 0, ii = path.length; i < ii;) {
                 switch (path[i++]) {
                     case DrawOPS.moveTo:
-                        console.log(`moveTo ${path[i++]}, ${path[i++]}`);
+                        svgPath += `M ${path[i++]},${path[i++]} `;
                         break;
                     case DrawOPS.lineTo:
-                        console.log(`lineTo ${path[i++]}, ${path[i++]}`);
+                        svgPath += `${path[i++]},${path[i++]} `;
                         break;
                     case DrawOPS.curveTo:
-                        onsole.log(`bezierCurveTo ${path[i++]},
+                        /*console.log(`bezierCurveTo ${path[i++]},
                             ${path[i++]},
                             ${path[i++]},
                             ${path[i++]},
                             ${path[i++]},
                             ${path[i++]}
-                        `);
+                        `);*/
                         break;
                     case DrawOPS.closePath:
-                        console.log(`closePath`);
+                        //console.log(`closePath`);
                         break;
                     default:
                         warn(`Unrecognized drawing path operator: ${path[i - 1]}`);
                         break;
                 }
             }
+            svg += `<path d="${svgPath}" />`
         }
     }
 }
+
+svg += `</svg>`
+
+console.log(svg)
