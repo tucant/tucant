@@ -158,6 +158,9 @@
           ./tucant-extension/options.js
           ./tucant-extension/popup.html
           ./tucant-extension/popup.js
+          ./tucant-extension/custom-ui.js
+          ./tucant-extension/recover-tabs.js
+          ./tucant-extension/url-mappings.js
           ./tucant-extension/utils.js
           ./tucant-extension/rules.json
           ./tucant-extension/screenshot.png
