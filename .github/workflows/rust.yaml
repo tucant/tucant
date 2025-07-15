@@ -15,8 +15,16 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - uses: cachix/install-nix-action@v25
-    - uses: cachix/cachix-action@v14
-      with:
-        name: tucant
-        authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
-    - run: nix build -L .#extension .#checks.x86_64-linux.my-app-fmt .#schema .#server .#tests
+    - name: Add SSH key
+      env:
+          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+      run: |
+          mkdir -p /home/runner/.ssh
+          ssh-keyscan selfmade4u.de >> /home/runner/.ssh/known_hosts
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > /home/runner/.ssh/github_actions
+          chmod 600 /home/runner/.ssh/github_actions
+          ssh-agent -a $SSH_AUTH_SOCK > /dev/null	
+          ssh-add /home/runner/.ssh/github_actions
+    - env:
+        SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+      run: nix build --eval-store auto --store ssh-ng://eu.nixbuild.net -L .#extension .#checks.x86_64-linux.my-app-fmt .#schema .#server .#tests
