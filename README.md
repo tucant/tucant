@@ -64,10 +64,8 @@ bacon tucant-api
 ### Developing the extension
 
 ```
-cd tucant-extension/
+cd crates/tucant-dioxus/
 dx bundle --platform web --out-dir ../../tucant-extension/ --base-path public --features direct --release
-cargo run --manifest-path /home/moritz/Documents/dioxus/packages/cli/Cargo.toml bundle --out-dir ../../tucant-extension/ --base-path public --features direct --release
-llvm-dwarfdump --all --verify tucant-extension/public/assets/tucant-dioxus_bg-dxh4bb37ef8c3ffabdf.wasm
 ```
 
 Go to Firefox Extensions, click settings, debug addons. Then click load temporary add-on and select ./tucant-extension/manifest.json
