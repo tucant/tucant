@@ -28,7 +28,8 @@ jobs:
     - env:
         SSH_AUTH_SOCK: /tmp/ssh_agent.sock
       run: |
+          sudo prlimit --pid $$ --nofile=500000:500000
           ulimit -a
           ulimit -Sn unlimited
           ulimit -a
-          nix build --builders "ssh://root@selfmade4u.de" -L .#extension .#checks.x86_64-linux.my-app-fmt .#schema .#server .#tests
+          nix build --eval-store auto --store ssh-ng://root@selfmade4u.de -L .#extension .#checks.x86_64-linux.my-app-fmt .#schema .#server .#tests
