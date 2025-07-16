@@ -22,6 +22,6 @@ jobs:
           sudo mkdir -p /root/.ssh
           ssh-keyscan selfmade4u.de | sudo tee -a /root/.ssh/known_hosts
           echo "${{ secrets.SSH_PRIVATE_KEY }}" | sudo tee /root/.ssh/id_ed25519
-          sudo chmod 600 /home/runner/.ssh/id_ed25519
+          sudo chmod 600 /root/.ssh/id_ed25519
     - run: |
           nix --builders root@selfmade4u.de build -L .#extension .#checks.x86_64-linux.my-app-fmt .#schema .#server .#tests
