@@ -19,7 +19,7 @@ jobs:
       env:
           SSH_AUTH_SOCK: /tmp/ssh_agent.sock
       run: |
-          mkdir -p /root/.ssh
+          sudo mkdir -p /root/.ssh
           ssh-keyscan selfmade4u.de | sudo tee -a /root/.ssh/known_hosts
           echo "${{ secrets.SSH_PRIVATE_KEY }}" | sudo tee /root/.ssh/id_ed25519
           sudo chmod 600 /home/runner/.ssh/id_ed25519
