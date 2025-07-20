@@ -43,8 +43,7 @@ jobs:
         echo $DIR
         ' | ssh root@selfmade4u.de 'bash')
         echo $OUTPUT
-        echo $OUTPUT | tail -n1
-        rsync -vr root@selfmade4u.de:$OUTPUT/tucant/out/ out
+        rsync -vr root@selfmade4u.de:$(echo $OUTPUT | tail -n1)/tucant/out/ out
         ls -lh out
     - uses: actions/upload-artifact@v4
       with:
