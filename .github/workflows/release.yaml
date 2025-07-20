@@ -32,6 +32,7 @@ jobs:
     - env:
         SSH_AUTH_SOCK: /tmp/ssh_agent.sock
       run: |
+        set -ex
         OUTPUT=$(echo '
         DIR=$(mktemp -d)
         cd $DIR
@@ -43,7 +44,7 @@ jobs:
         echo $DIR
         ' | ssh root@selfmade4u.de 'bash')
         echo $OUTPUT
-        rsync -vr root@selfmade4u.de:$(echo $OUTPUT | tail -n1)/tucant/out/ out
+        rsync -vr --include='*.crx' --include='*.xpi' --exclude="*" root@selfmade4u.de:$(echo $OUTPUT | tail -n1)/tucant/out/ out
         ls -lh out
     - uses: actions/upload-artifact@v4
       with:
