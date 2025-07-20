@@ -16,20 +16,23 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
-    - uses: cachix/install-nix-action@v31
     - name: Add SSH key
       env:
           SSH_AUTH_SOCK: /tmp/ssh_agent.sock
       run: |
-          sudo mkdir -p /root/.ssh
-          ssh-keyscan selfmade4u.de | sudo tee -a /root/.ssh/known_hosts
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" | sudo tee /root/.ssh/id_ed25519
-          sudo chmod 600 /root/.ssh/id_ed25519
+          mkdir -p /home/runner/.ssh
+          ssh-keyscan selfmade4u.de >> /home/runner/.ssh/known_hosts
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > /home/runner/.ssh/github_actions
+          chmod 600 /home/runner/.ssh/github_actions
+          ssh-agent -a $SSH_AUTH_SOCK > /dev/null	
+          ssh-add /home/runner/.ssh/github_actions
     - name: Extract version
       id: version
       run: echo "VERSION=$(jq -r .version tucant-extension/manifest.json)" >> "$GITHUB_OUTPUT"
-    - run: |
-        echo '
+    - env:
+        SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+      run: |
+        OUTPUT=$(echo '
         DIR=$(mktemp -d)
         cd $DIR
         git clone --depth 1 --revision ${{ github.sha }} https://github.com/tucant/tucant
@@ -37,7 +40,12 @@ jobs:
         echo ${{ secrets.CHROMIUM_EXTENSION_SIGNING_KEY }} | base64 --decode > cert.pem
         # https://addons.mozilla.org/en-US/developers/addon/api/key/
         WEB_EXT_API_KEY=${{ secrets.WEB_EXT_API_KEY }} WEB_EXT_API_SECRET=${{ secrets.WEB_EXT_API_SECRET }} CHROMIUM_EXTENSION_SIGNING_KEY=$PWD/cert.pem nix --extra-experimental-features "nix-command flakes" run -L .#publish
-        ' | ssh root@selfmade4u.de 'bash'
+        echo $DIR
+        ' | ssh root@selfmade4u.de 'bash')
+        echo $OUTPUT
+        echo $OUTPUT | tail -n1
+        rsync -vr root@selfmade4u.de:$OUTPUT/tucant/out/ out
+        ls -lh out
     - uses: actions/upload-artifact@v4
       with:
         name: tucant-extension-${{ steps.version.outputs.VERSION }}-crx
