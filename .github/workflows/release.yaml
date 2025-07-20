@@ -16,18 +16,36 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
-    - uses: cachix/install-nix-action@v31
+    - name: Add SSH key
+      env:
+          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+      run: |
+          mkdir -p /home/runner/.ssh
+          ssh-keyscan selfmade4u.de >> /home/runner/.ssh/known_hosts
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > /home/runner/.ssh/github_actions
+          chmod 600 /home/runner/.ssh/github_actions
+          ssh-agent -a $SSH_AUTH_SOCK > /dev/null	
+          ssh-add /home/runner/.ssh/github_actions
     - name: Extract version
       id: version
       run: echo "VERSION=$(jq -r .version tucant-extension/manifest.json)" >> "$GITHUB_OUTPUT"
     - env:
-        # https://addons.mozilla.org/en-US/developers/addon/api/key/
-        WEB_EXT_API_KEY: ${{ secrets.WEB_EXT_API_KEY }}
-        WEB_EXT_API_SECRET: ${{ secrets.WEB_EXT_API_SECRET }}
-        CHROMIUM_EXTENSION_SIGNING_KEY: ${{ secrets.CHROMIUM_EXTENSION_SIGNING_KEY }}
+        SSH_AUTH_SOCK: /tmp/ssh_agent.sock
       run: |
-        echo $CHROMIUM_EXTENSION_SIGNING_KEY | base64 --decode > cert.pem
-        CHROMIUM_EXTENSION_SIGNING_KEY=$PWD/cert.pem nix run .#publish
+        set -ex
+        OUTPUT=$(echo '
+        DIR=$(mktemp -d)
+        cd $DIR
+        git clone --depth 1 --revision ${{ github.sha }} https://github.com/tucant/tucant
+        cd tucant
+        echo ${{ secrets.CHROMIUM_EXTENSION_SIGNING_KEY }} | base64 --decode > cert.pem
+        # https://addons.mozilla.org/en-US/developers/addon/api/key/
+        WEB_EXT_API_KEY=${{ secrets.WEB_EXT_API_KEY }} WEB_EXT_API_SECRET=${{ secrets.WEB_EXT_API_SECRET }} CHROMIUM_EXTENSION_SIGNING_KEY=$PWD/cert.pem nix --extra-experimental-features "nix-command flakes" run -L .#publish
+        echo $DIR
+        ' | ssh root@selfmade4u.de 'bash')
+        echo "$OUTPUT"
+        rsync -vr --include='*.crx' --include='*.xpi' --exclude="*" root@selfmade4u.de:$(echo "$OUTPUT" | tail -n1)/tucant/out/ out
+        ls -lh out
     - uses: actions/upload-artifact@v4
       with:
         name: tucant-extension-${{ steps.version.outputs.VERSION }}-crx
