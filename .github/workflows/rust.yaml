@@ -13,8 +13,6 @@ jobs:
   build:
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v4
-    - uses: cachix/install-nix-action@v31
     - name: Add SSH key
       env:
           SSH_AUTH_SOCK: /tmp/ssh_agent.sock
@@ -24,4 +22,10 @@ jobs:
           echo "${{ secrets.SSH_PRIVATE_KEY }}" | sudo tee /root/.ssh/id_ed25519
           sudo chmod 600 /root/.ssh/id_ed25519
     - run: |
-          nix --builders ssh://root@selfmade4u.de build -L .#extension .#checks.x86_64-linux.my-app-fmt .#schema .#server .#tests
+          echo '
+          DIR=$(mktemp -d)
+          cd $DIR
+          git clone --depth 1 --revision ${{ github.sha }} https://github.com/tucant/tucant
+          cd tucant
+          nix --extra-experimental-features "nix-command flakes" build -L .#extension .#checks.x86_64-linux.my-app-fmt .#schema .#server .#tests
+          ' | ssh root@selfmade4u.de 'bash'

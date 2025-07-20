@@ -28,14 +28,16 @@ jobs:
     - name: Extract version
       id: version
       run: echo "VERSION=$(jq -r .version tucant-extension/manifest.json)" >> "$GITHUB_OUTPUT"
-    - env:
+    - run: |
+        echo '
+        DIR=$(mktemp -d)
+        cd $DIR
+        git clone --depth 1 --revision ${{ github.sha }} https://github.com/tucant/tucant
+        cd tucant
+        echo ${{ secrets.CHROMIUM_EXTENSION_SIGNING_KEY }} | base64 --decode > cert.pem
         # https://addons.mozilla.org/en-US/developers/addon/api/key/
-        WEB_EXT_API_KEY: ${{ secrets.WEB_EXT_API_KEY }}
-        WEB_EXT_API_SECRET: ${{ secrets.WEB_EXT_API_SECRET }}
-        CHROMIUM_EXTENSION_SIGNING_KEY: ${{ secrets.CHROMIUM_EXTENSION_SIGNING_KEY }}
-      run: |
-        echo $CHROMIUM_EXTENSION_SIGNING_KEY | base64 --decode > cert.pem
-        CHROMIUM_EXTENSION_SIGNING_KEY=$PWD/cert.pem nix --builders ssh://root@selfmade4u.de run -L .#publish
+        WEB_EXT_API_KEY=${{ secrets.WEB_EXT_API_KEY }} WEB_EXT_API_SECRET=${{ secrets.WEB_EXT_API_SECRET }} CHROMIUM_EXTENSION_SIGNING_KEY=$PWD/cert.pem nix --extra-experimental-features "nix-command flakes" run -L .#publish
+        ' | ssh root@selfmade4u.de 'bash'
     - uses: actions/upload-artifact@v4
       with:
         name: tucant-extension-${{ steps.version.outputs.VERSION }}-crx
