@@ -1,6 +1,8 @@
 import { getDocument, OPS } from "pdfjs-dist/legacy/build/pdf.mjs";
 import { writeFile } from 'node:fs/promises'
 
+// use inkscape to look at this
+
 const DrawOPS = {
     moveTo: 0,
     lineTo: 1,
@@ -32,6 +34,8 @@ for (let i = 1; i <= document.numPages; i++) {
 
     const opList = await page.getOperatorList();
 
+    let visible = true;
+
     // Walk through operator list
     for (let i = 0; i < opList.fnArray.length; i++) {
         const fnId = opList.fnArray[i];
@@ -39,8 +43,21 @@ for (let i = 1; i <= document.numPages; i++) {
 
         const opName = OPS_INVERTED[fnId];
         //console.log(`Operation: ${opName}`, args);
+        // setStrokeRGBColor
+        // setFillRGBColor
+        if (opName === "setFillRGBColor") {
+            let [color] = args;
+            if (color === '#000000') {
+                visible = true;
+            } else {
+                visible = false;
+            }
+        }
         // https://github.com/mozilla/pdf.js/blob/e0783cd07557134798e1fc882b043376bc8b8b6e/src/display/canvas.js#L1421
         if (opName === "constructPath") {
+            if (!visible) {
+                continue;
+            }
             let [op, data, minMax] = args;
             if (op !== 23) {
                 continue;
