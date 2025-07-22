@@ -88,6 +88,11 @@ for (let i = 1; i <= document.numPages; i++) {
                         warn(`Unrecognized drawing path operator: ${path[i - 1]}`);
                         break;
                 }
+                // first step should be converting paths to actual lines
+                // paths are rectangles here with a fill. we should detect black fill and white stroke as lines?
+                // TODO check if there are actual paths somewhere but probably not
+                // we should directly get horizontal and verical lines then. probably ignore thickness and just use center?
+                // can we directly produce long lines? probably more efficient to first produce the short lines?
             }
             svg += `<path stroke="white" d="${svgPath}" />`
         }
