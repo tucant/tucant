@@ -138,13 +138,15 @@ function mergeLines(lines) {
         value.sort((a, b) => a[1] - b[1])
         let mergedLines = [value[0]]
         for (let i = 1; i < value.length; i++) {
-            if (value[i][1] <= mergedLines[mergedLines.length - 1][2]) {
+            if (mergedLines[mergedLines.length - 1][2] - value[i][1] < 1) {
                 mergedLines[mergedLines.length - 1][2] = Math.max(mergedLines[mergedLines.length - 1][2], value[i][2])
             } else {
                 mergedLines.push(value[i])
             }
         }
-        console.log(mergedLines.length)
+        if (mergedLines.length !== 1) {
+            console.log(mergedLines.length)
+        }
         return mergedLines
     })
 }
