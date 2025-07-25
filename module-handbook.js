@@ -56,6 +56,7 @@ async function handlePage(page) {
 
     const textContent = await page.getTextContent();
     textContent.items.forEach(textItem => {
+        // https://github.com/mozilla/pdf.js/blob/542514efbdbfa022f9e01b6f9a0348522829ad8e/src/display/text_layer.js#L336
         let tx = textItem.transform
         var style = textContent.styles[textItem.fontName];
         var fontSize = Math.sqrt((tx[2] * tx[2]) + (tx[3] * tx[3]));
@@ -80,9 +81,14 @@ async function handlePage(page) {
         console.log("Modulbeschreibung first page")
         mergedHorizontal = mergedHorizontal.filter(a => a[0] < 747)
 
-        console.log(mergedHorizontal.filter((a) => a[2] - a[1] > 484))
+        const largeHorizontalLines = mergedHorizontal.filter((a) => a[2] - a[1] > 484)
 
+        for (let i = 0; i < largeHorizontalLines.length - 1; i++) {
+            const top = largeHorizontalLines[i]
+            const bottom = largeHorizontalLines[i + 1]
 
+            // get text in area
+        }
     } else {
         console.log("following page")
     }
