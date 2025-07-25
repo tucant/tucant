@@ -73,11 +73,24 @@ for (let i = 1; i <= document.numPages; i++) {
             let svgPath = "";
             if (path.length == 13 && path[0] === DrawOPS.moveTo && path[3] === DrawOPS.lineTo && path[6] === DrawOPS.lineTo && path[9] === DrawOPS.lineTo && path[12] === DrawOPS.closePath) {
                 //console.log("found rectangle")
+                const topLeftX = path[1];
+                const topLeftY = path[2];
+                const topRightX = path[4];
+                const topRightY = path[5];
+                const bottomRightX = path[7];
+                const bottomRightY = path[8];
+                const bottomLeftX = path[10];
+                const bottomLeftY = path[11];
+                if (topLeftX === bottomLeftX & topLeftY === topRightY && bottomRightX === topRightX && bottomLeftY === bottomRightY) {
+                    //console.log("rect")
+                } else {
+                    console.log("not a rectangly rectangle")
+                }
             } else {
                 console.log("not a rectangle")
             }
 
-            for (let i = 0, ii = path.length; i < ii;) {
+            /*for (let i = 0, ii = path.length; i < ii;) {
                 switch (path[i++]) {
                     case DrawOPS.moveTo:
                         svgPath += `M ${path[i++]},${height - path[i++]} `;
@@ -86,20 +99,20 @@ for (let i = 1; i <= document.numPages; i++) {
                         svgPath += `${path[i++]},${height - path[i++]} `;
                         break;
                     case DrawOPS.curveTo:
-                        /*console.log(`bezierCurveTo ${path[i++]},
-                            ${path[i++]},
-                            ${path[i++]},
-                            ${path[i++]},
-                            ${path[i++]},
-                            ${path[i++]}
-                        `);*/
-                        break;
+                        //console.log(`bezierCurveTo ${path[i++]},
+                        //    ${path[i++]},
+                        //    ${path[i++]},
+                        //    ${path[i++]},
+                        //    ${path[i++]},
+                        //    ${path[i++]}
+                        //`);
+                    break;
                     case DrawOPS.closePath:
-                        //console.log(`closePath`);
-                        break;
-                    default:
-                        warn(`Unrecognized drawing path operator: ${path[i - 1]}`);
-                        break;
+                    //console.log(`closePath`);
+                    break;
+                            default:
+                    warn(`Unrecognized drawing path operator: ${path[i - 1]}`);
+                    break;
                 }
                 // first step should be converting paths to actual lines
                 // paths are rectangles here with a fill. we should detect black fill and white stroke as lines?
@@ -107,7 +120,7 @@ for (let i = 1; i <= document.numPages; i++) {
                 // we should directly get horizontal and verical lines then. probably ignore thickness and just use center?
                 // can we directly produce long lines? probably more efficient to first produce the short lines?
             }
-            svg += `<path stroke="white" d="${svgPath}" />`
+            svg += `<path stroke="white" d="${svgPath}" />` */
         }
     }
 
