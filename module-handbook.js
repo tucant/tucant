@@ -88,7 +88,9 @@ async function handlePage(page) {
             const bottom = largeHorizontalLines[i + 1]
 
             // get text in area
-            console.log(extractText(height, textContent, [top[1], top[0], bottom[2], bottom[0]]))
+            console.log(extractText(height, textContent, [top[1], height - top[0], bottom[2], height - bottom[0]]))
+
+            break; // TODO REMOVE
         }
     } else {
         console.log("following page")
@@ -108,8 +110,6 @@ function extractText(height, textContent, rect) {
     let text = ""
     textContent.items.forEach(textItem => {
         let tx = textItem.transform
-        var style = textContent.styles[textItem.fontName];
-        var fontSize = Math.sqrt((tx[2] * tx[2]) + (tx[3] * tx[3]));
 
         const y = height - tx[5];
         const x = tx[4];
