@@ -81,6 +81,7 @@ async function handlePage(page) {
         console.log("Modulbeschreibung first page")
         mergedHorizontal = mergedHorizontal.filter(a => a[0] < 747)
 
+        // page 48 is smaller
         const largeHorizontalLines = mergedHorizontal.filter((a) => a[2] - a[1] > 484)
 
         if (largeHorizontalLines.length < 2) {
