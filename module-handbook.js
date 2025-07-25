@@ -46,8 +46,6 @@ async function handlePage(page) {
     const [horizontal, vertical] = extractLines(opList);
     const mergedHorizontal = mergeLines(horizontal);
     const mergedVertical = mergeLines(vertical);
-    //console.log(mergedHorizontal)
-    //console.log(mergedVertical)
 
     for (const horizontalLine of mergedHorizontal) {
         svg += `<line y1="${height - horizontalLine[0]}" y2="${height - horizontalLine[0]}" x1="${horizontalLine[1]}" x2="${horizontalLine[2]}" stroke="white" />`
@@ -66,6 +64,21 @@ async function handlePage(page) {
 
     svg += `</svg>`
     await writeFile(`/tmp/test${page.pageNumber}.svg`, svg);
+
+    if (mergedHorizontal.length === 0 && mergedVertical.length === 0) {
+        console.log(`page with only text`) // , textContent.items
+        return;
+    }
+
+    if (mergedHorizontal.find(a => a[2] - a[1] > 499)) {
+        console.log("Modulbeschreibung first page")
+    } else {
+        console.log("following page")
+    }
+
+    // lines that have a difference of less than 1 are the same length but overlap with perpendicular lines
+    //console.log(mergedHorizontal.map((a) => a[2] - a[1]))
+
 }
 
 /**
@@ -143,9 +156,6 @@ function mergeLines(lines) {
             } else {
                 mergedLines.push(value[i])
             }
-        }
-        if (mergedLines.length !== 1) {
-            console.log(mergedLines.length)
         }
         return mergedLines
     })
