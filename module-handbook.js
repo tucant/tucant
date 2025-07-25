@@ -48,7 +48,7 @@ async function handlePage(page) {
     console.log(vertical)
 
     for (const horizontalLine of horizontal) {
-        svg += `<line y1="${horizontalLine[0]}" y2="${horizontalLine[0]}" x1="${horizontalLine[1]}" x2="${horizontalLine[2]}" stroke="white" />`
+        svg += `<line y1="${height - horizontalLine[0]}" y2="${height - horizontalLine[0]}" x1="${horizontalLine[1]}" x2="${horizontalLine[2]}" stroke="white" />`
     }
 
     const textContent = await page.getTextContent();
