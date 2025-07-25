@@ -47,6 +47,10 @@ async function handlePage(page) {
     console.log(horizontal)
     console.log(vertical)
 
+    for (const horizontalLine of horizontal) {
+        svg += `<line y1="${horizontalLine[0]}" y2="${horizontalLine[0]}" x1="${horizontalLine[1]}" x2="${horizontalLine[2]}" stroke="white" />`
+    }
+
     const textContent = await page.getTextContent();
     textContent.items.forEach(textItem => {
         let tx = textItem.transform
@@ -62,6 +66,7 @@ async function handlePage(page) {
 /**
  * 
  * @param {import("pdfjs-dist/types/src/display/api").PDFOperatorList} opList 
+ * @returns {[[number, number, number][], [number, number, number][]]}
  */
 function extractLines(opList) {
     let horizontal = []
