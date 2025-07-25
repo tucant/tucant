@@ -103,11 +103,13 @@ async function handlePage(page) {
 /**
  * 
  * @param {number} height
- * @param {TextContent} textContent 
+ * @param {import("pdfjs-dist/types/src/display/api").TextContent} textContent 
  * @param {[number, number, number, number]} rect top-left-x, top-left-y, bottom-right-x, bottom-right-y
  */
 function extractText(height, textContent, rect) {
+    // https://github.com/mozilla/pdf.js/blob/341a0b6d477d2909fcb14bcbfdf0d2fd37406cb0/src/core/evaluator.js#L2966
     let text = ""
+    let lastY = 0
     textContent.items.forEach(textItem => {
         let tx = textItem.transform
 
@@ -115,6 +117,13 @@ function extractText(height, textContent, rect) {
         const x = tx[4];
 
         if (rect[0] <= x && x <= rect[2] && rect[1] <= y && y <= rect[3]) {
+            if (y != lastY) {
+                if (lastY != 0) {
+                    text += "\n";
+                }
+                lastY = y;
+            }
+
             text += textItem.str;
         }
     })
