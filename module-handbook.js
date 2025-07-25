@@ -44,8 +44,10 @@ async function handlePage(page) {
     const opList = await page.getOperatorList();
 
     const [horizontal, vertical] = extractLines(opList);
-    console.log(horizontal)
-    console.log(vertical)
+    mergeLines(horizontal);
+    mergeLines(vertical);
+    //console.log(horizontal)
+    //console.log(vertical)
 
     for (const horizontalLine of horizontal) {
         svg += `<line y1="${height - horizontalLine[0]}" y2="${height - horizontalLine[0]}" x1="${horizontalLine[1]}" x2="${horizontalLine[2]}" stroke="white" />`
@@ -113,14 +115,37 @@ function extractLines(opList) {
                 continue;
             }
             if (bottomRightY - topLeftY < 0.5) {
-                console.log(`horizontal line ${bottomRightY - topLeftY}`)
                 horizontal.push([(topLeftY + bottomRightY) / 2, topLeftX, bottomRightX])
             }
             if (bottomRightX - topLeftX < 0.5) {
-                console.log(`vertical line ${bottomRightX - topLeftX}`)
                 vertical.push([(topLeftX + bottomRightX) / 2, topLeftY, bottomRightY])
             }
         }
     }
     return [horizontal, vertical]
+}
+
+/**
+ * 
+ * @param {[number, number, number][]} lines 
+ */
+function mergeLines(lines) {
+    // group by whether same position
+    /** @type {Map<number, [number, number, number][]} */
+    let groupedLines = Map.groupBy(lines, line => line[0]);
+    groupedLines.forEach((value, key) => {
+        // sort by start of line
+        value.sort((a, b) => b[1] - a[1])
+        let mergedLines = [value[0]]
+        for (let i = 1; i < value.length; i++) {
+            if (value[i][1] <= mergedLines[mergedLines.length - 1][2]) {
+                mergedLines[mergedLines.length - 1][2] = Math.max(mergedLines[mergedLines.length - 1][2], value[i][2])
+            } else {
+                mergedLines.push(value[i])
+            }
+        }
+        if (mergedLines.length !== 1) {
+            console.log(value.length + " -> " + mergedLines.length)
+        }
+    })
 }
