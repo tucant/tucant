@@ -83,15 +83,39 @@ async function handlePage(page) {
 
         const largeHorizontalLines = mergedHorizontal.filter((a) => a[2] - a[1] > 484)
 
-        for (let i = 0; i < largeHorizontalLines.length - 1; i++) {
+        if (largeHorizontalLines.length < 2) {
+            console.log("what")
+        }
+
+        // modulname
+        {
+            const top = largeHorizontalLines[0]
+            const bottom = largeHorizontalLines[1]
+
+            console.log(extractText(height, textContent, [top[1], height - top[0], bottom[2], height - bottom[0]]))
+        }
+
+        // all the info
+        {
+            const top = largeHorizontalLines[1]
+            const bottom = largeHorizontalLines[2]
+
+            // TODO find the vertical lines that are intersecting here
+
+            for (let mergedVerticalLine of mergedVertical) {
+                if (mergedVerticalLine[1] > top) {
+
+                }
+            }
+        }
+
+        /*for (let i = 2; i < largeHorizontalLines.length - 1; i++) {
             const top = largeHorizontalLines[i]
             const bottom = largeHorizontalLines[i + 1]
 
             // get text in area
             console.log(extractText(height, textContent, [top[1], height - top[0], bottom[2], height - bottom[0]]))
-
-            break; // TODO REMOVE
-        }
+        }*/
     } else {
         console.log("following page")
     }
