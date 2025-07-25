@@ -1,5 +1,6 @@
 import { getDocument, OPS } from "pdfjs-dist/legacy/build/pdf.mjs";
 import { writeFile } from 'node:fs/promises'
+import path from "node:path";
 
 // use inkscape to look at this
 
@@ -16,7 +17,13 @@ const OPS_INVERTED = Object.fromEntries(
 
 // node module-handbook.js
 
-const document = await getDocument("/home/moritz/Downloads/2023_05_11_MHB_MSC_INF.pdf").promise
+const document = await getDocument({
+    url: "/home/moritz/Downloads/2023_05_11_MHB_MSC_INF.pdf",
+    standardFontDataUrl: path.join(
+        import.meta.dirname,
+        "node_modules/pdfjs-dist/standard_fonts/"
+    ) + '/',
+}).promise
 //console.log(document)
 
 // https://github.com/mozilla/pdf.js/blob/master/src/display/api.js
@@ -64,6 +71,12 @@ for (let i = 1; i <= document.numPages; i++) {
             }
             let [path] = data;
             let svgPath = "";
+            if (path.length == 13 && path[0] === DrawOPS.moveTo && path[3] === DrawOPS.lineTo && path[6] === DrawOPS.lineTo && path[9] === DrawOPS.lineTo && path[12] === DrawOPS.closePath) {
+                //console.log("found rectangle")
+            } else {
+                console.log("not a rectangle")
+            }
+
             for (let i = 0, ii = path.length; i < ii;) {
                 switch (path[i++]) {
                     case DrawOPS.moveTo:
