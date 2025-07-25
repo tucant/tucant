@@ -44,7 +44,7 @@ async function handlePage(page) {
     const opList = await page.getOperatorList();
 
     const [horizontal, vertical] = extractLines(opList);
-    const mergedHorizontal = mergeLines(horizontal);
+    let mergedHorizontal = mergeLines(horizontal);
     const mergedVertical = mergeLines(vertical);
 
     for (const horizontalLine of mergedHorizontal) {
@@ -70,15 +70,25 @@ async function handlePage(page) {
         return;
     }
 
-    if (mergedHorizontal.find(a => a[2] - a[1] > 499)) {
+    //console.log(mergedHorizontal[1][0])
+
+    // there are a few places that span more than two pages
+
+    // page 539 has the bug that the title does not span the full page
+    // mergedHorizontal.find(a => a[2] - a[1] > 499)
+    if (mergedHorizontal[1][0] >= 747) {
         console.log("Modulbeschreibung first page")
+        mergedHorizontal = mergedHorizontal.filter(a => a[0] < 747)
+
+        console.log(mergedHorizontal.filter((a) => a[2] - a[1] > 484))
+
+
     } else {
         console.log("following page")
     }
 
     // lines that have a difference of less than 1 are the same length but overlap with perpendicular lines
     //console.log(mergedHorizontal.map((a) => a[2] - a[1]))
-
 }
 
 /**
