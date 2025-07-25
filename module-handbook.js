@@ -44,6 +44,8 @@ async function handlePage(page) {
     const opList = await page.getOperatorList();
 
     const [horizontal, vertical] = extractLines(opList);
+    console.log(horizontal)
+    console.log(vertical)
 
     const textContent = await page.getTextContent();
     textContent.items.forEach(textItem => {
@@ -104,9 +106,11 @@ function extractLines(opList) {
             }
             if (bottomRightY - topLeftY < 0.5) {
                 console.log(`horizontal line ${bottomRightY - topLeftY}`)
+                horizontal.push([(topLeftY + bottomRightY) / 2, topLeftX, bottomRightX])
             }
             if (bottomRightX - topLeftX < 0.5) {
                 console.log(`vertical line ${bottomRightX - topLeftX}`)
+                vertical.push([(topLeftX + bottomRightX) / 2, topLeftY, bottomRightY])
             }
         }
     }
