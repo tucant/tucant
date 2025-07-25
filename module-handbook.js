@@ -2,7 +2,7 @@ import { getDocument, OPS } from "pdfjs-dist/legacy/build/pdf.mjs";
 import { writeFile } from 'node:fs/promises'
 import path from "node:path";
 
-// use inkscape to look at this
+// node module-handbook.js
 
 const DrawOPS = {
     moveTo: 0,
@@ -15,8 +15,6 @@ const OPS_INVERTED = Object.fromEntries(
     Object.entries(OPS).map(([key, value]) => [value, key])
 );
 
-// node module-handbook.js
-
 const document = await getDocument({
     url: "/home/moritz/Downloads/2023_05_11_MHB_MSC_INF.pdf",
     standardFontDataUrl: path.join(
@@ -24,12 +22,16 @@ const document = await getDocument({
         "node_modules/pdfjs-dist/standard_fonts/"
     ) + '/',
 }).promise
-//console.log(document)
-
-// https://github.com/mozilla/pdf.js/blob/master/src/display/api.js
 
 for (let i = 1; i <= document.numPages; i++) {
-    const page = await document.getPage(i)
+    await handlePage(await document.getPage(i))
+}
+
+/**
+ * 
+ * @param {import("pdfjs-dist").PDFPageProxy} page 
+ */
+async function handlePage(page) {
     const height = page.view[3]
     let svg = `<?xml version="1.0" encoding="UTF-8"?>
     <svg xmlns="http://www.w3.org/2000/svg"
@@ -41,98 +43,6 @@ for (let i = 1; i <= document.numPages; i++) {
 
     const opList = await page.getOperatorList();
 
-    let visible = true;
-
-    // Walk through operator list
-    for (let i = 0; i < opList.fnArray.length; i++) {
-        const fnId = opList.fnArray[i];
-        const args = opList.argsArray[i];
-
-        const opName = OPS_INVERTED[fnId];
-        //console.log(`Operation: ${opName}`, args);
-        // setStrokeRGBColor
-        // setFillRGBColor
-        if (opName === "setFillRGBColor") {
-            let [color] = args;
-            if (color === '#000000') {
-                visible = true;
-            } else {
-                visible = false;
-            }
-        }
-        // https://github.com/mozilla/pdf.js/blob/e0783cd07557134798e1fc882b043376bc8b8b6e/src/display/canvas.js#L1421
-        if (opName === "constructPath") {
-            if (!visible) {
-                continue;
-            }
-            let [op, data, minMax] = args;
-            if (op !== 23) {
-                continue;
-            }
-            let [path] = data;
-            let svgPath = "";
-            if (path.length == 13 && path[0] === DrawOPS.moveTo && path[3] === DrawOPS.lineTo && path[6] === DrawOPS.lineTo && path[9] === DrawOPS.lineTo && path[12] === DrawOPS.closePath) {
-                //console.log("found rectangle")
-                const topLeftX = path[1];
-                const topLeftY = path[2];
-                const topRightX = path[4];
-                const topRightY = path[5];
-                const bottomRightX = path[7];
-                const bottomRightY = path[8];
-                const bottomLeftX = path[10];
-                const bottomLeftY = path[11];
-                if (topLeftX === bottomLeftX & topLeftY === topRightY && bottomRightX === topRightX && bottomLeftY === bottomRightY) {
-                    //console.log("rect")
-                    // only use top left and bottom right
-
-                    if (bottomRightX - topLeftX < 0.5) {
-                        console.log(`vertical line ${bottomRightX - topLeftX}`)
-                    }
-                    if (bottomRightY - topLeftY < 0.5) {
-                        console.log(`horizontal line ${bottomRightY - topLeftY}`)
-                    }
-
-                } else {
-                    console.log("not a rectangly rectangle")
-                }
-            } else {
-                console.log("not a rectangle")
-            }
-
-            /*for (let i = 0, ii = path.length; i < ii;) {
-                switch (path[i++]) {
-                    case DrawOPS.moveTo:
-                        svgPath += `M ${path[i++]},${height - path[i++]} `;
-                        break;
-                    case DrawOPS.lineTo:
-                        svgPath += `${path[i++]},${height - path[i++]} `;
-                        break;
-                    case DrawOPS.curveTo:
-                        //console.log(`bezierCurveTo ${path[i++]},
-                        //    ${path[i++]},
-                        //    ${path[i++]},
-                        //    ${path[i++]},
-                        //    ${path[i++]},
-                        //    ${path[i++]}
-                        //`);
-                    break;
-                    case DrawOPS.closePath:
-                    //console.log(`closePath`);
-                    break;
-                            default:
-                    warn(`Unrecognized drawing path operator: ${path[i - 1]}`);
-                    break;
-                }
-                // first step should be converting paths to actual lines
-                // paths are rectangles here with a fill. we should detect black fill and white stroke as lines?
-                // TODO check if there are actual paths somewhere but probably not
-                // we should directly get horizontal and verical lines then. probably ignore thickness and just use center?
-                // can we directly produce long lines? probably more efficient to first produce the short lines?
-            }
-            svg += `<path stroke="white" d="${svgPath}" />` */
-        }
-    }
-
     const textContent = await page.getTextContent();
     textContent.items.forEach(textItem => {
         let tx = textItem.transform
@@ -143,4 +53,63 @@ for (let i = 1; i <= document.numPages; i++) {
 
     svg += `</svg>`
     await writeFile(`/tmp/test${i}.svg`, svg);
+}
+
+/**
+ * 
+ * @param {import("pdfjs-dist/types/src/display/api").PDFOperatorList} opList 
+ */
+async function extractLines(opList) {
+    let visible = true;
+
+    for (let i = 0; i < opList.fnArray.length; i++) {
+        const fnId = opList.fnArray[i];
+        const args = opList.argsArray[i];
+        const opName = OPS_INVERTED[fnId];
+
+        if (opName === "setFillRGBColor") {
+            let [color] = args;
+            if (color === '#000000') {
+                visible = true;
+            } else {
+                visible = false;
+            }
+        }
+        if (opName === "constructPath") {
+            if (!visible) {
+                continue;
+            }
+            let [op, data, minMax] = args;
+            if (op !== 23) {
+                continue;
+            }
+            let [path] = data;
+            let svgPath = "";
+            if (!(path.length == 13 && path[0] === DrawOPS.moveTo && path[3] === DrawOPS.lineTo && path[6] === DrawOPS.lineTo && path[9] === DrawOPS.lineTo && path[12] === DrawOPS.closePath)) {
+                continue;
+            }
+            const topLeftX = path[1];
+            const topLeftY = path[2];
+            const topRightX = path[4];
+            const topRightY = path[5];
+            const bottomRightX = path[7];
+            const bottomRightY = path[8];
+            const bottomLeftX = path[10];
+            const bottomLeftY = path[11];
+            if (topLeftX === bottomLeftX & topLeftY === topRightY && bottomRightX === topRightX && bottomLeftY === bottomRightY) {
+                //console.log("rect")
+                // only use top left and bottom right
+
+                if (bottomRightX - topLeftX < 0.5) {
+                    console.log(`vertical line ${bottomRightX - topLeftX}`)
+                }
+                if (bottomRightY - topLeftY < 0.5) {
+                    console.log(`horizontal line ${bottomRightY - topLeftY}`)
+                }
+
+            } else {
+                console.log("not a rectangly rectangle")
+            }
+        }
+    }
 }
