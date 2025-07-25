@@ -43,6 +43,8 @@ async function handlePage(page) {
 
     const opList = await page.getOperatorList();
 
+    const [horizontal, vertical] = extractLines(opList);
+
     const textContent = await page.getTextContent();
     textContent.items.forEach(textItem => {
         let tx = textItem.transform
@@ -52,14 +54,16 @@ async function handlePage(page) {
     })
 
     svg += `</svg>`
-    await writeFile(`/tmp/test${i}.svg`, svg);
+    await writeFile(`/tmp/test${page.pageNumber}.svg`, svg);
 }
 
 /**
  * 
  * @param {import("pdfjs-dist/types/src/display/api").PDFOperatorList} opList 
  */
-async function extractLines(opList) {
+function extractLines(opList) {
+    let horizontal = []
+    let vertical = []
     let visible = true;
 
     for (let i = 0; i < opList.fnArray.length; i++) {
@@ -84,7 +88,6 @@ async function extractLines(opList) {
                 continue;
             }
             let [path] = data;
-            let svgPath = "";
             if (!(path.length == 13 && path[0] === DrawOPS.moveTo && path[3] === DrawOPS.lineTo && path[6] === DrawOPS.lineTo && path[9] === DrawOPS.lineTo && path[12] === DrawOPS.closePath)) {
                 continue;
             }
@@ -96,20 +99,16 @@ async function extractLines(opList) {
             const bottomRightY = path[8];
             const bottomLeftX = path[10];
             const bottomLeftY = path[11];
-            if (topLeftX === bottomLeftX & topLeftY === topRightY && bottomRightX === topRightX && bottomLeftY === bottomRightY) {
-                //console.log("rect")
-                // only use top left and bottom right
-
-                if (bottomRightX - topLeftX < 0.5) {
-                    console.log(`vertical line ${bottomRightX - topLeftX}`)
-                }
-                if (bottomRightY - topLeftY < 0.5) {
-                    console.log(`horizontal line ${bottomRightY - topLeftY}`)
-                }
-
-            } else {
-                console.log("not a rectangly rectangle")
+            if (!(topLeftX === bottomLeftX & topLeftY === topRightY && bottomRightX === topRightX && bottomLeftY === bottomRightY)) {
+                continue;
+            }
+            if (bottomRightY - topLeftY < 0.5) {
+                console.log(`horizontal line ${bottomRightY - topLeftY}`)
+            }
+            if (bottomRightX - topLeftX < 0.5) {
+                console.log(`vertical line ${bottomRightX - topLeftX}`)
             }
         }
     }
+    return [horizontal, vertical]
 }
