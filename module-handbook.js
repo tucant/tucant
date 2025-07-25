@@ -44,15 +44,15 @@ async function handlePage(page) {
     const opList = await page.getOperatorList();
 
     const [horizontal, vertical] = extractLines(opList);
-    mergeLines(horizontal);
-    mergeLines(vertical);
-    //console.log(horizontal)
-    //console.log(vertical)
+    const mergedHorizontal = mergeLines(horizontal);
+    const mergedVertical = mergeLines(vertical);
+    console.log(mergedHorizontal)
+    console.log(mergedVertical)
 
-    for (const horizontalLine of horizontal) {
+    for (const horizontalLine of mergedHorizontal) {
         svg += `<line y1="${height - horizontalLine[0]}" y2="${height - horizontalLine[0]}" x1="${horizontalLine[1]}" x2="${horizontalLine[2]}" stroke="white" />`
     }
-    for (const verticalLine of vertical) {
+    for (const verticalLine of mergedVertical) {
         svg += `<line x1="${verticalLine[0]}" x2="${verticalLine[0]}" y1="${height - verticalLine[1]}" y2="${height - verticalLine[2]}" stroke="white" />`
     }
 
@@ -133,7 +133,7 @@ function mergeLines(lines) {
     // group by whether same position
     /** @type {Map<number, [number, number, number][]} */
     let groupedLines = Map.groupBy(lines, line => line[0]);
-    groupedLines.forEach((value, key) => {
+    return [...groupedLines].flatMap(([key, value]) => {
         // sort by start of line
         value.sort((a, b) => b[1] - a[1])
         let mergedLines = [value[0]]
@@ -144,8 +144,6 @@ function mergeLines(lines) {
                 mergedLines.push(value[i])
             }
         }
-        if (mergedLines.length !== 1) {
-            console.log(value.length + " -> " + mergedLines.length)
-        }
+        return mergedLines
     })
 }
