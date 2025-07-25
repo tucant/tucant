@@ -83,6 +83,15 @@ for (let i = 1; i <= document.numPages; i++) {
                 const bottomLeftY = path[11];
                 if (topLeftX === bottomLeftX & topLeftY === topRightY && bottomRightX === topRightX && bottomLeftY === bottomRightY) {
                     //console.log("rect")
+                    // only use top left and bottom right
+
+                    if (bottomRightX - topLeftX < 0.5) {
+                        console.log(`vertical line ${bottomRightX - topLeftX}`)
+                    }
+                    if (bottomRightY - topLeftY < 0.5) {
+                        console.log(`horizontal line ${bottomRightY - topLeftY}`)
+                    }
+
                 } else {
                     console.log("not a rectangly rectangle")
                 }
