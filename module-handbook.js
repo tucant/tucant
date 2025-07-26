@@ -23,8 +23,12 @@ const document = await getDocument({
     ) + '/',
 }).promise
 
+let pages = []
 for (let i = 1; i <= document.numPages; i++) {
-    await handlePage(await document.getPage(i))
+    pages.push(await handlePage(await document.getPage(i)))
+}
+for (let page of pages) {
+    extractPage(page)
 }
 
 /**
@@ -66,6 +70,10 @@ async function handlePage(page) {
     svg += `</svg>`
     await writeFile(`/tmp/test${page.pageNumber}.svg`, svg);
 
+    return [height, textContent, mergedHorizontal, mergedVertical]
+}
+
+function extractPage([height, textContent, mergedHorizontal, mergedVertical]) {
     if (mergedHorizontal.length === 0 && mergedVertical.length === 0) {
         console.log(`page with only text`) // , textContent.items
         return;
@@ -77,11 +85,12 @@ async function handlePage(page) {
 
     // page 539 has the bug that the title does not span the full page
     // mergedHorizontal.find(a => a[2] - a[1] > 499)
-    if (mergedHorizontal[1][0] >= 747) {
+    if (mergedHorizontal[1][0] >= 747) { // check y position
         console.log("Modulbeschreibung first page")
         mergedHorizontal = mergedHorizontal.filter(a => a[0] < 747)
 
         // page 48 is smaller
+        // TODO find the largest lines
         const largeHorizontalLines = mergedHorizontal.filter((a) => a[2] - a[1] > 484)
 
         if (largeHorizontalLines.length < 2) {
@@ -119,6 +128,8 @@ async function handlePage(page) {
         }*/
     } else {
         console.log("following page")
+
+        // page 53 has no top line
     }
 
     // lines that have a difference of less than 1 are the same length but overlap with perpendicular lines
