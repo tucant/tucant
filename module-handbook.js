@@ -81,7 +81,7 @@ async function handlePage(page) {
  * @returns 
  */
 function extractPage(param) {
-    const [height, textContent, mergedHorizontal, mergedVertical] = param
+    let [height, textContent, mergedHorizontal, mergedVertical] = param
     if (mergedHorizontal.length === 0 && mergedVertical.length === 0) {
         console.log(`page with only text`) // , textContent.items
         return;
@@ -99,8 +99,8 @@ function extractPage(param) {
 
         // page 48 is smaller
         // TODO find the largest lines, maybe later we need to find the one multiple lines in the same row that start to the leftmost and rightmost
-        const maxLength = Math.min(...mergedHorizontal.map(v => a[2] - a[1]))
-        const largeHorizontalLines = mergedHorizontal.filter((a) => a[2] - a[1] > 484)
+        const maxLength = Math.min(...mergedHorizontal.map(a => a[2] - a[1]))
+        const largeHorizontalLines = mergedHorizontal.filter((a) => a[2] - a[1] >= maxLength - 1)
 
         if (largeHorizontalLines.length < 2) {
             console.log("what")
