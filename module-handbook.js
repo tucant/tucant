@@ -27,6 +27,7 @@ let pages = []
 for (let i = 1; i <= document.numPages; i++) {
     pages.push(await handlePage(await document.getPage(i)))
 }
+console.log("written")
 for (let page of pages) {
     extractPage(page)
 }
@@ -34,6 +35,7 @@ for (let page of pages) {
 /**
  * 
  * @param {import("pdfjs-dist").PDFPageProxy} page 
+ * @returns {[number, import("pdfjs-dist/types/src/display/api").TextContent, [number, number, number][], [number, number, number][]]}
  */
 async function handlePage(page) {
     const height = page.view[3]
@@ -73,7 +75,13 @@ async function handlePage(page) {
     return [height, textContent, mergedHorizontal, mergedVertical]
 }
 
-function extractPage([height, textContent, mergedHorizontal, mergedVertical]) {
+/**
+ * 
+ * @param {[number, import("pdfjs-dist/types/src/display/api").TextContent, [number, number, number][], [number, number, number][]]} param 
+ * @returns 
+ */
+function extractPage(param) {
+    const [height, textContent, mergedHorizontal, mergedVertical] = param
     if (mergedHorizontal.length === 0 && mergedVertical.length === 0) {
         console.log(`page with only text`) // , textContent.items
         return;
@@ -90,7 +98,8 @@ function extractPage([height, textContent, mergedHorizontal, mergedVertical]) {
         mergedHorizontal = mergedHorizontal.filter(a => a[0] < 747)
 
         // page 48 is smaller
-        // TODO find the largest lines
+        // TODO find the largest lines, maybe later we need to find the one multiple lines in the same row that start to the leftmost and rightmost
+        const maxLength = Math.min(...mergedHorizontal.map(v => a[2] - a[1]))
         const largeHorizontalLines = mergedHorizontal.filter((a) => a[2] - a[1] > 484)
 
         if (largeHorizontalLines.length < 2) {
