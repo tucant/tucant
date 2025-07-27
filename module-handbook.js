@@ -184,6 +184,20 @@ function extractPage(param) {
             for (let i = 0; i < subHorizontalLines.length - 1; i++) {
                 console.log(extractText(height, textContent, [intersectingVerticalLines[1][0], subHorizontalLines[i][0], intersectingVerticalLines[2][0], subHorizontalLines[i + 1][0]]))
                 console.log("------------------------------------------------")
+
+                // now do vertical lines again
+                let innerIntersectingVerticalLines = []
+                for (let mergedVerticalLine of mergedVertical) {
+                    if (mergedVerticalLine[1] < subHorizontalLines[i][0] + 1 && mergedVerticalLine[2] > subHorizontalLines[i + 1][0] - 1) {
+                        innerIntersectingVerticalLines.push(mergedVerticalLine)
+                    }
+                }
+                console.log(innerIntersectingVerticalLines)
+
+                for (let j = 0; j < innerIntersectingVerticalLines.length - 1; j++) {
+                    console.log(extractText(height, textContent, [innerIntersectingVerticalLines[j][0], subHorizontalLines[i][0], innerIntersectingVerticalLines[j + 1][0], subHorizontalLines[i + 1][0]]))
+                    console.log("------------------------------------------------")
+                }
             }
             // then for each row handle the vertical split
         }
