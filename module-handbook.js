@@ -121,12 +121,19 @@ function extractPage(param) {
 
             // TODO find the vertical lines that are intersecting here
 
+            let intersectingVerticalLines = []
             for (let mergedVerticalLine of mergedVertical) {
                 // TODO FIXME probably the height - y stuff. we should fix this globally as thinking like that is weird?
                 console.log(`${mergedVerticalLine[1]} > ${top[0] - 5} && ${mergedVerticalLine[2]} < ${bottom[0] + 5}`)
                 if (mergedVerticalLine[1] < top[0] + 5 && mergedVerticalLine[2] > bottom[0] - 5) {
                     console.log("found")
+                    intersectingVerticalLines.push(mergedVerticalLine)
                 }
+            }
+            console.log(`--------`, intersectingVerticalLines)
+            for (let i = 0; i < intersectingVerticalLines.length - 1; i++) {
+                console.log(extractText(height, textContent, [intersectingVerticalLines[i][0], height - top[0], intersectingVerticalLines[i + 1][0], height - bottom[0]]))
+                console.log("------------------------------------------------")
             }
         }
 
