@@ -171,19 +171,19 @@ function extractPage(param) {
                     intersectingVerticalLines.push(mergedVerticalLine)
                 }
             }
-            console.log(`--------`)
+            //console.log(`--------`)
             for (let i = 0; i < intersectingVerticalLines.length - 1; i++) {
-                console.log(extractText(height, textContent, [intersectingVerticalLines[i][0], top[0], intersectingVerticalLines[i + 1][0], bottom[0]]))
-                console.log("------------------------------------------------")
+                //console.log(extractText(height, textContent, [intersectingVerticalLines[i][0], top[0], intersectingVerticalLines[i + 1][0], bottom[0]]))
+                //console.log("------------------------------------------------")
             }
 
             // TODO get all horizontal lines in that range (including upper and lower?)
             const subHorizontalLines = mergedHorizontal.filter((a) => top[0] <= a[0] && a[0] <= bottom[0])
             // split on these (remove left part with the 1)
-            console.log(`--------`, subHorizontalLines)
+            console.log(`--------`)
             for (let i = 0; i < subHorizontalLines.length - 1; i++) {
-                console.log(extractText(height, textContent, [intersectingVerticalLines[1][0], subHorizontalLines[i][0], intersectingVerticalLines[2][0], subHorizontalLines[i + 1][0]]))
-                console.log("------------------------------------------------")
+                //console.log(extractText(height, textContent, [intersectingVerticalLines[1][0], subHorizontalLines[i][0], intersectingVerticalLines[2][0], subHorizontalLines[i + 1][0]]))
+                //console.log("------------------------------------------------")
 
                 // now do vertical lines again
                 let innerIntersectingVerticalLines = []
