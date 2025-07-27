@@ -176,6 +176,16 @@ function extractPage(param) {
                 console.log(extractText(height, textContent, [intersectingVerticalLines[i][0], top[0], intersectingVerticalLines[i + 1][0], bottom[0]]))
                 console.log("------------------------------------------------")
             }
+
+            // TODO get all horizontal lines in that range (including upper and lower?)
+            const subHorizontalLines = mergedHorizontal.filter((a) => top[0] <= a[0] && a[0] <= bottom[0])
+            // split on these (remove left part with the 1)
+            console.log(`--------`, subHorizontalLines)
+            for (let i = 0; i < subHorizontalLines.length - 1; i++) {
+                console.log(extractText(height, textContent, [intersectingVerticalLines[1][0], subHorizontalLines[i][0], intersectingVerticalLines[2][0], subHorizontalLines[i + 1][0]]))
+                console.log("------------------------------------------------")
+            }
+            // then for each row handle the vertical split
         }
 
         /*for (let i = 2; i < largeHorizontalLines.length - 1; i++) {
