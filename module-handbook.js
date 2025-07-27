@@ -208,7 +208,6 @@ function extractPage(param) {
             // TODO get all horizontal lines in that range (including upper and lower?)
             const subHorizontalLines = mergedHorizontal.filter((a) => top[0] <= a[0] && a[0] <= bottom[0])
             // split on these (remove left part with the 1)
-            console.log(`--------`)
             for (let i = 0; i < subHorizontalLines.length - 1; i++) {
                 //console.log(extractText(height, textContent, [intersectingVerticalLines[1][0], subHorizontalLines[i][0], intersectingVerticalLines[2][0], subHorizontalLines[i + 1][0]]))
                 //console.log("------------------------------------------------")
@@ -220,11 +219,20 @@ function extractPage(param) {
                         innerIntersectingVerticalLines.push(mergedVerticalLine)
                     }
                 }
-                console.log(innerIntersectingVerticalLines)
 
+                let results = []
                 for (let j = 0; j < innerIntersectingVerticalLines.length - 1; j++) {
-                    console.log(extractText(height, textContent, [innerIntersectingVerticalLines[j][0], subHorizontalLines[i][0], innerIntersectingVerticalLines[j + 1][0], subHorizontalLines[i + 1][0]]))
-                    console.log("------------------------------------------------")
+                    results.push(extractText(height, textContent, [innerIntersectingVerticalLines[j][0], subHorizontalLines[i][0], innerIntersectingVerticalLines[j + 1][0], subHorizontalLines[i + 1][0]]))
+                }
+                console.log(results)
+                if (results.length === 2 && results[0].trim() === "1" && results[1] === "Kurse des Moduls") {
+                    continue;
+                }
+                if (results.length === 6 && results[0] === "" && (results[1] === "Kurs\nNr." || results[1] === "Kurs Nr. ") && results[2] === "Kursname " && results[3] === "Arbeitsaufwand\n(CP)" && results[4] === "Lehrform " && results[5] === "SWS") {
+                    continue;
+                }
+                if (i < 2) {
+                    throw results
                 }
             }
             // then for each row handle the vertical split
