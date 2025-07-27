@@ -23,6 +23,8 @@ const document = await getDocument({
     ) + '/',
 }).promise
 
+let modules = [];
+
 let pages = []
 for (let i = 1; i <= document.numPages; i++) {
     pages.push(await handlePage(await document.getPage(i)))
@@ -31,6 +33,7 @@ console.log("written")
 for (let page of pages) {
     extractPage(page)
 }
+console.log(modules)
 
 /**
  * 
@@ -111,12 +114,15 @@ function extractPage(param) {
         const maxLength = Math.max(...mergedHorizontal.map(a => a[2] - a[1]))
         const largeHorizontalLines = mergedHorizontal.filter((a) => a[2] - a[1] >= maxLength - 10) // page 551 has a much shorter line
 
+        let module = {
+        }
+
         // modulname
         {
             const top = largeHorizontalLines[0]
             const bottom = largeHorizontalLines[1]
 
-            console.log(extractText(height, textContent, [top[1], top[0], bottom[2], bottom[0]]))
+            module.modulename = extractText(height, textContent, [top[1], top[0], bottom[2], bottom[0]]).substring("Modulname\n".length)
         }
 
         // all the info
@@ -131,10 +137,25 @@ function extractPage(param) {
                     intersectingVerticalLines.push(mergedVerticalLine)
                 }
             }
-            console.log(`--------`)
             for (let i = 0; i < intersectingVerticalLines.length - 1; i++) {
-                console.log(extractText(height, textContent, [intersectingVerticalLines[i][0], top[0], intersectingVerticalLines[i + 1][0], bottom[0]]))
-                console.log("------------------------------------------------")
+                let info = extractText(height, textContent, [intersectingVerticalLines[i][0], top[0], intersectingVerticalLines[i + 1][0], bottom[0]])
+                if (info.startsWith("Modul Nr.\n")) {
+                    module.modulNr = info.substring("Modul Nr.\n".length)
+                } else if (info.startsWith("Leistungspun\nkte\n")) {
+                    module.leistungspunkte = info.substring("Leistungspun\nkte\n".length)
+                } else if (info.startsWith("Arbeitsaufwand\n")) {
+                    module.arbeitsaufwand = info.substring("Arbeitsaufwand\n".length)
+                } else if (info.startsWith("Selbststudium\n")) {
+                    module.selbstudium = info.substring("Selbststudium\n".length)
+                } else if (info === "Moduldauer ") {
+
+                } else if (info.startsWith("Moduldauer\n")) {
+                    module.moduldauer = info.substring("Moduldauer\n".length)
+                } else if (info.startsWith("Angebotsturnus\n")) {
+                    module.angebotsturnus = info.substring("Angebotsturnus\n".length)
+                } else {
+                    throw JSON.stringify(info)
+                }
             }
         }
 
@@ -150,10 +171,17 @@ function extractPage(param) {
                     intersectingVerticalLines.push(mergedVerticalLine)
                 }
             }
-            console.log(`--------`)
             for (let i = 0; i < intersectingVerticalLines.length - 1; i++) {
-                console.log(extractText(height, textContent, [intersectingVerticalLines[i][0], top[0], intersectingVerticalLines[i + 1][0], bottom[0]]))
-                console.log("------------------------------------------------")
+                let info = extractText(height, textContent, [intersectingVerticalLines[i][0], top[0], intersectingVerticalLines[i + 1][0], bottom[0]])
+                if (info.startsWith("Sprache\n")) {
+                    module.sprache = info.substring("Sprache\n".length)
+                } else if (info === "Modulverantwortliche Person") {
+
+                } else if (info.startsWith("Modulverantwortliche Person\n")) {
+                    module.modulverantwortlichePerson = info.substring("Modulverantwortliche Person\n".length)
+                } else {
+                    throw JSON.stringify(info)
+                }
             }
         }
 
@@ -211,6 +239,8 @@ function extractPage(param) {
             console.log(extractText(height, textContent, [top[1], top[0], bottom[2], bottom[0]]))
             console.log("------------------------------------------------")
         }
+
+        modules.push(module)
     } else {
         console.log("following page")
 
