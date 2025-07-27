@@ -33,7 +33,7 @@ console.log("written")
 for (let page of pages) {
     extractPage(page)
 }
-console.log(modules)
+console.log(JSON.stringify(modules, null, 1))
 
 /**
  * 
@@ -115,6 +115,7 @@ function extractPage(param) {
         const largeHorizontalLines = mergedHorizontal.filter((a) => a[2] - a[1] >= maxLength - 10) // page 551 has a much shorter line
 
         let module = {
+            courses: []
         }
 
         // modulname
@@ -234,6 +235,20 @@ function extractPage(param) {
                 if (i < 2) {
                     throw results
                 }
+                if (results.length != 6) {
+                    throw new Error(JSON.stringify(results))
+                }
+                if (results[0] === "" && results[1] === "" && results[2] === "" && results[3] === "" && results[4] === "" && results[5] === "") {
+                    continue;
+                }
+                let course = {
+                    kursNr: results[1],
+                    kursName: results[2],
+                    arbeitsaufwand: results[3],
+                    lehrform: results[4],
+                    sws: results[5],
+                }
+                module.courses.push(course)
             }
             // then for each row handle the vertical split
         }
