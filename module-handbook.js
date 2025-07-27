@@ -109,7 +109,7 @@ function extractPage(param) {
         // page 48 is smaller
         // TODO find the largest lines, maybe later we need to find the one multiple lines in the same row that start to the leftmost and rightmost
         const maxLength = Math.max(...mergedHorizontal.map(a => a[2] - a[1]))
-        const largeHorizontalLines = mergedHorizontal.filter((a) => a[2] - a[1] >= maxLength - 5)
+        const largeHorizontalLines = mergedHorizontal.filter((a) => a[2] - a[1] >= maxLength - 10) // page 551 has a much shorter line
 
         // modulname
         {
