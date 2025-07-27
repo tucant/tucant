@@ -188,7 +188,7 @@ function extractPage(param) {
                 // now do vertical lines again
                 let innerIntersectingVerticalLines = []
                 for (let mergedVerticalLine of mergedVertical) {
-                    if (mergedVerticalLine[1] < subHorizontalLines[i][0] + 1 && mergedVerticalLine[2] > subHorizontalLines[i + 1][0] - 1) {
+                    if (mergedVerticalLine[1] < subHorizontalLines[i][0] + 5 && mergedVerticalLine[2] > subHorizontalLines[i + 1][0] - 5) { // larger margin of error
                         innerIntersectingVerticalLines.push(mergedVerticalLine)
                     }
                 }
@@ -202,17 +202,42 @@ function extractPage(param) {
             // then for each row handle the vertical split
         }
 
-        /*for (let i = 2; i < largeHorizontalLines.length - 1; i++) {
+        console.log("------------------------------------------------")
+        for (let i = 4; i < largeHorizontalLines.length - 1; i++) {
             const top = largeHorizontalLines[i]
             const bottom = largeHorizontalLines[i + 1]
 
             // get text in area
             console.log(extractText(height, textContent, [top[1], top[0], bottom[2], bottom[0]]))
-        }*/
+            console.log("------------------------------------------------")
+        }
     } else {
         console.log("following page")
 
-        // page 53 has no top line
+        // page 53 has short top line
+
+        console.log("------------------------------------------------")
+        for (let i = 0; i < mergedHorizontal.length - 1; i++) {
+            const top = mergedHorizontal[i]
+            const bottom = mergedHorizontal[i + 1]
+
+            // get text in area
+            console.log(extractText(height, textContent, [top[1], top[0], bottom[2], bottom[0]]))
+            console.log("------------------------------------------------")
+
+            // find the vertical lines that are intersecting here
+            let intersectingVerticalLines = []
+            for (let mergedVerticalLine of mergedVertical) {
+                if (mergedVerticalLine[1] < top[0] + 1 && mergedVerticalLine[2] > bottom[0] - 1) {
+                    intersectingVerticalLines.push(mergedVerticalLine)
+                }
+            }
+            console.log(`--------`)
+            for (let i = 0; i < intersectingVerticalLines.length - 1; i++) {
+                console.log(extractText(height, textContent, [intersectingVerticalLines[i][0], top[0], intersectingVerticalLines[i + 1][0], bottom[0]]))
+                console.log("------------------------------------------------")
+            }
+        }
     }
 
     // lines that have a difference of less than 1 are the same length but overlap with perpendicular lines
