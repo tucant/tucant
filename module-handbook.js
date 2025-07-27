@@ -216,7 +216,7 @@ function extractPage(param) {
                 // now do vertical lines again
                 let innerIntersectingVerticalLines = []
                 for (let mergedVerticalLine of mergedVertical) {
-                    if (mergedVerticalLine[1] < subHorizontalLines[i][0] + 5 && mergedVerticalLine[2] > subHorizontalLines[i + 1][0] - 5) { // larger margin of error
+                    if (mergedVerticalLine[1] < subHorizontalLines[i][0] + 15 && mergedVerticalLine[2] > subHorizontalLines[i + 1][0] - 5) { // larger margin of error
                         innerIntersectingVerticalLines.push(mergedVerticalLine)
                     }
                 }
