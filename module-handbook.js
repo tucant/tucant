@@ -102,24 +102,13 @@ function extractPage(param) {
 
     // TODO check that vertical lines start below the two horizontal lines
     const topmostVertical = Math.min(...mergedVertical.map(a => a[1])) - 1
-    console.log("abc", mergedHorizontal, topmostVertical)
 
     if (mergedHorizontal[1][0] < topmostVertical) { // check y position
-        console.log("Modulbeschreibung first page")
-        console.log("before ", mergedHorizontal)
         mergedHorizontal = mergedHorizontal.filter(a => a[0] > mergedHorizontal[1][0])
-        console.log("after ", mergedHorizontal)
-
         // page 48 is smaller
         // TODO find the largest lines, maybe later we need to find the one multiple lines in the same row that start to the leftmost and rightmost
         const maxLength = Math.max(...mergedHorizontal.map(a => a[2] - a[1]))
-        console.log(maxLength)
         const largeHorizontalLines = mergedHorizontal.filter((a) => a[2] - a[1] >= maxLength - 5)
-        console.log(largeHorizontalLines)
-
-        if (largeHorizontalLines.length < 2) {
-            console.log("what")
-        }
 
         // modulname
         {
@@ -139,11 +128,10 @@ function extractPage(param) {
             let intersectingVerticalLines = []
             for (let mergedVerticalLine of mergedVertical) {
                 if (mergedVerticalLine[1] < top[0] + 1 && mergedVerticalLine[2] > bottom[0] - 1) {
-                    console.log("found")
                     intersectingVerticalLines.push(mergedVerticalLine)
                 }
             }
-            console.log(`--------`, intersectingVerticalLines)
+            console.log(`--------`)
             for (let i = 0; i < intersectingVerticalLines.length - 1; i++) {
                 console.log(extractText(height, textContent, [intersectingVerticalLines[i][0], top[0], intersectingVerticalLines[i + 1][0], bottom[0]]))
                 console.log("------------------------------------------------")
