@@ -54,6 +54,7 @@ async function handlePage(page) {
     const mergedVertical = mergeLines(vertical);
     mergedHorizontal.sort((a, b) => a[0] - b[0])
     mergedVertical.sort((a, b) => a[0] - b[0])
+    // TODO FIXME we could filter out some lines shorter than 1px
 
     for (const horizontalLine of mergedHorizontal) {
         svg += `<line y1="${horizontalLine[0]}" y2="${horizontalLine[0]}" x1="${horizontalLine[1]}" x2="${horizontalLine[2]}" stroke="white" />`
@@ -315,7 +316,7 @@ function mergeLines(lines) {
         value.sort((a, b) => a[1] - b[1])
         let mergedLines = [value[0]]
         for (let i = 1; i < value.length; i++) {
-            if (mergedLines[mergedLines.length - 1][2] - value[i][1] < 1) {
+            if (value[i][1] - 1 < mergedLines[mergedLines.length - 1][2]) {
                 mergedLines[mergedLines.length - 1][2] = Math.max(mergedLines[mergedLines.length - 1][2], value[i][2])
             } else {
                 mergedLines.push(value[i])
