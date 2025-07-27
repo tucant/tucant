@@ -29,7 +29,7 @@ let pages = []
 for (let i = 1; i <= document.numPages; i++) {
     pages.push(await handlePage(await document.getPage(i)))
 }
-console.log("written")
+//console.log("written")
 for (let page of pages) {
     extractPage(page)
 }
@@ -91,9 +91,9 @@ function extractPage(param) {
     if (pageNumber === 1) {
         return;
     }
-    console.log("page", pageNumber)
+    //console.log("page", pageNumber)
     if (mergedHorizontal.length === 0 && mergedVertical.length === 0) {
-        console.log(`page with only text`) // , textContent.items
+        //console.log(`page with only text`) // , textContent.items
         return;
     }
 
@@ -115,7 +115,8 @@ function extractPage(param) {
         const largeHorizontalLines = mergedHorizontal.filter((a) => a[2] - a[1] >= maxLength - 10) // page 551 has a much shorter line
 
         let module = {
-            courses: []
+            courses: [],
+            info: [],
         }
 
         // modulname
@@ -225,7 +226,7 @@ function extractPage(param) {
                 for (let j = 0; j < innerIntersectingVerticalLines.length - 1; j++) {
                     results.push(extractText(height, textContent, [innerIntersectingVerticalLines[j][0], subHorizontalLines[i][0], innerIntersectingVerticalLines[j + 1][0], subHorizontalLines[i + 1][0]]))
                 }
-                console.log(results)
+                //console.log(results)
                 if (results.length === 2 && results[0].trim() === "1" && results[1] === "Kurse des Moduls") {
                     continue;
                 }
@@ -242,9 +243,9 @@ function extractPage(param) {
                     continue;
                 }
                 let course = {
-                    kursNr: results[1],
+                    kursNr: results[1].trimEnd(),
                     kursName: results[2],
-                    arbeitsaufwand: results[3],
+                    arbeitsaufwand: results[3].trimEnd(),
                     lehrform: results[4],
                     sws: results[5],
                 }
@@ -253,30 +254,42 @@ function extractPage(param) {
             // then for each row handle the vertical split
         }
 
-        console.log("------------------------------------------------")
+        //console.log("------------------------------------------------")
         for (let i = 4; i < largeHorizontalLines.length - 1; i++) {
             const top = largeHorizontalLines[i]
             const bottom = largeHorizontalLines[i + 1]
 
             // get text in area
-            console.log(extractText(height, textContent, [top[1], top[0], bottom[2], bottom[0]]))
-            console.log("------------------------------------------------")
+            //console.log(extractText(height, textContent, [top[1], top[0], bottom[2], bottom[0]]))
+            //console.log("------------------------------------------------")
+
+            let intersectingVerticalLines = []
+            for (let mergedVerticalLine of mergedVertical) {
+                if (mergedVerticalLine[1] < top[0] + 1 && mergedVerticalLine[2] > bottom[0] - 1) {
+                    intersectingVerticalLines.push(mergedVerticalLine)
+                }
+            }
+            let results = []
+            for (let i = 0; i < intersectingVerticalLines.length - 1; i++) {
+                results.push(extractText(height, textContent, [intersectingVerticalLines[i][0], top[0], intersectingVerticalLines[i + 1][0], bottom[0]]))
+            }
+            module.info.push(...results.slice(1))
         }
 
         modules.push(module)
     } else {
-        console.log("following page")
+        //console.log("following page")
 
         // page 53 has short top line
 
-        console.log("------------------------------------------------")
+        //console.log("------------------------------------------------")
         for (let i = 0; i < mergedHorizontal.length - 1; i++) {
             const top = mergedHorizontal[i]
             const bottom = mergedHorizontal[i + 1]
 
             // get text in area
-            console.log(extractText(height, textContent, [top[1], top[0], bottom[2], bottom[0]]))
-            console.log("------------------------------------------------")
+            //console.log(extractText(height, textContent, [top[1], top[0], bottom[2], bottom[0]]))
+            //console.log("------------------------------------------------")
 
             // find the vertical lines that are intersecting here
             let intersectingVerticalLines = []
@@ -285,11 +298,12 @@ function extractPage(param) {
                     intersectingVerticalLines.push(mergedVerticalLine)
                 }
             }
-            console.log(`--------`)
+            //console.log(`--------`)
+            let results = []
             for (let i = 0; i < intersectingVerticalLines.length - 1; i++) {
-                console.log(extractText(height, textContent, [intersectingVerticalLines[i][0], top[0], intersectingVerticalLines[i + 1][0], bottom[0]]))
-                console.log("------------------------------------------------")
+                results.push(extractText(height, textContent, [intersectingVerticalLines[i][0], top[0], intersectingVerticalLines[i + 1][0], bottom[0]]))
             }
+            modules[modules.length - 1].info.push(...results.slice(1))
         }
     }
 
