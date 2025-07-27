@@ -138,7 +138,7 @@ function extractPage(param) {
 
             let intersectingVerticalLines = []
             for (let mergedVerticalLine of mergedVertical) {
-                if (mergedVerticalLine[1] > top[0] - 5 && mergedVerticalLine[2] > bottom[0] + 5) {
+                if (mergedVerticalLine[1] < top[0] + 1 && mergedVerticalLine[2] > bottom[0] - 1) {
                     console.log("found")
                     intersectingVerticalLines.push(mergedVerticalLine)
                 }
