@@ -52,7 +52,7 @@ async function handlePage(page) {
     const [horizontal, vertical] = extractLines(height, opList);
     let mergedHorizontal = mergeLines(horizontal);
     const mergedVertical = mergeLines(vertical);
-    mergedHorizontal.sort((a, b) => b[0] - a[0]) // other way around as position is from bottom
+    mergedHorizontal.sort((a, b) => a[0] - b[0])
     mergedVertical.sort((a, b) => a[0] - b[0])
 
     for (const horizontalLine of mergedHorizontal) {
@@ -101,13 +101,13 @@ function extractPage(param) {
     // mergedHorizontal.find(a => a[2] - a[1] > 499)
 
     // TODO check that vertical lines start below the two horizontal lines
-    const topmostVertical = Math.max(...mergedVertical.map(a => a[1]), ...mergedVertical.map(a => a[2])) - 2
-    console.log("topmostvertical", topmostVertical)
+    const topmostVertical = Math.min(...mergedVertical.map(a => a[1])) - 1
+    console.log("abc", mergedHorizontal, topmostVertical)
 
-    if (mergedHorizontal[1][0] >= topmostVertical) { // check y position
+    if (mergedHorizontal[1][0] < topmostVertical) { // check y position
         console.log("Modulbeschreibung first page")
         console.log("before ", mergedHorizontal)
-        mergedHorizontal = mergedHorizontal.filter(a => a[0] < mergedHorizontal[1][0])
+        mergedHorizontal = mergedHorizontal.filter(a => a[0] > mergedHorizontal[1][0])
         console.log("after ", mergedHorizontal)
 
         // page 48 is smaller
@@ -199,6 +199,7 @@ function extractText(height, textContent, rect) {
 
 /**
  * 
+ * @param {number} height
  * @param {import("pdfjs-dist/types/src/display/api").PDFOperatorList} opList 
  * @returns {[[number, number, number][], [number, number, number][]]}
  */
@@ -224,7 +225,7 @@ function extractLines(height, opList) {
             if (!visible) {
                 continue;
             }
-            let [op, data, minMax] = args;
+            let [op, data] = args;
             if (op !== 23) {
                 continue;
             }
