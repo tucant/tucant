@@ -52,6 +52,8 @@ async function handlePage(page) {
     const [horizontal, vertical] = extractLines(opList);
     let mergedHorizontal = mergeLines(horizontal);
     const mergedVertical = mergeLines(vertical);
+    mergedHorizontal.sort((a, b) => b[0] - a[0]) // other way around as position is from bottom
+    mergedVertical.sort((a, b) => a[0] - b[0])
 
     for (const horizontalLine of mergedHorizontal) {
         svg += `<line y1="${height - horizontalLine[0]}" y2="${height - horizontalLine[0]}" x1="${horizontalLine[1]}" x2="${horizontalLine[2]}" stroke="white" />`
@@ -72,16 +74,20 @@ async function handlePage(page) {
     svg += `</svg>`
     await writeFile(`/tmp/test${page.pageNumber}.svg`, svg);
 
-    return [height, textContent, mergedHorizontal, mergedVertical]
+    return [page.pageNumber, height, textContent, mergedHorizontal, mergedVertical]
 }
 
 /**
  * 
- * @param {[number, import("pdfjs-dist/types/src/display/api").TextContent, [number, number, number][], [number, number, number][]]} param 
+ * @param {[number, number, import("pdfjs-dist/types/src/display/api").TextContent, [number, number, number][], [number, number, number][]]} param 
  * @returns 
  */
 function extractPage(param) {
-    let [height, textContent, mergedHorizontal, mergedVertical] = param
+    let [pageNumber, height, textContent, mergedHorizontal, mergedVertical] = param
+    if (pageNumber === 1) {
+        return;
+    }
+    console.log("page", pageNumber)
     if (mergedHorizontal.length === 0 && mergedVertical.length === 0) {
         console.log(`page with only text`) // , textContent.items
         return;
@@ -93,14 +99,23 @@ function extractPage(param) {
 
     // page 539 has the bug that the title does not span the full page
     // mergedHorizontal.find(a => a[2] - a[1] > 499)
-    if (mergedHorizontal[1][0] >= 747) { // check y position
+
+    // TODO check that vertical lines start below the two horizontal lines
+    const topmostVertical = Math.max(...mergedVertical.map(a => a[1]), ...mergedVertical.map(a => a[2])) - 2
+    console.log("topmostvertical", topmostVertical)
+
+    if (mergedHorizontal[1][0] >= topmostVertical) { // check y position
         console.log("Modulbeschreibung first page")
-        mergedHorizontal = mergedHorizontal.filter(a => a[0] < 747)
+        console.log("before ", mergedHorizontal)
+        mergedHorizontal = mergedHorizontal.filter(a => a[0] < mergedHorizontal[1][0])
+        console.log("after ", mergedHorizontal)
 
         // page 48 is smaller
         // TODO find the largest lines, maybe later we need to find the one multiple lines in the same row that start to the leftmost and rightmost
-        const maxLength = Math.min(...mergedHorizontal.map(a => a[2] - a[1]))
-        const largeHorizontalLines = mergedHorizontal.filter((a) => a[2] - a[1] >= maxLength - 1)
+        const maxLength = Math.max(...mergedHorizontal.map(a => a[2] - a[1]))
+        console.log(maxLength)
+        const largeHorizontalLines = mergedHorizontal.filter((a) => a[2] - a[1] >= maxLength - 5)
+        console.log(largeHorizontalLines)
 
         if (largeHorizontalLines.length < 2) {
             console.log("what")
