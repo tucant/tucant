@@ -123,8 +123,47 @@ function extractPage(param) {
             const top = largeHorizontalLines[1]
             const bottom = largeHorizontalLines[2]
 
-            // TODO find the vertical lines that are intersecting here
+            // find the vertical lines that are intersecting here
+            let intersectingVerticalLines = []
+            for (let mergedVerticalLine of mergedVertical) {
+                if (mergedVerticalLine[1] < top[0] + 1 && mergedVerticalLine[2] > bottom[0] - 1) {
+                    intersectingVerticalLines.push(mergedVerticalLine)
+                }
+            }
+            console.log(`--------`)
+            for (let i = 0; i < intersectingVerticalLines.length - 1; i++) {
+                console.log(extractText(height, textContent, [intersectingVerticalLines[i][0], top[0], intersectingVerticalLines[i + 1][0], bottom[0]]))
+                console.log("------------------------------------------------")
+            }
+        }
 
+        // language, modulverantwortliche person
+        {
+            const top = largeHorizontalLines[2]
+            const bottom = largeHorizontalLines[3]
+
+            // find the vertical lines that are intersecting here
+            let intersectingVerticalLines = []
+            for (let mergedVerticalLine of mergedVertical) {
+                if (mergedVerticalLine[1] < top[0] + 1 && mergedVerticalLine[2] > bottom[0] - 1) {
+                    intersectingVerticalLines.push(mergedVerticalLine)
+                }
+            }
+            console.log(`--------`)
+            for (let i = 0; i < intersectingVerticalLines.length - 1; i++) {
+                console.log(extractText(height, textContent, [intersectingVerticalLines[i][0], top[0], intersectingVerticalLines[i + 1][0], bottom[0]]))
+                console.log("------------------------------------------------")
+            }
+        }
+
+
+        // 1
+        {
+            // TODO FIXME the lines are not exactly on the same height
+            const top = largeHorizontalLines[3]
+            const bottom = largeHorizontalLines[4] // only large lines are taken into account
+
+            // find the vertical lines that are intersecting here
             let intersectingVerticalLines = []
             for (let mergedVerticalLine of mergedVertical) {
                 if (mergedVerticalLine[1] < top[0] + 1 && mergedVerticalLine[2] > bottom[0] - 1) {
