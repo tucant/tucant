@@ -49,17 +49,17 @@ async function handlePage(page) {
 
     const opList = await page.getOperatorList();
 
-    const [horizontal, vertical] = extractLines(opList);
+    const [horizontal, vertical] = extractLines(height, opList);
     let mergedHorizontal = mergeLines(horizontal);
     const mergedVertical = mergeLines(vertical);
     mergedHorizontal.sort((a, b) => b[0] - a[0]) // other way around as position is from bottom
     mergedVertical.sort((a, b) => a[0] - b[0])
 
     for (const horizontalLine of mergedHorizontal) {
-        svg += `<line y1="${height - horizontalLine[0]}" y2="${height - horizontalLine[0]}" x1="${horizontalLine[1]}" x2="${horizontalLine[2]}" stroke="white" />`
+        svg += `<line y1="${horizontalLine[0]}" y2="${horizontalLine[0]}" x1="${horizontalLine[1]}" x2="${horizontalLine[2]}" stroke="white" />`
     }
     for (const verticalLine of mergedVertical) {
-        svg += `<line x1="${verticalLine[0]}" x2="${verticalLine[0]}" y1="${height - verticalLine[1]}" y2="${height - verticalLine[2]}" stroke="white" />`
+        svg += `<line x1="${verticalLine[0]}" x2="${verticalLine[0]}" y1="${verticalLine[1]}" y2="${verticalLine[2]}" stroke="white" />`
     }
 
     const textContent = await page.getTextContent();
@@ -126,7 +126,7 @@ function extractPage(param) {
             const top = largeHorizontalLines[0]
             const bottom = largeHorizontalLines[1]
 
-            console.log(extractText(height, textContent, [top[1], height - top[0], bottom[2], height - bottom[0]]))
+            console.log(extractText(height, textContent, [top[1], top[0], bottom[2], bottom[0]]))
         }
 
         // all the info
@@ -138,16 +138,14 @@ function extractPage(param) {
 
             let intersectingVerticalLines = []
             for (let mergedVerticalLine of mergedVertical) {
-                // TODO FIXME probably the height - y stuff. we should fix this globally as thinking like that is weird?
-                console.log(`${mergedVerticalLine[1]} > ${top[0] - 5} && ${mergedVerticalLine[2]} < ${bottom[0] + 5}`)
-                if (mergedVerticalLine[1] < top[0] + 5 && mergedVerticalLine[2] > bottom[0] - 5) {
+                if (mergedVerticalLine[1] > top[0] - 5 && mergedVerticalLine[2] > bottom[0] + 5) {
                     console.log("found")
                     intersectingVerticalLines.push(mergedVerticalLine)
                 }
             }
             console.log(`--------`, intersectingVerticalLines)
             for (let i = 0; i < intersectingVerticalLines.length - 1; i++) {
-                console.log(extractText(height, textContent, [intersectingVerticalLines[i][0], height - top[0], intersectingVerticalLines[i + 1][0], height - bottom[0]]))
+                console.log(extractText(height, textContent, [intersectingVerticalLines[i][0], top[0], intersectingVerticalLines[i + 1][0], bottom[0]]))
                 console.log("------------------------------------------------")
             }
         }
@@ -157,7 +155,7 @@ function extractPage(param) {
             const bottom = largeHorizontalLines[i + 1]
 
             // get text in area
-            console.log(extractText(height, textContent, [top[1], height - top[0], bottom[2], height - bottom[0]]))
+            console.log(extractText(height, textContent, [top[1], top[0], bottom[2], bottom[0]]))
         }*/
     } else {
         console.log("following page")
@@ -204,7 +202,7 @@ function extractText(height, textContent, rect) {
  * @param {import("pdfjs-dist/types/src/display/api").PDFOperatorList} opList 
  * @returns {[[number, number, number][], [number, number, number][]]}
  */
-function extractLines(opList) {
+function extractLines(height, opList) {
     let horizontal = []
     let vertical = []
     let visible = true;
@@ -246,10 +244,21 @@ function extractLines(opList) {
                 continue;
             }
             if (bottomRightY - topLeftY < 0.5) {
-                horizontal.push([(topLeftY + bottomRightY) / 2, topLeftX, bottomRightX])
+                const y = height - (topLeftY + bottomRightY) / 2
+                if (topLeftX <= bottomRightX) {
+                    horizontal.push([y, topLeftX, bottomRightX])
+                } else {
+                    horizontal.push([y, bottomRightX, topLeftX])
+                }
             }
             if (bottomRightX - topLeftX < 0.5) {
-                vertical.push([(topLeftX + bottomRightX) / 2, topLeftY, bottomRightY])
+                const start = height - topLeftY
+                const end = height - bottomRightY
+                if (start <= end) {
+                    vertical.push([(topLeftX + bottomRightX) / 2, start, end])
+                } else {
+                    vertical.push([(topLeftX + bottomRightX) / 2, end, start])
+                }
             }
         }
     }
