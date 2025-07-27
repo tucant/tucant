@@ -300,8 +300,17 @@ function extractLines(height, opList) {
 function mergeLines(lines) {
     // group by whether same position
     /** @type {Map<number, [number, number, number][]} */
-    let groupedLines = Map.groupBy(lines, line => line[0]);
-    return [...groupedLines].flatMap(([key, value]) => {
+    lines.sort((a, b) => a[0] - b[0])
+    /** @type {[number, number, number][][]} */
+    let groupedLines = lines.reduce((acc, value) => {
+        if (acc.length > 0 && Math.abs(acc[acc.length - 1][0][0] - value[0]) < 1) {
+            acc[acc.length - 1].push(value)
+        } else {
+            acc.push([value])
+        }
+        return acc
+    }, []);
+    return [...groupedLines].flatMap((value) => {
         // sort by start of line
         value.sort((a, b) => a[1] - b[1])
         let mergedLines = [value[0]]
