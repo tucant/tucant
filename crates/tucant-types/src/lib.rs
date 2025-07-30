@@ -18,6 +18,7 @@ use std::{convert::Infallible, fmt::Display, str::FromStr};
 use axum_core::response::{IntoResponse, Response};
 use coursedetails::{CourseDetailsRequest, CourseDetailsResponse};
 use courseresults::ModuleResultsResponse;
+use dynosaur::dynosaur;
 use examresults::ExamResultsResponse;
 use mlsstart::MlsStart;
 use moduledetails::{ModuleDetailsRequest, ModuleDetailsResponse};
@@ -241,7 +242,7 @@ impl Display for Grade {
     }
 }
 
-#[dynosaur::dynosaur(pub DynTucan)]
+#[dynosaur(pub DynTucan = dyn(box) Tucan)]
 pub trait Tucan: Send + Sync {
     fn login(
         &self,

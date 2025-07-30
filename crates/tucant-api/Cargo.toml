@@ -7,11 +7,11 @@ version.workspace = true
 [dependencies]
 axum = { version = "0.8.1", features = ["macros"] }
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
-utoipa = { git = "https://github.com/juhaku/utoipa.git" }
+utoipa = "5"
 serde = { version = "1.0", features = ["derive"] }
-utoipa-swagger-ui = { git = "https://github.com/juhaku/utoipa.git", features = ["axum", "vendored"] }
+utoipa-swagger-ui = { version = "9", features = ["axum", "vendored"] }
 tucan-connector = { path = "../tucan-connector" }
-utoipa-axum = { git = "https://github.com/juhaku/utoipa.git" }
+utoipa-axum = "0.2"
 tucant-types = { path = "../tucant-types" }
 axum-extra = { version = "0.10.0", features = ["cookie"]}
 serde_json = "1.0.133"

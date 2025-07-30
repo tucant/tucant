@@ -35,7 +35,7 @@ use tucant_types::{
 use crate::navbar::Navbar;
 use crate::overview::Overview;
 
-#[cfg(not(any(feature = "direct", feature = "api")))]
+#[cfg(any(feature = "desktop", feature = "mobile"))]
 pub async fn login_response() -> Option<tucant_types::LoginResponse> {
     #[cfg(feature = "mobile")]
     android_keyring::set_android_keyring_credential_builder().unwrap();
