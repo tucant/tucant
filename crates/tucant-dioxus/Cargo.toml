@@ -26,7 +26,7 @@ tucan-connector = { optional = true, path = "../tucan-connector" }
 tracing = "0.1.41"
 plotters = { version = "0.3.7", default-features = false, features = ["svg_backend", "histogram"] }
 keyring = { version = "3", optional = true }
-android-keyring = { git = "https://github.com/mohe2015/android-keyring.git", branch = "downgrade", optional = true }
+android-keyring = { version = "0.2", optional = true }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 tokio = { features = ["macros", "rt", "rt-multi-thread"], version = "1" }
