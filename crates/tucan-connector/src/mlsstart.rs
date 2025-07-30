@@ -117,7 +117,11 @@ fn after_login_internal(
                                     let stundenplan = while html_handler.peek().is_some() {
                                         <tr class="tbdata">
                                             <td headers="Veranstaltung">
-                                                "Kurse"
+                                                let is_exam = if &**html_handler.peek().unwrap().value().as_text().unwrap() == "Kurse" {
+                                                    "Kurse"
+                                                } => false else {
+                                                    "Examen"
+                                                } => true;
                                             </td>
                                             <td headers="Name">
                                                 <a class="link" href=coursedetails_url name="eventLink">
@@ -136,6 +140,7 @@ fn after_login_internal(
                                             </td>
                                         </tr>
                                     } => StundenplanEintrag {
+                                        is_exam: is_exam.either_into(),
                                         course_name,
                                         coursedetails_url: CourseDetailsRequest::parse(
                                             &COURSEDETAILS_REGEX.replace(&coursedetails_url, "")
