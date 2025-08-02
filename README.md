@@ -152,9 +152,19 @@ xdg-open target/coverage/index.html
 ## Android
 
 ```
+sudo systemctl stop firewalld.service
+adb connect 172.18.61.176:43109
+adb uninstall com.example.TucantDioxus
+dx serve --device --platform android --hotpatch --verbose
+
+adb logcat -c
+adb shell run-as com.example.TucantDioxus logcat
+
+dx bundle --platform android --device
+/home/moritz/Documents/tucant/target/dx/tucant-dioxus/debug/android/app/app/build/outputs/apk/debug/app-debug.apk
+
 dx serve --platform android --hotpatch --verbose
 cargo run --manifest-path /home/moritz/Documents/dioxus/packages/cli/Cargo.toml serve --platform android --verbose
-adb shell run-as com.example.TucantDioxus logcat
 # grep for RustStdoutStderr
 
 dx bundle --platform android --release
