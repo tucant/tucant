@@ -106,6 +106,6 @@ pub struct AnmeldungCourse {
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct Studiumsauswahl {
     pub name: String,
-    pub value: String,
+    pub value: AnmeldungRequest,
     pub selected: bool,
 }
