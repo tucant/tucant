@@ -14,7 +14,7 @@ pub fn LoginComponent() -> Element {
 
     let mut current_session = use_context::<Signal<Option<LoginResponse>>>();
 
-    let on_submit = move |_: FormEvent| {
+    let on_submit = move |e: FormEvent| {
         let tucan = tucan.clone();
         async move {
             let tucan = tucan.clone();
@@ -49,7 +49,7 @@ pub fn LoginComponent() -> Element {
                         })
                         .await;
 
-                    #[cfg(not(any(feature = "direct", feature = "api")))]
+                    #[cfg(any(feature = "desktop", feature = "mobile"))]
                     keyring::Entry::new("tucant", "session")
                         .unwrap()
                         .set_password(&serde_json::to_string(&response).unwrap())

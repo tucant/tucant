@@ -18,7 +18,7 @@ pub fn LogoutComponent() -> Element {
             if let Some(current_session) = current_session_handle() {
                 tucan.logout(&current_session).await.unwrap();
 
-                #[cfg(not(any(feature = "direct", feature = "api")))]
+                #[cfg(any(feature = "desktop", feature = "mobile"))]
                 keyring::Entry::new("tucant", "session")
                     .unwrap()
                     .delete_credential()

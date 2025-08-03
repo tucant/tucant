@@ -12,6 +12,7 @@ pub struct MlsStart {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, ToSchema)]
 pub struct StundenplanEintrag {
+    pub is_exam: bool,
     pub course_name: String,
     pub coursedetails_url: CourseDetailsRequest,
     pub courseprep_url: String,
