@@ -281,7 +281,7 @@
             export EXTENSION_DIR
             cp -r ${extension-unpacked}/. "$EXTENSION_DIR"/
             chmod -R ug+rw "$EXTENSION_DIR"
-            cargo test --package tucant-tests
+            cargo test --package tucant-tests -- --nocapture
           '';
         };
 
@@ -294,7 +294,7 @@
             export EXTENSION_DIR
             cp -r ${extension-unpacked}/. "$EXTENSION_DIR"/
             chmod -R ug+rw "$EXTENSION_DIR"
-            cargo test --package tucant-tests
+            cargo test --package tucant-tests -- --nocapture
           '';
         };
 

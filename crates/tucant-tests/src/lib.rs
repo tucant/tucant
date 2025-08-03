@@ -217,7 +217,8 @@ mod tests {
 
             navigate(&mut session, browsing_context.clone(), "https://www.tucan.tu-darmstadt.de/".to_owned()).await?;
 
-            sleep(Duration::from_secs(1)).await; // wait for frontend javascript to be executed
+            // we should do this better?
+            sleep(Duration::from_secs(2)).await; // wait for frontend javascript to be executed
 
             write_text(&mut session, browsing_context.clone(), "#login-username", &username).await?;
             write_text(&mut session, browsing_context.clone(), "#login-password", &password).await?;

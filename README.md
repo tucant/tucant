@@ -50,7 +50,7 @@ rustup run nightly-2025-04-02 dx fmt
 ### Running as local webserver
 
 ```bash
-cargo install dioxus-cli@0.7.0-alpha.3
+cargo install --git https://github.com/mohe2015/dioxus --branch my dioxus-cli
 
 cd crates/tucant-dioxus/
 dx serve --platform web --features api --verbose
