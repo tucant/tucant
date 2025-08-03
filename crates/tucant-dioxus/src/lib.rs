@@ -35,6 +35,11 @@ use tucant_types::{
 use crate::navbar::Navbar;
 use crate::overview::Overview;
 
+#[cfg(not(any(feature = "desktop", feature = "mobile", feature = "direct", feature = "api")))]
+pub async fn login_response() -> Option<tucant_types::LoginResponse> {
+    None
+}
+
 #[cfg(any(feature = "desktop", feature = "mobile"))]
 pub async fn login_response() -> Option<tucant_types::LoginResponse> {
     #[cfg(feature = "mobile")]
