@@ -181,9 +181,7 @@ mod tests {
         let mut session = get_session().await;
 
         let try_catch: anyhow::Result<()> = async {
-            let path = std::fs::canonicalize("../../tucant-extension")?.to_str().unwrap().to_string();
-            println!("{path}");
-            session.web_extension_install(InstallParameters::new(ExtensionData::ExtensionPath(ExtensionPath::new(path)))).await?;
+            session.web_extension_install(InstallParameters::new(ExtensionData::ExtensionPath(ExtensionPath::new(std::env::var("EXTENSION_DIR").unwrap())))).await?;
             sleep(Duration::from_secs(1)).await; // wait for extension to be installed
 
             let contexts = session.browsing_context_get_tree(GetTreeParameters { max_depth: None, root: None }).await?;
