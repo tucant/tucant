@@ -53,13 +53,7 @@ rustup run nightly-2025-04-02 dx fmt
 cargo install dioxus-cli@0.7.0-alpha.3
 
 cd crates/tucant-dioxus/
-# https://github.com/paulocoutinhox/pdfium-lib/releases/tag/7243
-PDFIUM_STATIC_LIB_PATH=/home/moritz/Documents/pdfium-lib/build/emscripten/wasm/release/lib/ dx serve --platform web --features api --verbose --release
-
-EMCC_FORCE_STDLIBS=1
-
-# the The specifier “env” was a bare specifier, but was not remapped to anything. Relative module specifiers must start with “./”, “../” or “/” error probably means that linking the library failed
-wasm2wat tucant-dioxus_bg.wasm | grep '(import "env" ' | wc -l # 100
+dx serve --platform web --features api --verbose
 
 # in second tab
 bacon tucant-api

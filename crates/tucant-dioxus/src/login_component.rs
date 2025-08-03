@@ -15,8 +15,9 @@ pub fn LoginComponent() -> Element {
     let mut current_session = use_context::<Signal<Option<LoginResponse>>>();
 
     let on_submit = move |e: FormEvent| {
+        e.prevent_default();
         let tucan = tucan.clone();
-        async move {
+        spawn(async move {
             let tucan = tucan.clone();
 
             let password_string = password();
@@ -64,7 +65,7 @@ pub fn LoginComponent() -> Element {
                 }
             };
             loading.set(false);
-        }
+        });
     };
 
     let is_invalid = if error_message().is_some() {
