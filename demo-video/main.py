@@ -71,20 +71,39 @@ def step4_login():
     login_button: Node = firefox.child(identifier="login-button")
     login_button.click()
 
-#step4_login()
+# step4_login()
 
-firefox.child("Aktuelles", "button").click()
+aktuelles_button = firefox.child("Aktuelles", "button")
+aktuelles_button.scroll_to(SCROLL_ANYWHERE)
+aktuelles_button.click()
 firefox.child("Aktuelles", "link").click()
 
 firefox.child("VV", "button").click()
 firefox.child("Vorlesungsverzeichnis", "link").click()
 
-sleep(1)
-
 informatik_link: Atspi.Component | Node = firefox.child("FB20 - Informatik", "link")
-# https://github.com/GNOME/pyatspi2/blob/871622ce891b2213315352d7b1a5b66b8ed90b43/pyatspi/component.py#L108
 informatik_link.scroll_to(SCROLL_ANYWHERE)
-
-sleep(1)
-
 informatik_link.click()
+
+pflichtveranstaltungen: Atspi.Component | Node = firefox.child("Pflichtveranstaltungen", "link")
+pflichtveranstaltungen.click()
+
+aud: Atspi.Component | Node = firefox.child("Kurs 20-00-0005-iv Algorithmen und Datenstrukturen", "link")
+aud.click()
+
+aud: Atspi.Component | Node = firefox.child("Algorithmen und Datenstrukturen 01", "link")
+aud.click()
+
+
+# https://github.com/vhumpa/dogtail/blob/3600ef901bcd7b4f8d64dce17a600219dcc1abf9/dogtail/rawinput.py#L477
+firefox.keyCombo("<pagedown>")
+sleep(1)
+firefox.keyCombo("<pagedown>")
+sleep(1)
+firefox.keyCombo("<pagedown>")
+sleep(1)
+firefox.keyCombo("<pagedown>")
+sleep(1)
+firefox.keyCombo("<pagedown>")
+sleep(1)
+firefox.keyCombo("<pagedown>")
