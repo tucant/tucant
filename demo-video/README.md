@@ -1,6 +1,7 @@
 ```
 sudo dnf install gnome-ponytail-daemon python3-gnome-ponytail-daemon
-pip install dogtail
+# https://github.com/pygobject/pygobject-stubs/blob/master/src/gi-stubs/repository/Atspi.pyi not in release yet
+pip install dogtail git+https://github.com/pygobject/pygobject-stubs  --no-cache-dir --config-settings=config=Atspi
 gsettings set org.gnome.desktop.interface toolkit-accessibility true
 
 Enable Introspect support in Looking Glass. Press `Alt+F2`, type `lg` and

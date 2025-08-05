@@ -1,10 +1,15 @@
 #!/usr/bin/python3
 import os
+import gi
+
+gi.require_version('Atspi', '2.0')
+from gi.repository import Atspi
+
 from dogtail.tree import root, Node
 from dotenv import load_dotenv
 from time import sleep
 
-from pyatspi import Accessible, ScrollType, SCROLL_ANYWHERE
+from pyatspi import SCROLL_ANYWHERE
 
 # Firefox: Enable Always show scrollbars (and restart firefox)
 
@@ -76,7 +81,8 @@ firefox.child("Vorlesungsverzeichnis", "link").click()
 
 sleep(1)
 
-informatik_link = firefox.child("FB20 - Informatik", "link")
+informatik_link: Atspi.Component | Node = firefox.child("FB20 - Informatik", "link")
+# https://github.com/GNOME/pyatspi2/blob/871622ce891b2213315352d7b1a5b66b8ed90b43/pyatspi/component.py#L108
 informatik_link.scroll_to(SCROLL_ANYWHERE)
 
 sleep(1)
