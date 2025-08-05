@@ -1,11 +1,12 @@
 #!/usr/bin/python3
 from dogtail.tree import root
-from time import sleep
 
-# Load application root to variable.
-shell = root.application("gnome-shell")
+firefox = root.application("Firefox")
 
-# Search the application tree for objects.
-system_menu = shell.child("System", "menu")
-# Click it.
-system_menu.click()
+navigation = firefox.child("Navigation", "tool bar")
+
+firefox_button = navigation.child("Firefox", "button")
+firefox_button.click()
+
+extensions_button = firefox.child("Extensions and themes", "button")
+extensions_button.click()
