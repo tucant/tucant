@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-from dogtail.tree import root
+from dogtail.tree import root, Node
 
 # set firefox as always on top window?
 
@@ -17,11 +17,11 @@ navigation = firefox.child("Navigation", "tool bar")
 
 
 
-urlbar_input = navigation.child(identifier="urlbar-input")
-#urlbar_input.doActionNamed("activate")
+urlbar_input: Node = navigation.child(identifier="urlbar-input")
 urlbar_input.click()
+urlbar_input.keyCombo("<ctrl><a>")
 urlbar_input.typeText("https://tucant.github.io/tucant/")
-urlbar_input.click()
+urlbar_input.keyCombo("<enter>")
 
 print(urlbar_input.dump())
 
