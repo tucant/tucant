@@ -1,5 +1,9 @@
 #!/usr/bin/python3
+import os
 from dogtail.tree import root, Node
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # python3 -i main.py
 
@@ -43,18 +47,20 @@ def step3_open_tucant():
 
 # step3_open_tucant()
 
-username_input: Node = firefox.child(identifier="login-username")
-username_input.click()
-username_input.keyCombo("<ctrl><a>")
-username_input.typeText("mh58hyqa")
+def step4_login():
+    username_input: Node = firefox.child(identifier="login-username")
+    username_input.click()
+    username_input.keyCombo("<ctrl><a>")
+    username_input.typeText(os.getenv("TUCAN_USERNAME"))
 
-password_input: Node = firefox.child(identifier="login-password")
-password_input.click()
-password_input.keyCombo("<ctrl><a>")
-password_input.typeText("mh58hyqa")
+    password_input: Node = firefox.child(identifier="login-password")
+    password_input.click()
+    password_input.keyCombo("<ctrl><a>")
+    password_input.typeText(os.getenv("TUCAN_PASSWORD"))
 
-login_button: Node = firefox.child(identifier="login-button")
-login_button.click()
+    login_button: Node = firefox.child(identifier="login-button")
+    login_button.click()
 
+#step4_login()
 
 # .text = "https://tucant.github.io/tucant/"
