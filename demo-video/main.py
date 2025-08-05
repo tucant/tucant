@@ -2,6 +2,11 @@
 import os
 from dogtail.tree import root, Node
 from dotenv import load_dotenv
+from time import sleep
+
+from pyatspi import Accessible, ScrollType, SCROLL_ANYWHERE
+
+# Firefox: Enable Always show scrollbars (and restart firefox)
 
 load_dotenv()
 
@@ -63,4 +68,17 @@ def step4_login():
 
 #step4_login()
 
-# .text = "https://tucant.github.io/tucant/"
+firefox.child("Aktuelles", "button").click()
+firefox.child("Aktuelles", "link").click()
+
+firefox.child("VV", "button").click()
+firefox.child("Vorlesungsverzeichnis", "link").click()
+
+sleep(1)
+
+informatik_link = firefox.child("FB20 - Informatik", "link")
+informatik_link.scroll_to(SCROLL_ANYWHERE)
+
+sleep(1)
+
+informatik_link.click()
