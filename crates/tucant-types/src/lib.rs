@@ -226,18 +226,18 @@ impl Display for Grade {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::G1_0 => write!(f, "1,0"),
-            Self::G1_3 => todo!(),
-            Self::G1_7 => todo!(),
-            Self::G2_0 => todo!(),
-            Self::G2_3 => todo!(),
-            Self::G2_7 => todo!(),
-            Self::G3_0 => todo!(),
-            Self::G3_3 => todo!(),
-            Self::G3_7 => todo!(),
-            Self::G4_0 => todo!(),
-            Self::G5_0 => todo!(),
-            Self::B => todo!(),
-            Self::NB => todo!(),
+            Self::G1_3 => write!(f, "1,3"),
+            Self::G1_7 => write!(f, "1,7"),
+            Self::G2_0 => write!(f, "2,0"),
+            Self::G2_3 => write!(f, "2,3"),
+            Self::G2_7 => write!(f, "2,7"),
+            Self::G3_0 => write!(f, "3,0"),
+            Self::G3_3 => write!(f, "3,3"),
+            Self::G3_7 => write!(f, "3,7"),
+            Self::G4_0 => write!(f, "4,0"),
+            Self::G5_0 => write!(f, "5,0"),
+            Self::B => write!(f, "b"),
+            Self::NB => write!(f, "nb"),
         }
     }
 }
