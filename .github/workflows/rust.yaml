@@ -32,7 +32,7 @@ jobs:
           cd $DIR
           git clone --depth 1 --revision ${{ github.sha }} https://github.com/tucant/tucant
           cd tucant
-          nix --extra-experimental-features "nix-command flakes" build -L .#extension .#checks.x86_64-linux.my-app-fmt .#schema .#server .#tests
+          nix --extra-experimental-features "nix-command flakes" --store unix:///nix/var/nix/daemon-socket/socket build -L .#extension .#checks.x86_64-linux.my-app-fmt .#schema .#server .#tests
           echo $DIR
           ' | ssh root@selfmade4u.de 'bash')
           echo "$OUTPUT"

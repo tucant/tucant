@@ -10,11 +10,12 @@ pub fn LogoutComponent() -> Element {
     let current_session_handle = use_context::<Signal<Option<LoginResponse>>>();
 
     // https://github.com/DioxusLabs/dioxus/issues/4303
-    let on_submit = move |_: FormEvent| {
+    let on_submit = move |e: FormEvent| {
+        e.prevent_default();
         let mut current_session_handle = current_session_handle;
         let tucan = tucan.clone();
 
-        async move {
+        spawn(async move {
             if let Some(current_session) = current_session_handle() {
                 tucan.logout(&current_session).await.unwrap();
 
@@ -26,7 +27,7 @@ pub fn LogoutComponent() -> Element {
 
                 current_session_handle.set(None);
             }
-        }
+        });
     };
 
     rsx! {

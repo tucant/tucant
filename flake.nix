@@ -38,8 +38,8 @@
           src = pkgs.fetchFromGitHub {
             owner = "mohe2015";
             repo = "dioxus";
-            rev = "8711b6af3e98780a2be2871d6bc50866b8813f07";
-            hash = "sha256-IVjauXjiOYBiD2xqja8p5ZAJfeB4s6VA0zikucDrGb8=";
+            rev = "e7526f30c7cb2d2f68f1b385739f86c2e5556595";
+            hash = "sha256-AcytHz0RHSNNoQ1gRqF04/kmWa1a284Kmd/f+Hme2SU=";
           };
           doCheck = false;
           strictDeps = true;
@@ -281,7 +281,7 @@
             export EXTENSION_DIR
             cp -r ${extension-unpacked}/. "$EXTENSION_DIR"/
             chmod -R ug+rw "$EXTENSION_DIR"
-            cargo test -- --nocapture
+            cargo test --package tucant-tests -- --nocapture
           '';
         };
 
@@ -294,7 +294,7 @@
             export EXTENSION_DIR
             cp -r ${extension-unpacked}/. "$EXTENSION_DIR"/
             chmod -R ug+rw "$EXTENSION_DIR"
-            cargo test -- --nocapture
+            cargo test --package tucant-tests -- --nocapture
           '';
         };
 

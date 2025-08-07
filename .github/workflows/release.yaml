@@ -40,7 +40,7 @@ jobs:
         cd tucant
         echo ${{ secrets.CHROMIUM_EXTENSION_SIGNING_KEY }} | base64 --decode > cert.pem
         # https://addons.mozilla.org/en-US/developers/addon/api/key/
-        WEB_EXT_API_KEY=${{ secrets.WEB_EXT_API_KEY }} WEB_EXT_API_SECRET=${{ secrets.WEB_EXT_API_SECRET }} CHROMIUM_EXTENSION_SIGNING_KEY=$PWD/cert.pem nix --extra-experimental-features "nix-command flakes" run -L .#publish
+        WEB_EXT_API_KEY=${{ secrets.WEB_EXT_API_KEY }} WEB_EXT_API_SECRET=${{ secrets.WEB_EXT_API_SECRET }} CHROMIUM_EXTENSION_SIGNING_KEY=$PWD/cert.pem nix --extra-experimental-features "nix-command flakes" --store unix:///nix/var/nix/daemon-socket/socket run -L .#publish
         echo $DIR
         ' | ssh root@selfmade4u.de 'bash')
         echo "$OUTPUT"

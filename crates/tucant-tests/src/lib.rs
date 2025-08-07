@@ -3,7 +3,7 @@ mod tests {
     use std::{
         collections::HashMap,
         sync::atomic::{AtomicUsize, Ordering},
-        time::Duration,
+        time::{Duration, Instant},
     };
 
     use serde_json::json;
@@ -24,8 +24,9 @@ mod tests {
                 PointerType, PointerUpAction, SourceActions,
             },
             script::{
-                ContextTarget, EvaluateParameters, GetRealmsParameters, NodeRemoteValue, RealmInfo,
-                SharedReference, Target,
+                CallFunctionParameters, ContextTarget, EvaluateParameters, GetRealmsParameters,
+                IncludeShadowTree, LocalValue, NodeRemoteValue, RealmInfo, RemoteReference,
+                ResultOwnership, SerializationOptions, SharedReference, Target,
             },
             session::SubscriptionRequest,
             web_extension::{ExtensionData, ExtensionPath, InstallParameters},
@@ -147,6 +148,37 @@ mod tests {
             .await?;
         let node = &node.nodes[0];
 
+        let result = session
+            .script_call_function(CallFunctionParameters::new(
+                r##"function abc(node) {
+                        console.log("abc", node, node.getBoundingClientRect());
+                        return JSON.parse(JSON.stringify(node.getBoundingClientRect()));
+                    }
+                    "##
+                .to_owned(),
+                false,
+                Target::ContextTarget(ContextTarget::new(browsing_context.clone(), None)),
+                Some(vec![LocalValue::RemoteReference(
+                    RemoteReference::SharedReference(SharedReference {
+                        handle: node.handle.clone(),
+                        shared_id: node.shared_id.clone().unwrap(),
+                        extensible: HashMap::default(),
+                    }),
+                )]),
+                Some(ResultOwnership::Root),
+                Some(SerializationOptions {
+                    max_dom_depth: Some(10),
+                    max_object_depth: Some(100),
+                    include_shadow_tree: Some(IncludeShadowTree::All),
+                }),
+                None,
+                Some(true),
+            ))
+            .await?;
+
+        // TODO FIXME webdriver bidi library fails to deserialize object
+        println!("function evaluation {:?}", result);
+
         click_element(session, browsing_context.clone(), node).await?;
 
         let id = ACTION_ID.fetch_add(1, Ordering::Relaxed);
@@ -181,9 +213,7 @@ mod tests {
         let mut session = get_session().await;
 
         let try_catch: anyhow::Result<()> = async {
-            let path = std::fs::canonicalize("../../tucant-extension")?.to_str().unwrap().to_string();
-            println!("{path}");
-            session.web_extension_install(InstallParameters::new(ExtensionData::ExtensionPath(ExtensionPath::new(path)))).await?;
+            session.web_extension_install(InstallParameters::new(ExtensionData::ExtensionPath(ExtensionPath::new(std::env::var("EXTENSION_DIR").unwrap())))).await?;
             sleep(Duration::from_secs(1)).await; // wait for extension to be installed
 
             let contexts = session.browsing_context_get_tree(GetTreeParameters { max_depth: None, root: None }).await?;
@@ -192,7 +222,7 @@ mod tests {
 
             session
                 .register_event_handler(EventType::LogEntryAdded, async |event| {
-                    println!("{}", event.as_object().unwrap().get_key_value("params").unwrap().1.as_object().unwrap().get_key_value("args").unwrap().1);
+                    println!("log entry {}", event.as_object().unwrap().get_key_value("params").unwrap().1.as_object().unwrap().get_key_value("args").unwrap().1);
                 })
                 .await;
 
@@ -215,11 +245,17 @@ mod tests {
                 })
                 .await?;
 
+            let start = Instant::now();
             navigate(&mut session, browsing_context.clone(), "https://www.tucan.tu-darmstadt.de/".to_owned()).await?;
 
+            // we should do this better?
             sleep(Duration::from_secs(1)).await; // wait for frontend javascript to be executed
 
             write_text(&mut session, browsing_context.clone(), "#login-username", &username).await?;
+
+            // TODO get the area of the login field so we can visualize it
+
+            println!("input_login_username {:?}", start.elapsed());
             write_text(&mut session, browsing_context.clone(), "#login-password", &password).await?;
 
             let node = session.browsing_context_locate_nodes(LocateNodesParameters::new(browsing_context.clone(), Locator::CssLocator(CssLocator::new("#login-button".to_owned())), None, None, None)).await?;
@@ -256,27 +292,20 @@ mod tests {
                 .await?;
 
             let realms = session.script_get_realms(GetRealmsParameters::new(Some(browsing_context.clone()), None)).await?;
-            println!("{realms:?}");
 
             let RealmInfo::WindowRealmInfo(_window) = &realms.realms[0] else {
                 panic!();
             };
 
-            println!("before sendMessage");
             session.script_evaluate(EvaluateParameters::new(r#"chrome.runtime.sendMessage("open-in-tucan-page")"#.to_owned(), Target::ContextTarget(ContextTarget::new(browsing_context.clone(), None)), false, None, None, Some(true))).await?;
-            println!("after sendMessage");
 
             sleep(Duration::from_secs(5)).await;
 
             let realms = session.script_get_realms(GetRealmsParameters::new(Some(browsing_context.clone()), None)).await?;
-            println!("{realms:?}");
 
             let contexts = session.browsing_context_get_tree(GetTreeParameters { max_depth: None, root: Some(browsing_context.clone()) }).await?;
-            println!("{contexts:?}");
 
-            println!("before dispatchEvent");
             session.script_evaluate(EvaluateParameters::new(r#"window.dispatchEvent(new CustomEvent('tucant', { detail: "open-in-tucan-page" }));"#.to_owned(), Target::ContextTarget(ContextTarget::new(browsing_context.clone(), None)), false, None, None, Some(true))).await?;
-            println!("after dispatchEvent");
 
             sleep(Duration::from_secs(5)).await;
 
