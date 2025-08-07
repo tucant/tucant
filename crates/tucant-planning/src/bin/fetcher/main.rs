@@ -44,19 +44,29 @@ async fn async_main() -> Result<(), TucanError> {
         .unwrap();
 
     let anmeldung_response = tucan
-                .anmeldung(
-                    login_response.clone(),
-                    RevalidationStrategy::cache(),
-                    AnmeldungRequest::default(),
-                )
-                .await
-                .unwrap();
+        .anmeldung(
+            login_response.clone(),
+            RevalidationStrategy::cache(),
+            AnmeldungRequest::default(),
+        )
+        .await
+        .unwrap();
     for course_of_study in anmeldung_response.studiumsauswahl {
-        let mut file = File::create_new(format!("registration{}_{}.json", course_of_study.value, course_of_study.name)).await.unwrap();
+        let mut file = File::create_new(format!(
+            "registration{}_{}.json",
+            course_of_study.value, course_of_study.name
+        ))
+        .await
+        .unwrap();
         file.write_all(b"[\n").await.unwrap();
-       
-       recursive_anmeldung(file.try_clone().await.unwrap(), &tucan, &login_response, course_of_study.value)
-            .await;
+
+        recursive_anmeldung(
+            file.try_clone().await.unwrap(),
+            &tucan,
+            &login_response,
+            course_of_study.value,
+        )
+        .await;
         file.seek(std::io::SeekFrom::Current(-2)).await.unwrap();
         file.write_all(b"\n]\n").await.unwrap();
     }
@@ -168,8 +178,13 @@ fn recursive_anmeldung<'a, 'b>(
             .iter()
             .map(|entry| {
                 async {
-                    recursive_anmeldung(file.try_clone().await.unwrap(), tucan, login_response, entry.1.clone())
-                        .await;
+                    recursive_anmeldung(
+                        file.try_clone().await.unwrap(),
+                        tucan,
+                        login_response,
+                        entry.1.clone(),
+                    )
+                    .await;
                 }
                 .boxed()
             })

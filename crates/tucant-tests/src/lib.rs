@@ -24,7 +24,9 @@ mod tests {
                 PointerType, PointerUpAction, SourceActions,
             },
             script::{
-                CallFunctionParameters, ContextTarget, EvaluateParameters, GetRealmsParameters, IncludeShadowTree, LocalValue, NodeRemoteValue, RealmInfo, RemoteReference, ResultOwnership, SerializationOptions, SharedReference, Target
+                CallFunctionParameters, ContextTarget, EvaluateParameters, GetRealmsParameters,
+                IncludeShadowTree, LocalValue, NodeRemoteValue, RealmInfo, RemoteReference,
+                ResultOwnership, SerializationOptions, SharedReference, Target,
             },
             session::SubscriptionRequest,
             web_extension::{ExtensionData, ExtensionPath, InstallParameters},
@@ -145,28 +147,34 @@ mod tests {
             ))
             .await?;
         let node = &node.nodes[0];
-        
+
         let result = session
-                .script_call_function(CallFunctionParameters::new(
-                    r##"function abc(node) {
+            .script_call_function(CallFunctionParameters::new(
+                r##"function abc(node) {
                         console.log("abc", node, node.getBoundingClientRect());
                         return JSON.parse(JSON.stringify(node.getBoundingClientRect()));
                     }
                     "##
-                    .to_owned(),
-                    false,
-                    Target::ContextTarget(ContextTarget::new(browsing_context.clone(), None)),
-                    Some(vec![LocalValue::RemoteReference(RemoteReference::SharedReference(SharedReference {
+                .to_owned(),
+                false,
+                Target::ContextTarget(ContextTarget::new(browsing_context.clone(), None)),
+                Some(vec![LocalValue::RemoteReference(
+                    RemoteReference::SharedReference(SharedReference {
                         handle: node.handle.clone(),
                         shared_id: node.shared_id.clone().unwrap(),
                         extensible: HashMap::default(),
-                    }))]),
-                    Some(ResultOwnership::Root),
-                    Some(SerializationOptions { max_dom_depth: Some(10), max_object_depth: Some(100), include_shadow_tree: Some(IncludeShadowTree::All) }),
-                    None,
-                    Some(true),
-                ))
-                .await?;
+                    }),
+                )]),
+                Some(ResultOwnership::Root),
+                Some(SerializationOptions {
+                    max_dom_depth: Some(10),
+                    max_object_depth: Some(100),
+                    include_shadow_tree: Some(IncludeShadowTree::All),
+                }),
+                None,
+                Some(true),
+            ))
+            .await?;
 
         // TODO FIXME webdriver bidi library fails to deserialize object
         println!("function evaluation {:?}", result);
