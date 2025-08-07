@@ -99,6 +99,8 @@ pub fn Navbar() -> Element {
                         if let Some(current_session) = current_session() {
                             if let Some(Ok(data)) = data() {
                                 NavbarLoggedIn { current_session, data }
+                            } else {
+                                NavbarLoggedOut {}
                             }
                         } else {
                             NavbarLoggedOut {}

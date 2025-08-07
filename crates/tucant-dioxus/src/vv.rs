@@ -4,7 +4,7 @@ use tucant_types::{vv::ActionRequest, Tucan};
 use crate::{common::use_unauthenticated_data_loader, RcTucanType, Route};
 
 #[component]
-pub fn Vorlesungsverzeichnis(vv: ReadOnlySignal<ActionRequest>) -> Element {
+pub fn Vorlesungsverzeichnis(vv: ReadSignal<ActionRequest>) -> Element {
     let handler = async |tucan: RcTucanType,
                          current_session: Option<tucant_types::LoginResponse>,
                          revalidation_strategy,

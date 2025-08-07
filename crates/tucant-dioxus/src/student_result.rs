@@ -6,7 +6,7 @@ use tucant_types::{
 };
 
 #[component]
-pub fn StudentResult(course_of_study: ReadOnlySignal<String>) -> Element {
+pub fn StudentResult(course_of_study: ReadSignal<String>) -> Element {
     let handler = async |tucan: RcTucanType, current_session, revalidation_strategy, additional| {
         tucan
             .student_result(&current_session, revalidation_strategy, additional)
@@ -91,8 +91,8 @@ pub fn StudentResult(course_of_study: ReadOnlySignal<String>) -> Element {
 
 #[component]
 pub fn StudentResultLevelComponent(
-    level: ReadOnlySignal<StudentResultLevel>,
-    path: ReadOnlySignal<Vec<String>>,
+    level: ReadSignal<StudentResultLevel>,
+    path: ReadSignal<Vec<String>>,
 ) -> Element {
     rsx! {
         if !level().entries.is_empty() {
