@@ -8,7 +8,7 @@ pub fn use_authenticated_data_loader<I: Clone + PartialEq + std::fmt::Debug + 's
     handler: impl AsyncFn(RcTucanType, LoginResponse, RevalidationStrategy, I) -> Result<O, TucanError>
         + Copy
         + 'static,
-    request: ReadOnlySignal<I>,
+    request: ReadSignal<I>,
     cache_age_seconds: i64,
     max_stale_age_seconds: i64,
     render: impl Fn(O, Callback<MouseEvent>) -> Element,
@@ -43,7 +43,7 @@ pub fn use_unauthenticated_data_loader<I: Clone + PartialEq + std::fmt::Debug + 
         ) -> Result<O, TucanError>
         + Copy
         + 'static,
-    request: ReadOnlySignal<I>,
+    request: ReadSignal<I>,
     cache_age_seconds: i64,
     max_stale_age_seconds: i64,
     render: impl Fn(O, Callback<MouseEvent>) -> Element,
@@ -68,7 +68,7 @@ fn use_data_loader<I: Clone + PartialEq + std::fmt::Debug + 'static, O: Clone + 
         ) -> Result<O, TucanError>
         + Copy
         + 'static,
-    request: ReadOnlySignal<I>,
+    request: ReadSignal<I>,
     cache_age_seconds: i64,
     max_stale_age_seconds: i64,
     render: impl Fn(O, Callback<MouseEvent>) -> Element,

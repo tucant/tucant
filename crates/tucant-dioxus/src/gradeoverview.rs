@@ -11,7 +11,7 @@ use tucant_types::{
 use crate::{common::use_authenticated_data_loader, RcTucanType};
 
 #[component]
-pub fn GradeOverview(gradeoverview: ReadOnlySignal<GradeOverviewRequest>) -> Element {
+pub fn GradeOverview(gradeoverview: ReadSignal<GradeOverviewRequest>) -> Element {
     let handler = async |tucan: RcTucanType, current_session, revalidation_strategy, additional| {
         tucan
             .gradeoverview(&current_session, revalidation_strategy, additional)

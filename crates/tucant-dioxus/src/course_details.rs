@@ -3,7 +3,7 @@ use dioxus::prelude::*;
 use tucant_types::{coursedetails::CourseDetailsRequest, Tucan};
 
 #[component]
-pub fn CourseDetails(course: ReadOnlySignal<CourseDetailsRequest>) -> Element {
+pub fn CourseDetails(course: ReadSignal<CourseDetailsRequest>) -> Element {
     let handler = async |tucan: RcTucanType, current_session, revalidation_strategy, additional| {
         tucan
             .course_details(&current_session, revalidation_strategy, additional)

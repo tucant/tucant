@@ -14,7 +14,7 @@ pub fn MyDocuments() -> Element {
 
     use_authenticated_data_loader(
         handler,
-        ReadOnlySignal::new(Signal::new(())),
+        ReadSignal::new(Signal::new(())),
         14 * 24 * 60 * 60,
         60 * 60,
         |documents, reload| {

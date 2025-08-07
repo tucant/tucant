@@ -4,7 +4,7 @@ use tucant_types::{moduledetails::ModuleDetailsRequest, Tucan};
 use crate::{common::use_authenticated_data_loader, RcTucanType};
 
 #[component]
-pub fn ModuleDetails(module: ReadOnlySignal<ModuleDetailsRequest>) -> Element {
+pub fn ModuleDetails(module: ReadSignal<ModuleDetailsRequest>) -> Element {
     let handler = async |tucan: RcTucanType, current_session, revalidation_strategy, additional| {
         tucan
             .module_details(&current_session, revalidation_strategy, additional)

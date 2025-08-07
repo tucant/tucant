@@ -4,7 +4,7 @@ use tucant_types::{mlsstart::MlsStart, registration::AnmeldungRequest, LoginResp
 use crate::Route;
 
 #[component]
-pub fn Vorlesungsverzeichnisse(data: ReadOnlySignal<Option<MlsStart>>) -> Element {
+pub fn Vorlesungsverzeichnisse(data: ReadSignal<Option<MlsStart>>) -> Element {
     rsx! {
         {
             data()
@@ -40,8 +40,8 @@ pub fn Vorlesungsverzeichnisse(data: ReadOnlySignal<Option<MlsStart>>) -> Elemen
 
 #[component]
 pub fn NavbarLoggedIn(
-    current_session: ReadOnlySignal<LoginResponse>,
-    data: ReadOnlySignal<Option<MlsStart>>,
+    current_session: ReadSignal<LoginResponse>,
+    data: ReadSignal<Option<MlsStart>>,
 ) -> Element {
     let disabled = data().is_none().then_some("disabled").unwrap_or_default();
     rsx! {

@@ -6,7 +6,7 @@ use tucant_types::{examresults::ExamResultsResponse, SemesterId, Tucan};
 use crate::{common::use_authenticated_data_loader, RcTucanType, Route};
 
 #[component]
-pub fn ExamResults(semester: ReadOnlySignal<SemesterId>) -> Element {
+pub fn ExamResults(semester: ReadSignal<SemesterId>) -> Element {
     let handler = async |tucan: RcTucanType, current_session, revalidation_strategy, additional| {
         tucan
             .exam_results(&current_session, revalidation_strategy, additional)
