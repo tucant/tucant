@@ -7,8 +7,8 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-dioxus = { git = "https://github.com/mohe2015/dioxus.git", branch = "my", default-features = false, features = ["launch", "devtools", "logger", "lib", "router" ] }
-dioxus-desktop = { git = "https://github.com/mohe2015/dioxus.git", branch = "my", default-features = false, optional = true }
+dioxus = { git = "https://github.com/mohe2015/dioxus.git", rev = "8711b6af3e98780a2be2871d6bc50866b8813f07",  features = [ "devtools", "logger", "router" ] }
+dioxus-desktop = { git = "https://github.com/mohe2015/dioxus.git", rev = "8711b6af3e98780a2be2871d6bc50866b8813f07", default-features = false, optional = true }
 tucant-types = { path = "../tucant-types" }
 log = { version = "0.4", features = ["max_level_debug", "release_max_level_warn"] }
 reqwest = { version = "0.12.9", default-features = false, features = ["rustls-tls", "http2", "charset", "json"] }
