@@ -4,7 +4,10 @@ use tucant_types::{LoginResponse, RevalidationStrategy, TucanError};
 
 use crate::RcTucanType;
 
-pub fn use_authenticated_data_loader<I: Clone + PartialEq + std::fmt::Debug + 'static, O: Clone + 'static>(
+pub fn use_authenticated_data_loader<
+    I: Clone + PartialEq + std::fmt::Debug + 'static,
+    O: Clone + 'static,
+>(
     handler: impl AsyncFn(RcTucanType, LoginResponse, RevalidationStrategy, I) -> Result<O, TucanError>
         + Copy
         + 'static,
@@ -34,7 +37,10 @@ pub fn use_authenticated_data_loader<I: Clone + PartialEq + std::fmt::Debug + 's
     )
 }
 
-pub fn use_unauthenticated_data_loader<I: Clone + PartialEq + std::fmt::Debug + 'static, O: Clone + 'static>(
+pub fn use_unauthenticated_data_loader<
+    I: Clone + PartialEq + std::fmt::Debug + 'static,
+    O: Clone + 'static,
+>(
     handler: impl AsyncFn(
             RcTucanType,
             Option<LoginResponse>,
