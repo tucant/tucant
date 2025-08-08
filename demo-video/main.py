@@ -11,8 +11,6 @@ from time import sleep
 
 from pyatspi import SCROLL_ANYWHERE
 
-# Firefox: Enable Always show scrollbars (and restart firefox)
-
 load_dotenv()
 
 # python3 -i main.py
@@ -40,9 +38,10 @@ step1_open_tucant_installation_page()
 
 def step2_install_extension():
     download_button = firefox.child("Download extension for Firefox", "link")
+    sleep(0.5)
     download_button.click()
 
-    sleep(1)
+    sleep(0.5)
     firefox.child("Continue to Installation", "button").click()
     firefox.child("Add", "button").click()
     firefox.child("OK", "button").click()
@@ -59,6 +58,10 @@ def step3_open_tucant():
 step3_open_tucant()
 
 def step4_login():
+    # on mobile
+    firefox.child("Toggle navigation", "button").click()
+
+    # if we're already logged in this fails
     username_input: Node = firefox.child(identifier="login-username")
     username_input.click()
     username_input.keyCombo("<ctrl><a>")
@@ -78,6 +81,9 @@ aktuelles_button = firefox.child("Aktuelles", "button")
 aktuelles_button.scroll_to(SCROLL_ANYWHERE)
 aktuelles_button.click()
 firefox.child("Aktuelles", "link").click()
+
+# on mobile
+firefox.child("Toggle navigation", "button").click()
 
 firefox.child("VV", "button").click()
 firefox.child("Vorlesungsverzeichnis", "link").click()
