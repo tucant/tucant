@@ -35,7 +35,7 @@ def step1_open_tucant_installation_page():
     urlbar_input.keyCombo("<enter>")
 
 def step2_install_extension():
-    sleep(0.5)
+    sleep(2)
     download_button = firefox.child("Download extension for Firefox", "link")
     download_button.click()
 
@@ -218,14 +218,15 @@ def step10_ergebnisse():
     firefox.child("Select course of study", "combo box").click()
     firefox.child("B.Sc. Informatik (2015)", "menu item").click()
 
-#step1_open_tucant_installation_page()
-#step2_install_extension()
+sleep(3)
+step1_open_tucant_installation_page()
+step2_install_extension()
 step2_5_extension_settings()
 step3_open_tucant()
-#step4_login()
-#step5_aktuelles()
-#step6_vv()
-#step7_semestermodule()
-#step8_veranstaltungen()
-#step9_anmeldung_und_pruefungen()
-#step10_ergebnisse()
+step4_login()
+step5_aktuelles()
+step6_vv()
+step7_semestermodule()
+step8_veranstaltungen()
+step9_anmeldung_und_pruefungen()
+step10_ergebnisse()
