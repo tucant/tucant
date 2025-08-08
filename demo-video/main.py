@@ -178,7 +178,16 @@ informatik_link.scroll_to(SCROLL_ANYWHERE)
 sleep(0.5) # scrolling seems to have a delay
 informatik_link.click()
 
+# seamless interop between tucant and tucan
 informatik_link: Atspi.Component | Node = firefox.child("Zum Modul anmelden", "button")
 informatik_link.scroll_to(SCROLL_ANYWHERE)
 sleep(0.5) # scrolling seems to have a delay
 informatik_link.click()
+
+# seamless interop between tucan and tucant
+firefox.child("Prüfungen", "link").click()
+firefox.child("Meine Prüfungen", "link").click()
+
+# if you want you can still open in tucan
+sleep(5)
+firefox.child("TUCaN't", "document web").click(3)
