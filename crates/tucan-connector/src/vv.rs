@@ -78,7 +78,7 @@ fn vv_internal(
                     } => ();
                 </head>
                 <body class="registration_auditor">
-                    let a = logged_in_or_out_head(html_handler, login_response);
+                    let _unused = logged_in_or_out_head(html_handler, login_response);
                     <script type="text/javascript">
                     </script>
                     <h1>

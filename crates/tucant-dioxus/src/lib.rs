@@ -35,6 +35,9 @@ use tucant_types::{
 use crate::navbar::Navbar;
 use crate::overview::Overview;
 
+#[derive(Copy, Clone)]
+pub struct Anonymize(pub bool);
+
 #[cfg(not(any(
     feature = "desktop",
     feature = "mobile",

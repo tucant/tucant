@@ -1,8 +1,7 @@
-use std::{collections::HashMap, panic};
+use std::panic;
 
 use dioxus::prelude::*;
-use log::warn;
-use tucant_dioxus::{RcTucanType, Route};
+use tucant_dioxus::{Anonymize, RcTucanType, Route};
 use tucant_types::LoginResponse;
 use wasm_bindgen::prelude::*;
 
@@ -47,6 +46,23 @@ pub async fn main() {
     #[cfg(feature = "web")]
     console_log::init().unwrap();
 
+    let anonymize = {
+        #[cfg(feature = "direct")]
+        {
+            // TODO we need to update this when you update the value in the extension
+            let obj = js_sys::Object::new();
+            js_sys::Reflect::set(&obj, &"anonymize".into(), &false.into()).unwrap();
+            let storage = web_extensions_sys::chrome().storage().sync();
+            let result = storage.get(&obj).await.unwrap();
+            js_sys::Reflect::get(&result, &"anonymize".into())
+                .unwrap()
+                .as_bool()
+                .unwrap()
+        }
+        #[cfg(not(feature = "direct"))]
+        false
+    };
+
     let launcher = dioxus::LaunchBuilder::new();
 
     #[cfg(feature = "web")]
@@ -66,6 +82,8 @@ pub async fn main() {
     let launcher = launcher.with_context(RcTucanType(tucant_types::DynTucan::new_arc(
         tucan_connector::TucanConnector::new().await.unwrap(),
     )));
+
+    let launcher = launcher.with_context(Anonymize(anonymize));
 
     launcher.launch(App);
 }

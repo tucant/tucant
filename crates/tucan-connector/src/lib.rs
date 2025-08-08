@@ -59,13 +59,14 @@ pub mod vv;
 
 #[cfg(target_arch = "wasm32")]
 pub async fn sleep(duration: Duration) {
-    let mut cb = |resolve: js_sys::Function, reject: js_sys::Function| {
+    let mut cb = |resolve: js_sys::Function, _reject: js_sys::Function| {
         web_sys::window()
             .unwrap()
             .set_timeout_with_callback_and_timeout_and_arguments_0(
                 &resolve,
                 duration.as_millis().try_into().unwrap(),
-            );
+            )
+            .unwrap();
     };
 
     let p = js_sys::Promise::new(&mut cb);
