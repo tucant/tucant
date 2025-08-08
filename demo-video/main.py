@@ -17,6 +17,15 @@ load_dotenv()
 
 firefox: Node = root.application("Firefox")
 
+# TODO clear browser data before so we're logged out?
+# TODO uninstall extension before
+
+def toggle_navigation():
+    # TODO maybe we can check whether it is expanded in accessibility info
+    return
+    # on mobile
+    #firefox.child("Toggle navigation", "button").click()
+
 def step1_open_tucant_installation_page():
     #navigation = firefox.child("Navigation", "tool bar")
 
@@ -61,8 +70,7 @@ def step3_open_tucant():
 
 
 def step4_login():
-    # on mobile
-    firefox.child("Toggle navigation", "button").click()
+    toggle_navigation()
 
     # if we're already logged in this fails
     username_input: Node = firefox.child(identifier="login-username")
@@ -81,7 +89,7 @@ def step4_login():
 
 def step5_aktuelles():
     # on mobile (TODO I think login should close navbar if it does not)
-    firefox.child("Toggle navigation", "button").click()
+    toggle_navigation()
 
     aktuelles_button = firefox.child("Aktuelles", "button")
     aktuelles_button.scroll_to(SCROLL_ANYWHERE)
@@ -90,8 +98,7 @@ def step5_aktuelles():
 
 
 def step6_vv():
-    # on mobile
-    firefox.child("Toggle navigation", "button").click()
+    toggle_navigation()
 
     firefox.child("VV", "button").click()
     firefox.child("Vorlesungsverzeichnis", "link").click()
@@ -114,6 +121,7 @@ def step6_vv():
 
     # https://gitlab.gnome.org/GNOME/gtk/-/blob/main/gdk/gdkkeysyms.h
     # https://github.com/vhumpa/dogtail/blob/3600ef901bcd7b4f8d64dce17a600219dcc1abf9/dogtail/rawinput.py#L477
+    # TODO maybe we can improve this scrolling
     firefox.keyCombo("<pagedown>")
     sleep(1)
     firefox.keyCombo("<pagedown>")
@@ -132,25 +140,25 @@ def step6_vv():
 
 
 def step7_semestermodule():
-    # on mobile
-    firefox.child("Toggle navigation", "button").click()
+    toggle_navigation()
     firefox.child("Veranstaltungen", "button").click()
     firefox.child("Meine Semestermodule", "link").click()
+    sleep(3)
     firefox.child("Select semester", "combo box").click()
     firefox.child("WiSe 2024/25", "menu item").click()
-
+    sleep(3)
 
 def step8_veranstaltungen():
-    # on mobile
-    firefox.child("Toggle navigation", "button").click()
+    toggle_navigation()
     firefox.child("Veranstaltungen", "button").click()
     firefox.child("Meine Veranstaltungen", "link").click()
+    sleep(3)
     firefox.child("Select semester", "combo box").click()
     firefox.child("WiSe 2024/25", "menu item").click()
+    sleep(3)
 
 def step9_anmeldung_und_pruefungen():
-    # on mobile
-    firefox.child("Toggle navigation", "button").click()
+    toggle_navigation()
     firefox.child("Veranstaltungen", "button").click()
     firefox.child("Anmeldung", "link").click()
 
@@ -185,6 +193,8 @@ def step9_anmeldung_und_pruefungen():
     sleep(0.5) # scrolling seems to have a delay
     informatik_link.click()
 
+    sleep(2)
+
     # seamless interop between tucan and tucant
     firefox.child("Prüfungen", "link").click()
     firefox.child("Meine Prüfungen", "link").click()
@@ -195,23 +205,28 @@ def step9_anmeldung_und_pruefungen():
     firefox.child("Open page in TUCaN", "menu item").click()
     # Open page in TUCaN in new tab
 
+    sleep(2)
+
     firefox.child("Technische Universität Darmstadt", "document web").click(3) # right click somewhere on page
     firefox.child("TUCaN't", "menu").click()
     firefox.child("Open page in TUCaN't in new tab", "menu item").click()
 
+    sleep(1)
+
 def step10_ergebnisse():
-    # on mobile
-    firefox.child("Toggle navigation", "button").click()
+    sleep(2)
+    # TODO I think these are broken when coming from a page that was open in tucan?
+    toggle_navigation()
     firefox.child("Prüfungen", "button").click()
     firefox.child("Modulergebnisse", "link").click()
+    sleep(5)
 
-    # on mobile
-    firefox.child("Toggle navigation", "button").click()
+    toggle_navigation()
     firefox.child("Prüfungen", "button").click()
     firefox.child("Prüfungsergebnisse", "link").click()
+    sleep(5)
 
-    # on mobile
-    firefox.child("Toggle navigation", "button").click()
+    toggle_navigation()
     firefox.child("Prüfungen", "button").click()
     firefox.child("Leistungsspiegel", "link").click()
     sleep(5)
