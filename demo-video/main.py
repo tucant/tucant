@@ -34,7 +34,7 @@ def step1_open_tucant_installation_page():
     urlbar_input.typeText("https://tucant.github.io/tucant/")
     urlbar_input.keyCombo("<enter>")
 
-step1_open_tucant_installation_page()
+#step1_open_tucant_installation_page()
 
 def step2_install_extension():
     download_button = firefox.child("Download extension for Firefox", "link")
@@ -46,7 +46,7 @@ def step2_install_extension():
     firefox.child("Add", "button").click()
     firefox.child("OK", "button").click()
 
-step2_install_extension()
+#step2_install_extension()
 
 def step3_open_tucant():
     urlbar_input: Node = firefox.child(identifier="urlbar-input")
@@ -75,7 +75,10 @@ def step4_login():
     login_button: Node = firefox.child(identifier="login-button")
     login_button.click()
 
-step4_login()
+#step4_login()
+
+# on mobile (TODO I think login should close navbar if it does not)
+firefox.child("Toggle navigation", "button").click()
 
 aktuelles_button = firefox.child("Aktuelles", "button")
 aktuelles_button.scroll_to(SCROLL_ANYWHERE)
@@ -90,6 +93,7 @@ firefox.child("Vorlesungsverzeichnis", "link").click()
 
 informatik_link: Atspi.Component | Node = firefox.child("FB20 - Informatik", "link")
 informatik_link.scroll_to(SCROLL_ANYWHERE)
+sleep(0.5) # scrolling seems to have a delay
 informatik_link.click()
 
 pflichtveranstaltungen: Atspi.Component | Node = firefox.child("Pflichtveranstaltungen", "link")
@@ -102,6 +106,8 @@ aud: Atspi.Component | Node = firefox.child("Algorithmen und Datenstrukturen 01"
 aud.click()
 
 # https://github.com/vhumpa/dogtail/blob/3600ef901bcd7b4f8d64dce17a600219dcc1abf9/dogtail/rawinput.py#L477
+firefox.keyCombo("<pagedown>")
+sleep(1)
 firefox.keyCombo("<pagedown>")
 sleep(1)
 firefox.keyCombo("<pagedown>")
