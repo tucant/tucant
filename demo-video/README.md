@@ -8,6 +8,8 @@ Enable Introspect support in Looking Glass. Press `Alt+F2`, type `lg` and
 press enter to open Looking Glass. Finally enable unsafe mode:
 >>> global.context.unsafe_mode = true
 
+Fix Settings -> Accessibility -> Typing -> Repeat Keys -> Delay to the default value
+
 firefox -P tmp
 sniff # show tree
 python3 -i main.py

@@ -104,7 +104,10 @@ aud.click()
 
 aud: Atspi.Component | Node = firefox.child("Algorithmen und Datenstrukturen 01", "link")
 aud.click()
+aud.doActionNamed("jump") # click does not work on mobile mode as it clicks at the wrong place
+sleep(3)
 
+# https://gitlab.gnome.org/GNOME/gtk/-/blob/main/gdk/gdkkeysyms.h
 # https://github.com/vhumpa/dogtail/blob/3600ef901bcd7b4f8d64dce17a600219dcc1abf9/dogtail/rawinput.py#L477
 firefox.keyCombo("<pagedown>")
 sleep(1)
@@ -119,3 +122,5 @@ sleep(1)
 firefox.keyCombo("<pagedown>")
 sleep(1)
 firefox.keyCombo("<pagedown>")
+sleep(3)
+firefox.keyCombo("<Home>")
