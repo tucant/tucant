@@ -26,7 +26,10 @@ pub fn GradeOverview(gradeoverview: ReadSignal<GradeOverviewRequest>) -> Element
         |gradeoverview: GradeOverviewResponse, reload| {
             rsx! {
                 div {
-                    h1 { {gradeoverview.module_and_semester} " " button {
+                    h1 {
+                        {gradeoverview.module_and_semester}
+                        " "
+                        button {
                             onclick: reload,
                             r#type: "button",
                             class: "btn btn-secondary",
@@ -47,7 +50,8 @@ pub fn GradeOverview(gradeoverview: ReadSignal<GradeOverviewRequest>) -> Element
                                 }
                                 path { d: "M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466" }
                             }
-                        } }
+                        }
+                    }
                     h3 { {gradeoverview.modulangebot} }
                     h3 { {gradeoverview.studienleistung} }
                     if let Some(grades) = gradeoverview.maybe_grades {

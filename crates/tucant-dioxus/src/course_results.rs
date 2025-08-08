@@ -98,7 +98,7 @@ pub fn CourseResults(semester: ReadSignal<SemesterId>) -> Element {
                                                     th { scope: "row", {exam.nr.clone()} }
                                                     td { {exam.name.clone()} }
                                                     td { {exam.credits.clone()} }
-                                                    td { 
+                                                    td {
                                                         if anonymize {
                                                             span { class: "placeholder", "abc" }
                                                         } else {

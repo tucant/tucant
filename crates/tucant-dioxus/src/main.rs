@@ -1,4 +1,4 @@
-use std::{panic};
+use std::panic;
 
 use dioxus::prelude::*;
 use tucant_dioxus::{Anonymize, RcTucanType, Route};
@@ -54,7 +54,10 @@ pub async fn main() {
             js_sys::Reflect::set(&obj, &"anonymize".into(), &false.into()).unwrap();
             let storage = web_extensions_sys::chrome().storage().sync();
             let result = storage.get(&obj).await.unwrap();
-            js_sys::Reflect::get(&result, &"anonymize".into()).unwrap().as_bool().unwrap()
+            js_sys::Reflect::get(&result, &"anonymize".into())
+                .unwrap()
+                .as_bool()
+                .unwrap()
         }
         #[cfg(not(feature = "direct"))]
         false

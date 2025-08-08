@@ -65,7 +65,8 @@ pub async fn sleep(duration: Duration) {
             .set_timeout_with_callback_and_timeout_and_arguments_0(
                 &resolve,
                 duration.as_millis().try_into().unwrap(),
-            ).unwrap();
+            )
+            .unwrap();
     };
 
     let p = js_sys::Promise::new(&mut cb);

@@ -100,7 +100,7 @@ pub fn ExamResults(semester: ReadSignal<SemesterId>) -> Element {
                                                         if anonymize {
                                                             span { class: "placeholder", "abc" }
                                                         } else {
-                                                            {exam.grade.clone()} 
+                                                            {exam.grade.clone()}
                                                         }
                                                     }
                                                     td {
