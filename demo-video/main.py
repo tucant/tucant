@@ -34,11 +34,9 @@ def step1_open_tucant_installation_page():
     urlbar_input.typeText("https://tucant.github.io/tucant/")
     urlbar_input.keyCombo("<enter>")
 
-#step1_open_tucant_installation_page()
-
 def step2_install_extension():
-    download_button = firefox.child("Download extension for Firefox", "link")
     sleep(0.5)
+    download_button = firefox.child("Download extension for Firefox", "link")
     download_button.click()
 
     sleep(0.5)
@@ -46,7 +44,12 @@ def step2_install_extension():
     firefox.child("Add", "button").click()
     firefox.child("OK", "button").click()
 
-#step2_install_extension()
+def step2_5_extension_settings():
+    firefox.child("Extensions", "button").click()
+    sleep(1)
+    #firefox.dump(fileName="test")
+    firefox.child("TUCaN't", "button").click()
+    firefox.child("Go to options", "button").click()
 
 def step3_open_tucant():
     urlbar_input: Node = firefox.child(identifier="urlbar-input")
@@ -55,7 +58,6 @@ def step3_open_tucant():
     urlbar_input.typeText("https://www.tucan.tu-darmstadt.de/")
     urlbar_input.keyCombo("<enter>")
 
-step3_open_tucant()
 
 def step4_login():
     # on mobile
@@ -75,7 +77,6 @@ def step4_login():
     login_button: Node = firefox.child(identifier="login-button")
     login_button.click()
 
-#step4_login()
 
 def step5_aktuelles():
     # on mobile (TODO I think login should close navbar if it does not)
@@ -86,7 +87,6 @@ def step5_aktuelles():
     aktuelles_button.click()
     firefox.child("Aktuelles", "link").click()
 
-# step5_aktuelles()
 
 def step6_vv():
     # on mobile
@@ -129,7 +129,6 @@ def step6_vv():
     sleep(3)
     firefox.keyCombo("<Home>")
 
-#step6_vv()
 
 def step7_semestermodule():
     # on mobile
@@ -199,22 +198,33 @@ def step9_anmeldung_und_pruefungen():
     firefox.child("TUCaN't", "menu").click()
     firefox.child("Open page in TUCaN't in new tab", "menu item").click()
 
+def step10_ergebnisse():
+    # on mobile
+    firefox.child("Toggle navigation", "button").click()
+    firefox.child("Prüfungen", "button").click()
+    firefox.child("Modulergebnisse", "link").click()
+
+    # on mobile
+    firefox.child("Toggle navigation", "button").click()
+    firefox.child("Prüfungen", "button").click()
+    firefox.child("Prüfungsergebnisse", "link").click()
+
+    # on mobile
+    firefox.child("Toggle navigation", "button").click()
+    firefox.child("Prüfungen", "button").click()
+    firefox.child("Leistungsspiegel", "link").click()
+    sleep(5)
+    firefox.child("Select course of study", "combo box").click()
+    firefox.child("B.Sc. Informatik (2015)", "menu item").click()
+
+step1_open_tucant_installation_page()
+step2_install_extension()
+step2_5_extension_settings()
+step3_open_tucant()
+#step4_login()
+#step5_aktuelles()
+#step6_vv()
+#step7_semestermodule()
+#step8_veranstaltungen()
 #step9_anmeldung_und_pruefungen()
-
-# on mobile
-firefox.child("Toggle navigation", "button").click()
-firefox.child("Prüfungen", "button").click()
-firefox.child("Modulergebnisse", "link").click()
-
-# on mobile
-firefox.child("Toggle navigation", "button").click()
-firefox.child("Prüfungen", "button").click()
-firefox.child("Prüfungsergebnisse", "link").click()
-
-# on mobile
-firefox.child("Toggle navigation", "button").click()
-firefox.child("Prüfungen", "button").click()
-firefox.child("Leistungsspiegel", "link").click()
-sleep(5)
-firefox.child("Select course of study", "combo box").click()
-firefox.child("B.Sc. Informatik (2015)", "menu item").click()
+#step10_ergebnisse()

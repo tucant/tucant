@@ -10,7 +10,7 @@ press enter to open Looking Glass. Finally enable unsafe mode:
 
 Fix Settings -> Accessibility -> Typing -> Repeat Keys -> Delay to the default value
 
-firefox -P tmp
+setsid firefox -P tmp
 sniff # show tree
 python3 -i main.py
 ```
