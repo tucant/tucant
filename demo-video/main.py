@@ -77,50 +77,65 @@ def step4_login():
 
 #step4_login()
 
-# on mobile (TODO I think login should close navbar if it does not)
-firefox.child("Toggle navigation", "button").click()
+def step5_aktuelles():
+    # on mobile (TODO I think login should close navbar if it does not)
+    firefox.child("Toggle navigation", "button").click()
 
-aktuelles_button = firefox.child("Aktuelles", "button")
-aktuelles_button.scroll_to(SCROLL_ANYWHERE)
-aktuelles_button.click()
-firefox.child("Aktuelles", "link").click()
+    aktuelles_button = firefox.child("Aktuelles", "button")
+    aktuelles_button.scroll_to(SCROLL_ANYWHERE)
+    aktuelles_button.click()
+    firefox.child("Aktuelles", "link").click()
+
+# step5_aktuelles()
+
+def step6_vv():
+    # on mobile
+    firefox.child("Toggle navigation", "button").click()
+
+    firefox.child("VV", "button").click()
+    firefox.child("Vorlesungsverzeichnis", "link").click()
+
+    informatik_link: Atspi.Component | Node = firefox.child("FB20 - Informatik", "link")
+    informatik_link.scroll_to(SCROLL_ANYWHERE)
+    sleep(0.5) # scrolling seems to have a delay
+    informatik_link.click()
+
+    pflichtveranstaltungen: Atspi.Component | Node = firefox.child("Pflichtveranstaltungen", "link")
+    pflichtveranstaltungen.click()
+
+    aud: Atspi.Component | Node = firefox.child("Kurs 20-00-0005-iv Algorithmen und Datenstrukturen", "link")
+    aud.click()
+
+    aud: Atspi.Component | Node = firefox.child("Algorithmen und Datenstrukturen 01", "link")
+    aud.click()
+    aud.doActionNamed("jump") # click does not work on mobile mode as it clicks at the wrong place
+    sleep(3)
+
+    # https://gitlab.gnome.org/GNOME/gtk/-/blob/main/gdk/gdkkeysyms.h
+    # https://github.com/vhumpa/dogtail/blob/3600ef901bcd7b4f8d64dce17a600219dcc1abf9/dogtail/rawinput.py#L477
+    firefox.keyCombo("<pagedown>")
+    sleep(1)
+    firefox.keyCombo("<pagedown>")
+    sleep(1)
+    firefox.keyCombo("<pagedown>")
+    sleep(1)
+    firefox.keyCombo("<pagedown>")
+    sleep(1)
+    firefox.keyCombo("<pagedown>")
+    sleep(1)
+    firefox.keyCombo("<pagedown>")
+    sleep(1)
+    firefox.keyCombo("<pagedown>")
+    sleep(3)
+    firefox.keyCombo("<Home>")
+
+#step6_vv()
 
 # on mobile
 firefox.child("Toggle navigation", "button").click()
 
-firefox.child("VV", "button").click()
-firefox.child("Vorlesungsverzeichnis", "link").click()
+firefox.child("Veranstaltungen", "button").click()
+firefox.child("Meine Semestermodule", "link").click()
 
-informatik_link: Atspi.Component | Node = firefox.child("FB20 - Informatik", "link")
-informatik_link.scroll_to(SCROLL_ANYWHERE)
-sleep(0.5) # scrolling seems to have a delay
-informatik_link.click()
-
-pflichtveranstaltungen: Atspi.Component | Node = firefox.child("Pflichtveranstaltungen", "link")
-pflichtveranstaltungen.click()
-
-aud: Atspi.Component | Node = firefox.child("Kurs 20-00-0005-iv Algorithmen und Datenstrukturen", "link")
-aud.click()
-
-aud: Atspi.Component | Node = firefox.child("Algorithmen und Datenstrukturen 01", "link")
-aud.click()
-aud.doActionNamed("jump") # click does not work on mobile mode as it clicks at the wrong place
-sleep(3)
-
-# https://gitlab.gnome.org/GNOME/gtk/-/blob/main/gdk/gdkkeysyms.h
-# https://github.com/vhumpa/dogtail/blob/3600ef901bcd7b4f8d64dce17a600219dcc1abf9/dogtail/rawinput.py#L477
-firefox.keyCombo("<pagedown>")
-sleep(1)
-firefox.keyCombo("<pagedown>")
-sleep(1)
-firefox.keyCombo("<pagedown>")
-sleep(1)
-firefox.keyCombo("<pagedown>")
-sleep(1)
-firefox.keyCombo("<pagedown>")
-sleep(1)
-firefox.keyCombo("<pagedown>")
-sleep(1)
-firefox.keyCombo("<pagedown>")
-sleep(3)
-firefox.keyCombo("<Home>")
+firefox.child("Select semester", "combo box").click()
+firefox.child("WiSe 2024/25", "menu item").click()
