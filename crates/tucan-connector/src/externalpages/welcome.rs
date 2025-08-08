@@ -27,9 +27,9 @@ pub async fn welcome(connector: &TucanConnector) -> Result<LoggedOutHead, TucanE
                     </script>
                     <meta http-equiv="content-type" content="text/html; charset=windows-1252"></meta>
                     <div id="inhalt" style="padding:0px; width:650px; margin:0px; background-color:#ffffff;">
-                        let a = while html_handler.peek().is_some() {
+                        let _unused = while html_handler.peek().is_some() {
                                 let any_child = html_handler.next_any_child();
-                        } => ();
+                        } => any_child;
                     </div>
                 </div>
             </div>

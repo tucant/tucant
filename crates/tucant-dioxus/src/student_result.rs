@@ -1,4 +1,4 @@
-use crate::{common::use_authenticated_data_loader, RcTucanType, Route};
+use crate::{common::use_authenticated_data_loader, Anonymize, RcTucanType, Route};
 use dioxus::prelude::*;
 use tucant_types::{
     student_result::{StudentResultLevel, StudentResultResponse},
@@ -22,6 +22,8 @@ pub fn StudentResult(course_of_study: ReadSignal<String>) -> Element {
             course_of_study().parse().unwrap()
         }
     });
+
+    let anonymize = use_context::<Anonymize>().0;
 
     use_authenticated_data_loader(
         handler,
@@ -82,8 +84,22 @@ pub fn StudentResult(course_of_study: ReadSignal<String>) -> Element {
                     }
                 }
                 StudentResultLevelComponent { level: student_result.level0, path: Vec::new() }
-                div { {format!("Gesamt-GPA: {}", student_result.total_gpa)} }
-                div { {format!("Hauptfach-GPA: {}", student_result.main_gpa)} }
+                div {
+                    "Gesamt-GPA: "
+                    if anonymize {
+                        span { class: "placeholder", "abc" }
+                    } else {
+                        {format!("{}", student_result.total_gpa)}
+                    }
+                }
+                div {
+                    "Hauptfach-GPA: "
+                    if anonymize {
+                        span { class: "placeholder", "abc" }
+                    } else {
+                        {format!("{}", student_result.main_gpa)}
+                    }
+                }
             }
         },
     )
@@ -94,6 +110,8 @@ pub fn StudentResultLevelComponent(
     level: ReadSignal<StudentResultLevel>,
     path: ReadSignal<Vec<String>>,
 ) -> Element {
+    let anonymize = use_context::<Anonymize>().0;
+
     rsx! {
         if !level().entries.is_empty() {
             h5 {
@@ -132,10 +150,22 @@ pub fn StudentResultLevelComponent(
                                         td { {entry.name.clone()} }
                                         td { {entry.cp.clone().unwrap_or_default().to_string()} }
                                         td { {entry.used_cp.clone().unwrap_or_default().to_string()} }
-                                        if let Some(grade) = &entry.grade {
-                                            td { "{grade}" }
+                                        td {
+                                            if anonymize {
+                                                span { class: "placeholder", "abc" }
+                                            } else {
+                                                if let Some(grade) = &entry.grade {
+                                                    "{grade}"
+                                                }
+                                            }
                                         }
-                                        td { {entry.state.clone()} }
+                                        td {
+                                            if anonymize {
+                                                span { class: "placeholder", "abcdefghi" }
+                                            } else {
+                                                {entry.state.clone()} 
+                                            }
+                                        }
                                     }
                                 }
                             })

@@ -28,12 +28,26 @@ fixSessionIdInUrlCheckbox.addEventListener("change", () => {
     })
 })
 
-/** @type {{ mobileDesign: boolean; customUi: boolean; fixSessionIdInUrl: boolean }} */
+
+const anonymizeCheckbox = /** @type {HTMLInputElement} */ (document.getElementById('anonymize'))
+anonymizeCheckbox.addEventListener("change", () => {
+    asyncClosure(async () => {
+        await chrome.storage.sync.set(
+            { anonymize: anonymizeCheckbox.checked },
+        );
+    })
+})
+
+
+/** @type {{ mobileDesign: boolean; customUi: boolean; fixSessionIdInUrl: boolean; anonymize: boolean}} */
 const settings = await chrome.storage.sync.get(
-    { mobileDesign: false, customUi: true, fixSessionIdInUrl: true },
+    { mobileDesign: false, customUi: true, fixSessionIdInUrl: true, anonymize: false },
 );
 mobileDesignCheckbox.checked = settings.mobileDesign;
 customUICheckbox.checked = settings.customUi;
 fixSessionIdInUrlCheckbox.checked = settings.fixSessionIdInUrl;
+anonymizeCheckbox.checked = settings.anonymize;
+
+// TODO FIXME listen for changes here and update checkboxes
 
 export { }

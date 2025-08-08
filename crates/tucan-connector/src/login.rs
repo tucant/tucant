@@ -1,7 +1,6 @@
 use std::sync::LazyLock;
 
 use html_handler::parse_document;
-use log::info;
 use regex::Regex;
 use reqwest::header::HeaderValue;
 use tucant_types::{LoginRequest, LoginResponse};

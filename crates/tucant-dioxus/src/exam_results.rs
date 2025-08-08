@@ -3,7 +3,7 @@ use std::str::FromStr;
 use dioxus::prelude::*;
 use tucant_types::{examresults::ExamResultsResponse, SemesterId, Tucan};
 
-use crate::{common::use_authenticated_data_loader, RcTucanType, Route};
+use crate::{common::use_authenticated_data_loader, Anonymize, RcTucanType, Route};
 
 #[component]
 pub fn ExamResults(semester: ReadSignal<SemesterId>) -> Element {
@@ -14,6 +14,8 @@ pub fn ExamResults(semester: ReadSignal<SemesterId>) -> Element {
     };
 
     let navigator = use_navigator();
+
+    let anonymize = use_context::<Anonymize>().0;
 
     use_authenticated_data_loader(
         handler,
@@ -94,7 +96,13 @@ pub fn ExamResults(semester: ReadSignal<SemesterId>) -> Element {
                                                     th { scope: "row", {exam.name.clone()} }
                                                     td { {exam.exam_type.clone()} }
                                                     td { {exam.date.clone().unwrap_or_else(|| "-".to_owned())} }
-                                                    td { {exam.grade.clone()} }
+                                                    td {
+                                                        if anonymize {
+                                                            span { class: "placeholder", "abc" }
+                                                        } else {
+                                                            {exam.grade.clone()} 
+                                                        }
+                                                    }
                                                     td {
                                                         if let Some(average_url) = &exam.average_url {
                                                             Link {

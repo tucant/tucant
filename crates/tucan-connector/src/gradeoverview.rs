@@ -85,11 +85,11 @@ fn gradeoverview_internal(
                     </style>
                 </head>
                 <body class="students_grades_diagramm_BFW">
-                    let head = logged_in_head(html_handler, login_response.id);
+                    let _head = logged_in_head(html_handler, login_response.id);
                     <script type="text/javascript">
                     </script>
                     <h1>
-                        notenspiegel
+                        _notenspiegel
                     </h1>
                     <h2>
                         module_and_semester
@@ -126,7 +126,7 @@ fn gradeoverview_internal(
                         <div class="tbhead">
                         </div>
                         <div class="tbcontrol">
-                            <a href=examresults_url class="img img_arrowLeft prev">
+                            <a href=_examresults_url class="img img_arrowLeft prev">
                                 "Zurück"
                             </a>
                         </div>
