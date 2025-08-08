@@ -19,6 +19,8 @@ firefox: Node = root.application("Firefox")
 
 # TODO clear browser data before so we're logged out?
 # TODO uninstall extension before
+# TODO anonymize login data
+# TODO disable password saving in firefox
 
 def toggle_navigation():
     # TODO maybe we can check whether it is expanded in accessibility info
@@ -48,7 +50,7 @@ def step2_install_extension():
     download_button = firefox.child("Download extension for Firefox", "link")
     download_button.click()
 
-    sleep(0.5)
+    sleep(2)
     firefox.child("Continue to Installation", "button").click()
     firefox.child("Add", "button").click()
     firefox.child("OK", "button").click()
@@ -213,6 +215,7 @@ def step9_anmeldung_und_pruefungen():
 
     sleep(1)
 
+# TODO fixme if multiple tabs of tucan are open this probably hits the wrong tab
 def step10_ergebnisse():
     sleep(2)
     # TODO I think these are broken when coming from a page that was open in tucan?
@@ -234,14 +237,14 @@ def step10_ergebnisse():
     firefox.child("B.Sc. Informatik (2015)", "menu item").click()
 
 sleep(3)
-step1_open_tucant_installation_page()
-step2_install_extension()
-step2_5_extension_settings()
-step3_open_tucant()
-step4_login()
-step5_aktuelles()
-step6_vv()
-step7_semestermodule()
-step8_veranstaltungen()
-step9_anmeldung_und_pruefungen()
+#step1_open_tucant_installation_page()
+#step2_install_extension()
+#step2_5_extension_settings()
+#step3_open_tucant()
+#step4_login()
+#step5_aktuelles()
+#step6_vv()
+#step7_semestermodule()
+#step8_veranstaltungen()
+#step9_anmeldung_und_pruefungen()
 step10_ergebnisse()
