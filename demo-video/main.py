@@ -50,6 +50,7 @@ def step2_5_extension_settings():
     #firefox.dump(fileName="test")
     firefox.child("TUCaN't", "button").click()
     firefox.child("Go to options", "button").click()
+    firefox.child("Anonymize grades (for demoing).", "check box").click()
 
 def step3_open_tucant():
     urlbar_input: Node = firefox.child(identifier="urlbar-input")
@@ -217,8 +218,8 @@ def step10_ergebnisse():
     firefox.child("Select course of study", "combo box").click()
     firefox.child("B.Sc. Informatik (2015)", "menu item").click()
 
-step1_open_tucant_installation_page()
-step2_install_extension()
+#step1_open_tucant_installation_page()
+#step2_install_extension()
 step2_5_extension_settings()
 step3_open_tucant()
 #step4_login()
