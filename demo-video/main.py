@@ -6,12 +6,15 @@ gi.require_version('Atspi', '2.0')
 from gi.repository import Atspi
 
 from dogtail.tree import root, Node
+from dogtail.config import config
 from dotenv import load_dotenv
 from time import sleep
 
 from pyatspi import SCROLL_ANYWHERE
 
 load_dotenv()
+
+config.searchShowingOnly = True
 
 # python3 -i main.py
 
