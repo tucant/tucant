@@ -131,11 +131,54 @@ def step6_vv():
 
 #step6_vv()
 
+def step7_semestermodule():
+    # on mobile
+    firefox.child("Toggle navigation", "button").click()
+    firefox.child("Veranstaltungen", "button").click()
+    firefox.child("Meine Semestermodule", "link").click()
+    firefox.child("Select semester", "combo box").click()
+    firefox.child("WiSe 2024/25", "menu item").click()
+
+
+def step8_veranstaltungen():
+    # on mobile
+    firefox.child("Toggle navigation", "button").click()
+    firefox.child("Veranstaltungen", "button").click()
+    firefox.child("Meine Veranstaltungen", "link").click()
+    firefox.child("Select semester", "combo box").click()
+    firefox.child("WiSe 2024/25", "menu item").click()
+
 # on mobile
 firefox.child("Toggle navigation", "button").click()
-
 firefox.child("Veranstaltungen", "button").click()
-firefox.child("Meine Semestermodule", "link").click()
+firefox.child("Anmeldung", "link").click()
 
-firefox.child("Select semester", "combo box").click()
-firefox.child("WiSe 2024/25", "menu item").click()
+informatik_link: Atspi.Component | Node = firefox.child("Vertiefungen, Wahlbereiche und Studium Generale", "link")
+informatik_link.scroll_to(SCROLL_ANYWHERE)
+sleep(0.5) # scrolling seems to have a delay
+informatik_link.click()
+
+informatik_link: Atspi.Component | Node = firefox.child("Vertiefungen", "link")
+informatik_link.scroll_to(SCROLL_ANYWHERE)
+sleep(0.5) # scrolling seems to have a delay
+informatik_link.click()
+
+informatik_link: Atspi.Component | Node = firefox.child("Fachprüfungen aus den Basis Wahlbereichen und Wahlbereichen der Individuellen Vertiefung", "link")
+informatik_link.scroll_to(SCROLL_ANYWHERE)
+sleep(0.5) # scrolling seems to have a delay
+informatik_link.click()
+
+informatik_link: Atspi.Component | Node = firefox.child("Basis Wahlbereiche", "link")
+informatik_link.scroll_to(SCROLL_ANYWHERE)
+sleep(0.5) # scrolling seems to have a delay
+informatik_link.click()
+
+informatik_link: Atspi.Component | Node = firefox.child("Theorie (Theoretische Informatik)", "link")
+informatik_link.scroll_to(SCROLL_ANYWHERE)
+sleep(0.5) # scrolling seems to have a delay
+informatik_link.click()
+
+informatik_link: Atspi.Component | Node = firefox.child("Zum Modul anmelden", "button")
+informatik_link.scroll_to(SCROLL_ANYWHERE)
+sleep(0.5) # scrolling seems to have a delay
+informatik_link.click()

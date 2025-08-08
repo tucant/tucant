@@ -90,6 +90,7 @@ pub fn MySemesterModules(semester: ReadSignal<SemesterId>) -> Element {
                                 .iter()
                                 .map(|semester| {
                                     rsx! {
+                                        // TODO while loading here we should already show the newly selected value
                                         option { selected: semester.selected, value: semester.value.inner().clone(), {semester.name.clone()} }
                                     }
                                 })
