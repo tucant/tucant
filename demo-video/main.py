@@ -148,52 +148,73 @@ def step8_veranstaltungen():
     firefox.child("Select semester", "combo box").click()
     firefox.child("WiSe 2024/25", "menu item").click()
 
+def step9_anmeldung_und_pruefungen():
+    # on mobile
+    firefox.child("Toggle navigation", "button").click()
+    firefox.child("Veranstaltungen", "button").click()
+    firefox.child("Anmeldung", "link").click()
+
+    informatik_link: Atspi.Component | Node = firefox.child("Vertiefungen, Wahlbereiche und Studium Generale", "link")
+    informatik_link.scroll_to(SCROLL_ANYWHERE)
+    sleep(0.5) # scrolling seems to have a delay
+    informatik_link.click()
+
+    informatik_link: Atspi.Component | Node = firefox.child("Vertiefungen", "link")
+    informatik_link.scroll_to(SCROLL_ANYWHERE)
+    sleep(0.5) # scrolling seems to have a delay
+    informatik_link.click()
+
+    informatik_link: Atspi.Component | Node = firefox.child("Fachprüfungen aus den Basis Wahlbereichen und Wahlbereichen der Individuellen Vertiefung", "link")
+    informatik_link.scroll_to(SCROLL_ANYWHERE)
+    sleep(0.5) # scrolling seems to have a delay
+    informatik_link.click()
+
+    informatik_link: Atspi.Component | Node = firefox.child("Basis Wahlbereiche", "link")
+    informatik_link.scroll_to(SCROLL_ANYWHERE)
+    sleep(0.5) # scrolling seems to have a delay
+    informatik_link.click()
+
+    informatik_link: Atspi.Component | Node = firefox.child("Theorie (Theoretische Informatik)", "link")
+    informatik_link.scroll_to(SCROLL_ANYWHERE)
+    sleep(0.5) # scrolling seems to have a delay
+    informatik_link.click()
+
+    # seamless interop between tucant and tucan
+    informatik_link: Atspi.Component | Node = firefox.child("Zum Modul anmelden", "button")
+    informatik_link.scroll_to(SCROLL_ANYWHERE)
+    sleep(0.5) # scrolling seems to have a delay
+    informatik_link.click()
+
+    # seamless interop between tucan and tucant
+    firefox.child("Prüfungen", "link").click()
+    firefox.child("Meine Prüfungen", "link").click()
+
+    # if you want you can still open in tucan
+    firefox.child("TUCaN't", "document web").click(3) # right click somewhere on page
+    firefox.child("TUCaN't", "menu").click()
+    firefox.child("Open page in TUCaN", "menu item").click()
+    # Open page in TUCaN in new tab
+
+    firefox.child("Technische Universität Darmstadt", "document web").click(3) # right click somewhere on page
+    firefox.child("TUCaN't", "menu").click()
+    firefox.child("Open page in TUCaN't in new tab", "menu item").click()
+
+#step9_anmeldung_und_pruefungen()
+
 # on mobile
 firefox.child("Toggle navigation", "button").click()
-firefox.child("Veranstaltungen", "button").click()
-firefox.child("Anmeldung", "link").click()
+firefox.child("Prüfungen", "button").click()
+firefox.child("Modulergebnisse", "link").click()
 
-informatik_link: Atspi.Component | Node = firefox.child("Vertiefungen, Wahlbereiche und Studium Generale", "link")
-informatik_link.scroll_to(SCROLL_ANYWHERE)
-sleep(0.5) # scrolling seems to have a delay
-informatik_link.click()
+# on mobile
+firefox.child("Toggle navigation", "button").click()
+firefox.child("Prüfungen", "button").click()
+firefox.child("Prüfungsergebnisse", "link").click()
 
-informatik_link: Atspi.Component | Node = firefox.child("Vertiefungen", "link")
-informatik_link.scroll_to(SCROLL_ANYWHERE)
-sleep(0.5) # scrolling seems to have a delay
-informatik_link.click()
-
-informatik_link: Atspi.Component | Node = firefox.child("Fachprüfungen aus den Basis Wahlbereichen und Wahlbereichen der Individuellen Vertiefung", "link")
-informatik_link.scroll_to(SCROLL_ANYWHERE)
-sleep(0.5) # scrolling seems to have a delay
-informatik_link.click()
-
-informatik_link: Atspi.Component | Node = firefox.child("Basis Wahlbereiche", "link")
-informatik_link.scroll_to(SCROLL_ANYWHERE)
-sleep(0.5) # scrolling seems to have a delay
-informatik_link.click()
-
-informatik_link: Atspi.Component | Node = firefox.child("Theorie (Theoretische Informatik)", "link")
-informatik_link.scroll_to(SCROLL_ANYWHERE)
-sleep(0.5) # scrolling seems to have a delay
-informatik_link.click()
-
-# seamless interop between tucant and tucan
-informatik_link: Atspi.Component | Node = firefox.child("Zum Modul anmelden", "button")
-informatik_link.scroll_to(SCROLL_ANYWHERE)
-sleep(0.5) # scrolling seems to have a delay
-informatik_link.click()
-
-# seamless interop between tucan and tucant
-firefox.child("Prüfungen", "link").click()
-firefox.child("Meine Prüfungen", "link").click()
-
-# if you want you can still open in tucan
-firefox.child("TUCaN't", "document web").click(3) # right click somewhere on page
-firefox.child("TUCaN't", "menu").click()
-firefox.child("Open page in TUCaN", "menu item").click()
-# Open page in TUCaN in new tab
-
-firefox.child("Technische Universität Darmstadt", "document web").click(3) # right click somewhere on page
-firefox.child("TUCaN't", "menu").click()
-firefox.child("Open page in TUCaN't in new tab", "menu item").click()
+# on mobile
+firefox.child("Toggle navigation", "button").click()
+firefox.child("Prüfungen", "button").click()
+firefox.child("Leistungsspiegel", "link").click()
+sleep(5)
+firefox.child("Select course of study", "combo box").click()
+firefox.child("B.Sc. Informatik (2015)", "menu item").click()
