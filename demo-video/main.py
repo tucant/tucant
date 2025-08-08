@@ -189,5 +189,11 @@ firefox.child("Prüfungen", "link").click()
 firefox.child("Meine Prüfungen", "link").click()
 
 # if you want you can still open in tucan
-sleep(5)
-firefox.child("TUCaN't", "document web").click(3)
+firefox.child("TUCaN't", "document web").click(3) # right click somewhere on page
+firefox.child("TUCaN't", "menu").click()
+firefox.child("Open page in TUCaN", "menu item").click()
+# Open page in TUCaN in new tab
+
+firefox.child("Technische Universität Darmstadt", "document web").click(3) # right click somewhere on page
+firefox.child("TUCaN't", "menu").click()
+firefox.child("Open page in TUCaN't in new tab", "menu item").click()
