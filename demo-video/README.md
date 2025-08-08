@@ -20,3 +20,7 @@ https://modehnal.github.io/ The main queries you will be using
 
 
 https://fedoramagazine.org/automation-through-accessibility/
+
+
+# Kdenlive
+
