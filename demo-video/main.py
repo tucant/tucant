@@ -10,6 +10,7 @@ from dogtail.tree import root, Node
 from dogtail.config import config
 from dotenv import load_dotenv
 from time import sleep
+from pathlib import PurePath
 
 from pyatspi import SCROLL_ANYWHERE
 
@@ -57,10 +58,11 @@ sleep(3)
 sleep(3)
 
 print("stopping")
-print(req_client.stop_record().output_path)
+output_path = PurePath(req_client.stop_record().output_path)
 while record_state != "OBS_WEBSOCKET_OUTPUT_STOPPED":
     continue
 print("done")
+os.rename(output_path, output_path.with_name("part1.mkv"))
 
 firefox: Node = root.application("Firefox")
 
