@@ -27,15 +27,36 @@ def on_record_state_changed(data):
     print(type(data.output_state))
     record_state = data.output_state
 
+def on_record_file_changed(data):
+    print("record file changed")
+    print(data.new_output_path)
+
 # OBS -> Tools -> WebSocket Server Settings
+
+# don't do this, this is broken
+# OBS -> Settings -> Output -> Output Mode: Advanced
+# OBS -> Settings -> Output -> Recording -> Automatic File Splitting -> Only split manually
+
+# https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md
 req_client = obs.ReqClient(password='PZtbUAIwD8DPxzUT')
 event_client = obs.EventClient(password='PZtbUAIwD8DPxzUT')
-event_client.callback.register([on_record_state_changed])
+event_client.callback.register([on_record_state_changed, on_record_file_changed])
 
+print("starting")
 req_client.start_record()
 while record_state != "OBS_WEBSOCKET_OUTPUT_STARTED":
     continue
+print("started")
 
+sleep(3)
+
+#print("split start")
+#req_client.split_record_file()
+#print("split done")
+
+sleep(3)
+
+print("stopping")
 print(req_client.stop_record().output_path)
 while record_state != "OBS_WEBSOCKET_OUTPUT_STOPPED":
     continue
