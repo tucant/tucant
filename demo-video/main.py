@@ -19,12 +19,18 @@ config.searchShowingOnly = True
 
 # python3 -i main.py
 
-# OBS -> Tools -> WebSocket Server Settings
-cl = obs.ReqClient(password='PZtbUAIwD8DPxzUT')
+def on_record_state_changed(data):
+    print(data.output_state)
 
-cl.start_record()
+# OBS -> Tools -> WebSocket Server Settings
+req_client = obs.ReqClient(password='PZtbUAIwD8DPxzUT')
+event_client = obs.EventClient(password='PZtbUAIwD8DPxzUT')
+event_client.callback.register([on_record_state_changed])
+
+req_client.start_record()
 sleep(5)
-print(cl.stop_record().output_path)
+print(req_client.stop_record().output_path)
+sleep(5)
 exit(0)
 
 firefox: Node = root.application("Firefox")
