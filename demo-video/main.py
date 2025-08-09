@@ -19,8 +19,13 @@ config.searchShowingOnly = True
 
 # python3 -i main.py
 
+record_state = "OBS_WEBSOCKET_OUTPUT_UNKNOWN"
+
 def on_record_state_changed(data):
+    global record_state
     print(data.output_state)
+    print(type(data.output_state))
+    record_state = data.output_state
 
 # OBS -> Tools -> WebSocket Server Settings
 req_client = obs.ReqClient(password='PZtbUAIwD8DPxzUT')
@@ -28,10 +33,13 @@ event_client = obs.EventClient(password='PZtbUAIwD8DPxzUT')
 event_client.callback.register([on_record_state_changed])
 
 req_client.start_record()
-sleep(5)
+while record_state != "OBS_WEBSOCKET_OUTPUT_STARTED":
+    continue
+
 print(req_client.stop_record().output_path)
-sleep(5)
-exit(0)
+while record_state != "OBS_WEBSOCKET_OUTPUT_STOPPED":
+    continue
+print("done")
 
 firefox: Node = root.application("Firefox")
 
