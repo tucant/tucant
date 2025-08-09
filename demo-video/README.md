@@ -47,6 +47,8 @@ https://fedoramagazine.org/automation-through-accessibility/
 
 # Kdenlive
 
+TODO: find out how we can replace clips in timeline with moving the length. I think we should not replace the files in the filesystem directly that seems to break a lot of stuff
+
 Enable Proxy Clips in project settings
 
 chatterbox-tts
