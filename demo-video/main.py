@@ -11,6 +11,7 @@ from dogtail.config import config
 from dotenv import load_dotenv
 from time import sleep
 from pathlib import PurePath
+from contextlib import contextmanager
 
 from pyatspi import SCROLL_ANYWHERE
 
@@ -28,10 +29,6 @@ def on_record_state_changed(data):
     print(type(data.output_state))
     record_state = data.output_state
 
-def on_record_file_changed(data):
-    print("record file changed")
-    print(data.new_output_path)
-
 # OBS -> Tools -> WebSocket Server Settings
 
 # don't do this, this is broken
@@ -41,28 +38,20 @@ def on_record_file_changed(data):
 # https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md
 req_client = obs.ReqClient(password='PZtbUAIwD8DPxzUT')
 event_client = obs.EventClient(password='PZtbUAIwD8DPxzUT')
-event_client.callback.register([on_record_state_changed, on_record_file_changed])
+event_client.callback.register([on_record_state_changed])
 
-print("starting")
-req_client.start_record()
-while record_state != "OBS_WEBSOCKET_OUTPUT_STARTED":
-    continue
-print("started")
-
-sleep(3)
-
-#print("split start")
-#req_client.split_record_file()
-#print("split done")
-
-sleep(3)
-
-print("stopping")
-output_path = PurePath(req_client.stop_record().output_path)
-while record_state != "OBS_WEBSOCKET_OUTPUT_STOPPED":
-    continue
-print("done")
-os.rename(output_path, output_path.with_name("part1.mkv"))
+@contextmanager
+def recording(filename):
+    req_client.start_record()
+    while record_state != "OBS_WEBSOCKET_OUTPUT_STARTED":
+        continue
+    try:
+        yield ()
+    finally:
+        output_path = PurePath(req_client.stop_record().output_path)
+        while record_state != "OBS_WEBSOCKET_OUTPUT_STOPPED":
+            continue
+        os.rename(output_path, output_path.with_name(filename+".mkv"))
 
 firefox: Node = root.application("Firefox")
 
@@ -287,14 +276,23 @@ def step10_ergebnisse():
     firefox.child("B.Sc. Informatik (2015)", "menu item").click()
 
 sleep(3)
-step1_open_tucant_installation_page()
-step2_install_extension()
-step2_5_extension_settings()
-step3_open_tucant()
-step4_login()
-step5_aktuelles()
-step6_vv()
-step7_semestermodule()
-step8_veranstaltungen()
-step9_anmeldung_und_pruefungen()
-step10_ergebnisse()
+with recording("installation"):
+    step1_open_tucant_installation_page()
+    step2_install_extension()
+with recording("settings"):
+    step2_5_extension_settings()
+with recording("login"):
+    step3_open_tucant()
+    step4_login()
+with recording("aktuelles"):
+    step5_aktuelles()
+with recording("vv"):
+    step6_vv()
+with recording("semestermodule"):
+    step7_semestermodule()
+with recording("veranstaltungen"):
+    step8_veranstaltungen()
+with recording("anmeldung_und_pruefungen"):
+    step9_anmeldung_und_pruefungen()
+with recording("ergebnisse"):
+    step10_ergebnisse()
