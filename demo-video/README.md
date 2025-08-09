@@ -10,7 +10,30 @@ press enter to open Looking Glass. Finally enable unsafe mode:
 
 Fix Settings -> Accessibility -> Typing -> Repeat Keys -> Delay to the default value
 
-setsid firefox -P tmp
+https://gitlab.gnome.org/GNOME/mutter/-/issues/2099
+# https://forums.linuxmint.com/viewtopic.php?t=367400
+nano ~/.config/gtk-3.0/gtk.css
+decoration, decoration:backdrop, .csd.popup decoration, .fullscreen decoration, .maximized decoration, .tiled decoration, .tiled decoration:backdrop {box-shadow: none; margin: 0;}
+window decoration, window paned, window paned headerbar {
+/* square top corners */
+    border-radius: 0;
+}
+
+window paned headerbar
+{
+/* header top shadow */
+    box-shadow: none;
+}   
+
+window decoration
+{
+/* Remove shadows */
+    box-shadow: none;
+/* window border */
+    border: none;
+}
+
+setsid firefox -P tmp -width 1920 -height 1080
 sniff # show tree
 python3 -i main.py
 ```
@@ -24,3 +47,22 @@ https://fedoramagazine.org/automation-through-accessibility/
 
 # Kdenlive
 
+Enable Proxy Clips in project settings
+
+chatterbox-tts
+
+```
+import torchaudio as ta
+from chatterbox.tts import ChatterboxTTS
+
+model = ChatterboxTTS.from_pretrained(device="cpu")
+
+ta.save("1.wav", model.generate("How do I install TUCaN't?"), model.sr)
+ta.save("2.wav", model.generate("To install TUCaN't, navigate to https://tucant.github.io/tucant"), model.sr)
+ta.save("3.wav", model.generate("Then, click on download extension for Firefox."), model.sr)
+ta.save("4.wav", model.generate("Now, confirm the installation prompts."), model.sr)
+ta.save("5.wav", model.generate("How do I configure TUCaN't?"), model.sr)
+ta.save("6.wav", model.generate("Click on the extension icon in the top right and select TUCaN't"), model.sr)
+ta.save("7.wav", model.generate("Now click on Go to options"), model.sr)
+
+```

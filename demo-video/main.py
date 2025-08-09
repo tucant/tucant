@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 import os
 import gi
+import obsws_python as obs
 
 gi.require_version('Atspi', '2.0')
 from gi.repository import Atspi
@@ -18,12 +19,21 @@ config.searchShowingOnly = True
 
 # python3 -i main.py
 
+# OBS -> Tools -> WebSocket Server Settings
+cl = obs.ReqClient(password='PZtbUAIwD8DPxzUT')
+
+cl.start_record()
+sleep(5)
+print(cl.stop_record().output_path)
+exit(0)
+
 firefox: Node = root.application("Firefox")
 
 # TODO clear browser data before so we're logged out?
 # TODO uninstall extension before
 # TODO anonymize login data
 # TODO disable password saving in firefox
+# TODO disable ask for translating
 
 def toggle_navigation():
     # TODO maybe we can check whether it is expanded in accessibility info
