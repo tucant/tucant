@@ -297,12 +297,17 @@ def step10_ergebnisse():
 with tempfile.TemporaryDirectory() as tmpdirname:
     with open(Path(tmpdirname, "user.js"), "w") as text_file:
         # https://github.com/mozilla-firefox/firefox/blob/e93030b39fb3f3e8f9279bbb57107a8315d2c40a/browser/locales/en-US/browser/featureCallout.ftl#L103
-        print(f"user_pref('browser.newtabpage.activity-stream.asrouter.userprefs.cfr.features', false); user_pref('datareporting.policy.dataSubmissionEnabled', false); user_pref('signon.rememberSignons', false);", file=text_file)
+        print("""
+                user_pref('browser.newtabpage.activity-stream.asrouter.userprefs.cfr.features', false);
+                user_pref('datareporting.policy.dataSubmissionEnabled', false);
+                user_pref('signon.rememberSignons', false);
+                user_pref('browser.translations.enable', false)
+            """, file=text_file)
     print("test")
     firefox_process = subprocess.Popen(["/usr/bin/firefox", "--profile", tmpdirname, "-width", "1920", "-height", "1080", "about:blank"])
     print(firefox_process)
     sleep(1)
-    firefox: Node = root.child("Mozilla Firefox", "frame").parent
+    firefox: Node = root.application("Firefox")
     # TODO now we need to convince obs to select that window which is bad
     with recording("installation"):
         step1_open_tucant_installation_page()
