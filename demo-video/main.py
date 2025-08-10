@@ -1,5 +1,8 @@
 #!/usr/bin/python3
 import os
+import subprocess
+import tempfile
+
 import gi
 import obsws_python as obs
 
@@ -10,7 +13,7 @@ from dogtail.tree import root, Node
 from dogtail.config import config
 from dotenv import load_dotenv
 from time import sleep
-from pathlib import PurePath
+from pathlib import PurePath, Path
 from contextlib import contextmanager
 
 from pyatspi import SCROLL_ANYWHERE
@@ -53,11 +56,10 @@ def recording(filename):
             continue
         os.rename(output_path, output_path.with_name(filename+".mkv"))
 
-firefox: Node = root.application("Firefox")
 
+# TODO start a new browser per video?
 # TODO clear browser data before so we're logged out?
 # TODO uninstall extension before
-# TODO anonymize login data
 # TODO disable password saving in firefox
 # TODO disable ask for translating
 
@@ -275,24 +277,32 @@ def step10_ergebnisse():
     firefox.child("Select course of study", "combo box").click()
     firefox.child("B.Sc. Informatik (2015)", "menu item").click()
 
-sleep(3)
-with recording("installation"):
-    step1_open_tucant_installation_page()
-    step2_install_extension()
-with recording("settings"):
-    step2_5_extension_settings()
-with recording("login"):
-    step3_open_tucant()
-    step4_login()
-with recording("aktuelles"):
-    step5_aktuelles()
-with recording("vv"):
-    step6_vv()
-with recording("semestermodule"):
-    step7_semestermodule()
-with recording("veranstaltungen"):
-    step8_veranstaltungen()
-with recording("anmeldung_und_pruefungen"):
-    step9_anmeldung_und_pruefungen()
-with recording("ergebnisse"):
-    step10_ergebnisse()
+with tempfile.TemporaryDirectory() as tmpdirname:
+    with open(Path(tmpdirname, "user.js"), "w") as text_file:
+        print(f"user_pref('browser.translations.enable', false); ", file=text_file)
+    print("test")
+    firefox_process = subprocess.Popen(["/usr/bin/firefox", "--profile", tmpdirname, "-width", "1920", "-height", "1080", "about:blank"])
+    print(firefox_process)
+    sleep(1)
+    firefox: Node = root.child("Mozilla Firefox", "frame").parent
+    # TODO now we need to convince obs to select that window which is bad
+    with recording("installation"):
+        step1_open_tucant_installation_page()
+        step2_install_extension()
+    with recording("settings"):
+        step2_5_extension_settings()
+    with recording("login"):
+        step3_open_tucant()
+        step4_login()
+    with recording("aktuelles"):
+        step5_aktuelles()
+    with recording("vv"):
+        step6_vv()
+    with recording("semestermodule"):
+        step7_semestermodule()
+    with recording("veranstaltungen"):
+        step8_veranstaltungen()
+    with recording("anmeldung_und_pruefungen"):
+        step9_anmeldung_und_pruefungen()
+    with recording("ergebnisse"):
+        step10_ergebnisse()
