@@ -24,7 +24,7 @@ config.searchShowingOnly = True
 
 # python3 -i main.py
 
-record_state = "OBS_WEBSOCKET_OUTPUT_UNKNOWN"
+record_state = "OBS_WEBSOCKET_OUTPUT_STOPPED"
 
 def on_record_state_changed(data):
     global record_state
@@ -45,14 +45,26 @@ event_client.callback.register([on_record_state_changed])
 
 @contextmanager
 def recording(filename):
+    while record_state != "OBS_WEBSOCKET_OUTPUT_STOPPED":
+        print(f"1 waiting {record_state} to become OBS_WEBSOCKET_OUTPUT_STOPPED")
+        sleep(0.1)
+        continue
     req_client.start_record()
     while record_state != "OBS_WEBSOCKET_OUTPUT_STARTED":
+        print(f"2 waiting {record_state} to become OBS_WEBSOCKET_OUTPUT_STARTED")
+        sleep(0.1)
         continue
     try:
         yield ()
     finally:
+        while record_state != "OBS_WEBSOCKET_OUTPUT_STARTED":
+            print(f"3 waiting {record_state} to become OBS_WEBSOCKET_OUTPUT_STARTED")
+            sleep(0.1)
+            continue
         output_path = PurePath(req_client.stop_record().output_path)
         while record_state != "OBS_WEBSOCKET_OUTPUT_STOPPED":
+            print(f"4 waiting {record_state} to become OBS_WEBSOCKET_OUTPUT_STOPPED")
+            sleep(0.1)
             continue
         os.rename(output_path, output_path.with_name(filename+".mkv"))
 
@@ -88,6 +100,11 @@ def step1_open_tucant_installation_page():
 
 def step2_install_extension():
     sleep(2)
+    download_button = firefox.child("Download extension for Firefox", "link")
+    try:
+        download_button.click()
+    except ValueError:
+        print(f"clicking failed")
     download_button = firefox.child("Download extension for Firefox", "link")
     download_button.click()
 
@@ -279,7 +296,8 @@ def step10_ergebnisse():
 
 with tempfile.TemporaryDirectory() as tmpdirname:
     with open(Path(tmpdirname, "user.js"), "w") as text_file:
-        print(f"user_pref('browser.translations.enable', false); ", file=text_file)
+        # https://github.com/mozilla-firefox/firefox/blob/e93030b39fb3f3e8f9279bbb57107a8315d2c40a/browser/locales/en-US/browser/featureCallout.ftl#L103
+        print(f"user_pref('browser.newtabpage.activity-stream.asrouter.userprefs.cfr.features', false); user_pref('datareporting.policy.dataSubmissionEnabled', false);", file=text_file)
     print("test")
     firefox_process = subprocess.Popen(["/usr/bin/firefox", "--profile", tmpdirname, "-width", "1920", "-height", "1080", "about:blank"])
     print(firefox_process)
