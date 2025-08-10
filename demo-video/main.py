@@ -34,10 +34,6 @@ def on_record_state_changed(data):
 
 # OBS -> Tools -> WebSocket Server Settings
 
-# don't do this, this is broken
-# OBS -> Settings -> Output -> Output Mode: Advanced
-# OBS -> Settings -> Output -> Recording -> Automatic File Splitting -> Only split manually
-
 # https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md
 req_client = obs.ReqClient(password='PZtbUAIwD8DPxzUT')
 event_client = obs.EventClient(password='PZtbUAIwD8DPxzUT')
@@ -68,13 +64,6 @@ def recording(filename):
             continue
         os.rename(output_path, output_path.with_name(filename+".mkv"))
 
-
-# TODO start a new browser per video?
-# TODO clear browser data before so we're logged out?
-# TODO uninstall extension before
-# TODO disable password saving in firefox
-# TODO disable ask for translating
-
 def toggle_navigation():
     # TODO maybe we can check whether it is expanded in accessibility info
     return
@@ -82,16 +71,6 @@ def toggle_navigation():
     #firefox.child("Toggle navigation", "button").click()
 
 def step1_open_tucant_installation_page():
-    #navigation = firefox.child("Navigation", "tool bar")
-
-    #firefox_button = navigation.child("Firefox", "button")
-    #firefox_button.click()
-
-    # https://tucant.github.io/tucant/
-
-    #extensions_button = firefox.child("Extensions and themes", "button")
-    #extensions_button.click()
-
     urlbar_input: Node = firefox.child(identifier="urlbar-input")
     urlbar_input.click()
     urlbar_input.keyCombo("<ctrl><a>")
@@ -116,7 +95,6 @@ def step2_install_extension():
 def step2_5_extension_settings():
     firefox.child("Extensions", "button").click()
     sleep(1)
-    #firefox.dump(fileName="test")
     firefox.child("TUCaN't", "button").click()
     firefox.child("Go to options", "button").click()
     firefox.child("Anonymize grades (for demoing).", "check box").click()
@@ -128,11 +106,9 @@ def step3_open_tucant():
     urlbar_input.typeText("https://www.tucan.tu-darmstadt.de/")
     urlbar_input.keyCombo("<enter>")
 
-
 def step4_login():
     toggle_navigation()
 
-    # if we're already logged in this fails
     username_input: Node = firefox.child(identifier="login-username")
     username_input.click()
     username_input.keyCombo("<ctrl><a>")
@@ -146,16 +122,13 @@ def step4_login():
     login_button: Node = firefox.child(identifier="login-button")
     login_button.click()
 
-
 def step5_aktuelles():
-    # on mobile (TODO I think login should close navbar if it does not)
     toggle_navigation()
 
     aktuelles_button = firefox.child("Aktuelles", "button")
     aktuelles_button.scroll_to(SCROLL_ANYWHERE)
     aktuelles_button.click()
     firefox.child("Aktuelles", "link").click()
-
 
 def step6_vv():
     toggle_navigation()
@@ -197,7 +170,6 @@ def step6_vv():
     firefox.keyCombo("<pagedown>")
     sleep(3)
     firefox.keyCombo("<Home>")
-
 
 def step7_semestermodule():
     toggle_navigation()
@@ -273,10 +245,9 @@ def step9_anmeldung_und_pruefungen():
 
     sleep(1)
 
-# TODO fixme if multiple tabs of tucan are open this probably hits the wrong tab
 def step10_ergebnisse():
     sleep(2)
-    # TODO I think these are broken when coming from a page that was open in tucan?
+
     toggle_navigation()
     firefox.child("Prüfungen", "button").click()
     firefox.child("Modulergebnisse", "link").click()
@@ -293,6 +264,7 @@ def step10_ergebnisse():
     sleep(5)
     firefox.child("Select course of study", "combo box").click()
     firefox.child("B.Sc. Informatik (2015)", "menu item").click()
+    sleep(5)
 
 with tempfile.TemporaryDirectory() as tmpdirname:
     with open(Path(tmpdirname, "user.js"), "w") as text_file:
@@ -301,14 +273,14 @@ with tempfile.TemporaryDirectory() as tmpdirname:
                 user_pref('browser.newtabpage.activity-stream.asrouter.userprefs.cfr.features', false);
                 user_pref('datareporting.policy.dataSubmissionEnabled', false);
                 user_pref('signon.rememberSignons', false);
-                user_pref('browser.translations.enable', false)
+                user_pref('browser.translations.enable', false);
             """, file=text_file)
     print("test")
     firefox_process = subprocess.Popen(["/usr/bin/firefox", "--profile", tmpdirname, "-width", "1920", "-height", "1080", "about:blank"])
     print(firefox_process)
     sleep(1)
     firefox: Node = root.application("Firefox")
-    # TODO now we need to convince obs to select that window which is bad
+    input("Select window to record in OBS")
     with recording("installation"):
         step1_open_tucant_installation_page()
         step2_install_extension()
