@@ -12,7 +12,7 @@ export async function recoverTabs() {
                 resourceTypes: [
     /** @type {chrome.declarativeNetRequest.ResourceType} */ ("main_frame")
                 ],
-                urlFilter: `|https://tucant.selfmade4u.de/*`
+                urlFilter: `|https://tucant.selfmade4u.de/public/index.html*`
             },
             action: {
                 type: /** @type {chrome.declarativeNetRequest.RuleActionType} */ ('redirect'),
