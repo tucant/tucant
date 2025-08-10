@@ -18,6 +18,9 @@ from contextlib import contextmanager
 
 from pyatspi import SCROLL_ANYWHERE
 
+import torchaudio as ta
+from chatterbox.tts import ChatterboxTTS
+
 load_dotenv()
 
 config.searchShowingOnly = True
@@ -26,18 +29,13 @@ config.searchShowingOnly = True
 
 record_state = "OBS_WEBSOCKET_OUTPUT_STOPPED"
 
+model = ChatterboxTTS.from_pretrained(device="cpu")
+
 def on_record_state_changed(data):
     global record_state
     print(data.output_state)
     print(type(data.output_state))
     record_state = data.output_state
-
-# OBS -> Tools -> WebSocket Server Settings
-
-# https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md
-req_client = obs.ReqClient(password='PZtbUAIwD8DPxzUT')
-event_client = obs.EventClient(password='PZtbUAIwD8DPxzUT')
-event_client.callback.register([on_record_state_changed])
 
 @contextmanager
 def recording(filename):
@@ -266,6 +264,46 @@ def step10_ergebnisse():
     firefox.child("B.Sc. Informatik (2015)", "menu item").click()
     sleep(5)
 
+ta.save("/home/moritz/Videos/tucant/1.wav", model.generate("""
+Why does TUCaN load so slowly?
+
+Why can't I share URLs with other students?
+
+Why is it to bad on mobile?
+
+Why is the registration menu so slow?
+
+If you have been asking yourself the same, we have a solution for you.
+
+We introduce TUCaN't the best extension to make TUCaN can again.
+
+It will remove questionable half a second waits in the code of TUCaN and skip unecessary navigations.
+
+Also it works nicely on mobile with a completely new user interface.
+
+It also caches pages you already viewed before so TUCaN is not always so slow. Unfortunately we can't fix it being slow the first time.
+
+But let's look at the features in detail:
+
+
+
+
+
+How do I install this cool extension?
+
+Go to https://tucant.github.io/tucant/.
+
+Then, click on download extension for Firefox.
+
+Now, confirm the installation prompts.
+
+How do I configure TUCaN't?
+
+Click on the extension icon in the top right and select TUCaN't.
+
+Now click on Go to options.
+"""), model.sr)
+
 with tempfile.TemporaryDirectory() as tmpdirname:
     with open(Path(tmpdirname, "user.js"), "w") as text_file:
         # https://github.com/mozilla-firefox/firefox/blob/e93030b39fb3f3e8f9279bbb57107a8315d2c40a/browser/locales/en-US/browser/featureCallout.ftl#L103
@@ -281,6 +319,14 @@ with tempfile.TemporaryDirectory() as tmpdirname:
     sleep(1)
     firefox: Node = root.application("Firefox")
     input("Select window to record in OBS")
+
+    # OBS -> Tools -> WebSocket Server Settings
+
+    # https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md
+    req_client = obs.ReqClient(password='PZtbUAIwD8DPxzUT')
+    event_client = obs.EventClient(password='PZtbUAIwD8DPxzUT')
+    event_client.callback.register([on_record_state_changed])
+
     with recording("installation"):
         step1_open_tucant_installation_page()
         step2_install_extension()

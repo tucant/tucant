@@ -63,7 +63,7 @@ jobs:
         cp out/tucant-extension-${{ steps.version.outputs.VERSION }}.crx pages/
         cp out/tucant-extension-${{ steps.version.outputs.VERSION }}.xpi pages/
         cat << EOF > pages/README.md
-        For a description of the features see https://github.com/tucant/tucant/blob/main/README.md
+        For a description of the features see [https://github.com/tucant/tucant/blob/main/README.md](https://github.com/tucant/tucant/blob/main/README.md)
 
         # Installation
 
