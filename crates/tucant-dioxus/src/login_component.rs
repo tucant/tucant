@@ -1,7 +1,7 @@
 use dioxus::prelude::*;
 use tucant_types::{LoginRequest, LoginResponse, Tucan};
 
-use crate::RcTucanType;
+use crate::{Anonymize, RcTucanType};
 
 #[component]
 pub fn LoginComponent() -> Element {
@@ -13,6 +13,8 @@ pub fn LoginComponent() -> Element {
     let mut loading = use_signal(|| false);
 
     let mut current_session = use_context::<Signal<Option<LoginResponse>>>();
+
+    let anonymize = use_context::<Anonymize>().0;
 
     let on_submit = move |e: FormEvent| {
         e.prevent_default();
@@ -81,7 +83,7 @@ pub fn LoginComponent() -> Element {
                 oninput: move |event| username.set(event.value()),
                 required: true,
                 class: "align-self-start form-control me-2",
-                r#type: "username",
+                r#type: if anonymize { "password" } else { "username" },
                 placeholder: "TU-ID",
                 "aria-label": "TU-ID",
                 autocomplete: "current-username",
