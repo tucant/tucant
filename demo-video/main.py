@@ -29,21 +29,10 @@ config.searchShowingOnly = True
 
 record_state = "OBS_WEBSOCKET_OUTPUT_STOPPED"
 
-# https://github.com/canopyai/Orpheus-TTS
-# https://github.com/hexgrad/kokoro
-# https://github.com/idiap/coqui-ai-TTS
-# https://github.com/nari-labs/dia
-# https://github.com/2noise/ChatTTS
-# https://github.com/myshell-ai/MeloTTS
-
-# https://www.bentoml.com/blog/exploring-the-world-of-open-source-text-to-speech-models
-
-# pip install ChatTTS
-# pip install coqui-tts
-
-# dia
-
-# kokoro looks good
+# python3.11 -m venv env
+# source env/bin/activate
+# pip install "kokoro>=0.9.4" soundfile
+# python tts.py
 
 model = ChatterboxTTS.from_pretrained(device="cpu")
 
@@ -285,7 +274,7 @@ Why does TUCaN load so slowly?
 
 Why can't I share URLs with other students?
 
-Why is it to bad on mobile?
+Why is it so bad on mobile?
 
 Why is the registration menu so slow?
 
