@@ -1,7 +1,7 @@
 ```
 sudo dnf install gnome-ponytail-daemon python3-gnome-ponytail-daemon
 # https://github.com/pygobject/pygobject-stubs/blob/master/src/gi-stubs/repository/Atspi.pyi not in release yet
-pip install dogtail git+https://github.com/pygobject/pygobject-stubs  --no-cache-dir --config-settings=config=Atspi
+pip install dogtail git+https://github.com/pygobject/pygobject-stubs --no-cache-dir --config-settings=config=Atspi
 gsettings set org.gnome.desktop.interface toolkit-accessibility true
 
 Enable Introspect support in Looking Glass. Press `Alt+F2`, type `lg` and
@@ -40,31 +40,8 @@ python3 -i main.py
 
 https://modehnal.github.io/ The main queries you will be using
 
-
-
 https://fedoramagazine.org/automation-through-accessibility/
-
 
 # Kdenlive
 
-TODO: find out how we can replace clips in timeline with moving the length. I think we should not replace the files in the filesystem directly that seems to break a lot of stuff
-
 Enable Proxy Clips in project settings
-
-chatterbox-tts
-
-```
-import torchaudio as ta
-from chatterbox.tts import ChatterboxTTS
-
-model = ChatterboxTTS.from_pretrained(device="cpu")
-
-ta.save("1.wav", model.generate("How do I install TUCaN't?"), model.sr)
-ta.save("2.wav", model.generate("To install TUCaN't, navigate to https://tucant.github.io/tucant"), model.sr)
-ta.save("3.wav", model.generate("Then, click on download extension for Firefox."), model.sr)
-ta.save("4.wav", model.generate("Now, confirm the installation prompts."), model.sr)
-ta.save("5.wav", model.generate("How do I configure TUCaN't?"), model.sr)
-ta.save("6.wav", model.generate("Click on the extension icon in the top right and select TUCaN't"), model.sr)
-ta.save("7.wav", model.generate("Now click on Go to options"), model.sr)
-
-```
