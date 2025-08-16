@@ -1,3 +1,4 @@
+use std::fs;
 use std::future::Future;
 use std::panic::AssertUnwindSafe;
 use std::sync::Arc;
@@ -52,52 +53,38 @@ async fn async_main() -> Result<(), TucanError> {
         .await
         .unwrap();
     for course_of_study in anmeldung_response.studiumsauswahl {
-        let mut file = File::create_new(format!(
-            "registration{}_{}.json",
-            course_of_study.value, course_of_study.name
-        ))
+        let result =
+            recursive_anmeldung(&tucan, &login_response, course_of_study.value.clone()).await;
+        tokio::fs::write(
+            format!(
+                "registration{}_{}.json",
+                course_of_study.value, course_of_study.name
+            ),
+            &serde_json::to_string(&result).unwrap(),
+        )
         .await
         .unwrap();
-        file.write_all(b"[\n").await.unwrap();
-
-        recursive_anmeldung(
-            file.try_clone().await.unwrap(),
-            &tucan,
-            &login_response,
-            course_of_study.value,
-        )
-        .await;
-        file.seek(std::io::SeekFrom::Current(-2)).await.unwrap();
-        file.write_all(b"\n]\n").await.unwrap();
     }
 
     Ok(())
 }
 
-struct Fetcher {
-    anmeldung_file: File,
-}
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ExportableAnmeldungResponse {
     pub path: (String, AnmeldungRequest),
-    pub submenus: Vec<(String, AnmeldungRequest)>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub submenus: Vec<ExportableAnmeldungResponse>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub entries: Vec<ExportableAnmeldungEntry>,
-}
-
-impl From<AnmeldungResponse> for ExportableAnmeldungResponse {
-    fn from(value: AnmeldungResponse) -> Self {
-        Self {
-            path: value.path.last().unwrap().clone(),
-            submenus: value.submenus,
-            entries: value.entries.into_iter().map(Into::into).collect(),
-        }
-    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ExportableAnmeldungEntry {
     pub module: Option<ExportableAnmeldungModule>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub courses: Vec<ExportableAnmeldungCourse>,
 }
 
@@ -146,11 +133,10 @@ impl From<AnmeldungCourse> for ExportableAnmeldungCourse {
 
 #[expect(clippy::manual_async_fn)]
 fn recursive_anmeldung<'a, 'b>(
-    file: File,
     tucan: &'a TucanConnector,
     login_response: &'b LoginResponse,
     anmeldung_request: AnmeldungRequest,
-) -> impl Future<Output = ()> + Send + use<'a, 'b> {
+) -> impl Future<Output = ExportableAnmeldungResponse> + Send + use<'a, 'b> {
     async move {
         let anmeldung_response = tucan
             .anmeldung(
@@ -160,35 +146,24 @@ fn recursive_anmeldung<'a, 'b>(
             )
             .await
             .unwrap();
-        let anmeldung_response = ExportableAnmeldungResponse::from(anmeldung_response);
-
-        let mut output = serde_json::to_string(&anmeldung_response).unwrap();
-        output.push_str(",\n");
-        let len = file
-            .try_clone()
-            .await
-            .unwrap()
-            .write(output.as_bytes())
-            .await
-            .unwrap();
-        assert_eq!(len, output.len());
 
         let results: FuturesUnordered<_> = anmeldung_response
             .submenus
             .iter()
             .map(|entry| {
-                async {
-                    recursive_anmeldung(
-                        file.try_clone().await.unwrap(),
-                        tucan,
-                        login_response,
-                        entry.1.clone(),
-                    )
-                    .await;
-                }
-                .boxed()
+                async { recursive_anmeldung(tucan, login_response, entry.1.clone()).await }.boxed()
             })
             .collect();
-        results.collect::<Vec<()>>().await;
+        let results = results.collect::<Vec<ExportableAnmeldungResponse>>().await;
+
+        ExportableAnmeldungResponse {
+            path: anmeldung_response.path.last().unwrap().clone(),
+            submenus: results,
+            entries: anmeldung_response
+                .entries
+                .into_iter()
+                .map(ExportableAnmeldungEntry::from)
+                .collect(),
+        }
     }
 }
