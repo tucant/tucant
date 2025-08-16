@@ -3,8 +3,8 @@ name: Release extension
 on: workflow_dispatch
 
 permissions:
-  contents: write
-  pages: write
+  contents: write # write tags
+  pages: write # update pages
   id-token: write
 
 concurrency:
@@ -24,7 +24,7 @@ jobs:
           ssh-keyscan selfmade4u.de >> /home/runner/.ssh/known_hosts
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > /home/runner/.ssh/github_actions
           chmod 600 /home/runner/.ssh/github_actions
-          ssh-agent -a $SSH_AUTH_SOCK > /dev/null	
+          ssh-agent -a $SSH_AUTH_SOCK > /dev/null
           ssh-add /home/runner/.ssh/github_actions
     - name: Extract version
       id: version

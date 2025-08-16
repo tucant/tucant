@@ -1,5 +1,8 @@
 name: Rust
 
+permissions:
+  contents: read
+
 on:
   push:
     branches: [ "main" ]
@@ -21,7 +24,7 @@ jobs:
           ssh-keyscan selfmade4u.de >> /home/runner/.ssh/known_hosts
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > /home/runner/.ssh/github_actions
           chmod 600 /home/runner/.ssh/github_actions
-          ssh-agent -a $SSH_AUTH_SOCK > /dev/null	
+          ssh-agent -a $SSH_AUTH_SOCK > /dev/null
           ssh-add /home/runner/.ssh/github_actions
     - env:
         SSH_AUTH_SOCK: /tmp/ssh_agent.sock
