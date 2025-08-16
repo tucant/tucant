@@ -100,58 +100,7 @@ pub struct ExportableAnmeldungResponse {
     pub submenus: Vec<ExportableAnmeldungResponse>,
     #[serde(default)]
     #[serde(skip_serializing_if = "Vec::is_empty")]
-    pub entries: Vec<ExportableAnmeldungEntry>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ExportableAnmeldungEntry {
-    pub module: Option<ExportableAnmeldungModule>,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Vec::is_empty")]
-    pub courses: Vec<ExportableAnmeldungCourse>,
-}
-
-impl From<AnmeldungEntry> for ExportableAnmeldungEntry {
-    fn from(value: AnmeldungEntry) -> Self {
-        Self {
-            module: value.module.map(Into::into),
-            courses: value.courses.into_iter().map(|e| e.1.into()).collect(),
-        }
-    }
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ExportableAnmeldungModule {
-    pub url: ModuleDetailsRequest,
-    pub id: String,
-    pub name: String,
-}
-
-impl From<AnmeldungModule> for ExportableAnmeldungModule {
-    fn from(value: AnmeldungModule) -> Self {
-        Self {
-            url: value.url,
-            id: value.id,
-            name: value.name,
-        }
-    }
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ExportableAnmeldungCourse {
-    pub url: CourseDetailsRequest,
-    pub id: String,
-    pub name: String,
-}
-
-impl From<AnmeldungCourse> for ExportableAnmeldungCourse {
-    fn from(value: AnmeldungCourse) -> Self {
-        Self {
-            url: value.url,
-            id: value.id,
-            name: value.name,
-        }
-    }
+    pub entries: Vec<AnmeldungEntry>,
 }
 
 #[expect(clippy::manual_async_fn)]
@@ -182,11 +131,7 @@ fn recursive_anmeldung<'a, 'b>(
         ExportableAnmeldungResponse {
             path: anmeldung_response.path.last().unwrap().clone(),
             submenus: results,
-            entries: anmeldung_response
-                .entries
-                .into_iter()
-                .map(ExportableAnmeldungEntry::from)
-                .collect(),
+            entries: anmeldung_response.entries,
         }
     }
 }
