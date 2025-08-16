@@ -22,6 +22,7 @@ web-sys = { version = "0.3", features = ["Document", "Window", "HtmlDocument", "
 cookie = "0.18"
 web-extensions-sys = { optional = true, git = "https://github.com/mohe2015/web-extensions-sys", branch = "cookies" }
 tucan-connector = { optional = true, path = "../tucan-connector" }
+tucant-planning = { path = "../tucant-planning" }
 tracing = "0.1.41"
 plotters = { version = "0.3.7", default-features = false, features = ["svg_backend", "histogram"] }
 keyring = { version = "3", optional = true }
