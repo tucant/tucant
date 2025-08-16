@@ -4,6 +4,11 @@ use std::panic::AssertUnwindSafe;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicU64, Ordering};
 
+use async_compression::futures::bufread::{BrotliDecoder, LzmaEncoder};
+use async_compression::tokio::write::{
+    BrotliEncoder, BzEncoder, DeflateEncoder, Lz4Encoder, ZstdEncoder,
+};
+use async_compression::tokio::write::{ZlibDecoder, ZlibEncoder};
 use futures_util::stream::FuturesUnordered;
 use futures_util::{FutureExt, StreamExt};
 use serde::{Deserialize, Serialize};
@@ -26,6 +31,23 @@ fn main() -> Result<(), TucanError> {
         .build()
         .unwrap()
         .block_on(async_main())
+}
+
+async fn compress(in_data: &[u8]) -> std::io::Result<Vec<u8>> {
+    let mut encoder = async_compression::tokio::write::BrotliEncoder::with_quality(
+        Vec::new(),
+        async_compression::Level::Best,
+    );
+    encoder.write_all(in_data).await?;
+    encoder.shutdown().await?;
+    Ok(encoder.into_inner())
+}
+
+async fn decompress(in_data: &[u8]) -> std::io::Result<Vec<u8>> {
+    let mut decoder = async_compression::tokio::write::BrotliDecoder::new(Vec::new());
+    decoder.write_all(in_data).await?;
+    decoder.shutdown().await?;
+    Ok(decoder.into_inner())
 }
 
 async fn async_main() -> Result<(), TucanError> {
@@ -55,12 +77,13 @@ async fn async_main() -> Result<(), TucanError> {
     for course_of_study in anmeldung_response.studiumsauswahl {
         let result =
             recursive_anmeldung(&tucan, &login_response, course_of_study.value.clone()).await;
+        let content = serde_json::to_string(&result).unwrap();
         tokio::fs::write(
             format!(
-                "registration{}_{}.json",
+                "registration{}_{}.json.br",
                 course_of_study.value, course_of_study.name
             ),
-            &serde_json::to_string(&result).unwrap(),
+            &compress(content.as_bytes()).await.unwrap(),
         )
         .await
         .unwrap();

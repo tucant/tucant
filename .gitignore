@@ -1,3 +1,4 @@
+*.br
 env/
 *.wav
 cache.dat
