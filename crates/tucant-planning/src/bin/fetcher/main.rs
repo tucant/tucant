@@ -92,23 +92,12 @@ async fn async_main() -> Result<(), TucanError> {
     Ok(())
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ExportableAnmeldungResponse {
-    pub path: (String, AnmeldungRequest),
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Vec::is_empty")]
-    pub submenus: Vec<ExportableAnmeldungResponse>,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Vec::is_empty")]
-    pub entries: Vec<AnmeldungEntry>,
-}
-
 #[expect(clippy::manual_async_fn)]
 fn recursive_anmeldung<'a, 'b>(
     tucan: &'a TucanConnector,
     login_response: &'b LoginResponse,
     anmeldung_request: AnmeldungRequest,
-) -> impl Future<Output = ExportableAnmeldungResponse> + Send + use<'a, 'b> {
+) -> impl Future<Output = Vec<AnmeldungResponse>> + Send + use<'a, 'b> {
     async move {
         let anmeldung_response = tucan
             .anmeldung(
@@ -126,12 +115,10 @@ fn recursive_anmeldung<'a, 'b>(
                 async { recursive_anmeldung(tucan, login_response, entry.1.clone()).await }.boxed()
             })
             .collect();
-        let results = results.collect::<Vec<ExportableAnmeldungResponse>>().await;
+        let results = results.collect::<Vec<Vec<AnmeldungResponse>>>().await;
 
-        ExportableAnmeldungResponse {
-            path: anmeldung_response.path.last().unwrap().clone(),
-            submenus: results,
-            entries: anmeldung_response.entries,
-        }
+        std::iter::once(anmeldung_response)
+            .chain(results.into_iter().flatten())
+            .collect()
     }
 }
