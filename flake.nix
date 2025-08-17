@@ -114,6 +114,7 @@
           (craneLib.fileset.commonCargoSources ./crates/tucan-connector)
           (craneLib.fileset.commonCargoSources ./crates/tucant-dioxus)
           (craneLib.fileset.commonCargoSources ./crates/html-handler)
+          (craneLib.fileset.commonCargoSources ./crates/tucant-planning)
           ./crates/tucant-dioxus/assets/bootstrap.css
           ./crates/tucant-dioxus/assets/bootstrap.bundle.min.js
           ./crates/tucant-dioxus/assets/bootstrap.patch.js
