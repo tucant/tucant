@@ -1,11 +1,14 @@
 use std::str::FromStr;
 
 use dioxus::prelude::*;
+use js_sys::{Array, Uint8Array};
 use tucant_planning::{compress, recursive_anmeldung};
 use tucant_types::{
     LoginResponse, SemesterId, Tucan, examresults::ExamResultsResponse,
     registration::AnmeldungRequest,
 };
+use wasm_bindgen::JsValue;
+use web_sys::{Blob, Url};
 
 use crate::{Anonymize, RcTucanType, Route, common::use_authenticated_data_loader};
 
@@ -23,6 +26,7 @@ pub fn FetchAnmeldung() -> Element {
             )
             .await
             .unwrap();
+        let mut output = Vec::new();
         for course_of_study in anmeldung_response.studiumsauswahl {
             let result =
                 recursive_anmeldung(&tucan.0, &current_session, course_of_study.value.clone())
@@ -37,8 +41,15 @@ pub fn FetchAnmeldung() -> Element {
             )
             .await
             .unwrap();*/
+            output.push((
+                format!(
+                    "registration{}_{}.json.br",
+                    course_of_study.value, course_of_study.name
+                ),
+                compress(content.as_bytes()).await.unwrap(),
+            ));
         }
-        Ok(())
+        Ok(output)
     };
 
     let navigator = use_navigator();
@@ -50,9 +61,19 @@ pub fn FetchAnmeldung() -> Element {
         ReadSignal::new(Signal::new(())),
         14 * 24 * 60 * 60,
         60 * 60,
-        |exam_results: (), reload| {
+        |output: Vec<(String, Vec<u8>)>, reload| {
+            let blob_properties = web_sys::BlobPropertyBag::new();
+            blob_properties.set_type("octet/stream");
+            let bytes = Array::new();
+            bytes.push(&Uint8Array::from(&output[0].1[..]));
+            let blob = Blob::new_with_blob_sequence_and_options(&bytes, &blob_properties).unwrap();
+            let url = Url::create_object_url_with_blob(&blob).unwrap();
             rsx! {
-                "Done"
+                a {
+                    href: url,
+                    download: output[0].0.clone(),
+                    "Download"
+                }
             }
         },
     )
