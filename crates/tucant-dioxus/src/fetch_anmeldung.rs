@@ -56,7 +56,7 @@ pub fn FetchAnmeldung() -> Element {
 
     let anonymize = use_context::<Anonymize>().0;
 
-    use_authenticated_data_loader(
+    let result = use_authenticated_data_loader(
         handler,
         ReadSignal::new(Signal::new(())),
         14 * 24 * 60 * 60,
@@ -71,8 +71,7 @@ pub fn FetchAnmeldung() -> Element {
                             let bytes = Array::new();
                             bytes.push(&Uint8Array::from(&entry.1[..]));
                             let blob = Blob::new_with_blob_sequence_and_options(&bytes, &blob_properties).unwrap();
-                            let url = Url::create_object_url_with_blob(&blob).unwrap();
-                            url
+                            Url::create_object_url_with_blob(&blob).unwrap()
                         },
                         download: entry.0.clone(),
                         { format!("Download {}",  entry.0.clone()) }
@@ -81,5 +80,18 @@ pub fn FetchAnmeldung() -> Element {
                 }
             }
         },
-    )
+    );
+
+    rsx! {
+        div { class: "container",
+            h1 {
+                class: "text-center",
+                "Anmeldungsexporte"
+            }
+            p {
+                "Das Laden könnte etwas länger dauern. Habe Geduld."
+            }
+            { result }
+        }
+    }
 }
