@@ -4,6 +4,7 @@ pub mod common;
 pub mod course_details;
 pub mod course_results;
 pub mod exam_results;
+pub mod fetch_anmeldung;
 pub mod gradeoverview;
 pub mod login_component;
 pub mod logout_component;
@@ -24,6 +25,9 @@ pub mod vv;
 use std::ops::Deref;
 use std::sync::Arc;
 
+use crate::fetch_anmeldung::FetchAnmeldung;
+use crate::navbar::Navbar;
+use crate::overview::Overview;
 use dioxus::prelude::*;
 use tucant_types::gradeoverview::GradeOverviewRequest;
 use tucant_types::DynTucan;
@@ -31,9 +35,6 @@ use tucant_types::{
     coursedetails::CourseDetailsRequest, moduledetails::ModuleDetailsRequest,
     registration::AnmeldungRequest, vv::ActionRequest, SemesterId,
 };
-
-use crate::navbar::Navbar;
-use crate::overview::Overview;
 
 #[derive(Copy, Clone)]
 pub struct Anonymize(pub bool);
@@ -170,6 +171,8 @@ pub enum Route {
     StudentResult { course_of_study: String },
     #[route("/gradeoverview/:gradeoverview")]
     GradeOverview { gradeoverview: GradeOverviewRequest },
+    #[route("/fetch-anmeldung")]
+    FetchAnmeldung {},
 }
 
 #[component]

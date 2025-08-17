@@ -6,14 +6,19 @@ version.workspace = true
 rust-version.workspace = true
 
 [dependencies]
-tucan-connector = { path = "../tucan-connector" }
 tucant-types = { path = "../tucant-types" }
 futures-util = { version = "0.3", features = ["io"] }
-dotenvy = "0.15"
-tokio = { features = ["full"], version = "1" }
 itertools = "0.14.0"
 serde_json = "1"
 serde = { version = "1", features = ["derive"] }
+async-compression = { version = "0.4.27", features = ["brotli", "all-implementations"] }
+tokio = { version = "1", features = ["io-util"] }
+
+[dev-dependencies]
+tucan-connector = { path = "../tucan-connector" }
+dotenvy = "0.15"
+tokio = { features = ["full"], version = "1" }
+
 
 [lints]
 workspace = true

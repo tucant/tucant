@@ -540,5 +540,12 @@ pub fn NavbarLoggedIn(
                 {"Hilfe"}
             }
         }
+        li { class: "nav-item",
+            Link {
+                to: Route::FetchAnmeldung {  },
+                class: "nav-link",
+                "Studiumsplanung"
+            }
+        }
     }
 }
