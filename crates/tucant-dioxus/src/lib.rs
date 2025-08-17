@@ -29,11 +29,11 @@ use crate::fetch_anmeldung::FetchAnmeldung;
 use crate::navbar::Navbar;
 use crate::overview::Overview;
 use dioxus::prelude::*;
-use tucant_types::DynTucan;
 use tucant_types::gradeoverview::GradeOverviewRequest;
+use tucant_types::DynTucan;
 use tucant_types::{
-    SemesterId, coursedetails::CourseDetailsRequest, moduledetails::ModuleDetailsRequest,
-    registration::AnmeldungRequest, vv::ActionRequest,
+    coursedetails::CourseDetailsRequest, moduledetails::ModuleDetailsRequest,
+    registration::AnmeldungRequest, vv::ActionRequest, SemesterId,
 };
 
 #[derive(Copy, Clone)]
