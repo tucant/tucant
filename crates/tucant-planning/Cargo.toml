@@ -14,7 +14,7 @@ serde = { version = "1", features = ["derive"] }
 async-compression = { version = "0.4.27", features = ["brotli", "all-implementations"] }
 tokio = { version = "1", features = ["io-util"] }
 
-[dev.dependencies]
+[dev-dependencies]
 tucan-connector = { path = "../tucan-connector" }
 dotenvy = "0.15"
 tokio = { features = ["full"], version = "1" }

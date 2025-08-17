@@ -5694,11 +5694,13 @@ name = "tucant-planning"
 version = "0.1.2"
 dependencies = [
  "async-compression",
+ "dotenvy",
  "futures-util",
  "itertools",
  "serde",
  "serde_json",
  "tokio",
+ "tucan-connector",
  "tucant-types",
 ]
 

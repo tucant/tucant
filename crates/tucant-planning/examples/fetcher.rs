@@ -4,11 +4,8 @@ use std::panic::AssertUnwindSafe;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicU64, Ordering};
 
-use async_compression::futures::bufread::{BrotliDecoder, LzmaEncoder};
-use async_compression::tokio::write::{
-    BrotliEncoder, BzEncoder, DeflateEncoder, Lz4Encoder, ZstdEncoder,
-};
-use async_compression::tokio::write::{ZlibDecoder, ZlibEncoder};
+use async_compression::futures::bufread::BrotliDecoder;
+use async_compression::tokio::write::BrotliEncoder;
 use futures_util::stream::FuturesUnordered;
 use futures_util::{FutureExt, StreamExt};
 use serde::{Deserialize, Serialize};
@@ -22,7 +19,7 @@ use tucant_types::registration::{
     AnmeldungCourse, AnmeldungEntry, AnmeldungModule, AnmeldungRequest, AnmeldungResponse,
     RegistrationState,
 };
-use tucant_types::{LoginRequest, RevalidationStrategy, Tucan};
+use tucant_types::{DynTucan, LoginRequest, RevalidationStrategy, Tucan};
 use tucant_types::{LoginResponse, TucanError};
 
 fn main() -> Result<(), TucanError> {
@@ -59,8 +56,12 @@ async fn async_main() -> Result<(), TucanError> {
         .await
         .unwrap();
     for course_of_study in anmeldung_response.studiumsauswahl {
-        let result =
-            recursive_anmeldung(&tucan, &login_response, course_of_study.value.clone()).await;
+        let result = recursive_anmeldung(
+            DynTucan::from_ref(&tucan),
+            &login_response,
+            course_of_study.value.clone(),
+        )
+        .await;
         let content = serde_json::to_string(&result).unwrap();
         tokio::fs::write(
             format!(
