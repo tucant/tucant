@@ -89,7 +89,7 @@ pub fn FetchAnmeldung() -> Element {
                 "Anmeldungsexporte"
             }
             p {
-                "Das Laden könnte etwas länger dauern. Habe Geduld."
+                "Das Laden könnte etwas länger dauern (5-10 Minuten). Außerdem macht es ca. 1500 Anfragen an TUCaN und benötigt ca. 30MB Datenvolumen."
             }
             { result }
         }
