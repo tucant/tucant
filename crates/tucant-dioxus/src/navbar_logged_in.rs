@@ -1,5 +1,5 @@
 use dioxus::prelude::*;
-use tucant_types::{mlsstart::MlsStart, registration::AnmeldungRequest, LoginResponse, SemesterId};
+use tucant_types::{LoginResponse, SemesterId, mlsstart::MlsStart, registration::AnmeldungRequest};
 
 use crate::Route;
 
@@ -538,6 +538,13 @@ pub fn NavbarLoggedIn(
                     current_session().id,
                 ),
                 {"Hilfe"}
+            }
+        }
+        li { class: "nav-item",
+            Link {
+                to: Route::FetchAnmeldung {  },
+                class: "nav-link",
+                "Studiumsplanung"
             }
         }
     }
