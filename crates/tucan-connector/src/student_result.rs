@@ -13,7 +13,7 @@ use tucant_types::{
     Grade, LoginResponse, RevalidationStrategy, TucanError,
     student_result::{
         CourseOfStudySelection, StudentResultEntry, StudentResultLevel, StudentResultResponse,
-        StudentResultRules,
+        StudentResultRules, StudentResultState,
     },
 };
 
@@ -125,7 +125,7 @@ fn part0<'a, T>(
                     } => grade;
                 </td>
                 <td class="tbdata" style="text-align:center;">
-                    <img src=_src alt=_alt title=state></img>
+                    <img src=src alt=alt title=state></img>
                 </td>
             </tr>
         } => StudentResultEntry {
@@ -140,7 +140,7 @@ fn part0<'a, T>(
             cp: cp.map(|v| v.trim_end_matches(",0").parse().unwrap()),
             used_cp: used_cp.map(|v| v.trim_end_matches(",0").parse().unwrap()),
             grade: grade.map(|g| Grade::from_str(&g).unwrap()),
-            state
+            state: StudentResultState::from((src, alt, state))
         };
     }
     (html_handler, (level_i, entries))

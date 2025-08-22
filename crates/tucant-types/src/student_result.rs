@@ -18,7 +18,29 @@ pub struct StudentResultEntry {
     pub cp: Option<u64>,
     pub used_cp: Option<u64>,
     pub grade: Option<Grade>,
-    pub state: String,
+    pub state: StudentResultState,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema, PartialEq, Eq)]
+pub enum StudentResultState {
+    Bestanden,
+    Unvollstaendig,
+    NichtBestanden,
+}
+
+impl From<(&str, &str, &str)> for StudentResultState {
+    fn from(value: (&str, &str, &str)) -> Self {
+        match value {
+            ("/img/individual/pass.gif", "Bestanden", "Bestanden") => Self::Bestanden,
+            ("/img/individual/fail.gif", "Nicht Bestanden", "Nicht Bestanden") => {
+                Self::NichtBestanden
+            }
+            ("/img/individual/incomplete.gif", "Unvollständig", "Unvollständig") => {
+                Self::Unvollstaendig
+            }
+            s => panic!("{s:?}"),
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema, PartialEq, Eq)]
