@@ -191,7 +191,7 @@ fn examresults_internal(
                                             grade
                                         </td>
                                         <td style="vertical-align:top;">
-                                            let grade_text = if grade != "Noch nicht erbracht" {
+                                            let grade_text = if grade != "Noch nicht erbracht" && grade != "Krankschreibung" {
                                                 grade_text
                                             } => grade_text;
                                         </td>

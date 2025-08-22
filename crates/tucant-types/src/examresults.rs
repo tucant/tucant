@@ -15,7 +15,9 @@ pub struct ExamResult {
     pub name: String,
     pub exam_type: String,
     pub date: Option<String>,
+    // TODO FIXME type
     pub grade: String,
+    // TODO FIXME type
     pub grade_text: Option<String>,
     pub average_url: Option<GradeOverviewRequest>,
 }
