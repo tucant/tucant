@@ -180,7 +180,8 @@ dx serve --platform linux --hotpatch --verbose
 ```
 
 ```
-diff --color <(cat xxx_registration-N383703888296780\,-N0\,-N0\,-N0_B.Sc.\ Informatik\ \(2015\).json | jq) <(cat xxx_registration-N376333755785484\,-N0\,-N0\,-N0_B.Sc.\ Informatik\ \(2015\).json | jq)
+diff --color <(cat *_registration-N383703888296780\,-N0\,-N0\,-N0_B.Sc.\ Informatik\ \(2015\).json | jq 'sort_by(.path) | del(.[].studiumsauswahl) | del(.[].entries.[].module.registration_state) | del(.[].entries.[].courses.[].[1].registration_button_link)') <(cat *_registration-N376333755785484\,-N0\,-N0\,-N0_B.Sc.\ Informatik\ \(2015\).json | jq 'sort_by(.path) | del(.[].studiumsauswahl) | del(.[].entries.[].module.registration_state) | del(.[].entries.[].courses.[].[1].registration_button_link)' | sed 's/N376333755785484/N383703888296780/g')
+
 
 oh no there are different numbers for the same PO (probably for each semester?) maybe because depending on your starting semester the modules change?
 ```
