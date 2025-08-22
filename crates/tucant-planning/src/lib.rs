@@ -1,4 +1,5 @@
 use futures_util::AsyncWriteExt as _;
+use futures_util::stream::FuturesOrdered;
 use futures_util::{FutureExt as _, StreamExt as _, stream::FuturesUnordered};
 use tokio::io::AsyncWriteExt as _;
 use tucant_types::{
@@ -39,7 +40,7 @@ pub fn recursive_anmeldung<'a, 'b>(
             .await
             .unwrap();
 
-        let results: FuturesUnordered<_> = anmeldung_response
+        let results: FuturesOrdered<_> = anmeldung_response
             .submenus
             .iter()
             .map(|entry| {
