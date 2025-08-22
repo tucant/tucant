@@ -245,7 +245,7 @@ fn part1<'a, T>(
                     </td>
                 } => (sum_cp, sum_used_cp);
                 <td class={|v| assert_eq!(v, level)} style="text-align:center;">
-                    <img src=_pass_or_open alt=_bestanden_or_offen title=state></img>
+                    <img src=src alt=alt title=state></img>
                 </td>
             </tr>
             let rules = while html_handler.peek().is_some()
@@ -266,7 +266,7 @@ fn part1<'a, T>(
             } => rule;
         } => {
             let (sum_cp, sum_used_cp) = sum_cp_and_used_cp.either_into();
-            (sum_cp, sum_used_cp, state, rules)
+            (sum_cp, sum_used_cp, StudentResultState::from((src.as_str(), alt.as_str(), state.as_str())), rules)
         };
     }
     (

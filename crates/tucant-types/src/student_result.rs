@@ -26,6 +26,7 @@ pub enum StudentResultState {
     Bestanden,
     NichtBestanden,
     Unvollstaendig,
+    Offen,
 }
 
 impl From<(&str, &str, &str)> for StudentResultState {
@@ -38,6 +39,7 @@ impl From<(&str, &str, &str)> for StudentResultState {
             ("/img/individual/incomplete.gif", "Unvollständig", "Unvollständig") => {
                 Self::Unvollstaendig
             }
+            ("/img/individual/open.gif", "Offen", "Offen") => Self::Offen,
             s => panic!("{s:?}"),
         }
     }
@@ -49,6 +51,7 @@ impl std::fmt::Display for StudentResultState {
             Self::Bestanden => write!(f, "Bestanden"),
             Self::NichtBestanden => write!(f, "Nicht Bestanden"),
             Self::Unvollstaendig => write!(f, "Unvollständig"),
+            Self::Offen => write!(f, "Offen"),
         }
     }
 }
@@ -59,7 +62,7 @@ pub struct StudentResultLevel {
     pub entries: Vec<StudentResultEntry>,
     pub sum_cp: Option<u64>,
     pub sum_used_cp: Option<u64>,
-    pub state: Option<String>,
+    pub state: Option<StudentResultState>,
     pub rules: StudentResultRules,
     pub children: Vec<StudentResultLevel>,
 }
