@@ -31,6 +31,14 @@ pub fn Registration(registration: ReadSignal<AnmeldungRequest>) -> Element {
                 });
                 return rsx! {};
             }
+            let on_course_of_study_change = {
+                Callback::new(move |e: Event<FormData>| {
+                    let value = e.value();
+                    navigator.push(Route::Registration {
+                        registration: AnmeldungRequest::parse(&value),
+                    });
+                })
+            };
             rsx! {
                 div { class: "container",
                     h2 { class: "text-center",
@@ -58,7 +66,25 @@ pub fn Registration(registration: ReadSignal<AnmeldungRequest>) -> Element {
                             }
                         }
                     }
+                    select {
+                        onchange: on_course_of_study_change,
+                        class: "form-select mb-1",
+                        "aria-label": "Select course of study",
+                        {
+                            data
+                                .studiumsauswahl
+                                .iter()
+                                .map(|course_of_study| {
+                                    rsx! {
+                                        option { selected: course_of_study.selected, value: course_of_study.value.to_string(),
+                                            {course_of_study.name.clone()}
+                                        }
+                                    }
+                                })
+                        }
+                    }
                     nav {
+                        class: "mt-2",
                         style: "min-height: 5.5rem",
                         "aria-label": "breadcrumb",
                         ol { class: "breadcrumb",
