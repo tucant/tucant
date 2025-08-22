@@ -414,11 +414,18 @@ fn anmeldung_internal(
     };
     let html_handler = footer(html_handler, login_response.id, 311);
     html_handler.end_document();
+    let path: Vec<(String, AnmeldungRequest)> = path.into_iter().flatten().collect();
     Ok(AnmeldungResponse {
-        path: path.into_iter().flatten().collect(),
+        studiumsauswahl: studiumsauswahl.unwrap_or_else(|| {
+            vec![Studiumsauswahl {
+                name: path.first().unwrap().0.clone(),
+                value: path.first().unwrap().1.clone(),
+                selected: true,
+            }]
+        }),
+        path,
         submenus: submenus.unwrap_or_default(),
         entries: anmeldung_entries.unwrap_or_default(),
         additional_information: additional_information.into_iter().flatten().collect(),
-        studiumsauswahl: studiumsauswahl.unwrap_or_default(),
     })
 }
