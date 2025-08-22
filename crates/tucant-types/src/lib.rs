@@ -197,6 +197,7 @@ pub enum Grade {
     G5_0,
     B,
     NB,
+    Unvollstaendig,
 }
 
 impl FromStr for Grade {
@@ -217,6 +218,7 @@ impl FromStr for Grade {
             "5,0" => Self::G5_0,
             "b" => Self::B,
             "nb" => Self::NB,
+            "unvollständig" => Self::Unvollstaendig,
             s => panic!("{}", s),
         })
     }
@@ -238,6 +240,7 @@ impl Display for Grade {
             Self::G5_0 => write!(f, "5,0"),
             Self::B => write!(f, "b"),
             Self::NB => write!(f, "nb"),
+            Self::Unvollstaendig => write!(f, "unvollständig"),
         }
     }
 }

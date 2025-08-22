@@ -163,7 +163,7 @@ pub fn StudentResultLevelComponent(
                                             if anonymize {
                                                 span { class: "placeholder", "abcdefghi" }
                                             } else {
-                                                {entry.state.clone()}
+                                                {entry.state.to_string()}
                                             }
                                         }
                                     }
