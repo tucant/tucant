@@ -24,8 +24,8 @@ pub struct StudentResultEntry {
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema, PartialEq, Eq)]
 pub enum StudentResultState {
     Bestanden,
-    Unvollstaendig,
     NichtBestanden,
+    Unvollstaendig,
 }
 
 impl From<(&str, &str, &str)> for StudentResultState {
@@ -39,6 +39,16 @@ impl From<(&str, &str, &str)> for StudentResultState {
                 Self::Unvollstaendig
             }
             s => panic!("{s:?}"),
+        }
+    }
+}
+
+impl std::fmt::Display for StudentResultState {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Bestanden => write!(f, "Bestanden"),
+            Self::NichtBestanden => write!(f, "Nicht Bestanden"),
+            Self::Unvollstaendig => write!(f, "Unvollständig"),
         }
     }
 }

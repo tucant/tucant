@@ -140,7 +140,7 @@ fn part0<'a, T>(
             cp: cp.map(|v| v.trim_end_matches(",0").parse().unwrap()),
             used_cp: used_cp.map(|v| v.trim_end_matches(",0").parse().unwrap()),
             grade: grade.map(|g| Grade::from_str(&g).unwrap()),
-            state: StudentResultState::from((src, alt, state))
+            state: StudentResultState::from((src.as_str(), alt.as_str(), state.as_str()))
         };
     }
     (html_handler, (level_i, entries))

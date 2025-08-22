@@ -1,8 +1,8 @@
-use crate::{common::use_authenticated_data_loader, Anonymize, RcTucanType, Route};
+use crate::{Anonymize, RcTucanType, Route, common::use_authenticated_data_loader};
 use dioxus::prelude::*;
 use tucant_types::{
-    student_result::{StudentResultLevel, StudentResultResponse},
     Tucan,
+    student_result::{StudentResultLevel, StudentResultResponse},
 };
 
 #[component]
@@ -163,7 +163,7 @@ pub fn StudentResultLevelComponent(
                                             if anonymize {
                                                 span { class: "placeholder", "abcdefghi" }
                                             } else {
-                                                {entry.state.clone()}
+                                                {entry.state.to_string()}
                                             }
                                         }
                                     }
