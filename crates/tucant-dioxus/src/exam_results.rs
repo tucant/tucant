@@ -1,9 +1,9 @@
 use std::str::FromStr;
 
 use dioxus::prelude::*;
-use tucant_types::{examresults::ExamResultsResponse, SemesterId, Tucan};
+use tucant_types::{SemesterId, Tucan, examresults::ExamResultsResponse};
 
-use crate::{common::use_authenticated_data_loader, Anonymize, RcTucanType, Route};
+use crate::{Anonymize, RcTucanType, Route, common::use_authenticated_data_loader};
 
 #[component]
 pub fn ExamResults(semester: ReadSignal<SemesterId>) -> Element {
@@ -100,7 +100,7 @@ pub fn ExamResults(semester: ReadSignal<SemesterId>) -> Element {
                                                         if anonymize {
                                                             span { class: "placeholder", "abc" }
                                                         } else {
-                                                            {exam.grade.clone()}
+                                                            {exam.grade.to_string()}
                                                         }
                                                     }
                                                     td {

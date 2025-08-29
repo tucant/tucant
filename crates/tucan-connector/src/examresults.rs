@@ -3,7 +3,8 @@ use std::str::FromStr;
 use html_handler::{Root, parse_document};
 use time::{Duration, OffsetDateTime};
 use tucant_types::{
-    LoginResponse, RevalidationStrategy, SemesterId, Semesterauswahl, TucanError,
+    ExamResultsGrade, Grade, LoginResponse, RevalidationStrategy, SemesterId, Semesterauswahl,
+    TucanError,
     examresults::{ExamResult, ExamResultsResponse},
     gradeoverview::GradeOverviewRequest,
 };
@@ -191,9 +192,14 @@ fn examresults_internal(
                                             grade
                                         </td>
                                         <td style="vertical-align:top;">
-                                            let grade_text = if grade != "Noch nicht erbracht" && grade != "Krankschreibung" {
+                                            let actual_grade = if let ExamResultsGrade::Grade(grade) = ExamResultsGrade::from_str(&grade).unwrap() {
                                                 grade_text
-                                            } => grade_text;
+                                            } => {
+                                                assert_eq!(grade.long_text(), grade_text);
+                                                ExamResultsGrade::Grade(grade)
+                                            } else {} => {
+                                                ExamResultsGrade::from_str(&grade).unwrap()
+                                            };
                                         </td>
                                         <td style="vertical-align:top;">
                                             let average_url = if html_handler.peek().is_some() {
@@ -222,8 +228,7 @@ fn examresults_internal(
                                         name: name.trim().to_owned(),
                                         exam_type,
                                         date,
-                                        grade,
-                                        grade_text,
+                                        grade: actual_grade.either_into(),
                                         average_url,
                                     }
                                 };

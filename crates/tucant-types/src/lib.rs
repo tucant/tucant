@@ -197,7 +197,19 @@ pub enum Grade {
     G5_0,
     B,
     NB,
-    Unvollstaendig,
+}
+
+impl Grade {
+    pub const fn long_text(&self) -> &str {
+        match self {
+            Self::G1_0 | Self::G1_3 => "sehr gut",
+            Self::G1_7 | Self::G2_0 | Self::G2_3 => "gut",
+            Self::G2_7 | Self::G3_0 | Self::G3_3 => "befriedigend",
+            Self::G3_7 | Self::G4_0 => "ausreichend",
+            Self::B => "bestanden",
+            Self::G5_0 | Self::NB => "nicht bestanden",
+        }
+    }
 }
 
 impl FromStr for Grade {
@@ -218,7 +230,6 @@ impl FromStr for Grade {
             "5,0" => Self::G5_0,
             "b" => Self::B,
             "nb" => Self::NB,
-            "unvollständig" => Self::Unvollstaendig,
             s => panic!("{}", s),
         })
     }
@@ -240,7 +251,62 @@ impl Display for Grade {
             Self::G5_0 => write!(f, "5,0"),
             Self::B => write!(f, "b"),
             Self::NB => write!(f, "nb"),
-            Self::Unvollstaendig => write!(f, "unvollständig"),
+        }
+    }
+}
+
+// TODO can this ever store 5,0 or nb? or is it incomplete then? maybe when you failed your last attempt?
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema, PartialEq, Eq)]
+pub enum GradeOrUnvollständig {
+    Grade(Grade),
+    Unvollständig,
+}
+
+impl FromStr for GradeOrUnvollständig {
+    type Err = Infallible;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(match s {
+            "unvollständig" => Self::Unvollständig,
+            s => Self::Grade(Grade::from_str(s).unwrap()),
+        })
+    }
+}
+
+impl Display for GradeOrUnvollständig {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Unvollständig => write!(f, "unvollständig"),
+            Self::Grade(grade) => write!(f, "{grade}"),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema, PartialEq, Eq)]
+pub enum ExamResultsGrade {
+    Grade(Grade),
+    NochNichtErbracht,
+    Krankschreibung,
+}
+
+impl FromStr for ExamResultsGrade {
+    type Err = Infallible;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(match s {
+            "Noch nicht erbracht" => Self::NochNichtErbracht,
+            "Krankschreibung" => Self::Krankschreibung,
+            s => Self::Grade(Grade::from_str(s).unwrap()),
+        })
+    }
+}
+
+impl Display for ExamResultsGrade {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::NochNichtErbracht => write!(f, "Noch nicht erbracht"),
+            Self::Krankschreibung => write!(f, "Krankschreibung"),
+            Self::Grade(grade) => write!(f, "{grade}"),
         }
     }
 }

@@ -12,7 +12,7 @@ use tucan_connector::TucanConnector;
 use tucant_types::coursedetails::CourseDetailsRequest;
 use tucant_types::moduledetails::ModuleDetailsResponse;
 use tucant_types::registration::{AnmeldungModule, AnmeldungRequest, RegistrationState};
-use tucant_types::student_result::{StudentResultEntry, StudentResultLevel};
+use tucant_types::student_result::{StudentResultEntry, StudentResultLevel, StudentResultState};
 use tucant_types::{LoginRequest, RevalidationStrategy, Tucan};
 use tucant_types::{LoginResponse, TucanError};
 
@@ -130,7 +130,7 @@ async fn async_main() -> Result<(), TucanError> {
             cp: module_details.credits,
             used_cp: module_details.credits,
             grade: None,
-            state: String::new(),
+            state: StudentResultState::Offen,
         });
     }
 
