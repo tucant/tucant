@@ -1,7 +1,7 @@
 use crate::{common::use_authenticated_data_loader, Anonymize, RcTucanType, Route};
 use dioxus::prelude::*;
 use tucant_types::{
-    student_result::{StudentResultLevel, StudentResultResponse},
+    student_result::{StudentResultEntry, StudentResultLevel, StudentResultResponse},
     Tucan,
 };
 
@@ -136,7 +136,6 @@ pub fn StudentResultLevelComponent(
                         th { scope: "col", class: "col-1", {"CP"} }
                         th { scope: "col", class: "col-1", {"eCP"} }
                         th { scope: "col", class: "col-1", {"Note"} }
-                        th { scope: "col", class: "col-1", {"Status"} }
                     }
                 }
                 tbody {
@@ -144,7 +143,7 @@ pub fn StudentResultLevelComponent(
                         level()
                             .entries
                             .iter()
-                            .map(|entry| {
+                            .map(|entry: &StudentResultEntry| {
                                 rsx! {
                                     tr {
                                         td { {entry.name.clone()} }
@@ -157,13 +156,6 @@ pub fn StudentResultLevelComponent(
                                                 if let Some(grade) = &entry.grade {
                                                     "{grade}"
                                                 }
-                                            }
-                                        }
-                                        td {
-                                            if anonymize {
-                                                span { class: "placeholder", "abcdefghi" }
-                                            } else {
-                                                {entry.state.to_string()}
                                             }
                                         }
                                     }

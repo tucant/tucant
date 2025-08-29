@@ -33,7 +33,10 @@ use student_result::StudentResultResponse;
 use utoipa::ToSchema;
 use vv::{ActionRequest, Vorlesungsverzeichnis};
 
-use crate::gradeoverview::{GradeOverviewRequest, GradeOverviewResponse};
+use crate::{
+    gradeoverview::{GradeOverviewRequest, GradeOverviewResponse},
+    student_result::StudentResultState,
+};
 
 #[derive(Serialize, Deserialize, ToSchema, Debug)]
 pub struct LoginRequest {
@@ -257,26 +260,31 @@ impl Display for Grade {
 
 // TODO can this ever store 5,0 or nb? or is it incomplete then? maybe when you failed your last attempt?
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema, PartialEq, Eq)]
-pub enum GradeOrUnvollständig {
+pub enum LeistungsspiegelGrade {
     Grade(Grade),
     Unvollständig,
+    /// Note zu spät
+    Offen,
 }
 
-impl FromStr for GradeOrUnvollständig {
-    type Err = Infallible;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(match s {
-            "unvollständig" => Self::Unvollständig,
-            s => Self::Grade(Grade::from_str(s).unwrap()),
-        })
+impl From<(Option<&str>, StudentResultState)> for LeistungsspiegelGrade {
+    fn from(s: (Option<&str>, StudentResultState)) -> Self {
+        match s {
+            (Some("unvollständig"), StudentResultState::Unvollstaendig) => Self::Unvollständig,
+            (None, StudentResultState::Offen) => Self::Offen,
+            (Some(s), StudentResultState::Bestanden | StudentResultState::NichtBestanden) => {
+                Self::Grade(Grade::from_str(s).unwrap())
+            }
+            _ => panic!(),
+        }
     }
 }
 
-impl Display for GradeOrUnvollständig {
+impl Display for LeistungsspiegelGrade {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Unvollständig => write!(f, "unvollständig"),
+            Self::Offen => write!(f, "offen"),
             Self::Grade(grade) => write!(f, "{grade}"),
         }
     }

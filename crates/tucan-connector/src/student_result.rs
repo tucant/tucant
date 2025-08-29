@@ -10,7 +10,7 @@ use regex::Regex;
 use scraper::CaseSensitivity;
 use time::{Duration, OffsetDateTime};
 use tucant_types::{
-    Grade, GradeOrUnvollständig, LoginResponse, RevalidationStrategy, TucanError,
+    Grade, LeistungsspiegelGrade, LoginResponse, RevalidationStrategy, TucanError,
     student_result::{
         CourseOfStudySelection, StudentResultEntry, StudentResultLevel, StudentResultResponse,
         StudentResultRules, StudentResultState,
@@ -139,8 +139,7 @@ fn part0<'a, T>(
                 .1,
             cp: cp.map(|v| v.trim_end_matches(",0").parse().unwrap()),
             used_cp: used_cp.map(|v| v.trim_end_matches(",0").parse().unwrap()),
-            grade: grade.map(|g| GradeOrUnvollständig::from_str(&g).unwrap()),
-            state: StudentResultState::from((src.as_str(), alt.as_str(), state.as_str()))
+            grade: LeistungsspiegelGrade::from((grade.as_deref(), StudentResultState::from((src.as_str(), alt.as_str(), state.as_str())))),
         };
     }
     (html_handler, (level_i, entries))

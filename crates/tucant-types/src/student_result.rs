@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 
-use crate::{Grade, GradeOrUnvollständig};
+use crate::{Grade, LeistungsspiegelGrade};
 
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct CourseOfStudySelection {
@@ -17,8 +17,7 @@ pub struct StudentResultEntry {
     pub resultdetails_url: Option<String>,
     pub cp: Option<u64>,
     pub used_cp: Option<u64>,
-    pub grade: Option<GradeOrUnvollständig>,
-    pub state: StudentResultState,
+    pub grade: LeistungsspiegelGrade,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema, PartialEq, Eq)]
