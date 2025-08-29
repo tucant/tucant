@@ -262,9 +262,12 @@ impl Display for Grade {
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema, PartialEq, Eq)]
 pub enum LeistungsspiegelGrade {
     Grade(Grade),
+    /// Krankschreibung?
     Unvollständig,
     /// Note zu spät
     Offen,
+    /// Validierung
+    BestandenOhneNote,
 }
 
 impl From<(Option<&str>, StudentResultState)> for LeistungsspiegelGrade {
@@ -272,10 +275,11 @@ impl From<(Option<&str>, StudentResultState)> for LeistungsspiegelGrade {
         match s {
             (Some("unvollständig"), StudentResultState::Unvollstaendig) => Self::Unvollständig,
             (None, StudentResultState::Offen) => Self::Offen,
+            (None, StudentResultState::Bestanden) => Self::BestandenOhneNote,
             (Some(s), StudentResultState::Bestanden | StudentResultState::NichtBestanden) => {
                 Self::Grade(Grade::from_str(s).unwrap())
             }
-            _ => panic!(),
+            _ => panic!("{:?}", s),
         }
     }
 }
@@ -285,6 +289,7 @@ impl Display for LeistungsspiegelGrade {
         match self {
             Self::Unvollständig => write!(f, "unvollständig"),
             Self::Offen => write!(f, "offen"),
+            Self::BestandenOhneNote => write!(f, "bestanden ohne Note"),
             Self::Grade(grade) => write!(f, "{grade}"),
         }
     }
@@ -293,7 +298,7 @@ impl Display for LeistungsspiegelGrade {
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema, PartialEq, Eq)]
 pub enum ExamResultsGrade {
     Grade(Grade),
-    // vermutlich verspätete Note
+    /// vermutlich verspätete Note
     NochNichtErbracht,
     Krankschreibung,
 }
@@ -323,16 +328,17 @@ impl Display for ExamResultsGrade {
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema, PartialEq, Eq)]
 pub enum ModuleGrade {
     Grade(Grade),
+    /// Entweder erst in einem späteren Semester abgeschlossen oder noch gar nicht abgeschlossen
     NochNichtGesetzt,
     /// Probably only used for Validierung
-    NoGradeBestanden,
+    BestandenOhneNote,
 }
 
 impl From<(Option<&str>, Option<&str>)> for ModuleGrade {
     fn from(s: (Option<&str>, Option<&str>)) -> Self {
         match s {
             (Some("noch nicht gesetzt"), None) => Self::NochNichtGesetzt,
-            (None, Some("bestanden")) => Self::NoGradeBestanden,
+            (None, Some("bestanden")) => Self::BestandenOhneNote,
             (Some(s), Some("bestanden")) => Self::Grade(Grade::from_str(s).unwrap()),
             _ => panic!("{:?}", s),
         }
@@ -343,7 +349,7 @@ impl Display for ModuleGrade {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::NochNichtGesetzt => write!(f, "noch nicht gesetzt"),
-            Self::NoGradeBestanden => write!(f, "bestanden ohne Note"),
+            Self::BestandenOhneNote => write!(f, "bestanden ohne Note"),
             Self::Grade(grade) => write!(f, "{grade}"),
         }
     }
