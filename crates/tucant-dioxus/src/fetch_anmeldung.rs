@@ -1,17 +1,17 @@
 use dioxus::prelude::*;
 use js_sys::{Array, Uint8Array};
 use tucant_planning::{compress, recursive_anmeldung};
-use tucant_types::{registration::AnmeldungRequest, LoginResponse, Tucan};
+use tucant_types::{LoginResponse, Tucan, registration::AnmeldungRequest};
 use web_sys::{Blob, Url};
 
-use crate::{common::use_authenticated_data_loader, Anonymize, RcTucanType};
+use crate::{RcTucanType, common::use_authenticated_data_loader};
 
 #[component]
 pub fn FetchAnmeldung() -> Element {
     let handler = async |tucan: RcTucanType,
                          current_session: LoginResponse,
                          revalidation_strategy,
-                         additional: ()| {
+                         (): ()| {
         let anmeldung_response = tucan
             .anmeldung(
                 current_session.clone(),
@@ -46,16 +46,12 @@ pub fn FetchAnmeldung() -> Element {
         Ok(output)
     };
 
-    let navigator = use_navigator();
-
-    let anonymize = use_context::<Anonymize>().0;
-
     let result = use_authenticated_data_loader(
         handler,
         ReadSignal::new(Signal::new(())),
         14 * 24 * 60 * 60,
         60 * 60,
-        |output: Vec<(String, Vec<u8>)>, reload| {
+        |output: Vec<(String, Vec<u8>)>, _reload| {
             rsx! {
                 for entry in output {
                     a {
