@@ -82,7 +82,6 @@ pub fn CourseResults(semester: ReadSignal<SemesterId>) -> Element {
                                     th { scope: "col", {"Name"} }
                                     th { scope: "col", {"Credits"} }
                                     th { scope: "col", {"Note"} }
-                                    th { scope: "col", {"Status"} }
                                     th { scope: "col", {"Prüfungen"} }
                                     th { scope: "col", {"Ø"} }
                                 }
@@ -102,10 +101,9 @@ pub fn CourseResults(semester: ReadSignal<SemesterId>) -> Element {
                                                         if anonymize {
                                                             span { class: "placeholder", "abc" }
                                                         } else {
-                                                            {exam.grade.clone().unwrap_or_else(|| "-".to_owned())}
+                                                            {exam.grade.to_string()}
                                                         }
                                                     }
-                                                    td { {exam.status.clone().unwrap_or_default().clone()} }
                                                     td {
                                                         if let Some(pruefungen_url) = &exam.pruefungen_url {
                                                             a { href: format!("https://www.tucan.tu-darmstadt.de{}", pruefungen_url),

@@ -311,6 +311,35 @@ impl Display for ExamResultsGrade {
     }
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema, PartialEq, Eq)]
+pub enum ModuleGrade {
+    Grade(Grade),
+    NochNichtGesetzt,
+    /// Probably only used for Validierung
+    NoGradeBestanden,
+}
+
+impl From<(Option<&str>, Option<&str>)> for ModuleGrade {
+    fn from(s: (Option<&str>, Option<&str>)) -> Self {
+        match s {
+            (Some("noch nicht gesetzt"), None) => Self::NochNichtGesetzt,
+            (None, Some("bestanden")) => Self::NoGradeBestanden,
+            (Some(s), Some("bestanden")) => Self::Grade(Grade::from_str(s).unwrap()),
+            _ => panic!("{:?}", s),
+        }
+    }
+}
+
+impl Display for ModuleGrade {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::NochNichtGesetzt => write!(f, "och nicht gesetzt"),
+            Self::NoGradeBestanden => write!(f, "bestanden ohne Note"),
+            Self::Grade(grade) => write!(f, "{grade}"),
+        }
+    }
+}
+
 #[dynosaur(pub DynTucan = dyn(box) Tucan)]
 pub trait Tucan: Send + Sync {
     fn login(
