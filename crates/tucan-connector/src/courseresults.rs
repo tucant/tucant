@@ -3,7 +3,7 @@ use std::str::FromStr;
 use html_handler::{Root, parse_document};
 use time::{Duration, OffsetDateTime};
 use tucant_types::{
-    LoginResponse, RevalidationStrategy, SemesterId, Semesterauswahl, TucanError,
+    LoginResponse, ModuleGrade, RevalidationStrategy, SemesterId, Semesterauswahl, TucanError,
     courseresults::{ModuleResult, ModuleResultsResponse},
     gradeoverview::GradeOverviewRequest,
 };
@@ -213,9 +213,8 @@ fn courseresults_internal(
                                 } => ModuleResult {
                                     nr,
                                     name,
-                                    grade,
+                                    grade: ModuleGrade::from((grade.as_deref(), status.as_deref())),
                                     credits,
-                                    status,
                                     pruefungen_url,
                                     average_url
                                 };

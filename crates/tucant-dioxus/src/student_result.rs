@@ -1,7 +1,7 @@
 use crate::{common::use_authenticated_data_loader, Anonymize, RcTucanType, Route};
 use dioxus::prelude::*;
 use tucant_types::{
-    student_result::{StudentResultLevel, StudentResultResponse},
+    student_result::{StudentResultEntry, StudentResultLevel, StudentResultResponse},
     Tucan,
 };
 
@@ -76,7 +76,7 @@ pub fn StudentResult(course_of_study: ReadSignal<String>) -> Element {
                             .iter()
                             .map(|course_of_study| {
                                 rsx! {
-                                    option { selected: course_of_study.selected, value: course_of_study.value.clone(),
+                                    option { selected: course_of_study.selected, value: course_of_study.value,
                                         {course_of_study.name.clone()}
                                     }
                                 }
@@ -89,7 +89,7 @@ pub fn StudentResult(course_of_study: ReadSignal<String>) -> Element {
                     if anonymize {
                         span { class: "placeholder", "abc" }
                     } else {
-                        {format!("{}", student_result.total_gpa)}
+                        {student_result.total_gpa.to_string()}
                     }
                 }
                 div {
@@ -97,7 +97,7 @@ pub fn StudentResult(course_of_study: ReadSignal<String>) -> Element {
                     if anonymize {
                         span { class: "placeholder", "abc" }
                     } else {
-                        {format!("{}", student_result.main_gpa)}
+                        {student_result.main_gpa.to_string()}
                     }
                 }
             }
@@ -136,7 +136,6 @@ pub fn StudentResultLevelComponent(
                         th { scope: "col", class: "col-1", {"CP"} }
                         th { scope: "col", class: "col-1", {"eCP"} }
                         th { scope: "col", class: "col-1", {"Note"} }
-                        th { scope: "col", class: "col-1", {"Status"} }
                     }
                 }
                 tbody {
@@ -144,26 +143,17 @@ pub fn StudentResultLevelComponent(
                         level()
                             .entries
                             .iter()
-                            .map(|entry| {
+                            .map(|entry: &StudentResultEntry| {
                                 rsx! {
                                     tr {
                                         td { {entry.name.clone()} }
-                                        td { {entry.cp.clone().unwrap_or_default().to_string()} }
-                                        td { {entry.used_cp.clone().unwrap_or_default().to_string()} }
+                                        td { {entry.cp.unwrap_or_default().to_string()} }
+                                        td { {entry.used_cp.unwrap_or_default().to_string()} }
                                         td {
                                             if anonymize {
                                                 span { class: "placeholder", "abc" }
                                             } else {
-                                                if let Some(grade) = &entry.grade {
-                                                    "{grade}"
-                                                }
-                                            }
-                                        }
-                                        td {
-                                            if anonymize {
-                                                span { class: "placeholder", "abcdefghi" }
-                                            } else {
-                                                {entry.state.to_string()}
+                                                { entry.grade.to_string() }
                                             }
                                         }
                                     }

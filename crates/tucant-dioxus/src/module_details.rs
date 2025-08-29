@@ -207,7 +207,7 @@ pub fn ModuleDetails(module: ReadSignal<ModuleDetailsRequest>) -> Element {
                     }
                     div { {format!("Startsemester: {}", module.start_semester)} }
                     if let Some(display_in_timetable) = &module.display_in_timetable {
-                        div { {format!("Display in timetable: {}", display_in_timetable)} }
+                        div { {format!("Display in timetable: {display_in_timetable}")} }
                     }
                     div { {format!("Dauer: {}", module.duration)} }
                     div { {format!("Anzahl Wahlkurse: {}", module.count_elective_courses)} }

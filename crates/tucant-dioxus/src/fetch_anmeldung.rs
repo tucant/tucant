@@ -1,16 +1,10 @@
-use std::str::FromStr;
-
 use dioxus::prelude::*;
 use js_sys::{Array, Uint8Array};
 use tucant_planning::{compress, recursive_anmeldung};
-use tucant_types::{
-    examresults::ExamResultsResponse, registration::AnmeldungRequest, LoginResponse, SemesterId,
-    Tucan,
-};
-use wasm_bindgen::JsValue;
+use tucant_types::{registration::AnmeldungRequest, LoginResponse, Tucan};
 use web_sys::{Blob, Url};
 
-use crate::{common::use_authenticated_data_loader, Anonymize, RcTucanType, Route};
+use crate::{common::use_authenticated_data_loader, Anonymize, RcTucanType};
 
 #[component]
 pub fn FetchAnmeldung() -> Element {

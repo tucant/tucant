@@ -33,7 +33,10 @@ use student_result::StudentResultResponse;
 use utoipa::ToSchema;
 use vv::{ActionRequest, Vorlesungsverzeichnis};
 
-use crate::gradeoverview::{GradeOverviewRequest, GradeOverviewResponse};
+use crate::{
+    gradeoverview::{GradeOverviewRequest, GradeOverviewResponse},
+    student_result::StudentResultState,
+};
 
 #[derive(Serialize, Deserialize, ToSchema, Debug)]
 pub struct LoginRequest {
@@ -197,7 +200,20 @@ pub enum Grade {
     G5_0,
     B,
     NB,
-    Unvollstaendig,
+}
+
+impl Grade {
+    #[must_use]
+    pub const fn long_text(&self) -> &str {
+        match self {
+            Self::G1_0 | Self::G1_3 => "sehr gut",
+            Self::G1_7 | Self::G2_0 | Self::G2_3 => "gut",
+            Self::G2_7 | Self::G3_0 | Self::G3_3 => "befriedigend",
+            Self::G3_7 | Self::G4_0 => "ausreichend",
+            Self::B => "bestanden",
+            Self::G5_0 | Self::NB => "nicht bestanden",
+        }
+    }
 }
 
 impl FromStr for Grade {
@@ -218,7 +234,6 @@ impl FromStr for Grade {
             "5,0" => Self::G5_0,
             "b" => Self::B,
             "nb" => Self::NB,
-            "unvollständig" => Self::Unvollstaendig,
             s => panic!("{}", s),
         })
     }
@@ -240,7 +255,103 @@ impl Display for Grade {
             Self::G5_0 => write!(f, "5,0"),
             Self::B => write!(f, "b"),
             Self::NB => write!(f, "nb"),
-            Self::Unvollstaendig => write!(f, "unvollständig"),
+        }
+    }
+}
+
+// TODO can this ever store 5,0 or nb? or is it incomplete then? maybe when you failed your last attempt?
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema, PartialEq, Eq)]
+pub enum LeistungsspiegelGrade {
+    Grade(Grade),
+    /// Krankschreibung?
+    Unvollständig,
+    /// Note zu spät oder Thesis
+    Offen,
+    /// Validierung
+    BestandenOhneNote,
+}
+
+impl From<(Option<&str>, StudentResultState)> for LeistungsspiegelGrade {
+    fn from(s: (Option<&str>, StudentResultState)) -> Self {
+        match s {
+            (Some("unvollständig"), StudentResultState::Unvollstaendig) => Self::Unvollständig,
+            (None, StudentResultState::Offen) => Self::Offen,
+            (None, StudentResultState::Bestanden) => Self::BestandenOhneNote,
+            (Some(s), StudentResultState::Bestanden | StudentResultState::NichtBestanden) => {
+                Self::Grade(Grade::from_str(s).unwrap())
+            }
+            _ => panic!("{s:?}"),
+        }
+    }
+}
+
+impl Display for LeistungsspiegelGrade {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Unvollständig => write!(f, "unvollständig"),
+            Self::Offen => write!(f, "offen"),
+            Self::BestandenOhneNote => write!(f, "bestanden ohne Note"),
+            Self::Grade(grade) => write!(f, "{grade}"),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema, PartialEq, Eq)]
+pub enum ExamResultsGrade {
+    Grade(Grade),
+    /// vermutlich verspätete Note
+    NochNichtErbracht,
+    Krankschreibung,
+}
+
+impl FromStr for ExamResultsGrade {
+    type Err = Infallible;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(match s {
+            "Noch nicht erbracht" => Self::NochNichtErbracht,
+            "Krankschreibung" => Self::Krankschreibung,
+            s => Self::Grade(Grade::from_str(s).unwrap()),
+        })
+    }
+}
+
+impl Display for ExamResultsGrade {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::NochNichtErbracht => write!(f, "Noch nicht erbracht"),
+            Self::Krankschreibung => write!(f, "Krankschreibung"),
+            Self::Grade(grade) => write!(f, "{grade}"),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema, PartialEq, Eq)]
+pub enum ModuleGrade {
+    Grade(Grade),
+    /// Entweder erst in einem späteren Semester abgeschlossen oder noch gar nicht abgeschlossen
+    NochNichtGesetzt,
+    /// Probably only used for Validierung
+    BestandenOhneNote,
+}
+
+impl From<(Option<&str>, Option<&str>)> for ModuleGrade {
+    fn from(s: (Option<&str>, Option<&str>)) -> Self {
+        match s {
+            (Some("noch nicht gesetzt"), None) => Self::NochNichtGesetzt,
+            (None, Some("bestanden")) => Self::BestandenOhneNote,
+            (Some(s), Some("bestanden")) => Self::Grade(Grade::from_str(s).unwrap()),
+            _ => panic!("{s:?}"),
+        }
+    }
+}
+
+impl Display for ModuleGrade {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::NochNichtGesetzt => write!(f, "noch nicht gesetzt"),
+            Self::BestandenOhneNote => write!(f, "bestanden ohne Note"),
+            Self::Grade(grade) => write!(f, "{grade}"),
         }
     }
 }

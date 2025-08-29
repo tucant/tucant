@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 
-use crate::{Semesterauswahl, gradeoverview::GradeOverviewRequest};
+use crate::{ModuleGrade, Semesterauswahl, gradeoverview::GradeOverviewRequest};
 
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct ModuleResultsResponse {
@@ -15,9 +15,8 @@ pub struct ModuleResultsResponse {
 pub struct ModuleResult {
     pub nr: String,
     pub name: String,
-    pub grade: Option<String>,
+    pub grade: ModuleGrade,
     pub credits: String,
-    pub status: Option<String>,
     pub pruefungen_url: Option<String>,
     pub average_url: Option<GradeOverviewRequest>,
 }

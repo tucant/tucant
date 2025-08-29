@@ -181,9 +181,16 @@ dx serve --platform linux --hotpatch --verbose
 
 ```
 
-conda create --name module-handbook python=3.11
-conda activate module-handbook
-~/.conda/envs/module-handbook/bin/pip install py2wasm pdfplumber
-~/.conda/envs/module-handbook/bin/py2wasm module-handbook.py -o test.wasm
-wasmer run test.wasm
+cat *_registration-N383703888296780\,-N0\,-N0\,-N0_B.Sc.\ Informatik\ \(2015\).json | jq 'sort_by(.path) | del(.[].studiumsauswahl) | del(.[].entries.[].module.registration_state) | del(.[].entries.[].courses.[].[1].registration_button_link) | del(.[].entries.[].courses.[].[1].location_or_additional_info) | del(.[].entries.[].courses.[].[1].limit_and_size)' > a
+cat *_registration-N376333755785484\,-N0\,-N0\,-N0_B.Sc.\ Informatik\ \(2015\).json | jq 'sort_by(.path) | del(.[].studiumsauswahl) | del(.[].entries.[].module.registration_state) | del(.[].entries.[].courses.[].[1].registration_button_link) | del(.[].entries.[].courses.[].[1].location_or_additional_info) | del(.[].entries.[].courses.[].[1].limit_and_size)' | sed 's/N376333755785484/N383703888296780/g' > b
+meld a b
+
+oh no there are different numbers for the same PO (probably for each semester?) maybe because depending on your starting semester the modules change?
+
+seems like if you already completed a module it will not show up in registration at the other possible paths any more
+also it seems like it won't show new courses etc? probably as you are only allowed to do it once?
+
+seems like your wahlbereiche will be reduced to 3 if you complete your bachelor
+
+
 ```

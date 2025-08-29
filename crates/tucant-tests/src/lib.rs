@@ -150,11 +150,11 @@ mod tests {
 
         let result = session
             .script_call_function(CallFunctionParameters::new(
-                r##"function abc(node) {
+                r#"function abc(node) {
                         console.log("abc", node, node.getBoundingClientRect());
                         return JSON.parse(JSON.stringify(node.getBoundingClientRect()));
                     }
-                    "##
+                    "#
                 .to_owned(),
                 false,
                 Target::ContextTarget(ContextTarget::new(browsing_context.clone(), None)),
@@ -177,7 +177,7 @@ mod tests {
             .await?;
 
         // TODO FIXME webdriver bidi library fails to deserialize object
-        println!("function evaluation {:?}", result);
+        println!("function evaluation {result:?}");
 
         click_element(session, browsing_context.clone(), node).await?;
 

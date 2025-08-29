@@ -11,10 +11,8 @@ pub fn Vorlesungsverzeichnisse(data: ReadSignal<Option<MlsStart>>) -> Element {
                 .iter()
                 .flat_map(|v| v.logged_in_head.vv.vvs.iter())
                 .map(|(name, url)| {
-                    let disabled = data()
-                        .is_none()
-                        .then_some("disabled")
-                        .unwrap_or_default();
+                    let disabled = if data()
+                        .is_none() { "disabled" } else { Default::default() };
                     rsx! {
                         li {
                             Link {
@@ -43,7 +41,11 @@ pub fn NavbarLoggedIn(
     current_session: ReadSignal<LoginResponse>,
     data: ReadSignal<Option<MlsStart>>,
 ) -> Element {
-    let disabled = data().is_none().then_some("disabled").unwrap_or_default();
+    let disabled = if data().is_none() {
+        "disabled"
+    } else {
+        Default::default()
+    };
     rsx! {
         li { class: "nav-item dropdown",
             a {
