@@ -264,7 +264,7 @@ pub enum LeistungsspiegelGrade {
     Grade(Grade),
     /// Krankschreibung?
     Unvollständig,
-    /// Note zu spät
+    /// Note zu spät oder Thesis
     Offen,
     /// Validierung
     BestandenOhneNote,

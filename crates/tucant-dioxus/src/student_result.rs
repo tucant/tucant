@@ -153,9 +153,7 @@ pub fn StudentResultLevelComponent(
                                             if anonymize {
                                                 span { class: "placeholder", "abc" }
                                             } else {
-                                                if let Some(grade) = &entry.grade {
-                                                    "{grade}"
-                                                }
+                                                { entry.grade.to_string() }
                                             }
                                         }
                                     }
