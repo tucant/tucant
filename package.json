@@ -1,6 +1,6 @@
 {
   "type": "module",
   "dependencies": {
-    "pdfjs-dist": "^5.3.93"
+    "pdfjs-dist": "^5.4.54"
   }
 }
