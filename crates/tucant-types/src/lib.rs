@@ -285,6 +285,7 @@ impl Display for GradeOrUnvollständig {
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema, PartialEq, Eq)]
 pub enum ExamResultsGrade {
     Grade(Grade),
+    // vermutlich verspätete Note
     NochNichtErbracht,
     Krankschreibung,
 }
