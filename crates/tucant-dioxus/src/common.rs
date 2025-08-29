@@ -127,12 +127,12 @@ fn use_data_loader<I: Clone + PartialEq + std::fmt::Debug + 'static, O: Clone + 
                         {
                             Ok(response) => data.set(Ok(Some(response))),
                             Err(error) => {
-                                info!("ignoring error when refetching: {}", error)
+                                info!("ignoring error when refetching: {error}")
                             }
                         }
                     }
                     Err(error) => {
-                        log::error!("{}", error);
+                        log::error!("{error}");
                         match error {
                             TucanError::Http(ref req)
                                 if req.status() == Some(StatusCode::UNAUTHORIZED) =>
@@ -223,7 +223,7 @@ fn use_data_loader<I: Clone + PartialEq + std::fmt::Debug + 'static, O: Clone + 
                         loading.set(false);
                     }
                     Err(error) => {
-                        log::error!("{}", error);
+                        log::error!("{error}");
                         match error {
                             TucanError::Http(ref req)
                                 if req.status() == Some(StatusCode::UNAUTHORIZED) =>

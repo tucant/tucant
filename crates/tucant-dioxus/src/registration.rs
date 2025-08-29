@@ -153,7 +153,7 @@ pub fn Registration(registration: ReadSignal<AnmeldungRequest>) -> Element {
                                                 }
                                                 if let Some(module) = module {
                                                     if let Some(date) = &module.date {
-                                                        small { class: "text-body-secondary", {format!("Anmeldung bis {}", date)} }
+                                                        small { class: "text-body-secondary", {format!("Anmeldung bis {date}")} }
                                                     }
                                                 }
                                             }
@@ -216,7 +216,7 @@ pub fn Registration(registration: ReadSignal<AnmeldungRequest>) -> Element {
                                                                             }
                                                                         }
                                                                         if let Some(registration_until) = &course.1.registration_until {
-                                                                            small { class: "text-body-secondary", {format!("Anmeldung bis {}", registration_until)} }
+                                                                            small { class: "text-body-secondary", {format!("Anmeldung bis {registration_until}")} }
                                                                         }
                                                                     }
                                                                     div { class: "d-flex w-100 justify-content-between",

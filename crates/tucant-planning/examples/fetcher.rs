@@ -1,26 +1,8 @@
-use std::fs;
-use std::future::Future;
-use std::panic::AssertUnwindSafe;
-use std::sync::Arc;
-use std::sync::atomic::{AtomicU64, Ordering};
-
-use async_compression::futures::bufread::BrotliDecoder;
-use async_compression::tokio::write::BrotliEncoder;
-use futures_util::stream::FuturesUnordered;
-use futures_util::{FutureExt, StreamExt};
-use serde::{Deserialize, Serialize};
-use tokio::fs::File;
-use tokio::io::{AsyncSeekExt, AsyncWriteExt as _};
 use tucan_connector::TucanConnector;
 use tucant_planning::{compress, recursive_anmeldung};
-use tucant_types::coursedetails::CourseDetailsRequest;
-use tucant_types::moduledetails::ModuleDetailsRequest;
-use tucant_types::registration::{
-    AnmeldungCourse, AnmeldungEntry, AnmeldungModule, AnmeldungRequest, AnmeldungResponse,
-    RegistrationState,
-};
+use tucant_types::TucanError;
+use tucant_types::registration::AnmeldungRequest;
 use tucant_types::{DynTucan, LoginRequest, RevalidationStrategy, Tucan};
-use tucant_types::{LoginResponse, TucanError};
 
 fn main() -> Result<(), TucanError> {
     dotenvy::dotenv().unwrap();

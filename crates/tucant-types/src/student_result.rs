@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 
-use crate::{Grade, LeistungsspiegelGrade};
+use crate::LeistungsspiegelGrade;
 
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct CourseOfStudySelection {

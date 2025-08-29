@@ -1,7 +1,7 @@
 use std::panic;
 
 use dioxus::prelude::*;
-use tucant_dioxus::{Anonymize, RcTucanType, Route};
+use tucant_dioxus::{Anonymize, Route};
 use tucant_types::LoginResponse;
 use wasm_bindgen::prelude::*;
 

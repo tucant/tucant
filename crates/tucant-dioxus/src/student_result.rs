@@ -76,7 +76,7 @@ pub fn StudentResult(course_of_study: ReadSignal<String>) -> Element {
                             .iter()
                             .map(|course_of_study| {
                                 rsx! {
-                                    option { selected: course_of_study.selected, value: course_of_study.value.clone(),
+                                    option { selected: course_of_study.selected, value: course_of_study.value,
                                         {course_of_study.name.clone()}
                                     }
                                 }
@@ -89,7 +89,7 @@ pub fn StudentResult(course_of_study: ReadSignal<String>) -> Element {
                     if anonymize {
                         span { class: "placeholder", "abc" }
                     } else {
-                        {format!("{}", student_result.total_gpa)}
+                        {student_result.total_gpa.to_string()}
                     }
                 }
                 div {
@@ -97,7 +97,7 @@ pub fn StudentResult(course_of_study: ReadSignal<String>) -> Element {
                     if anonymize {
                         span { class: "placeholder", "abc" }
                     } else {
-                        {format!("{}", student_result.main_gpa)}
+                        {student_result.main_gpa.to_string()}
                     }
                 }
             }
@@ -147,8 +147,8 @@ pub fn StudentResultLevelComponent(
                                 rsx! {
                                     tr {
                                         td { {entry.name.clone()} }
-                                        td { {entry.cp.clone().unwrap_or_default().to_string()} }
-                                        td { {entry.used_cp.clone().unwrap_or_default().to_string()} }
+                                        td { {entry.cp.unwrap_or_default().to_string()} }
+                                        td { {entry.used_cp.unwrap_or_default().to_string()} }
                                         td {
                                             if anonymize {
                                                 span { class: "placeholder", "abc" }

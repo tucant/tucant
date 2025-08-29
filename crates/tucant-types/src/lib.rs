@@ -203,6 +203,7 @@ pub enum Grade {
 }
 
 impl Grade {
+    #[must_use]
     pub const fn long_text(&self) -> &str {
         match self {
             Self::G1_0 | Self::G1_3 => "sehr gut",
@@ -279,7 +280,7 @@ impl From<(Option<&str>, StudentResultState)> for LeistungsspiegelGrade {
             (Some(s), StudentResultState::Bestanden | StudentResultState::NichtBestanden) => {
                 Self::Grade(Grade::from_str(s).unwrap())
             }
-            _ => panic!("{:?}", s),
+            _ => panic!("{s:?}"),
         }
     }
 }
@@ -340,7 +341,7 @@ impl From<(Option<&str>, Option<&str>)> for ModuleGrade {
             (Some("noch nicht gesetzt"), None) => Self::NochNichtGesetzt,
             (None, Some("bestanden")) => Self::BestandenOhneNote,
             (Some(s), Some("bestanden")) => Self::Grade(Grade::from_str(s).unwrap()),
-            _ => panic!("{:?}", s),
+            _ => panic!("{s:?}"),
         }
     }
 }

@@ -29,7 +29,7 @@ pub fn Navbar() -> Element {
                     Ok(response) => Ok(Some(response)),
                     Err(error) => {
                         // TODO pass through tucanerror from server
-                        error!("{}", error);
+                        error!("{error}");
                         match error {
                             TucanError::Http(ref req)
                                 if req.status() == Some(StatusCode::UNAUTHORIZED) =>

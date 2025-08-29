@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 
-use crate::{ExamResultsGrade, Grade, Semesterauswahl, gradeoverview::GradeOverviewRequest};
+use crate::{ExamResultsGrade, Semesterauswahl, gradeoverview::GradeOverviewRequest};
 
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct ExamResultsResponse {

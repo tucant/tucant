@@ -22,7 +22,7 @@ pub fn CourseDetails(course: ReadSignal<CourseDetailsRequest>) -> Element {
                         {course.name.clone()}
                         if let Some(credits) = course.credits {
                             {" "}
-                            span { class: "badge text-bg-secondary", {format!("{} CP", credits)} }
+                            span { class: "badge text-bg-secondary", {format!("{credits} CP")} }
                         }
                         " "
                         button {
@@ -264,7 +264,7 @@ pub fn CourseDetails(course: ReadSignal<CourseDetailsRequest>) -> Element {
                     div { {format!("Sprache: {}", course.language)} }
                     div { {format!("SWS: {}", course.sws.map(|v| v.to_string()).unwrap_or_default())} }
                     if let Some(anzeige_im_stundenplan) = &course.anzeige_im_stundenplan {
-                        div { {format!("Anzeige im Stundenplan: {}", anzeige_im_stundenplan)} }
+                        div { {format!("Anzeige im Stundenplan: {anzeige_im_stundenplan}")} }
                     }
                     div { {format!("Kurslevel: {}", course.courselevel)} }
                     h2 { {"Enhalten in Modulen"} }

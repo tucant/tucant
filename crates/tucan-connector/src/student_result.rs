@@ -1,4 +1,4 @@
-use std::{str::FromStr, sync::LazyLock};
+use std::sync::LazyLock;
 
 use crate::{
     TucanConnector, authenticated_retryable_get,
@@ -10,7 +10,7 @@ use regex::Regex;
 use scraper::CaseSensitivity;
 use time::{Duration, OffsetDateTime};
 use tucant_types::{
-    Grade, LeistungsspiegelGrade, LoginResponse, RevalidationStrategy, TucanError,
+    LeistungsspiegelGrade, LoginResponse, RevalidationStrategy, TucanError,
     student_result::{
         CourseOfStudySelection, StudentResultEntry, StudentResultLevel, StudentResultResponse,
         StudentResultRules, StudentResultState,
