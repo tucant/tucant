@@ -333,7 +333,7 @@ impl From<(Option<&str>, Option<&str>)> for ModuleGrade {
 impl Display for ModuleGrade {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::NochNichtGesetzt => write!(f, "och nicht gesetzt"),
+            Self::NochNichtGesetzt => write!(f, "noch nicht gesetzt"),
             Self::NoGradeBestanden => write!(f, "bestanden ohne Note"),
             Self::Grade(grade) => write!(f, "{grade}"),
         }
