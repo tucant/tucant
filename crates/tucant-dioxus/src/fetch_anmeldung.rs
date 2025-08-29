@@ -1,10 +1,10 @@
 use dioxus::prelude::*;
 use js_sys::{Array, Uint8Array};
 use tucant_planning::{compress, recursive_anmeldung};
-use tucant_types::{LoginResponse, Tucan, registration::AnmeldungRequest};
+use tucant_types::{registration::AnmeldungRequest, LoginResponse, Tucan};
 use web_sys::{Blob, Url};
 
-use crate::{RcTucanType, common::use_authenticated_data_loader};
+use crate::{common::use_authenticated_data_loader, RcTucanType};
 
 #[component]
 pub fn FetchAnmeldung() -> Element {
