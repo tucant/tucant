@@ -215,6 +215,10 @@ pub fn Root() -> Element {
                 }
                 {"."}
             }
+            p {
+                "Version "
+                { git_version::git_version!() }
+            }
         }
     }
 }
