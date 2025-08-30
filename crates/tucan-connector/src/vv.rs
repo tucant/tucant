@@ -21,7 +21,7 @@ pub async fn vv(
 ) -> Result<Vorlesungsverzeichnis, TucanError> {
     let key = format!(
         "unparsed_vv.{}.{}",
-        login_response.is_some(),
+        login_response.is_some(), // TODO FIXME I think the complete cache should be separated for logged in and logged out? Otherwise we pass a session to the parser but the cached stuff is without a session? Probably only relevant for stuff where you can have both and where parsing differs depending on session?
         request.inner()
     );
 

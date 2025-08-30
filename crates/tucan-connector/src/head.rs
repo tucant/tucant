@@ -244,6 +244,7 @@ pub fn vv_something<'a>(
                 </a>
             </li>
             let _unit = if id != 1 {
+                // When logged in, an additional Gasthörer_innen entry is present.
                 <li class="intern depth_2 linkItem " title=_title_wise202421 id=_linkclass>
                     <a class=_linkclass href=vv_3_url>
                         vv_3_title
