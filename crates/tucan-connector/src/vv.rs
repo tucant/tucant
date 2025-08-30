@@ -19,7 +19,11 @@ pub async fn vv(
     revalidation_strategy: RevalidationStrategy,
     request: ActionRequest,
 ) -> Result<Vorlesungsverzeichnis, TucanError> {
-    let key = format!("unparsed_vv.{}", request.inner());
+    let key = format!(
+        "unparsed_vv.{}.{}",
+        login_response.is_some(),
+        request.inner()
+    );
 
     let old_content_and_date = tucan.database.get::<(String, OffsetDateTime)>(&key).await;
     if revalidation_strategy.max_age != 0 {
