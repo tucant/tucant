@@ -38,8 +38,8 @@
           src = pkgs.fetchFromGitHub {
             owner = "mohe2015";
             repo = "dioxus";
-            rev = "e7526f30c7cb2d2f68f1b385739f86c2e5556595";
-            hash = "sha256-AcytHz0RHSNNoQ1gRqF04/kmWa1a284Kmd/f+Hme2SU=";
+            rev = "c5ca0c8576825ea2b6478ac3087d2f0d778f9ff6";
+            hash = "sha256-Uy5Ug3bu8Reae6i8UpT2/tV0yjAfubO44oFs0EYN8Rc=";
           };
           doCheck = false;
           strictDeps = true;
@@ -138,7 +138,10 @@
           '';
           installPhaseCommand = ''
           '';
-          nativeBuildInputs = [ pkgs.wasm-bindgen-cli_0_2_100 pkgs.binaryen ];
+          nativeBuildInputs = [ pkgs.wasm-bindgen-cli_0_2_100 pkgs.binaryen (pkgs.writeShellScriptBin "git"
+  ''
+  echo ${self.rev or "dirty"}
+  '') ];
           doNotPostBuildInstallCargoBinaries = true;
         });
 

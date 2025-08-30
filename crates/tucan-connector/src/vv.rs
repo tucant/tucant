@@ -19,7 +19,11 @@ pub async fn vv(
     revalidation_strategy: RevalidationStrategy,
     request: ActionRequest,
 ) -> Result<Vorlesungsverzeichnis, TucanError> {
-    let key = format!("unparsed_vv.{}", request.inner());
+    let key = format!(
+        "unparsed_vv.{}.{}",
+        login_response.is_some(), // TODO FIXME I think the complete cache should be separated for logged in and logged out? Otherwise we pass a session to the parser but the cached stuff is without a session? Probably only relevant for stuff where you can have both and where parsing differs depending on session?
+        request.inner()
+    );
 
     let old_content_and_date = tucan.database.get::<(String, OffsetDateTime)>(&key).await;
     if revalidation_strategy.max_age != 0 {
