@@ -34,7 +34,10 @@ pub async fn main() {
     // From https://github.com/rustwasm/console_error_panic_hook, licensed under MIT and Apache 2.0
     #[cfg(feature = "web")]
     panic::set_hook(Box::new(|info| {
-        let mut msg = info.to_string();
+        let mut msg = "Version: ".to_string();
+        msg.push_str(git_version::git_version!());
+        msg.push_str("\n");
+        msg.push_str(&info.to_string());
         msg.push_str("\n\nStack:\n\n");
         let e = Error::new();
         let stack = e.stack();
