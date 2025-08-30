@@ -138,7 +138,7 @@
           '';
           installPhaseCommand = ''
           '';
-          nativeBuildInputs = [ pkgs.wasm-bindgen-cli_0_2_100 pkgs.binaryen ];
+          nativeBuildInputs = [ pkgs.wasm-bindgen-cli_0_2_100 pkgs.binaryen pkgs.git ];
           doNotPostBuildInstallCargoBinaries = true;
         });
 
