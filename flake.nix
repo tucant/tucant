@@ -140,7 +140,7 @@
           '';
           nativeBuildInputs = [ pkgs.wasm-bindgen-cli_0_2_100 pkgs.binaryen (pkgs.writeShellScriptBin "git"
   ''
-  echo ${self.rev}
+  echo ${self.rev or "dirty"}
   '') ];
           doNotPostBuildInstallCargoBinaries = true;
         });
