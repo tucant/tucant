@@ -93,7 +93,7 @@ fn part0<'a, T>(
             .has_class("tbdata", CaseSensitivity::CaseSensitive) {
             <tr>
                 <td class="tbdata">
-                    id // TODO FIXME can be "Anerkennung"
+                    id
                 </td>
                 <td class="tbdata">
                     let name_and_resultdetails_url = if html_handler.peek().unwrap().value().is_text() {
@@ -129,7 +129,7 @@ fn part0<'a, T>(
                 </td>
             </tr>
         } => StudentResultEntry {
-            id,
+            id: if id == "Anerkennung" { None } else { Some(id) },
             name: name_and_resultdetails_url
                 .clone()
                 .either_into::<(String, Option<String>)>()

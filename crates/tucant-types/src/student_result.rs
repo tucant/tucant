@@ -12,7 +12,8 @@ pub struct CourseOfStudySelection {
 
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema, PartialEq, Eq)]
 pub struct StudentResultEntry {
-    pub id: String,
+    /// None means Anerkennung
+    pub id: Option<String>,
     pub name: String,
     pub resultdetails_url: Option<String>,
     pub cp: Option<u64>,
