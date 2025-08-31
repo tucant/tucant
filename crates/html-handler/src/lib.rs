@@ -586,7 +586,7 @@ impl<'a, OuterState> InElement<'a, InRoot<'a, OuterState>> {
             self.current_child
                 .map(|child| MyElementRef::wrap(child).unwrap().html()),
             None,
-            "expected there to be no more children",
+            "expected there to be no more children"
         );
         let Some(element) = self.element.value().as_element() else {
             panic!("expected element but got {:?}", self.element.value())
