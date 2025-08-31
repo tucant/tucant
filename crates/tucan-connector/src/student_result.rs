@@ -63,24 +63,25 @@ pub async fn student_result(
     Ok(result)
 }
 
-fn get_level(node: &NodeRef<MyNode>) -> u8 {
+fn get_level(node: &NodeRef<MyNode>) -> i8 {
     node.value()
         .as_element()
         .unwrap()
         .attr("class")
-        .unwrap()
-        .trim_start_matches("subhead level0")
-        .parse::<u8>()
-        .unwrap()
+        .map_or(-1, |v| {
+            v.trim_start_matches("subhead level0")
+                .parse::<i8>()
+                .unwrap()
+        })
 }
 
 fn part0<T>(
     html_handler: InElement<'_, T>,
-    level: u8,
+    level: i8,
 ) -> (InElement<'_, T>, Option<(String, Vec<StudentResultEntry>)>) {
     html_extractor::html! {
         let result = if get_level(html_handler.peek().unwrap()) == level {
-            <tr class={|l| assert_eq!(l, format!("subhead {level}"))}>
+            <tr class={|l| assert_eq!(l, format!("subhead level0{level}"))}>
                 <td colspan="2">
                     level_i
                 </td>
