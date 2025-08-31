@@ -93,7 +93,7 @@ fn part0<'a, T>(
             .has_class("tbdata", CaseSensitivity::CaseSensitive) {
             <tr>
                 <td class="tbdata">
-                    id
+                    id // TODO FIXME can be "Anerkennung"
                 </td>
                 <td class="tbdata">
                     let name_and_resultdetails_url = if html_handler.peek().unwrap().value().is_text() {
@@ -483,6 +483,7 @@ fn student_result_internal(
                                         let level2_contents = part1(html_handler, "level02", level2_title, level3);
                                     } => level2_contents;
                                     let level1_contents = part1(html_handler, "level01", level1_title, level2);
+                                    // after here comes a level 2 title
                                 } => level1_contents;
                                 let level0_contents = part1(html_handler, "level00", level0_title, level1);
                             </tbody>

@@ -583,9 +583,10 @@ impl<'a, OuterState> InElement<'a, InRoot<'a, OuterState>> {
     #[must_use]
     pub fn close_element(self, name: &str) -> InRoot<'a, OuterState> {
         assert_eq!(
-            self.current_child.map(|child| child.value()),
+            self.current_child
+                .map(|child| MyElementRef::wrap(child).unwrap().html()),
             None,
-            "expected there to be no more children"
+            "expected there to be no more children",
         );
         let Some(element) = self.element.value().as_element() else {
             panic!("expected element but got {:?}", self.element.value())
