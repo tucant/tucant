@@ -69,7 +69,8 @@ fn get_level(node: &NodeRef<MyNode>) -> i8 {
         .unwrap()
         .attr("class")
         .map_or(-1, |v| {
-            v.trim_start_matches("subhead level0")
+            v.trim_start_matches("subhead ")
+                .trim_start_matches("level0")
                 .parse::<i8>()
                 .unwrap()
         })
@@ -217,7 +218,7 @@ fn parse_rules(rules: &[String]) -> StudentResultRules {
 
 fn part1<T>(
     html_handler: InElement<'_, T>,
-    level: u8,
+    level: i8,
     name: Option<(String, Vec<StudentResultEntry>)>,
     children: Vec<StudentResultLevel>,
 ) -> (InElement<'_, T>, StudentResultLevel) {
@@ -229,7 +230,8 @@ fn part1<T>(
             .as_element()
             .unwrap()
             .attrs
-            .is_empty() {
+            .is_empty()
+            && get_level(&html_handler.peek().unwrap().first_child().unwrap()) == level {
             <tr>
                 <td colspan="2" class={|v| assert_eq!(v, format!("level0{level}"))}>
                     _summe
