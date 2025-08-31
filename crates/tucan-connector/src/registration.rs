@@ -18,7 +18,7 @@ use crate::{
     COURSEDETAILS_REGEX, TucanConnector, TucanError, authenticated_retryable_get,
     head::{footer, html_head, logged_in_head},
 };
-use html_handler::{MyElementRef, MyNode, Root, parse_document};
+use html_handler::{InElement, InRoot, MyElementRef, MyNode, Root, parse_document};
 
 pub async fn anmeldung(
     tucan: &TucanConnector,
@@ -81,6 +81,36 @@ pub static MODULEDETAILS_REGEX: LazyLock<Regex> = LazyLock::new(|| {
     )
     .unwrap()
 });
+
+fn is_tbsubhead(
+    html_handler: &InElement<
+        '_,
+        InElement<
+            '_,
+            InElement<
+                '_,
+                InElement<
+                    '_,
+                    InElement<
+                        '_,
+                        InElement<'_, InElement<'_, InElement<'_, InRoot<'_, Root<'_>>>>>,
+                    >,
+                >,
+            >,
+        >,
+    >,
+) -> bool {
+    html_handler
+        .peek()
+        .unwrap()
+        .children()
+        .next()
+        .unwrap()
+        .value()
+        .as_element()
+        .unwrap()
+        .has_class("tbsubhead", scraper::CaseSensitivity::CaseSensitive)
+}
 
 #[expect(clippy::too_many_lines, clippy::cognitive_complexity)]
 fn anmeldung_internal(
@@ -240,7 +270,7 @@ fn anmeldung_internal(
                                                     </td>
                                                 </tr>
                                                 let anmeldung_entries = while html_handler.peek().is_some() {
-                                                    let module = if html_handler.peek().is_some() && html_handler.peek().unwrap().children().next().unwrap().value().as_element().unwrap().has_class("tbsubhead", scraper::CaseSensitivity::CaseSensitive) {
+                                                    let module = if html_handler.peek().is_some() && is_tbsubhead(&html_handler) {
                                                         <tr>
                                                             <td class="tbsubhead">
                                                             </td>
