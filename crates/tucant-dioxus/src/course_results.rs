@@ -1,9 +1,9 @@
 use std::str::FromStr;
 
 use dioxus::prelude::*;
-use tucant_types::{courseresults::ModuleResultsResponse, SemesterId, Tucan};
+use tucant_types::{SemesterId, Tucan, courseresults::ModuleResultsResponse};
 
-use crate::{common::use_authenticated_data_loader, Anonymize, RcTucanType, Route};
+use crate::{Anonymize, RcTucanType, Route, common::use_authenticated_data_loader};
 
 #[component]
 pub fn CourseResults(semester: ReadSignal<SemesterId>) -> Element {

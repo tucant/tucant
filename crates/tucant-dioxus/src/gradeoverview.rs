@@ -4,11 +4,11 @@ use plotters::{
     style::text_anchor::{HPos, Pos, VPos},
 };
 use tucant_types::{
-    gradeoverview::{GradeOverviewRequest, GradeOverviewResponse},
     Tucan,
+    gradeoverview::{GradeOverviewRequest, GradeOverviewResponse},
 };
 
-use crate::{common::use_authenticated_data_loader, RcTucanType};
+use crate::{RcTucanType, common::use_authenticated_data_loader};
 
 #[component]
 pub fn GradeOverview(gradeoverview: ReadSignal<GradeOverviewRequest>) -> Element {

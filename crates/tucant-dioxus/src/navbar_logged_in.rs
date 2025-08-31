@@ -1,5 +1,5 @@
 use dioxus::prelude::*;
-use tucant_types::{mlsstart::MlsStart, registration::AnmeldungRequest, LoginResponse, SemesterId};
+use tucant_types::{LoginResponse, SemesterId, mlsstart::MlsStart, registration::AnmeldungRequest};
 
 use crate::Route;
 

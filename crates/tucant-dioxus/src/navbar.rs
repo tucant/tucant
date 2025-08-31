@@ -4,8 +4,8 @@ use reqwest::StatusCode;
 use tucant_types::{LoginResponse, RevalidationStrategy, Tucan, TucanError};
 
 use crate::{
-    login_component::LoginComponent, logout_component::LogoutComponent,
-    navbar_logged_in::NavbarLoggedIn, navbar_logged_out::NavbarLoggedOut, RcTucanType, Route,
+    RcTucanType, Route, login_component::LoginComponent, logout_component::LogoutComponent,
+    navbar_logged_in::NavbarLoggedIn, navbar_logged_out::NavbarLoggedOut,
 };
 
 //use crate::{LoginComponent, LogoutComponent, RcTucanType, navbar_logged_in::NavbarLoggedIn, navbar_logged_out::NavbarLoggedOut};

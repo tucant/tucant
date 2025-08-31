@@ -1,7 +1,7 @@
 use dioxus::prelude::*;
-use tucant_types::{vv::ActionRequest, Tucan};
+use tucant_types::{Tucan, vv::ActionRequest};
 
-use crate::{common::use_unauthenticated_data_loader, RcTucanType, Route};
+use crate::{RcTucanType, Route, common::use_unauthenticated_data_loader};
 
 #[component]
 pub fn Vorlesungsverzeichnis(vv: ReadSignal<ActionRequest>) -> Element {
