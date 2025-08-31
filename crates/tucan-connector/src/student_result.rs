@@ -287,7 +287,14 @@ fn student_result_internal(login_response: &LoginResponse, content: &str) -> Res
                                             </label>
                                             <select name="study" id="study" onchange="reloadpage.submitForm(this.form.id);" class="tabledata pageElementLeft">
                                                 let course_of_study = while html_handler.peek().is_some() {
-                                                    let course_of_study = if html_handler.peek().unwrap().value().as_element().unwrap().attr("selected").is_some() {
+                                                    let course_of_study = if html_handler
+                                                        .peek()
+                                                        .unwrap()
+                                                        .value()
+                                                        .as_element()
+                                                        .unwrap()
+                                                        .attr("selected")
+                                                        .is_some() {
                                                         <option value=value selected="selected">
                                                             name
                                                         </option>

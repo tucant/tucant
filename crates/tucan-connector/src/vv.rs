@@ -88,7 +88,8 @@ fn vv_internal(login_response: Option<&LoginResponse>, content: &str) -> Result<
                         <a href=_garbage_url>
                         </a>
                     </h2>
-                    let description = if html_handler.peek().unwrap().value().is_element() && html_handler.peek().unwrap().value().as_element().unwrap().has_class("nb", scraper::CaseSensitivity::CaseSensitive) {
+                    let description = if html_handler.peek().unwrap().value().is_element()
+                        && html_handler.peek().unwrap().value().as_element().unwrap().has_class("nb", scraper::CaseSensitivity::CaseSensitive) {
                         <div class="tb nb">
                             let description = while html_handler.peek().is_some() {
                                 let any_child = html_handler.next_any_child();

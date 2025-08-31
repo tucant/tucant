@@ -120,7 +120,17 @@ fn course_details_internal(login_response: &LoginResponse, content: &str, reques
                                     </tr>
                                     <tr>
                                         <td class="tbdata" colspan="3">
-                                            let dozent = if &**html_handler.peek().unwrap().first_child().unwrap().first_child().unwrap().value().as_text().unwrap() == "Lehrende:" {
+                                            let dozent = if &**html_handler
+                                                .peek()
+                                                .unwrap()
+                                                .first_child()
+                                                .unwrap()
+                                                .first_child()
+                                                .unwrap()
+                                                .value()
+                                                .as_text()
+                                                .unwrap()
+                                                == "Lehrende:" {
                                                 <p>
                                                     <b>
                                                         "Lehrende:"
@@ -267,7 +277,13 @@ fn course_details_internal(login_response: &LoginResponse, content: &str, reques
                                             </li>
                                         } => Vec::<CourseUebungsGruppe>::new() else {
                                             let uebungsgruppen = while html_handler.peek().is_some() {
-                                                let uebungsgruppe = if html_handler.peek().unwrap().value().as_element().unwrap().has_class("tbsubhead", CaseSensitivity::CaseSensitive) {
+                                                let uebungsgruppe = if html_handler
+                                                    .peek()
+                                                    .unwrap()
+                                                    .value()
+                                                    .as_element()
+                                                    .unwrap()
+                                                    .has_class("tbsubhead", CaseSensitivity::CaseSensitive) {
                                                     <li class="tbsubhead listelement">
                                                         <div class="dl-inner">
                                                             <p class="dl-ul-li-headline">
@@ -377,7 +393,13 @@ fn course_details_internal(login_response: &LoginResponse, content: &str, reques
                                 .value()
                                 .as_text()
                                 .is_none_or(|v| &**v != "Termine") {
-                                let course_anmeldefristen = if !html_handler.peek().unwrap().value().as_element().unwrap().has_class("list", CaseSensitivity::CaseSensitive) {
+                                let course_anmeldefristen = if !html_handler
+                                    .peek()
+                                    .unwrap()
+                                    .value()
+                                    .as_element()
+                                    .unwrap()
+                                    .has_class("list", CaseSensitivity::CaseSensitive) {
                                     <table class="tb rw-table">
                                         <tbody>
                                             <tr>
@@ -507,7 +529,8 @@ fn course_details_internal(login_response: &LoginResponse, content: &str, reques
                                                     time_end
                                                 </td>
                                                 <td class="tbdata rw rw-course-room">
-                                                    let rooms = if html_handler.peek().is_some() && html_handler.peek().unwrap().value().is_element() {
+                                                    let rooms = if html_handler.peek().is_some()
+                                                        && html_handler.peek().unwrap().value().is_element() {
                                                         let room = if html_handler.peek().unwrap().value().as_element().unwrap().name() == "a" {
                                                             <a name="appointmentRooms" href=room_url>
                                                                 room
@@ -519,7 +542,8 @@ fn course_details_internal(login_response: &LoginResponse, content: &str, reques
                                                         } => Room { name: room, url: None };
                                                         let more_rooms = while html_handler.peek().is_some() {
                                                             ","
-                                                            let room = if html_handler.peek().unwrap().value().as_element().unwrap().name() == "a" {
+                                                            let room = if html_handler.peek().unwrap().value().as_element().unwrap().name()
+                                                                == "a" {
                                                                 <a name="appointmentRooms" href=room_url>
                                                                     room
                                                                 </a>
@@ -564,7 +588,16 @@ fn course_details_internal(login_response: &LoginResponse, content: &str, reques
                                                 "Modul"
                                             </td>
                                         </tr>
-                                        let enthalten_in_modulen = if html_handler.peek().unwrap().first_child().unwrap().value().as_element().unwrap().attr("colspan").is_none() {
+                                        let enthalten_in_modulen = if html_handler
+                                            .peek()
+                                            .unwrap()
+                                            .first_child()
+                                            .unwrap()
+                                            .value()
+                                            .as_element()
+                                            .unwrap()
+                                            .attr("colspan")
+                                            .is_none() {
                                             let enthalten_in_modulen = while html_handler.peek().is_some() {
                                                 <tr>
                                                     <td class="tbdata">
@@ -589,7 +622,8 @@ fn course_details_internal(login_response: &LoginResponse, content: &str, reques
                                     "Übersicht der Kurstermine"
                                 </div>
                                 <ul class="courseList">
-                                    let short_termine = if **html_handler.peek().unwrap().children().next().unwrap().value().as_text().unwrap() == *"Es liegen keine Termine vor." {
+                                    let short_termine = if **html_handler.peek().unwrap().children().next().unwrap().value().as_text().unwrap()
+                                        == *"Es liegen keine Termine vor." {
                                         <li class="courseListCell noLink">
                                             "Es liegen keine Termine vor."
                                         </li>
@@ -599,7 +633,8 @@ fn course_details_internal(login_response: &LoginResponse, content: &str, reques
                                                 let mut i = 0;
                                             }
                                             let short_termine = while i < 5 {
-                                                let short_termin = if html_handler.peek().unwrap().value().as_element().unwrap().attr("class").unwrap() == "courseListCell numout" {
+                                                let short_termin = if html_handler.peek().unwrap().value().as_element().unwrap().attr("class").unwrap()
+                                                    == "courseListCell numout" {
                                                     <li class="courseListCell numout" title=title xss="">
                                                         number
                                                     </li>
@@ -626,7 +661,16 @@ fn course_details_internal(login_response: &LoginResponse, content: &str, reques
                                             </td>
                                         </tr>
                                         let instructors = while html_handler.peek().is_some() {
-                                            let instructor_image = if html_handler.peek().unwrap().first_child().unwrap().value().as_element().unwrap().attr("name").is_none() {
+                                            let instructor_image = if html_handler
+                                                .peek()
+                                                .unwrap()
+                                                .first_child()
+                                                .unwrap()
+                                                .value()
+                                                .as_element()
+                                                .unwrap()
+                                                .attr("name")
+                                                .is_none() {
                                                 <tr>
                                                     <td class="tbdata_nob h_center">
                                                         <a href=href>

@@ -144,7 +144,13 @@ fn month_internal(login_response: &LoginResponse, content: &str) -> Result<Vec<(
                                     </th>
                                     let appointments = while html_handler.peek().is_some() {
                                         <td class="tbMonthDayCell">
-                                            let appointments = if html_handler.peek().unwrap().value().as_element().unwrap().has_class("emptyDay", CaseSensitivity::CaseSensitive) {
+                                            let appointments = if html_handler
+                                                .peek()
+                                                .unwrap()
+                                                .value()
+                                                .as_element()
+                                                .unwrap()
+                                                .has_class("emptyDay", CaseSensitivity::CaseSensitive) {
                                                 <div class="tbMonthDay nb emptyDay">
                                                     <img src="/gfx/_default/clear.gif" alt="empty"></img>
                                                 </div>

@@ -120,7 +120,14 @@ fn anmeldung_internal(login_response: &LoginResponse, content: &str) -> Result<A
                                                 </label>
                                                 <select name="study" id="study" onchange="reloadpage.submitForm(this.form.id);" class="pageElementLeft">
                                                     let studiumsauswahl = while html_handler.peek().is_some() {
-                                                        let studiumsauswahl = if html_handler.peek().unwrap().value().as_element().unwrap().attr("selected").is_some() {
+                                                        let studiumsauswahl = if html_handler
+                                                            .peek()
+                                                            .unwrap()
+                                                            .value()
+                                                            .as_element()
+                                                            .unwrap()
+                                                            .attr("selected")
+                                                            .is_some() {
                                                             <option value=value selected="selected">
                                                                 name
                                                             </option>
@@ -275,7 +282,15 @@ fn anmeldung_internal(login_response: &LoginResponse, content: &str) -> Result<A
                                                             </td>
                                                             <td class="tbsubhead rw-qbf">
                                                                 let registration_state = if html_handler.peek().is_some() {
-                                                                    let registered = if html_handler.peek().unwrap().value().as_element().unwrap().attr("class").unwrap() == "img noFloat register" {
+                                                                    let registered = if html_handler
+                                                                        .peek()
+                                                                        .unwrap()
+                                                                        .value()
+                                                                        .as_element()
+                                                                        .unwrap()
+                                                                        .attr("class")
+                                                                        .unwrap()
+                                                                        == "img noFloat register" {
                                                                         <a href=registration_button_link class="img noFloat register">
                                                                             "Anmelden"
                                                                         </a>
@@ -317,7 +332,18 @@ fn anmeldung_internal(login_response: &LoginResponse, content: &str) -> Result<A
                                                             .as_element()
                                                             .unwrap()
                                                             .has_class("tbsubhead", scraper::CaseSensitivity::CaseSensitive) {
-                                                        let exam = if html_handler.peek().unwrap().children().nth(1).unwrap().value().as_element().unwrap().attr("class").unwrap() == "tbdata" {
+                                                        let exam = if html_handler
+                                                            .peek()
+                                                            .unwrap()
+                                                            .children()
+                                                            .nth(1)
+                                                            .unwrap()
+                                                            .value()
+                                                            .as_element()
+                                                            .unwrap()
+                                                            .attr("class")
+                                                            .unwrap()
+                                                            == "tbdata" {
                                                             <tr>
                                                                 <td class="tbdata">
                                                                 </td>
@@ -352,7 +378,10 @@ fn anmeldung_internal(login_response: &LoginResponse, content: &str) -> Result<A
                                                                     </strong>
                                                                 </p>
                                                                 <p>
-                                                                    let lecturers = if html_handler.peek().is_some() && !RE.is_match(html_handler.peek().unwrap().value().as_text().unwrap()) {
+                                                                    let lecturers = if html_handler.peek().is_some()
+                                                                        && !RE.is_match(
+                                                                            html_handler.peek().unwrap().value().as_text().unwrap()
+                                                                        ) {
                                                                             lecturers
                                                                         </p>
                                                                         <p>
@@ -362,7 +391,9 @@ fn anmeldung_internal(login_response: &LoginResponse, content: &str) -> Result<A
                                                                         </p>
                                                                         <p>
                                                                     } => begin_and_end;
-                                                                    let location_or_additional_info = if html_handler.peek().is_some() {
+                                                                    let location_or_additional_info = if html_handler
+                                                                        .peek()
+                                                                        .is_some() {
                                                                             let location_or_additional_info = html_handler.next_any_child();
                                                                         </p>
                                                                     } => match location_or_additional_info.value() {
@@ -381,7 +412,11 @@ fn anmeldung_internal(login_response: &LoginResponse, content: &str) -> Result<A
                                                                 } => location;
                                                             </td>
                                                             <td class="tbdata">
-                                                                let registration_until = if html_handler.peek().unwrap().value().is_text() {
+                                                                let registration_until = if html_handler
+                                                                    .peek()
+                                                                    .unwrap()
+                                                                    .value()
+                                                                    .is_text() {
                                                                     registration_until
                                                                 } => registration_until;
                                                                 <br></br>
@@ -391,7 +426,15 @@ fn anmeldung_internal(login_response: &LoginResponse, content: &str) -> Result<A
                                                             </td>
                                                             <td class="tbdata rw-qbf">
                                                                 let registration_button_link = if html_handler.peek().is_some() {
-                                                                    let registration_button_link = if html_handler.peek().unwrap().value().as_element().unwrap().attr("class").unwrap() == "img noFLoat register" {
+                                                                    let registration_button_link = if html_handler
+                                                                        .peek()
+                                                                        .unwrap()
+                                                                        .value()
+                                                                        .as_element()
+                                                                        .unwrap()
+                                                                        .attr("class")
+                                                                        .unwrap()
+                                                                        == "img noFLoat register" {
                                                                         <a href=registration_button_link class="img noFLoat register">
                                                                             "Anmelden"
                                                                         </a>

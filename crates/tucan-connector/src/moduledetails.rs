@@ -355,7 +355,8 @@ fn module_details_internal(login_response: &LoginResponse, content: &str) -> Res
                                             "Kurs/Modulabschlussleistungen"
                                         </th>
                                         <th scope="col">
-                                            let leistungskombination = if **html_handler.peek().unwrap().value().as_text().unwrap() == *"Leistungskombination" {
+                                            let leistungskombination = if **html_handler.peek().unwrap().value().as_text().unwrap()
+                                                == *"Leistungskombination" {
                                                     "Leistungskombination"
                                                 </th>
                                                 <th scope="col">
@@ -539,7 +540,8 @@ fn module_details_internal(login_response: &LoginResponse, content: &str) -> Res
                                     <thead>
                                         <tr class="tbsubhead rw-hide">
                                             <th scope="col">
-                                                let leistungskombination = if **html_handler.peek().unwrap().value().as_text().unwrap() == *"Leistungskombination" {
+                                                let leistungskombination = if **html_handler.peek().unwrap().value().as_text().unwrap()
+                                                    == *"Leistungskombination" {
                                                         "Leistungskombination"
                                                     </th>
                                                     <th scope="col">
