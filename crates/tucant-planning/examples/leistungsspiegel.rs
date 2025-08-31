@@ -41,13 +41,13 @@ fn validate(errors: &mut Vec<String>, level: &StudentResultLevel) -> (u64, u64) 
     }
     if cp > level.rules.max_cp.unwrap_or(u64::MAX) || cp < level.rules.min_cp {
         errors.push(format!(
-            "invalid cp {} <= {} <= {:?} for {}",
+            "invalid cp {} <= {} <= {:?} for {:?}",
             level.rules.min_cp, cp, level.rules.max_cp, level.name
         ))
     }
     if modules > level.rules.max_modules.unwrap_or(u64::MAX) || modules < level.rules.min_modules {
         errors.push(format!(
-            "invalid module count {} <= {} <= {:?} for {}",
+            "invalid module count {} <= {} <= {:?} for {:?}",
             level.rules.min_modules, modules, level.rules.max_modules, level.name
         ))
     }
@@ -116,7 +116,7 @@ async fn async_main() -> Result<(), TucanError> {
             if let Some(inner) = level
                 .children
                 .iter_mut()
-                .find(|child| child.name == element)
+                .find(|child| child.name == Some(element.clone()))
             {
                 level = inner;
             } else {
@@ -124,7 +124,7 @@ async fn async_main() -> Result<(), TucanError> {
             }
         }
         level.entries.push(StudentResultEntry {
-            id: module.id,
+            id: Some(module.id),
             name: module.name,
             resultdetails_url: None,
             cp: module_details.credits,

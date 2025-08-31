@@ -198,7 +198,7 @@ fn examresults_internal(
                                                 assert_eq!(grade.long_text(), grade_text);
                                                 ExamResultsGrade::Grade(grade)
                                             } else {
-                                            } => { ExamResultsGrade::from_str(&grade).unwrap() };
+                                            } => ExamResultsGrade::from_str(&grade).unwrap();
                                         </td>
                                         <td style="vertical-align:top;">
                                             let average_url = if html_handler.peek().is_some() {
