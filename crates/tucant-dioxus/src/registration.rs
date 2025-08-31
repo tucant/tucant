@@ -71,12 +71,13 @@ pub fn Registration(registration: ReadSignal<AnmeldungRequest>) -> Element {
                         class: "form-select mb-1",
                         "aria-label": "Select course of study",
                         {
-                            data
-                                .studiumsauswahl
+                            data.studiumsauswahl
                                 .iter()
                                 .map(|course_of_study| {
                                     rsx! {
-                                        option { selected: course_of_study.selected, value: course_of_study.value.to_string(),
+                                        option {
+                                            selected: course_of_study.selected,
+                                            value: course_of_study.value.to_string(),
                                             {course_of_study.name.clone()}
                                         }
                                     }

@@ -6,7 +6,6 @@ use crate::{
 use html_handler::{Root, parse_document};
 use tucant_types::LoggedOutHead;
 
-#[expect(clippy::too_many_lines)]
 pub async fn welcome(connector: &TucanConnector) -> Result<LoggedOutHead, TucanError> {
     let (content, ..) = retryable_get(connector, "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N000000000000001,-N000344,-Awelcome").await?;
     let document = parse_document(&content);
@@ -28,7 +27,7 @@ pub async fn welcome(connector: &TucanConnector) -> Result<LoggedOutHead, TucanE
                     <meta http-equiv="content-type" content="text/html; charset=windows-1252"></meta>
                     <div id="inhalt" style="padding:0px; width:650px; margin:0px; background-color:#ffffff;">
                         let _unused = while html_handler.peek().is_some() {
-                                let any_child = html_handler.next_any_child();
+                            let any_child = html_handler.next_any_child();
                         } => any_child;
                     </div>
                 </div>

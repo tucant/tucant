@@ -57,6 +57,7 @@ pub async fn course_prep(
     Ok(result)
 }
 
+#[allow(clippy::too_many_lines)]
 fn course_prep_internal(
     login_response: &LoginResponse,
     content: &str,

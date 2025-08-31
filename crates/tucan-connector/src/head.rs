@@ -2,6 +2,7 @@ use std::sync::LazyLock;
 
 use itertools::Either;
 use regex::Regex;
+use scraper::CaseSensitivity;
 use tucant_types::{
     LoggedInHead, LoggedOutHead, LoginResponse, TucanError, VorlesungsverzeichnisUrls,
     vv::ActionRequest,
@@ -209,12 +210,10 @@ pub fn page_start<'a>(
 #[must_use]
 pub fn vv_something<'a>(
     html_handler: InElement5<'a, InElement<'a, InElement<'a, InRoot<'a, Root<'a>>>>>,
-    id: u64,
 ) -> (
     InElement5<'a, InElement<'a, InElement<'a, InRoot<'a, Root<'a>>>>>,
     VorlesungsverzeichnisUrls,
 ) {
-    let mut vvs = Vec::new();
     // these link ids are incrementing so they are different if used from different contexts. could in theory be calculated based on some starting number
     html_extractor::html! {
         <ul class="nav depth_2 linkItemContainer">
@@ -228,32 +227,19 @@ pub fn vv_something<'a>(
                     "Raumsuche"
                 </a>
             </li>
-            <li class="intern depth_2 linkItem " title=_aktuell_title id=_id>
-                <a class=_class href=aktuell_url>
-                    aktuell_title
-                </a>
-            </li>
-            <li class="intern depth_2 linkItem " title=_title_wise202425 id=_linkclass>
-                <a class=_linkclass href=vv_1_url>
-                    vv_1_title
-                </a>
-            </li>
-            <li class="intern depth_2 linkItem " title=_title_wise202425 id=_linkclass>
-                <a class=_linkclass href=vv_2_url>
-                    vv_2_title
-                </a>
-            </li>
-            let _unit = if id != 1 {
-                // When logged in, an additional Gasthörer_innen entry is present.
-                <li class="intern depth_2 linkItem " title=_title_wise202421 id=_linkclass>
-                    <a class=_linkclass href=vv_3_url>
-                        vv_3_title
+            let vvs = while !html_handler
+                .peek()
+                .unwrap()
+                .value()
+                .as_element()
+                .unwrap()
+                .has_class("branchLinkItem", CaseSensitivity::CaseSensitive) {
+                <li class="intern depth_2 linkItem " title=_title id=_linkclass>
+                    <a class=_linkclass href=url>
+                        title
                     </a>
                 </li>
-            } => vvs.push((
-                vv_3_title,
-                ActionRequest::parse(&ACTION_REGEX.replace(&vv_3_url, ""))
-            ));
+            } => (title, ActionRequest::parse(&ACTION_REGEX.replace(&url, "")));
             <li class="tree depth_2 linkItem branchLinkItem " title="Archiv" id=_linkclass>
                 <a class=_linkclass href=_url>
                     "Archiv"
@@ -270,27 +256,6 @@ pub fn vv_something<'a>(
             </li>
         </ul>
     };
-    vvs.insert(
-        0,
-        (
-            aktuell_title,
-            ActionRequest::parse(&ACTION_REGEX.replace(&aktuell_url, "")),
-        ),
-    );
-    vvs.insert(
-        1,
-        (
-            vv_1_title,
-            ActionRequest::parse(&ACTION_REGEX.replace(&vv_1_url, "")),
-        ),
-    );
-    vvs.insert(
-        2,
-        (
-            vv_2_title,
-            ActionRequest::parse(&ACTION_REGEX.replace(&vv_2_url, "")),
-        ),
-    );
     (
         html_handler,
         VorlesungsverzeichnisUrls {
@@ -344,7 +309,7 @@ fn logged_in_head_internal<'a>(
                         <a class="depth_1 link000326 navLink branchLink " href=vorlesungsverzeichnis_url>
                             "VV"
                         </a>
-                        let vv = vv_something(html_handler, id);
+                        let vv = vv_something(html_handler);
                     </li>
                     <li class="tree depth_1 linkItem branchLinkItem " title="Stundenplan" id="link000268">
                         <a class="depth_1 link000268 navLink branchLink " href={|v: String| {
@@ -754,7 +719,7 @@ fn logged_out_head_internal<'a>(
                         <a class="depth_1 link000334 navLink branchLink " href=vorlesungsverzeichnis_url>
                             "Vorlesungsverzeichnis (VV)"
                         </a>
-                        let vv = vv_something(html_handler, 1);
+                        let vv = vv_something(html_handler);
                     </li>
                     <li class="tree depth_1 linkItem branchLinkItem " title="TUCaN-Account" id="link000410">
                         <a class="depth_1 link000410 navLink branchLink " href="/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N000000000000001,-N000410,-Atucan%5Faccount%2Ehtml">

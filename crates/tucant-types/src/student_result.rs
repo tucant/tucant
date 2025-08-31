@@ -12,7 +12,8 @@ pub struct CourseOfStudySelection {
 
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema, PartialEq, Eq)]
 pub struct StudentResultEntry {
-    pub id: String,
+    /// None means Anerkennung
+    pub id: Option<String>,
     pub name: String,
     pub resultdetails_url: Option<String>,
     pub cp: Option<u64>,
@@ -57,7 +58,8 @@ impl std::fmt::Display for StudentResultState {
 
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema, PartialEq, Eq)]
 pub struct StudentResultLevel {
-    pub name: String,
+    /// DO NOT ASK why there are sections with no title
+    pub name: Option<String>,
     pub entries: Vec<StudentResultEntry>,
     pub sum_cp: Option<u64>,
     pub sum_used_cp: Option<u64>,

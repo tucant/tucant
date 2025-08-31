@@ -153,7 +153,7 @@ pub fn StudentResultLevelComponent(
                                             if anonymize {
                                                 span { class: "placeholder", "abc" }
                                             } else {
-                                                { entry.grade.to_string() }
+                                                {entry.grade.to_string()}
                                             }
                                         }
                                     }
@@ -171,11 +171,7 @@ pub fn StudentResultLevelComponent(
                     rsx! {
                         StudentResultLevelComponent {
                             level: child.clone(),
-                            path: path()
-                                .iter()
-                                .cloned()
-                                .chain(std::iter::once(level().name.clone()))
-                                .collect::<Vec<_>>(),
+                            path: path().iter().cloned().chain(level().name.into_iter()).collect::<Vec<_>>(),
                         }
                     }
                 })

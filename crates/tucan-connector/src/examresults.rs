@@ -191,14 +191,14 @@ fn examresults_internal(
                                             grade
                                         </td>
                                         <td style="vertical-align:top;">
-                                            let actual_grade = if let ExamResultsGrade::Grade(grade) = ExamResultsGrade::from_str(&grade).unwrap() {
+                                            let actual_grade = if let ExamResultsGrade::Grade(grade) =
+                                                ExamResultsGrade::from_str(&grade).unwrap() {
                                                 grade_text
                                             } => {
                                                 assert_eq!(grade.long_text(), grade_text);
                                                 ExamResultsGrade::Grade(grade)
-                                            } else {} => {
-                                                ExamResultsGrade::from_str(&grade).unwrap()
-                                            };
+                                            } else {
+                                            } => ExamResultsGrade::from_str(&grade).unwrap();
                                         </td>
                                         <td style="vertical-align:top;">
                                             let average_url = if html_handler.peek().is_some() {

@@ -11,8 +11,11 @@ pub fn Vorlesungsverzeichnisse(data: ReadSignal<Option<MlsStart>>) -> Element {
                 .iter()
                 .flat_map(|v| v.logged_in_head.vv.vvs.iter())
                 .map(|(name, url)| {
-                    let disabled = if data()
-                        .is_none() { "disabled" } else { Default::default() };
+                    let disabled = if data().is_none() {
+                        "disabled"
+                    } else {
+                        Default::default()
+                    };
                     rsx! {
                         li {
                             Link {
@@ -543,11 +546,7 @@ pub fn NavbarLoggedIn(
             }
         }
         li { class: "nav-item",
-            Link {
-                to: Route::FetchAnmeldung {  },
-                class: "nav-link",
-                "Studiumsplanung"
-            }
+            Link { to: Route::FetchAnmeldung {}, class: "nav-link", "Studiumsplanung" }
         }
     }
 }
