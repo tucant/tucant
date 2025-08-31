@@ -142,8 +142,8 @@ pub fn StudentResultLevelComponent(
                     {
                         level()
                             .entries
-                            .iter()
-                            .map(|entry: &StudentResultEntry| {
+                            .into_iter()
+                            .map(|entry: StudentResultEntry| {
                                 rsx! {
                                     tr {
                                         td { {entry.name.clone()} }
@@ -166,7 +166,7 @@ pub fn StudentResultLevelComponent(
         {
             level()
                 .children
-                .iter()
+                .into_iter()
                 .map(|child| {
                     rsx! {
                         StudentResultLevelComponent {

@@ -8,29 +8,19 @@ pub fn Vorlesungsverzeichnisse(data: ReadSignal<Option<MlsStart>>) -> Element {
     rsx! {
         {
             data()
-                .iter()
-                .flat_map(|v| v.logged_in_head.vv.vvs.iter())
+                .into_iter()
+                .flat_map(|v| v.logged_in_head.vv.vvs.into_iter())
                 .map(|(name, url)| {
-                    let disabled = if data().is_none() {
-                        "disabled"
-                    } else {
-                        Default::default()
-                    };
                     rsx! {
                         li {
                             Link {
                                 to: Route::Vorlesungsverzeichnis {
                                     vv: url.clone(),
                                 },
-                                class: "dropdown-item bg-success {disabled}",
+                                class: "dropdown-item bg-success",
                                 "data-bs-target": "#navbarSupportedContent",
                                 "data-bs-hide": "collapse",
                                 "{name}"
-                                if data().is_none() {
-                                    " "
-                                    span { class: "spinner-grow spinner-grow-sm", "aria-hidden": "true" }
-                                    span { class: "visually-hidden", role: "status", "Loading..." }
-                                }
                             }
                         }
                     }
