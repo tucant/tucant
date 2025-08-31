@@ -227,17 +227,19 @@ pub fn vv_something<'a>(
                     "Raumsuche"
                 </a>
             </li>
-            // Different students have different number of entries for some reason
-            let vvs = while !html_handler.peek().unwrap().value().as_element().unwrap().has_class("branchLinkItem", CaseSensitivity::CaseSensitive) {
+            let vvs = while !html_handler
+                .peek()
+                .unwrap()
+                .value()
+                .as_element()
+                .unwrap()
+                .has_class("branchLinkItem", CaseSensitivity::CaseSensitive) {
                 <li class="intern depth_2 linkItem " title=_title id=_linkclass>
                     <a class=_linkclass href=url>
                         title
                     </a>
                 </li>
-            } => (
-                title,
-                ActionRequest::parse(&ACTION_REGEX.replace(&url, ""))
-            );
+            } => (title, ActionRequest::parse(&ACTION_REGEX.replace(&url, "")));
             <li class="tree depth_2 linkItem branchLinkItem " title="Archiv" id=_linkclass>
                 <a class=_linkclass href=_url>
                     "Archiv"

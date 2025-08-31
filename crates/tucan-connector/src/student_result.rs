@@ -153,7 +153,10 @@ fn part0<T>(
                     .1,
                 cp: cp.map(|v| v.trim_end_matches(",0").parse().unwrap()),
                 used_cp: used_cp.map(|v| v.trim_end_matches(",0").parse().unwrap()),
-                grade: LeistungsspiegelGrade::from((grade.as_deref(), StudentResultState::from((src.as_str(), alt.as_str(), state.as_str())))),
+                grade: LeistungsspiegelGrade::from((
+                    grade.as_deref(),
+                    StudentResultState::from((src.as_str(), alt.as_str(), state.as_str()))
+                )),
             };
         } => (level_i, entries);
     }
@@ -280,7 +283,12 @@ fn part1<T>(
             } => rule;
         } => {
             let (sum_cp, sum_used_cp) = sum_cp_and_used_cp.either_into();
-            (sum_cp, sum_used_cp, StudentResultState::from((src.as_str(), alt.as_str(), state.as_str())), rules)
+            (
+                sum_cp,
+                sum_used_cp,
+                StudentResultState::from((src.as_str(), alt.as_str(), state.as_str())),
+                rules,
+            )
         };
     }
     (
@@ -434,19 +442,9 @@ fn student_result_internal(
                                                             Vec::new()
                                                         );
                                                     } => level6_contents;
-                                                    let level5_contents = part1(
-                                                        html_handler,
-                                                        5,
-                                                        level5_title,
-                                                        level6
-                                                    );
+                                                    let level5_contents = part1(html_handler, 5, level5_title, level6);
                                                 } => level5_contents;
-                                                let level4_contents = part1(
-                                                    html_handler,
-                                                    4,
-                                                    level4_title,
-                                                    level5
-                                                );
+                                                let level4_contents = part1(html_handler, 4, level4_title, level5);
                                             } => level4_contents;
                                             let level3_contents = part1(html_handler, 3, level3_title, level4);
                                         } => level3_contents;

@@ -117,7 +117,13 @@ fn after_login_internal(
                                     let stundenplan = while html_handler.peek().is_some() {
                                         <tr class="tbdata">
                                             <td headers="Veranstaltung">
-                                                let is_exam = if &**html_handler.peek().unwrap().value().as_text().unwrap() == "Kurse" {
+                                                let is_exam = if &**html_handler
+                                                    .peek()
+                                                    .unwrap()
+                                                    .value()
+                                                    .as_text()
+                                                    .unwrap()
+                                                    == "Kurse" {
                                                     "Kurse"
                                                 } => false else {
                                                     "Examen"
