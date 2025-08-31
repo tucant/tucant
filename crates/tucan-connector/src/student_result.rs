@@ -74,10 +74,10 @@ fn get_level(node: &NodeRef<MyNode>) -> u8 {
         .unwrap()
 }
 
-fn part0<'a, T>(
-    html_handler: InElement<'a, T>,
+fn part0<T>(
+    html_handler: InElement<'_, T>,
     level: u8,
-) -> (InElement<'a, T>, Option<(String, Vec<StudentResultEntry>)>) {
+) -> (InElement<'_, T>, Option<(String, Vec<StudentResultEntry>)>) {
     html_extractor::html! {
         let result = if get_level(html_handler.peek().unwrap()) == level {
             <tr class={|l| assert_eq!(l, format!("subhead {level}"))}>
@@ -211,12 +211,12 @@ fn parse_rules(rules: &[String]) -> StudentResultRules {
     result
 }
 
-fn part1<'a, T>(
-    html_handler: InElement<'a, T>,
+fn part1<T>(
+    html_handler: InElement<'_, T>,
     level: u8,
     name: Option<(String, Vec<StudentResultEntry>)>,
     children: Vec<StudentResultLevel>,
-) -> (InElement<'a, T>, StudentResultLevel) {
+) -> (InElement<'_, T>, StudentResultLevel) {
     html_extractor::html! {
         let optional = if html_handler
             .peek()
@@ -227,7 +227,7 @@ fn part1<'a, T>(
             .attrs
             .is_empty() {
             <tr>
-                <td colspan="2" class={|v| assert_eq!(v, format!("level0{}", level))}>
+                <td colspan="2" class={|v| assert_eq!(v, format!("level0{level}"))}>
                     _summe
                 </td>
                 let sum_cp_and_used_cp = if html_handler
@@ -238,26 +238,26 @@ fn part1<'a, T>(
                     .unwrap()
                     .attr("colspan")
                     .is_some() {
-                    <td colspan="4" class={|v| assert_eq!(v, format!("level0{}", level))} style="text-align:left;white-space:nowrap;">
+                    <td colspan="4" class={|v| assert_eq!(v, format!("level0{level}"))} style="text-align:left;white-space:nowrap;">
                         _summe_wird_erst_berechnet_wenn_der_bereich_abgeschlossen_ist
                     </td>
                 } => (None, None) else {
-                    <td class={|v| assert_eq!(v, format!("level0{}", level))}>
+                    <td class={|v| assert_eq!(v, format!("level0{level}"))}>
                     </td>
-                    <td class={|v| assert_eq!(v, format!("level0{}", level))} style="text-align:right;white-space:nowrap;">
+                    <td class={|v| assert_eq!(v, format!("level0{level}"))} style="text-align:right;white-space:nowrap;">
                         let sum_cp = if html_handler.peek().is_some() {
                             sum_cp
                         } => sum_cp;
                     </td>
-                    <td class={|v| assert_eq!(v, format!("level0{}", level))} style="text-align:right;white-space:nowrap;">
+                    <td class={|v| assert_eq!(v, format!("level0{level}"))} style="text-align:right;white-space:nowrap;">
                         let sum_used_cp = if html_handler.peek().is_some() {
                             sum_used_cp
                         } => sum_used_cp;
                     </td>
-                    <td class={|v| assert_eq!(v, format!("level0{}", level))} style="text-align:right;">
+                    <td class={|v| assert_eq!(v, format!("level0{level}"))} style="text-align:right;">
                     </td>
                 } => (sum_cp, sum_used_cp);
-                <td class={|v| assert_eq!(v, format!("level0{}", level))} style="text-align:center;">
+                <td class={|v| assert_eq!(v, format!("level0{level}"))} style="text-align:center;">
                     <img src=src alt=alt title=state></img>
                 </td>
             </tr>
@@ -270,9 +270,9 @@ fn part1<'a, T>(
                     .value()
                     .as_element()
                     .unwrap()
-                    .has_class(&format!("level0{}", level), CaseSensitivity::CaseSensitive) {
+                    .has_class(&format!("level0{level}"), CaseSensitivity::CaseSensitive) {
                 <tr>
-                    <td colspan="   7" class={|v| assert_eq!(v, format!("level0{}", level))}>
+                    <td colspan="   7" class={|v| assert_eq!(v, format!("level0{level}"))}>
                         rule
                     </td>
                 </tr>

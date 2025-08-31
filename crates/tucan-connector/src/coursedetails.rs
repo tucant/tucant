@@ -204,7 +204,7 @@ fn course_details_internal(
                                                 <input type="hidden" name="shortdescription" value=shortname></input>
                                             </p>
                                             <input type="hidden" name="courselevel" value=courselevel></input>
-                                            let _fach = if html_handler
+                                            let _unused = if html_handler
                                                 .peek()
                                                 .unwrap()
                                                 .value()
@@ -221,7 +221,7 @@ fn course_details_internal(
                                                     <input type="hidden" name="coursearea" value=""></input>
                                                 </p>
                                             } => ();
-                                            let _fach = if html_handler
+                                            let _unused = if html_handler
                                                 .peek()
                                                 .unwrap()
                                                 .value()
