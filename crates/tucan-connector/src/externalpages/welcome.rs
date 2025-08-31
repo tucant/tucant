@@ -7,7 +7,11 @@ use html_handler::{Root, parse_document};
 use tucant_types::LoggedOutHead;
 
 pub async fn welcome(connector: &TucanConnector) -> Result<LoggedOutHead, TucanError> {
-    let (content, ..) = retryable_get(connector, "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N000000000000001,-N000344,-Awelcome").await?;
+    let (content, ..) = retryable_get(
+        connector,
+        "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N000000000000001,-N000344,-Awelcome",
+    )
+    .await?;
     let document = parse_document(&content);
     let html_handler = Root::new(document.root());
     let html_handler = html_handler.document_start();

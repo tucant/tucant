@@ -2,9 +2,7 @@ use itertools::Itertools;
 use log::info;
 use scraper::CaseSensitivity::CaseSensitive;
 use time::{Duration, OffsetDateTime};
-use tucant_types::moduledetails::{
-    Anmeldefristen, Kurs, KursKategorie, Leistung, Pruefung, Pruefungstermin,
-};
+use tucant_types::moduledetails::{Anmeldefristen, Kurs, KursKategorie, Leistung, Pruefung, Pruefungstermin};
 use tucant_types::{InstructorImage, RevalidationStrategy};
 use tucant_types::{
     LoginResponse,
@@ -30,8 +28,7 @@ pub async fn module_details(
     if revalidation_strategy.max_age != 0 {
         if let Some((content, date)) = &old_content_and_date {
             info!("{}", OffsetDateTime::now_utc() - *date);
-            if OffsetDateTime::now_utc() - *date < Duration::seconds(revalidation_strategy.max_age)
-            {
+            if OffsetDateTime::now_utc() - *date < Duration::seconds(revalidation_strategy.max_age) {
                 return module_details_internal(login_response, content);
             }
         }
@@ -46,8 +43,7 @@ pub async fn module_details(
         login_response.id,
         request.inner()
     );
-    let (content, date) =
-        authenticated_retryable_get(tucan, &url, &login_response.cookie_cnsc).await?;
+    let (content, date) = authenticated_retryable_get(tucan, &url, &login_response.cookie_cnsc).await?;
     let result = module_details_internal(login_response, &content)?;
     if invalidate_dependents && old_content_and_date.as_ref().map(|m| &m.0) != Some(&content) {
         // TODO invalidate cached ones?
@@ -59,10 +55,7 @@ pub async fn module_details(
 }
 
 #[expect(clippy::too_many_lines, clippy::cognitive_complexity)]
-fn module_details_internal(
-    login_response: &LoginResponse,
-    content: &str,
-) -> Result<ModuleDetailsResponse, TucanError> {
+fn module_details_internal(login_response: &LoginResponse, content: &str) -> Result<ModuleDetailsResponse, TucanError> {
     let document = parse_document(content);
     let html_handler = Root::new(document.root());
     let html_handler = html_handler.document_start();
@@ -96,15 +89,7 @@ fn module_details_internal(
                                     "Moduldetails"
                                 </caption>
                                 <tbody>
-                                    let registered = if html_handler
-                                        .peek()
-                                        .unwrap()
-                                        .value()
-                                        .as_element()
-                                        .unwrap()
-                                        .attr("class")
-                                        .unwrap()
-                                        == "tbsubhead" {
+                                    let registered = if html_handler.peek().unwrap().value().as_element().unwrap().attr("class").unwrap() == "tbsubhead" {
                                         <tr class="tbsubhead">
                                             <td colspan="3">
                                                 "Sie sind angemeldet!"
@@ -170,11 +155,7 @@ fn module_details_internal(
                                                     .first_child()
                                                     .unwrap()
                                                     .first_child()
-                                                    .is_some_and(|v| &**v
-                                                        .value()
-                                                        .as_text()
-                                                        .unwrap()
-                                                        == "Warteliste:") {
+                                                    .is_some_and(|v| &**v.value().as_text().unwrap() == "Warteliste:") {
                                                 <p>
                                                     <b>
                                                         "Warteliste:"
@@ -192,8 +173,7 @@ fn module_details_internal(
                                                 let child = html_handler.next_any_child();
                                             } => match child.value() {
                                                 MyNode::Text(text) => text.to_string(),
-                                                MyNode::Element(_element) =>
-                                                    MyElementRef::wrap(child).unwrap().html(),
+                                                MyNode::Element(_element) => MyElementRef::wrap(child).unwrap().html(),
                                                 _ => panic!(),
                                             };
                                         </td>
@@ -219,15 +199,7 @@ fn module_details_internal(
                                             "Ende Abmeldung"
                                         </td>
                                     </tr>
-                                    let anmeldefristen = if html_handler
-                                        .peek()
-                                        .unwrap()
-                                        .children()
-                                        .nth(1)
-                                        .unwrap()
-                                        .children()
-                                        .next()
-                                        .is_none() {
+                                    let anmeldefristen = if html_handler.peek().unwrap().children().nth(1).unwrap().children().next().is_none() {
                                         <tr class="tbdata">
                                             <td class="rw rw-detail-phase">
                                             </td>
@@ -320,11 +292,7 @@ fn module_details_internal(
                                                 <td>
                                                 </td>
                                             </tr>
-                                            let kurse = while html_handler
-                                                .peek()
-                                                .and_then(|e| e.value().as_element())
-                                                .map(|e| e.has_class("tbdata", CaseSensitive))
-                                                == Some(true) {
+                                            let kurse = while html_handler.peek().and_then(|e| e.value().as_element()).map(|e| e.has_class("tbdata", CaseSensitive)) == Some(true) {
                                                 <tr class="tbdata">
                                                     <td class="tbdata">
                                                         let gefaehrungspotential_schwangere = if html_handler.peek().is_some() {
@@ -356,8 +324,7 @@ fn module_details_internal(
                                             } => Kurs {
                                                 name,
                                                 course_id,
-                                                gefaehrungspotential_schwangere:
-                                                    gefaehrungspotential_schwangere.is_some(),
+                                                gefaehrungspotential_schwangere: gefaehrungspotential_schwangere.is_some(),
                                                 semester,
                                                 url
                                             };
@@ -372,10 +339,7 @@ fn module_details_internal(
                                                 panic!("unknown mandatory {mandatory}")
                                             },
                                             semester,
-                                            credits: credits
-                                                .replace(',', ".")
-                                                .parse()
-                                                .expect(&credits),
+                                            credits: credits.replace(',', ".").parse().expect(&credits),
                                             kurse
                                         };
                                     </tbody>
@@ -391,13 +355,7 @@ fn module_details_internal(
                                             "Kurs/Modulabschlussleistungen"
                                         </th>
                                         <th scope="col">
-                                            let leistungskombination = if **html_handler
-                                                .peek()
-                                                .unwrap()
-                                                .value()
-                                                .as_text()
-                                                .unwrap()
-                                                == *"Leistungskombination" {
+                                            let leistungskombination = if **html_handler.peek().unwrap().value().as_text().unwrap() == *"Leistungskombination" {
                                                     "Leistungskombination"
                                                 </th>
                                                 <th scope="col">
@@ -492,9 +450,7 @@ fn module_details_internal(
                                                         } else if compulsory == "Nein" {
                                                             false
                                                         } else {
-                                                            panic!(
-                                                                "unknown compulsory {compulsory}"
-                                                            )
+                                                            panic!("unknown compulsory {compulsory}")
                                                         },
                                                         weight_more,
                                                     }
@@ -510,9 +466,7 @@ fn module_details_internal(
                                                         } else if compulsory == "Nein" {
                                                             false
                                                         } else {
-                                                            panic!(
-                                                                "unknown compulsory {compulsory}"
-                                                            )
+                                                            panic!("unknown compulsory {compulsory}")
                                                         },
                                                         weight_more: None,
                                                     },
@@ -551,9 +505,7 @@ fn module_details_internal(
                                                         } else if compulsory == "Nein" {
                                                             false
                                                         } else {
-                                                            panic!(
-                                                                "unknown compulsory {compulsory}"
-                                                            )
+                                                            panic!("unknown compulsory {compulsory}")
                                                         },
                                                         weight_more: None,
                                                     }
@@ -569,9 +521,7 @@ fn module_details_internal(
                                                         } else if compulsory == "Nein" {
                                                             false
                                                         } else {
-                                                            panic!(
-                                                                "unknown compulsory {compulsory}"
-                                                            )
+                                                            panic!("unknown compulsory {compulsory}")
                                                         },
                                                         weight_more: None,
                                                     },
@@ -589,13 +539,7 @@ fn module_details_internal(
                                     <thead>
                                         <tr class="tbsubhead rw-hide">
                                             <th scope="col">
-                                                let leistungskombination = if **html_handler
-                                                    .peek()
-                                                    .unwrap()
-                                                    .value()
-                                                    .as_text()
-                                                    .unwrap()
-                                                    == *"Leistungskombination" {
+                                                let leistungskombination = if **html_handler.peek().unwrap().value().as_text().unwrap() == *"Leistungskombination" {
                                                         "Leistungskombination"
                                                     </th>
                                                     <th scope="col">
@@ -655,21 +599,10 @@ fn module_details_internal(
                                                     </tr>
                                                 } => {
                                                     rowspan -= 1;
-                                                    Pruefungstermin {
-                                                        date,
-                                                        examiner,
-                                                        subname,
-                                                    }
+                                                    Pruefungstermin { date, examiner, subname }
                                                 };
                                             } => {
-                                                termine.insert(
-                                                    0,
-                                                    Pruefungstermin {
-                                                        date,
-                                                        examiner,
-                                                        subname,
-                                                    },
-                                                );
+                                                termine.insert(0, Pruefungstermin { date, examiner, subname });
                                                 Pruefung {
                                                     compulsory: if compulsory == "Ja" {
                                                         true
@@ -705,11 +638,7 @@ fn module_details_internal(
                                                 } else {
                                                     panic!("unknown compulsory {compulsory}")
                                                 },
-                                                termine: vec![Pruefungstermin {
-                                                    date,
-                                                    examiner,
-                                                    subname: name
-                                                }]
+                                                termine: vec![Pruefungstermin { date, examiner, subname: name }]
                                             };
                                         } => pruefung.either_into();
                                     </tbody>
@@ -724,14 +653,7 @@ fn module_details_internal(
                                     </caption>
                                     <tbody>
                                         let modulverantwortliche = while html_handler.peek().is_some() {
-                                            let bild = if html_handler
-                                                .peek()
-                                                .unwrap()
-                                                .value()
-                                                .as_element()
-                                                .unwrap()
-                                                .attrs
-                                                .is_empty() {
+                                            let bild = if html_handler.peek().unwrap().value().as_element().unwrap().attrs.is_empty() {
                                                 <tr>
                                                     <td class="tbdata_nob" style="text-align:center;padding-top:10px;padding-left:0px;">
                                                         <img src=imgsrc width="120" height="160" border="0" alt=alt></img>
@@ -762,11 +684,7 @@ fn module_details_internal(
     } else {
         assert_eq!(
             dozenten.split("; ").sorted().collect::<Vec<_>>(),
-            modulverantwortliche
-                .iter()
-                .map(|m| &m.0)
-                .sorted()
-                .collect::<Vec<_>>()
+            modulverantwortliche.iter().map(|m| &m.0).sorted().collect::<Vec<_>>()
         );
     }
     Ok(ModuleDetailsResponse {

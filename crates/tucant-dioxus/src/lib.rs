@@ -31,20 +31,12 @@ use crate::overview::Overview;
 use dioxus::prelude::*;
 use tucant_types::DynTucan;
 use tucant_types::gradeoverview::GradeOverviewRequest;
-use tucant_types::{
-    SemesterId, coursedetails::CourseDetailsRequest, moduledetails::ModuleDetailsRequest,
-    registration::AnmeldungRequest, vv::ActionRequest,
-};
+use tucant_types::{SemesterId, coursedetails::CourseDetailsRequest, moduledetails::ModuleDetailsRequest, registration::AnmeldungRequest, vv::ActionRequest};
 
 #[derive(Copy, Clone)]
 pub struct Anonymize(pub bool);
 
-#[cfg(not(any(
-    feature = "desktop",
-    feature = "mobile",
-    feature = "direct",
-    feature = "api"
-)))]
+#[cfg(not(any(feature = "desktop", feature = "mobile", feature = "direct", feature = "api")))]
 pub async fn login_response() -> Option<tucant_types::LoginResponse> {
     None
 }
@@ -104,21 +96,13 @@ pub async fn login_response() -> Option<tucant_types::LoginResponse> {
         id: cookie::Cookie::split_parse(&cookie)
             .find_map(|cookie| {
                 let cookie = cookie.unwrap();
-                if cookie.name() == "id" {
-                    Some(cookie.value().to_string())
-                } else {
-                    None
-                }
+                if cookie.name() == "id" { Some(cookie.value().to_string()) } else { None }
             })?
             .parse()
             .unwrap(),
         cookie_cnsc: cookie::Cookie::split_parse(&cookie).find_map(|cookie| {
             let cookie = cookie.unwrap();
-            if cookie.name() == "cnsc" {
-                Some(cookie.value().to_string())
-            } else {
-                None
-            }
+            if cookie.name() == "cnsc" { Some(cookie.value().to_string()) } else { None }
         })?,
     })
 }

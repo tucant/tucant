@@ -7,109 +7,88 @@ use tucant_types::{
 
 #[component]
 pub fn StudentResult(course_of_study: ReadSignal<String>) -> Element {
-    let handler = async |tucan: RcTucanType, current_session, revalidation_strategy, additional| {
-        tucan
-            .student_result(&current_session, revalidation_strategy, additional)
-            .await
-    };
+    let handler = async |tucan: RcTucanType, current_session, revalidation_strategy, additional| tucan.student_result(&current_session, revalidation_strategy, additional).await;
 
     let navigator = use_navigator();
 
-    let memo = use_memo(move || {
-        if course_of_study() == "default" {
-            0
-        } else {
-            course_of_study().parse().unwrap()
-        }
-    });
+    let memo = use_memo(move || if course_of_study() == "default" { 0 } else { course_of_study().parse().unwrap() });
 
     let anonymize = use_context::<Anonymize>().0;
 
-    use_authenticated_data_loader(
-        handler,
-        memo.into(),
-        14 * 24 * 60 * 60,
-        60 * 60,
-        |student_result: StudentResultResponse, reload| {
-            let on_course_of_study_change = {
-                Callback::new(move |e: Event<FormData>| {
-                    let value = e.value();
-                    navigator.push(Route::StudentResult {
-                        course_of_study: value,
-                    });
-                })
-            };
-            rsx! {
-                h1 {
-                    {"Leistungsspiegel"}
-                    {" "}
-                    button {
-                        onclick: reload,
-                        r#type: "button",
-                        class: "btn btn-secondary",
-                        // https://github.com/twbs/icons
-                        // The MIT License (MIT)
-                        // Copyright (c) 2019-2024 The Bootstrap Authors
+    use_authenticated_data_loader(handler, memo.into(), 14 * 24 * 60 * 60, 60 * 60, |student_result: StudentResultResponse, reload| {
+        let on_course_of_study_change = {
+            Callback::new(move |e: Event<FormData>| {
+                let value = e.value();
+                navigator.push(Route::StudentResult { course_of_study: value });
+            })
+        };
+        rsx! {
+            h1 {
+                {"Leistungsspiegel"}
+                {" "}
+                button {
+                    onclick: reload,
+                    r#type: "button",
+                    class: "btn btn-secondary",
+                    // https://github.com/twbs/icons
+                    // The MIT License (MIT)
+                    // Copyright (c) 2019-2024 The Bootstrap Authors
 
-                        svg {
-                            xmlns: "http://www.w3.org/2000/svg",
-                            width: "16",
-                            height: "16",
-                            fill: "currentColor",
-                            class: "bi bi-arrow-clockwise",
-                            view_box: "0 0 16 16",
-                            path {
-                                "fill-rule": "evenodd",
-                                d: "M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2z",
-                            }
-                            path { d: "M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466" }
+                    svg {
+                        xmlns: "http://www.w3.org/2000/svg",
+                        width: "16",
+                        height: "16",
+                        fill: "currentColor",
+                        class: "bi bi-arrow-clockwise",
+                        view_box: "0 0 16 16",
+                        path {
+                            "fill-rule": "evenodd",
+                            d: "M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2z",
                         }
-                    }
-                }
-                select {
-                    onchange: on_course_of_study_change,
-                    class: "form-select mb-1",
-                    "aria-label": "Select course of study",
-                    {
-                        student_result
-                            .course_of_study
-                            .iter()
-                            .map(|course_of_study| {
-                                rsx! {
-                                    option { selected: course_of_study.selected, value: course_of_study.value,
-                                        {course_of_study.name.clone()}
-                                    }
-                                }
-                            })
-                    }
-                }
-                StudentResultLevelComponent { level: student_result.level0, path: Vec::new() }
-                div {
-                    "Gesamt-GPA: "
-                    if anonymize {
-                        span { class: "placeholder", "abc" }
-                    } else {
-                        {student_result.total_gpa.to_string()}
-                    }
-                }
-                div {
-                    "Hauptfach-GPA: "
-                    if anonymize {
-                        span { class: "placeholder", "abc" }
-                    } else {
-                        {student_result.main_gpa.to_string()}
+                        path { d: "M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466" }
                     }
                 }
             }
-        },
-    )
+            select {
+                onchange: on_course_of_study_change,
+                class: "form-select mb-1",
+                "aria-label": "Select course of study",
+                {
+                    student_result
+                        .course_of_study
+                        .iter()
+                        .map(|course_of_study| {
+                            rsx! {
+                                option { selected: course_of_study.selected, value: course_of_study.value,
+                                    {course_of_study.name.clone()}
+                                }
+                            }
+                        })
+                }
+            }
+            StudentResultLevelComponent { level: student_result.level0, path: Vec::new() }
+            div {
+                "Gesamt-GPA: "
+                if anonymize {
+                    span { class: "placeholder", "abc" }
+                } else {
+                    {student_result.total_gpa.to_string()}
+                }
+            }
+            div {
+                "Hauptfach-GPA: "
+                if anonymize {
+                    span { class: "placeholder", "abc" }
+                } else {
+                    {student_result.main_gpa.to_string()}
+                }
+            }
+        }
+    })
 }
 
 #[component]
-pub fn StudentResultLevelComponent(
-    level: ReadSignal<StudentResultLevel>,
-    path: ReadSignal<Vec<String>>,
-) -> Element {
+pub fn StudentResultLevelComponent(level: ReadSignal<StudentResultLevel>, path: ReadSignal<Vec<String>>) -> Element {
     let anonymize = use_context::<Anonymize>().0;
 
     rsx! {

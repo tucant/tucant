@@ -8,10 +8,7 @@ use tucant_types::{
     LoginResponse, RevalidationStrategy,
     coursedetails::CourseDetailsRequest,
     moduledetails::ModuleDetailsRequest,
-    registration::{
-        AnmeldungCourse, AnmeldungEntry, AnmeldungExam, AnmeldungModule, AnmeldungRequest,
-        AnmeldungResponse, RegistrationState, Studiumsauswahl,
-    },
+    registration::{AnmeldungCourse, AnmeldungEntry, AnmeldungExam, AnmeldungModule, AnmeldungRequest, AnmeldungResponse, RegistrationState, Studiumsauswahl},
 };
 
 use crate::{
@@ -20,20 +17,14 @@ use crate::{
 };
 use html_handler::{InElement, InRoot, MyElementRef, MyNode, Root, parse_document};
 
-pub async fn anmeldung(
-    tucan: &TucanConnector,
-    login_response: &LoginResponse,
-    revalidation_strategy: RevalidationStrategy,
-    request: AnmeldungRequest,
-) -> Result<AnmeldungResponse, TucanError> {
+pub async fn anmeldung(tucan: &TucanConnector, login_response: &LoginResponse, revalidation_strategy: RevalidationStrategy, request: AnmeldungRequest) -> Result<AnmeldungResponse, TucanError> {
     let key = format!("unparsed_anmeldung.{}", request.inner());
 
     let old_content_and_date = tucan.database.get::<(String, OffsetDateTime)>(&key).await;
     if revalidation_strategy.max_age != 0 {
         if let Some((content, date)) = &old_content_and_date {
             info!("{}", OffsetDateTime::now_utc() - *date);
-            if OffsetDateTime::now_utc() - *date < Duration::seconds(revalidation_strategy.max_age)
-            {
+            if OffsetDateTime::now_utc() - *date < Duration::seconds(revalidation_strategy.max_age) {
                 return anmeldung_internal(login_response, content);
             }
         }
@@ -48,24 +39,19 @@ pub async fn anmeldung(
         login_response.id,
         request.inner()
     );
-    let (content, date) =
-        authenticated_retryable_get(tucan, &url, &login_response.cookie_cnsc).await?;
+    let (content, date) = authenticated_retryable_get(tucan, &url, &login_response.cookie_cnsc).await?;
     let result = anmeldung_internal(login_response, &content)?;
     if invalidate_dependents && old_content_and_date.as_ref().map(|m| &m.0) != Some(&content) {
         // TODO invalidate cached ones?
-        // TODO FIXME don't remove from database to be able to do recursive invalidations. maybe set age to oldest possible value? or more complex set invalidated and then queries can allow to return invalidated. I think we should do the more complex thing.
+        // TODO FIXME don't remove from database to be able to do recursive invalidations.
+        // maybe set age to oldest possible value? or more complex set invalidated and then queries can allow to return invalidated.
+        // I think we should do the more complex thing.
         let keys: Vec<String> = result
             .entries
             .iter()
             .flat_map(|e| &e.module)
             .map(|e| format!("unparsed_module_details.{}", e.url.inner()))
-            .chain(
-                result
-                    .entries
-                    .iter()
-                    .flat_map(|e| &e.courses)
-                    .map(|e| format!("unparsed_course_details.{}", e.1.url.inner())),
-            )
+            .chain(result.entries.iter().flat_map(|e| &e.courses).map(|e| format!("unparsed_course_details.{}", e.1.url.inner())))
             .collect();
         tucan.database.remove_many(keys).await;
     }
@@ -75,31 +61,9 @@ pub async fn anmeldung(
     Ok(result)
 }
 
-pub static MODULEDETAILS_REGEX: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(
-        "^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=-N\\d+,-N\\d+,",
-    )
-    .unwrap()
-});
+pub static MODULEDETAILS_REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=-N\\d+,-N\\d+,").unwrap());
 
-fn is_tbsubhead(
-    html_handler: &InElement<
-        '_,
-        InElement<
-            '_,
-            InElement<
-                '_,
-                InElement<
-                    '_,
-                    InElement<
-                        '_,
-                        InElement<'_, InElement<'_, InElement<'_, InRoot<'_, Root<'_>>>>>,
-                    >,
-                >,
-            >,
-        >,
-    >,
-) -> bool {
+fn is_tbsubhead(html_handler: &InElement<'_, InElement<'_, InElement<'_, InElement<'_, InElement<'_, InElement<'_, InElement<'_, InElement<'_, InRoot<'_, Root<'_>>>>>>>>>>) -> bool {
     html_handler
         .peek()
         .unwrap()
@@ -113,16 +77,10 @@ fn is_tbsubhead(
 }
 
 #[expect(clippy::too_many_lines, clippy::cognitive_complexity)]
-fn anmeldung_internal(
-    login_response: &LoginResponse,
-    content: &str,
-) -> Result<AnmeldungResponse, TucanError> {
-    static REGISTRATION_REGEX: LazyLock<Regex> = LazyLock::new(|| {
-        Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N\\d+,-N000311,").unwrap()
-    });
-    static RE: LazyLock<Regex> = LazyLock::new(|| {
-        Regex::new(r"^\p{Alphabetic}{2}, \d{1,2}\. \p{Alphabetic}{3}\. \d{4} \[\d\d:\d\d\] - \p{Alphabetic}{2}, \d{1,2}\. \p{Alphabetic}{3}\. \d{4} \[\d\d:\d\d\]$").unwrap()
-    });
+fn anmeldung_internal(login_response: &LoginResponse, content: &str) -> Result<AnmeldungResponse, TucanError> {
+    static REGISTRATION_REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N\\d+,-N000311,").unwrap());
+    static RE: LazyLock<Regex> =
+        LazyLock::new(|| Regex::new(r"^\p{Alphabetic}{2}, \d{1,2}\. \p{Alphabetic}{3}\. \d{4} \[\d\d:\d\d\] - \p{Alphabetic}{2}, \d{1,2}\. \p{Alphabetic}{3}\. \d{4} \[\d\d:\d\d\]$").unwrap());
     let document = parse_document(content);
     let html_handler = Root::new(document.root());
     let html_handler = html_handler.document_start();
@@ -166,11 +124,19 @@ fn anmeldung_internal(
                                                             <option value=value selected="selected">
                                                                 name
                                                             </option>
-                                                        } => Studiumsauswahl { name, value: AnmeldungRequest::parse(&format!("-N{value},-N0,-N0,-N0")), selected: true } else {
+                                                        } => Studiumsauswahl {
+                                                            name,
+                                                            value: AnmeldungRequest::parse(&format!("-N{value},-N0,-N0,-N0")),
+                                                            selected: true
+                                                        } else {
                                                             <option value=value>
                                                                 name
                                                             </option>
-                                                        } => Studiumsauswahl { name, value: AnmeldungRequest::parse(&format!("-N{value},-N0,-N0,-N0")), selected: false };
+                                                        } => Studiumsauswahl {
+                                                            name,
+                                                            value: AnmeldungRequest::parse(&format!("-N{value},-N0,-N0,-N0")),
+                                                            selected: false
+                                                        };
                                                     } => studiumsauswahl.either_into();
                                                 </select>
                                                 <input name="Aktualisieren" type="submit" value="Aktualisieren" class="img img_arrowReload pageElementLeft"></input>
@@ -227,9 +193,18 @@ fn anmeldung_internal(
                             } => (item, AnmeldungRequest::parse(&REGISTRATION_REGEX.replace(&url, "")));
                         </ul>
                     } => submenus;
-                    let additional_information = while html_handler.peek().unwrap().next_sibling().is_some() && html_handler.peek().and_then(ego_tree::NodeRef::next_sibling).and_then(|e| e.value().as_element()).is_none_or(|e| !e.has_class("tbcoursestatus", CaseSensitivity::CaseSensitive)) {
+                    let additional_information = while html_handler.peek().unwrap().next_sibling().is_some()
+                        && html_handler
+                            .peek()
+                            .and_then(ego_tree::NodeRef::next_sibling)
+                            .and_then(|e| e.value().as_element())
+                            .is_none_or(|e| !e.has_class("tbcoursestatus", CaseSensitivity::CaseSensitive)) {
                         let child = html_handler.next_any_child();
-                    } => if let MyNode::Element(_element) = child.value() { Some(MyElementRef::wrap(child).unwrap().html()) } else { panic!() };
+                    } => if let MyNode::Element(_element) = child.value() {
+                        Some(MyElementRef::wrap(child).unwrap().html())
+                    } else {
+                        panic!()
+                    };
                     <br></br>
                     let anmeldung_entries = if html_handler.peek().is_some() {
                         <table class="tbcoursestatus rw-table rw-all">
@@ -304,11 +279,15 @@ fn anmeldung_internal(
                                                                         <a href=registration_button_link class="img noFloat register">
                                                                             "Anmelden"
                                                                         </a>
-                                                                    } => RegistrationState::NotRegistered { register_link: registration_button_link } else {
+                                                                    } => RegistrationState::NotRegistered {
+                                                                        register_link: registration_button_link
+                                                                    } else {
                                                                         <a href=registration_button_link class="img img_arrowLeftRed noFLoat unregister">
                                                                             "Abmelden"
                                                                         </a>
-                                                                    } => RegistrationState::Registered { unregister_link: registration_button_link };
+                                                                    } => RegistrationState::Registered {
+                                                                        unregister_link: registration_button_link
+                                                                    };
                                                                 } => registered.either_into::<RegistrationState>() else {
                                                                 } => RegistrationState::Unknown;
                                                             </td>
@@ -327,7 +306,17 @@ fn anmeldung_internal(
                                                             registration_state: registration_state.either_into(),
                                                         }
                                                     };
-                                                    let courses = while html_handler.peek().is_some() && !html_handler.peek().unwrap().children().next().unwrap().value().as_element().unwrap().has_class("tbsubhead", scraper::CaseSensitivity::CaseSensitive) {
+                                                    let courses = while html_handler.peek().is_some()
+                                                        && !html_handler
+                                                            .peek()
+                                                            .unwrap()
+                                                            .children()
+                                                            .next()
+                                                            .unwrap()
+                                                            .value()
+                                                            .as_element()
+                                                            .unwrap()
+                                                            .has_class("tbsubhead", scraper::CaseSensitivity::CaseSensitive) {
                                                         let exam = if html_handler.peek().unwrap().children().nth(1).unwrap().value().as_element().unwrap().attr("class").unwrap() == "tbdata" {
                                                             <tr>
                                                                 <td class="tbdata">
@@ -406,11 +395,15 @@ fn anmeldung_internal(
                                                                         <a href=registration_button_link class="img noFLoat register">
                                                                             "Anmelden"
                                                                         </a>
-                                                                    } => RegistrationState::NotRegistered { register_link: registration_button_link } else {
+                                                                    } => RegistrationState::NotRegistered {
+                                                                        register_link: registration_button_link
+                                                                    } else {
                                                                         <a href=registration_button_link class="img img_arrowLeftRed noFLoat unregister">
                                                                             "Abmelden"
                                                                         </a>
-                                                                    } => RegistrationState::Registered { unregister_link: registration_button_link };
+                                                                    } => RegistrationState::Registered {
+                                                                        unregister_link: registration_button_link
+                                                                    };
                                                                 } => registration_button_link.either_into::<RegistrationState>() else {
                                                                 } => RegistrationState::Unknown;
                                                             </td>
