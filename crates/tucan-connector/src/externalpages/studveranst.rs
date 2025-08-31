@@ -117,7 +117,8 @@ pub async fn veranstaltungen(connector: &TucanConnector, login_response: LoginRe
                                 "Wintersemester: 1. Werktag im September"
                             </li>
                         </ul>
-                        "Die Fristen können individuell abweichen – bitte beachten Sie die Terminierungen Ihres Fachbereichs! Die jeweilige Anmeldephase ist in TUCaN bei jeder Lehrveranstaltung individuell aufgeführt."
+                        "Die Fristen können individuell abweichen – bitte beachten Sie die Terminierungen Ihres Fachbereichs! Die jeweilige Anmeldephase ist in TUCaN bei jeder Lehrveranstaltung individuell \
+         aufgeführt."
                         <p>
                         </p>
                         <p style="line-height: 140%;">
@@ -144,7 +145,9 @@ pub async fn veranstaltungen(connector: &TucanConnector, login_response: LoginRe
                         </ul>
                         <ul>
                             <li style="line-height: 140%;">
-                                "Einige Prüfungsordnungen sehen  vor, dass bestimmte Module und Veranstaltungen nur im Nebenfach/ im Schwerpunkt/ in Ihrer Vertiefung  belegt werden können. Für Sie bedeutet  das: Sie müssen Ihr Nebenfach/ Ihren Schwerpunkt/ Ihre Vertiefung festlegen,  bevor Sie sich zu diesen Modulen und Lehrveranstaltungen anmelden können. Bitte beachten Sie die Fristen, in denen Sie sich Ihr Nebenfach/ Ihren Schwerpunkt/ Ihren Wahlbereich aussuchen  können. Falls für Ihren Studiengang Fristen festgelegt sind, stehen diese in  Klammern hinter den Titeln der Wahlbereiche."
+                                "Einige Prüfungsordnungen sehen  vor, dass bestimmte Module und Veranstaltungen nur im Nebenfach/ im Schwerpunkt/ in Ihrer Vertiefung  belegt werden können. Für Sie bedeutet  das: Sie müssen \
+         Ihr Nebenfach/ Ihren Schwerpunkt/ Ihre Vertiefung festlegen,  bevor Sie sich zu diesen Modulen und Lehrveranstaltungen anmelden können. Bitte beachten Sie die Fristen, in denen Sie sich Ihr \
+         Nebenfach/ Ihren Schwerpunkt/ Ihren Wahlbereich aussuchen  können. Falls für Ihren Studiengang Fristen festgelegt sind, stehen diese in  Klammern hinter den Titeln der Wahlbereiche."
                             </li>
                         </ul>
                         <p>
