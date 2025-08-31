@@ -4,7 +4,8 @@ use crate::{
     TucanConnector, authenticated_retryable_get,
     head::{footer, html_head, logged_in_head, logged_out_head},
 };
-use html_handler::{InElement, Root, parse_document};
+use ego_tree::NodeRef;
+use html_handler::{InElement, MyNode, Root, parse_document};
 use log::info;
 use regex::Regex;
 use scraper::CaseSensitivity;
@@ -62,87 +63,100 @@ pub async fn student_result(
     Ok(result)
 }
 
+fn get_level(node: &NodeRef<MyNode>) -> u8 {
+    node.value()
+        .as_element()
+        .unwrap()
+        .attr("class")
+        .unwrap()
+        .trim_start_matches("subhead level0")
+        .parse::<u8>()
+        .unwrap()
+}
+
 fn part0<'a, T>(
     html_handler: InElement<'a, T>,
-    level: &str,
-) -> (InElement<'a, T>, (String, Vec<StudentResultEntry>)) {
+    level: u8,
+) -> (InElement<'a, T>, Option<(String, Vec<StudentResultEntry>)>) {
     html_extractor::html! {
-        <tr class={|l| assert_eq!(l, format!("subhead {level}"))}>
-            <td colspan="2">
-                level_i
-            </td>
-            <td style="text-align:center;">
-            </td>
-            <td>
-            </td>
-            <td>
-            </td>
-            <td>
-            </td>
-            <td>
-            </td>
-        </tr>
-        let entries = while html_handler
-            .peek()
-            .unwrap()
-            .first_child()
-            .unwrap()
-            .value()
-            .as_element()
-            .unwrap()
-            .has_class("tbdata", CaseSensitivity::CaseSensitive) {
-            <tr>
-                <td class="tbdata">
-                    id
+        let result = if get_level(html_handler.peek().unwrap()) == level {
+            <tr class={|l| assert_eq!(l, format!("subhead {level}"))}>
+                <td colspan="2">
+                    level_i
                 </td>
-                <td class="tbdata">
-                    let name_and_resultdetails_url = if html_handler.peek().unwrap().value().is_text() {
-                        name
-                    } => (name, None::<String>) else {
-                        <a name=_name id=_result_id href=resultdetails_url onclick=_onclick>
-                            name
-                        </a>
-                        <script type="text/javascript">
-                            _popup_script
-                        </script>
-                    } => (name, Some(resultdetails_url));
+                <td style="text-align:center;">
                 </td>
-                <td class="tbdata" style="text-align:right;">
+                <td>
                 </td>
-                <td class="tbdata" style="text-align:right;">
-                    let cp = if html_handler.peek().is_some() {
-                        cp
-                    } => cp;
+                <td>
                 </td>
-                <td class="tbdata" style="text-align:right;">
-                    let used_cp = if html_handler.peek().is_some() {
-                        used_cp
-                    } => used_cp;
+                <td>
                 </td>
-                <td class="tbdata" style="text-align:right;">
-                    let grade = if html_handler.peek().is_some() {
-                        grade
-                    } => grade;
-                </td>
-                <td class="tbdata" style="text-align:center;">
-                    <img src=src alt=alt title=state></img>
+                <td>
                 </td>
             </tr>
-        } => StudentResultEntry {
-            id: if id == "Anerkennung" { None } else { Some(id) },
-            name: name_and_resultdetails_url
-                .clone()
-                .either_into::<(String, Option<String>)>()
-                .0,
-            resultdetails_url: name_and_resultdetails_url
-                .either_into::<(String, Option<String>)>()
-                .1,
-            cp: cp.map(|v| v.trim_end_matches(",0").parse().unwrap()),
-            used_cp: used_cp.map(|v| v.trim_end_matches(",0").parse().unwrap()),
-            grade: LeistungsspiegelGrade::from((grade.as_deref(), StudentResultState::from((src.as_str(), alt.as_str(), state.as_str())))),
-        };
+            let entries = while html_handler
+                .peek()
+                .unwrap()
+                .first_child()
+                .unwrap()
+                .value()
+                .as_element()
+                .unwrap()
+                .has_class("tbdata", CaseSensitivity::CaseSensitive) {
+                <tr>
+                    <td class="tbdata">
+                        id
+                    </td>
+                    <td class="tbdata">
+                        let name_and_resultdetails_url = if html_handler.peek().unwrap().value().is_text() {
+                            name
+                        } => (name, None::<String>) else {
+                            <a name=_name id=_result_id href=resultdetails_url onclick=_onclick>
+                                name
+                            </a>
+                            <script type="text/javascript">
+                                _popup_script
+                            </script>
+                        } => (name, Some(resultdetails_url));
+                    </td>
+                    <td class="tbdata" style="text-align:right;">
+                    </td>
+                    <td class="tbdata" style="text-align:right;">
+                        let cp = if html_handler.peek().is_some() {
+                            cp
+                        } => cp;
+                    </td>
+                    <td class="tbdata" style="text-align:right;">
+                        let used_cp = if html_handler.peek().is_some() {
+                            used_cp
+                        } => used_cp;
+                    </td>
+                    <td class="tbdata" style="text-align:right;">
+                        let grade = if html_handler.peek().is_some() {
+                            grade
+                        } => grade;
+                    </td>
+                    <td class="tbdata" style="text-align:center;">
+                        <img src=src alt=alt title=state></img>
+                    </td>
+                </tr>
+            } => StudentResultEntry {
+                id: if id == "Anerkennung" { None } else { Some(id) },
+                name: name_and_resultdetails_url
+                    .clone()
+                    .either_into::<(String, Option<String>)>()
+                    .0,
+                resultdetails_url: name_and_resultdetails_url
+                    .either_into::<(String, Option<String>)>()
+                    .1,
+                cp: cp.map(|v| v.trim_end_matches(",0").parse().unwrap()),
+                used_cp: used_cp.map(|v| v.trim_end_matches(",0").parse().unwrap()),
+                grade: LeistungsspiegelGrade::from((grade.as_deref(), StudentResultState::from((src.as_str(), alt.as_str(), state.as_str())))),
+            };
+        } => (level_i, entries);
     }
-    (html_handler, (level_i, entries))
+    (html_handler, result)
 }
 
 fn parse_rules(rules: &[String]) -> StudentResultRules {
@@ -199,8 +213,8 @@ fn parse_rules(rules: &[String]) -> StudentResultRules {
 
 fn part1<'a, T>(
     html_handler: InElement<'a, T>,
-    level: &str,
-    name: (String, Vec<StudentResultEntry>),
+    level: u8,
+    name: Option<(String, Vec<StudentResultEntry>)>,
     children: Vec<StudentResultLevel>,
 ) -> (InElement<'a, T>, StudentResultLevel) {
     html_extractor::html! {
@@ -213,7 +227,7 @@ fn part1<'a, T>(
             .attrs
             .is_empty() {
             <tr>
-                <td colspan="2" class={|v| assert_eq!(v, level)}>
+                <td colspan="2" class={|v| assert_eq!(v, format!("level0{}", level))}>
                     _summe
                 </td>
                 let sum_cp_and_used_cp = if html_handler
@@ -224,26 +238,26 @@ fn part1<'a, T>(
                     .unwrap()
                     .attr("colspan")
                     .is_some() {
-                    <td colspan="4" class={|v| assert_eq!(v, level)} style="text-align:left;white-space:nowrap;">
+                    <td colspan="4" class={|v| assert_eq!(v, format!("level0{}", level))} style="text-align:left;white-space:nowrap;">
                         _summe_wird_erst_berechnet_wenn_der_bereich_abgeschlossen_ist
                     </td>
                 } => (None, None) else {
-                    <td class={|v| assert_eq!(v, level)}>
+                    <td class={|v| assert_eq!(v, format!("level0{}", level))}>
                     </td>
-                    <td class={|v| assert_eq!(v, level)} style="text-align:right;white-space:nowrap;">
+                    <td class={|v| assert_eq!(v, format!("level0{}", level))} style="text-align:right;white-space:nowrap;">
                         let sum_cp = if html_handler.peek().is_some() {
                             sum_cp
                         } => sum_cp;
                     </td>
-                    <td class={|v| assert_eq!(v, level)} style="text-align:right;white-space:nowrap;">
+                    <td class={|v| assert_eq!(v, format!("level0{}", level))} style="text-align:right;white-space:nowrap;">
                         let sum_used_cp = if html_handler.peek().is_some() {
                             sum_used_cp
                         } => sum_used_cp;
                     </td>
-                    <td class={|v| assert_eq!(v, level)} style="text-align:right;">
+                    <td class={|v| assert_eq!(v, format!("level0{}", level))} style="text-align:right;">
                     </td>
                 } => (sum_cp, sum_used_cp);
-                <td class={|v| assert_eq!(v, level)} style="text-align:center;">
+                <td class={|v| assert_eq!(v, format!("level0{}", level))} style="text-align:center;">
                     <img src=src alt=alt title=state></img>
                 </td>
             </tr>
@@ -256,9 +270,9 @@ fn part1<'a, T>(
                     .value()
                     .as_element()
                     .unwrap()
-                    .has_class(level, CaseSensitivity::CaseSensitive) {
+                    .has_class(&format!("level0{}", level), CaseSensitivity::CaseSensitive) {
                 <tr>
-                    <td colspan="   7" class={|v| assert_eq!(v, level)}>
+                    <td colspan="   7" class={|v| assert_eq!(v, format!("level0{}", level))}>
                         rule
                     </td>
                 </tr>
@@ -271,8 +285,8 @@ fn part1<'a, T>(
     (
         html_handler,
         StudentResultLevel {
-            name: name.0,
-            entries: name.1,
+            name: name.as_ref().map(|n| n.0.clone()),
+            entries: name.map(|n| n.1).unwrap_or_default(),
             sum_cp: optional
                 .clone()
                 .and_then(|o| o.0)
@@ -399,93 +413,47 @@ fn student_result_internal(
                                 </tr>
                             </thead>
                             <tbody>
-                                let level0_title = part0(html_handler, "level00");
-                                let level1 = while html_handler
-                                    .peek()
-                                    .unwrap()
-                                    .value()
-                                    .as_element()
-                                    .unwrap()
-                                    .has_class("level01", CaseSensitivity::CaseSensitive) {
-                                    let level1_title = part0(html_handler, "level01");
-                                    let level2 = while html_handler
-                                        .peek()
-                                        .unwrap()
-                                        .value()
-                                        .as_element()
-                                        .unwrap()
-                                        .has_class("level02", CaseSensitivity::CaseSensitive) {
-                                        let level2_title = part0(html_handler, "level02");
-                                        let level3 = while html_handler
-                                            .peek()
-                                            .unwrap()
-                                            .value()
-                                            .as_element()
-                                            .unwrap()
-                                            .has_class("level03", CaseSensitivity::CaseSensitive) {
-                                            let level3_title = part0(html_handler, "level03");
-                                            let level4 = while html_handler
-                                                .peek()
-                                                .unwrap()
-                                                .value()
-                                                .as_element()
-                                                .unwrap()
-                                                .has_class(
-                                                    "level04",
-                                                    CaseSensitivity::CaseSensitive
-                                                ) {
-                                                let level4_title = part0(html_handler, "level04");
-                                                let level5 = while html_handler
-                                                    .peek()
-                                                    .unwrap()
-                                                    .value()
-                                                    .as_element()
-                                                    .unwrap()
-                                                    .has_class(
-                                                        "level05",
-                                                        CaseSensitivity::CaseSensitive
-                                                    ) {
-                                                    let level5_title = part0(html_handler, "level05");
-                                                    let level6 = while html_handler
-                                                        .peek()
-                                                        .unwrap()
-                                                        .value()
-                                                        .as_element()
-                                                        .unwrap()
-                                                        .has_class(
-                                                            "level06",
-                                                            CaseSensitivity::CaseSensitive
-                                                        ) {
-                                                        let level6_title = part0(html_handler, "level06");
+                                let level0_title = part0(html_handler, 0);
+                                let level1 = while get_level(html_handler.peek().unwrap()) >= 1 {
+                                    let level1_title = part0(html_handler, 1);
+                                    let level2 = while get_level(html_handler.peek().unwrap()) >= 2 {
+                                        let level2_title = part0(html_handler, 2);
+                                        let level3 = while get_level(html_handler.peek().unwrap()) >= 3 {
+                                            let level3_title = part0(html_handler, 3);
+                                            let level4 = while get_level(html_handler.peek().unwrap()) >= 4 {
+                                                let level4_title = part0(html_handler, 4);
+                                                let level5 = while get_level(html_handler.peek().unwrap()) >= 5 {
+                                                    let level5_title = part0(html_handler, 5);
+                                                    let level6 = while get_level(html_handler.peek().unwrap()) >= 6 {
+                                                        let level6_title = part0(html_handler, 6);
                                                         let level6_contents = part1(
                                                             html_handler,
-                                                            "level06",
+                                                            6,
                                                             level6_title,
                                                             Vec::new()
                                                         );
                                                     } => level6_contents;
                                                     let level5_contents = part1(
                                                         html_handler,
-                                                        "level05",
+                                                        5,
                                                         level5_title,
                                                         level6
                                                     );
                                                 } => level5_contents;
                                                 let level4_contents = part1(
                                                     html_handler,
-                                                    "level04",
+                                                    4,
                                                     level4_title,
                                                     level5
                                                 );
                                             } => level4_contents;
-                                            let level3_contents = part1(html_handler, "level03", level3_title, level4);
+                                            let level3_contents = part1(html_handler, 3, level3_title, level4);
                                         } => level3_contents;
-                                        let level2_contents = part1(html_handler, "level02", level2_title, level3);
+                                        let level2_contents = part1(html_handler, 2, level2_title, level3);
                                     } => level2_contents;
-                                    let level1_contents = part1(html_handler, "level01", level1_title, level2);
-                                    // after here comes a level 2 title
+                                    let level1_contents = part1(html_handler, 1, level1_title, level2);
                                 } => level1_contents;
-                                let level0_contents = part1(html_handler, "level00", level0_title, level1);
+                                let level0_contents = part1(html_handler, 0, level0_title, level1);
                             </tbody>
                         </table>
                         <table class="nb list students_results">
