@@ -688,9 +688,8 @@ impl Parse for HtmlWhile {
     }
 }
 
-#[expect(clippy::too_many_lines)]
 fn convert_commands(commands: &HtmlCommands) -> Vec<TokenStream> {
-    commands.commands.iter().map().collect()
+    commands.commands.iter().map(convert_command).collect()
 }
 
 fn convert_command(command: HtmlCommand) -> TokenStream {
