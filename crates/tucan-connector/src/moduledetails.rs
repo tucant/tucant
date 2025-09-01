@@ -83,9 +83,9 @@ fn module_details_internal(login_response: &LoginResponse, content: &str) -> Res
                         module_id
                     </h1>
                     <form name="moduleform"
-    id="moduleform"
-    action="/scripts/mgrqispi.dll"
-    method="post">
+                          id="moduleform"
+                          action="/scripts/mgrqispi.dll"
+                          method="post">
                         <div class="contentlayoutleft" id="contentlayoutleft">
                             <table class="tb">
                                 <caption>
@@ -300,7 +300,7 @@ fn module_details_internal(login_response: &LoginResponse, content: &str) -> Res
                                                     <td class="tbdata">
                                                         let gefaehrungspotential_schwangere = if html_handler.peek().is_some() {
                                                             <img src="../../gfx/_default/icons/eventIcon.gif"
-    title="Gefährdungspotential für Schwangere"></img>
+                                                                 title="Gefährdungspotential für Schwangere"></img>
                                                         } => ();
                                                     </td>
                                                     <td>
@@ -662,7 +662,7 @@ fn module_details_internal(login_response: &LoginResponse, content: &str) -> Res
                                             let bild = if html_handler.peek().unwrap().value().as_element().unwrap().attrs.is_empty() {
                                                 <tr>
                                                     <td class="tbdata_nob"
-    style="text-align:center;padding-top:10px;padding-left:0px;">
+                                                        style="text-align:center;padding-top:10px;padding-left:0px;">
                                                         <img src=imgsrc width="120" height="160" border="0" alt=alt></img>
                                                     </td>
                                                 </tr>

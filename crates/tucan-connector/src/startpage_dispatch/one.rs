@@ -19,11 +19,11 @@ pub async fn startpage_dispatch_1(connector: &TucanConnector) -> Result<(), Tuca
             <body class="redirect">
                 <div id="wrapper">
                     <a href="http://http://www.tu-darmstadt.de"
-    title="extern http://www.tu-darmstadt.de">
+                       title="extern http://www.tu-darmstadt.de">
                         <img border="0"
-    id="logo"
-    src="/gfx/tuda/logo.png"
-    alt="Logo Technische Universität Darmstadt"></img>
+                             id="logo"
+                             src="/gfx/tuda/logo.png"
+                             alt="Logo Technische Universität Darmstadt"></img>
                     </a>
                     <h2>
                         <a href="/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N000000000000001,-N000344,-Awelcome">
@@ -31,7 +31,7 @@ pub async fn startpage_dispatch_1(connector: &TucanConnector) -> Result<(), Tuca
                         </a>
                     </h2>
                     <a style="text-decoration: underline;"
-    href="/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N000000000000001,-N000344,-Awelcome">
+                       href="/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N000000000000001,-N000344,-Awelcome">
                         "Startseite"
                     </a>
                 </div>

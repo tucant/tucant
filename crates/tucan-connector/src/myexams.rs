@@ -82,9 +82,9 @@ fn my_exams_internal(login_response: &LoginResponse, content: &str) -> Result<My
                     </h1>
                     <div class="tb">
                         <form id="semesterchange"
-    action="/scripts/mgrqispi.dll"
-    method="post"
-    class="pageElementTop">
+                              action="/scripts/mgrqispi.dll"
+                              method="post"
+                              class="pageElementTop">
                             <div>
                                 <div class="tbhead">
                                     "Prüfungen"
@@ -119,9 +119,9 @@ fn my_exams_internal(login_response: &LoginResponse, content: &str) -> Result<My
                                             } => option.either_into();
                                         </select>
                                         <input name="Refresh"
-    type="submit"
-    value="Aktualisieren"
-    class="img img_arrowReload"></input>
+                                               type="submit"
+                                               value="Aktualisieren"
+                                               class="img img_arrowReload"></input>
                                     </div>
                                 </div>
                                 <input name="APPNAME" type="hidden" value="CampusNet"></input>

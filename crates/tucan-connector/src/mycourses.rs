@@ -83,9 +83,9 @@ fn mycourses_internal(login_response: &LoginResponse, content: &str) -> Result<M
                     <br></br>
                     <div class="tb rw-table">
                         <form id="semesterchange"
-    action="/scripts/mgrqispi.dll"
-    method="post"
-    class="pageElementTop">
+                              action="/scripts/mgrqispi.dll"
+                              method="post"
+                              class="pageElementTop">
                             <div>
                                 <div class="tbhead">
                                     "Semesterauswahl"
@@ -99,9 +99,9 @@ fn mycourses_internal(login_response: &LoginResponse, content: &str) -> Result<M
                                             "Semester:"
                                         </label>
                                         <select name="semester"
-    id="semester"
-    onchange=_onchange
-    class="tabledata pageElementLeft">
+                                                id="semester"
+                                                onchange=_onchange
+                                                class="tabledata pageElementLeft">
                                             let semester = while html_handler.peek().is_some() {
                                                 let option = if html_handler.peek().unwrap().value().as_element().unwrap().attr("selected").is_some() {
                                                     <option value=value selected="selected">
@@ -123,9 +123,9 @@ fn mycourses_internal(login_response: &LoginResponse, content: &str) -> Result<M
                                             } => option.either_into();
                                         </select>
                                         <input name="Refresh"
-    type="submit"
-    value="Aktualisieren"
-    class="img img_arrowReload"></input>
+                                               type="submit"
+                                               value="Aktualisieren"
+                                               class="img img_arrowReload"></input>
                                     </div>
                                 </div>
                                 <input name="APPNAME" type="hidden" value="CampusNet"></input>

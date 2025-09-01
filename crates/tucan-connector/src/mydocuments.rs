@@ -116,8 +116,8 @@ fn my_documents_internal(login_response: &LoginResponse, content: &str) -> Resul
                             <input name="APPNAME" type="hidden" value="CampusNet"></input>
                             <input name="PRGNAME" type="hidden" value="CREATEDOCUMENT"></input>
                             <input name="ARGUMENTS"
-    type="hidden"
-    value="sessionno,menuid,mode,templateid,status,date_from,date_to,documentid"></input>
+                                   type="hidden"
+                                   value="sessionno,menuid,mode,templateid,status,date_from,date_to,documentid"></input>
                             <input name="sessionno" type="hidden" value=_session_id></input>
                             <input name="menuid" type="hidden" value="000557"></input>
                             <input name="mode" type="hidden" value="1"></input>

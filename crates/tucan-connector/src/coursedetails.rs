@@ -87,7 +87,7 @@ fn course_details_internal(login_response: &LoginResponse, content: &str, reques
                     <form name="courseform" action="/scripts/mgrqispi.dll" method="post">
                         let id_and_name = if html_handler.peek().unwrap().value().as_element().unwrap().attrs().next().is_some() {
                             <h1 class="eventTitle img img_arrowEventIcon"
-    title="Gefährdungspotential für Schwangere">
+                                title="Gefährdungspotential für Schwangere">
                                 id_and_name
                             </h1>
                         } => id_and_name else {
