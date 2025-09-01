@@ -692,7 +692,8 @@ fn convert_commands(commands: &HtmlCommands) -> Vec<TokenStream> {
     commands.commands.iter().map(convert_command).collect()
 }
 
-fn convert_command(command: HtmlCommand) -> TokenStream {
+#[allow(clippy::too_many_lines)]
+fn convert_command(command: &HtmlCommand) -> TokenStream {
     match command {
         HtmlCommand::ElementOpen(input) => {
             let tag = input.element.to_string();

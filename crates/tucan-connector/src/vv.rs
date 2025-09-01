@@ -44,7 +44,10 @@ pub async fn vv(
         return Err(TucanError::NotCached);
     };
 
-    let url = format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=ACTION&ARGUMENTS={}", request.inner());
+    let url = format!(
+        "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=ACTION&ARGUMENTS={}",
+        request.inner()
+    );
     let (content, date) = if let Some(login_response) = login_response {
         authenticated_retryable_get(tucan, &url, &login_response.cookie_cnsc).await?
     } else {
