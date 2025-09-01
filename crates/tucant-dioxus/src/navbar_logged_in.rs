@@ -14,9 +14,7 @@ pub fn Vorlesungsverzeichnisse(data: ReadSignal<Option<MlsStart>>) -> Element {
                     rsx! {
                         li {
                             Link {
-                                to: Route::Vorlesungsverzeichnis {
-                                    vv: url.clone(),
-                                },
+                                to: Route::Vorlesungsverzeichnis { vv: url.clone() },
                                 class: "dropdown-item bg-success",
                                 "data-bs-target": "#navbarSupportedContent",
                                 "data-bs-hide": "collapse",
