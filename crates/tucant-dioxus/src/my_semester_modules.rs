@@ -53,87 +53,87 @@ pub fn MySemesterModules(semester: ReadSignal<SemesterId>) -> Element {
                 })
             };
             rsx! {
-            div {
-                h1 {
-                    {"Meine Semestermodule"}
-                    {" "}
-                    button {
-                        onclick: reload,
-                        r#type: "button",
-                        class: "btn btn-secondary",
-                        // https://github.com/twbs/icons
-                        // The MIT License (MIT)
-                        // Copyright (c) 2019-2024 The Bootstrap Authors
+                div {
+                    h1 {
+                        {"Meine Semestermodule"}
+                        {" "}
+                        button {
+                            onclick: reload,
+                            r#type: "button",
+                            class: "btn btn-secondary",
+                            // https://github.com/twbs/icons
+                            // The MIT License (MIT)
+                            // Copyright (c) 2019-2024 The Bootstrap Authors
 
-                        svg {
-                            xmlns: "http://www.w3.org/2000/svg",
-                            width: "16",
-                            height: "16",
-                            fill: "currentColor",
-                            class: "bi bi-arrow-clockwise",
-                            view_box: "0 0 16 16",
-                            path {
-                                "fill-rule": "evenodd",
-                                d: "M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2z",
-                            }
-                            path { d: "M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466" }
-                        }
-                    }
-                }
-                select {
-                    onchange: on_semester_change,
-                    class: "form-select mb-1",
-                    "aria-label": "Select semester",
-                    {
-                        my_modules
-                            .semester
-                            .iter()
-                            .map(|semester| {
-                                rsx! {
-                                    // TODO while loading here we should already show the newly selected value
-                                    option { selected: semester.selected, value: semester.value.inner().clone(), {semester.name.clone()} }
+                            svg {
+                                xmlns: "http://www.w3.org/2000/svg",
+                                width: "16",
+                                height: "16",
+                                fill: "currentColor",
+                                class: "bi bi-arrow-clockwise",
+                                view_box: "0 0 16 16",
+                                path {
+                                    "fill-rule": "evenodd",
+                                    d: "M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2z",
                                 }
-                            })
-                    }
-                }
-                div { class: "table-responsive",
-                    table { class: "table",
-                        thead {
-                            tr {
-                                th { scope: "col", {"NR"} }
-                                th { scope: "col", {"Name"} }
-                                th { scope: "col", {"Verantwortliche Person"} }
-                                th { scope: "col", {"Credits"} }
+                                path { d: "M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466" }
                             }
                         }
-                        tbody {
-                            {
-                                my_modules
-                                    .modules
-                                    .iter()
-                                    .map(|module| {
-                                        rsx! {
-                                            tr {
-                                                th { scope: "row", {module.nr.clone()} }
-                                                td {
-                                                    Link {
-                                                        to: Route::ModuleDetails {
-                                                            module: module.url.clone(),
-                                                        },
-                                                        {module.title.clone()}
+                    }
+                    select {
+                        onchange: on_semester_change,
+                        class: "form-select mb-1",
+                        "aria-label": "Select semester",
+                        {
+                            my_modules
+                                .semester
+                                .iter()
+                                .map(|semester| {
+                                    rsx! {
+                                        // TODO while loading here we should already show the newly selected value
+                                        option { selected: semester.selected, value: semester.value.inner().clone(), {semester.name.clone()} }
+                                    }
+                                })
+                        }
+                    }
+                    div { class: "table-responsive",
+                        table { class: "table",
+                            thead {
+                                tr {
+                                    th { scope: "col", {"NR"} }
+                                    th { scope: "col", {"Name"} }
+                                    th { scope: "col", {"Verantwortliche Person"} }
+                                    th { scope: "col", {"Credits"} }
+                                }
+                            }
+                            tbody {
+                                {
+                                    my_modules
+                                        .modules
+                                        .iter()
+                                        .map(|module| {
+                                            rsx! {
+                                                tr {
+                                                    th { scope: "row", {module.nr.clone()} }
+                                                    td {
+                                                        Link {
+                                                            to: Route::ModuleDetails {
+                                                                module: module.url.clone(),
+                                                            },
+                                                            {module.title.clone()}
+                                                        }
                                                     }
+                                                    td { {module.lecturer.clone()} }
+                                                    td { {module.credits.clone().unwrap_or_else(|| "-".to_owned())} }
                                                 }
-                                                td { {module.lecturer.clone()} }
-                                                td { {module.credits.clone().unwrap_or_else(|| "-".to_owned())} }
                                             }
-                                        }
-                                    })
+                                        })
+                                }
                             }
                         }
                     }
                 }
             }
-        }
         },
     )
 }

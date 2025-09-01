@@ -53,23 +53,23 @@ pub fn FetchAnmeldung() -> Element {
         60 * 60,
         |output: Vec<(String, Vec<u8>)>, _reload| {
             rsx! {
-            for entry in output {
-                a {
-                    href: {
-                        let blob_properties = web_sys::BlobPropertyBag::new();
-                        blob_properties.set_type("octet/stream");
-                        let bytes = Array::new();
-                        bytes.push(&Uint8Array::from(&entry.1[..]));
-                        let blob = Blob::new_with_blob_sequence_and_options(&bytes, &blob_properties)
-                            .unwrap();
-                        Url::create_object_url_with_blob(&blob).unwrap()
-                    },
-                    download: entry.0.clone(),
-                    {format!("Download {}", entry.0.clone())}
+                for entry in output {
+                    a {
+                        href: {
+                            let blob_properties = web_sys::BlobPropertyBag::new();
+                            blob_properties.set_type("octet/stream");
+                            let bytes = Array::new();
+                            bytes.push(&Uint8Array::from(&entry.1[..]));
+                            let blob = Blob::new_with_blob_sequence_and_options(&bytes, &blob_properties)
+                                .unwrap();
+                            Url::create_object_url_with_blob(&blob).unwrap()
+                        },
+                        download: entry.0.clone(),
+                        {format!("Download {}", entry.0.clone())}
+                    }
+                    br {}
                 }
-                br {}
             }
-        }
         },
     );
 
