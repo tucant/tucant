@@ -8,10 +8,7 @@ use tucant_types::{
     LoginResponse, RevalidationStrategy,
     coursedetails::CourseDetailsRequest,
     moduledetails::ModuleDetailsRequest,
-    registration::{
-        AnmeldungCourse, AnmeldungEntry, AnmeldungExam, AnmeldungModule, AnmeldungRequest,
-        AnmeldungResponse, RegistrationState, Studiumsauswahl,
-    },
+    registration::{AnmeldungCourse, AnmeldungEntry, AnmeldungExam, AnmeldungModule, AnmeldungRequest, AnmeldungResponse, RegistrationState, Studiumsauswahl},
 };
 
 use crate::{
@@ -20,20 +17,14 @@ use crate::{
 };
 use html_handler::{InElement, InRoot, MyElementRef, MyNode, Root, parse_document};
 
-pub async fn anmeldung(
-    tucan: &TucanConnector,
-    login_response: &LoginResponse,
-    revalidation_strategy: RevalidationStrategy,
-    request: AnmeldungRequest,
-) -> Result<AnmeldungResponse, TucanError> {
+pub async fn anmeldung(tucan: &TucanConnector, login_response: &LoginResponse, revalidation_strategy: RevalidationStrategy, request: AnmeldungRequest) -> Result<AnmeldungResponse, TucanError> {
     let key = format!("unparsed_anmeldung.{}", request.inner());
 
     let old_content_and_date = tucan.database.get::<(String, OffsetDateTime)>(&key).await;
     if revalidation_strategy.max_age != 0 {
         if let Some((content, date)) = &old_content_and_date {
             info!("{}", OffsetDateTime::now_utc() - *date);
-            if OffsetDateTime::now_utc() - *date < Duration::seconds(revalidation_strategy.max_age)
-            {
+            if OffsetDateTime::now_utc() - *date < Duration::seconds(revalidation_strategy.max_age) {
                 return anmeldung_internal(login_response, content);
             }
         }
@@ -48,8 +39,7 @@ pub async fn anmeldung(
         login_response.id,
         request.inner()
     );
-    let (content, date) =
-        authenticated_retryable_get(tucan, &url, &login_response.cookie_cnsc).await?;
+    let (content, date) = authenticated_retryable_get(tucan, &url, &login_response.cookie_cnsc).await?;
     let result = anmeldung_internal(login_response, &content)?;
     if invalidate_dependents && old_content_and_date.as_ref().map(|m| &m.0) != Some(&content) {
         // TODO invalidate cached ones?
@@ -62,13 +52,7 @@ pub async fn anmeldung(
             .iter()
             .flat_map(|e| &e.module)
             .map(|e| format!("unparsed_module_details.{}", e.url.inner()))
-            .chain(
-                result
-                    .entries
-                    .iter()
-                    .flat_map(|e| &e.courses)
-                    .map(|e| format!("unparsed_course_details.{}", e.1.url.inner())),
-            )
+            .chain(result.entries.iter().flat_map(|e| &e.courses).map(|e| format!("unparsed_course_details.{}", e.1.url.inner())))
             .collect();
         tucan.database.remove_many(keys).await;
     }
@@ -78,31 +62,9 @@ pub async fn anmeldung(
     Ok(result)
 }
 
-pub static MODULEDETAILS_REGEX: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(
-        "^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=-N\\d+,-N\\d+,",
-    )
-    .unwrap()
-});
+pub static MODULEDETAILS_REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=-N\\d+,-N\\d+,").unwrap());
 
-fn is_tbsubhead(
-    html_handler: &InElement<
-        '_,
-        InElement<
-            '_,
-            InElement<
-                '_,
-                InElement<
-                    '_,
-                    InElement<
-                        '_,
-                        InElement<'_, InElement<'_, InElement<'_, InRoot<'_, Root<'_>>>>>,
-                    >,
-                >,
-            >,
-        >,
-    >,
-) -> bool {
+fn is_tbsubhead(html_handler: &InElement<'_, InElement<'_, InElement<'_, InElement<'_, InElement<'_, InElement<'_, InElement<'_, InElement<'_, InRoot<'_, Root<'_>>>>>>>>>>) -> bool {
     html_handler
         .peek()
         .unwrap()
@@ -116,20 +78,10 @@ fn is_tbsubhead(
 }
 
 #[expect(clippy::too_many_lines, clippy::cognitive_complexity)]
-fn anmeldung_internal(
-    login_response: &LoginResponse,
-    content: &str,
-) -> Result<AnmeldungResponse, TucanError> {
-    static REGISTRATION_REGEX: LazyLock<Regex> = LazyLock::new(|| {
-        Regex::new(
-            "^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N\\d+,\
-             -N000311,",
-        )
-        .unwrap()
-    });
-    static RE: LazyLock<Regex> = LazyLock::new(|| {
-        Regex::new(r"^\p{Alphabetic}{2}, \d{1,2}\. \p{Alphabetic}{3}\. \d{4} \[\d\d:\d\d\] - \p{Alphabetic}{2}, \d{1,2}\. \p{Alphabetic}{3}\. \d{4} \[\d\d:\d\d\]$").unwrap()
-    });
+fn anmeldung_internal(login_response: &LoginResponse, content: &str) -> Result<AnmeldungResponse, TucanError> {
+    static REGISTRATION_REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N\\d+,-N000311,").unwrap());
+    static RE: LazyLock<Regex> =
+        LazyLock::new(|| Regex::new(r"^\p{Alphabetic}{2}, \d{1,2}\. \p{Alphabetic}{3}\. \d{4} \[\d\d:\d\d\] - \p{Alphabetic}{2}, \d{1,2}\. \p{Alphabetic}{3}\. \d{4} \[\d\d:\d\d\]$").unwrap());
     let document = parse_document(content);
     let html_handler = Root::new(document.root());
     let html_handler = html_handler.document_start();

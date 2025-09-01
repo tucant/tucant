@@ -18,11 +18,7 @@ cargo run --bin fetcher --release | sort > anmeldung.txt
 
 fn main() -> Result<(), TucanError> {
     dotenvy::dotenv().unwrap();
-    tokio::runtime::Builder::new_current_thread()
-        .enable_all()
-        .build()
-        .unwrap()
-        .block_on(async_main())
+    tokio::runtime::Builder::new_current_thread().enable_all().build().unwrap().block_on(async_main())
 }
 
 async fn async_main() -> Result<(), TucanError> {
@@ -45,14 +41,7 @@ async fn async_main() -> Result<(), TucanError> {
 
     let welcome = tucan.welcome().await.unwrap();
 
-    fetcher
-        .recursive_vv(
-            &tucan,
-            &login_response,
-            welcome.vorlesungsverzeichnis_url,
-            String::new(),
-        )
-        .await;
+    fetcher.recursive_vv(&tucan, &login_response, welcome.vorlesungsverzeichnis_url, String::new()).await;
 
     Ok(())
 }
@@ -71,22 +60,11 @@ impl Fetcher {
     }
 
     #[expect(clippy::manual_async_fn)]
-    fn recursive_vv<'a, 'b>(
-        self: Arc<Self>,
-        tucan: &'a TucanConnector,
-        login_response: &'b LoginResponse,
-        action: ActionRequest,
-        path: String,
-    ) -> impl Future<Output = ()> + Send + use<'a, 'b> {
+    fn recursive_vv<'a, 'b>(self: Arc<Self>, tucan: &'a TucanConnector, login_response: &'b LoginResponse, action: ActionRequest, path: String) -> impl Future<Output = ()> + Send + use<'a, 'b> {
         async move {
-            let result = AssertUnwindSafe(async {
-                tucan
-                    .vv(None, RevalidationStrategy::cache(), action.clone())
-                    .await
-                    .unwrap()
-            })
-            .catch_unwind()
-            .await;
+            let result = AssertUnwindSafe(async { tucan.vv(None, RevalidationStrategy::cache(), action.clone()).await.unwrap() })
+                .catch_unwind()
+                .await;
             let anmeldung_response = match result {
                 Err(err) => {
                     eprintln!("failed to fetch vv {action} with error {err:?}");
@@ -101,48 +79,26 @@ impl Fetcher {
                 .iter()
                 .map(|entry| {
                     async {
-                        self.clone()
-                            .recursive_vv(
-                                tucan,
-                                login_response,
-                                entry.1.clone(),
-                                path.clone() + " > " + &entry.0,
-                            )
-                            .await;
+                        self.clone().recursive_vv(tucan, login_response, entry.1.clone(), path.clone() + " > " + &entry.0).await;
                     }
                     .boxed()
                 })
-                .chain(
-                    anmeldung_response
-                        .veranstaltungen_or_module
-                        .iter()
-                        .map(|entry| {
-                            async {
-                                let result = AssertUnwindSafe(async {
-                                    let course_details = tucan
-                                        .course_details(
-                                            login_response,
-                                            RevalidationStrategy::cache(),
-                                            entry.coursedetails_url.clone(),
-                                        )
-                                        .await
-                                        .unwrap();
-                                    println!("{}: {}", path, course_details.name);
-                                })
-                                .catch_unwind()
-                                .await;
-                                if let Err(err) = result {
-                                    eprintln!(
-                                        "failed to fetch course {} with error {err:?}",
-                                        entry.coursedetails_url
-                                    );
-                                }
+                .chain(anmeldung_response.veranstaltungen_or_module.iter().map(|entry| {
+                    async {
+                        let result = AssertUnwindSafe(async {
+                            let course_details = tucan.course_details(login_response, RevalidationStrategy::cache(), entry.coursedetails_url.clone()).await.unwrap();
+                            println!("{}: {}", path, course_details.name);
+                        })
+                        .catch_unwind()
+                        .await;
+                        if let Err(err) = result {
+                            eprintln!("failed to fetch course {} with error {err:?}", entry.coursedetails_url);
+                        }
 
-                                self.course.fetch_add(1, Ordering::Relaxed);
-                            }
-                            .boxed()
-                        }),
-                )
+                        self.course.fetch_add(1, Ordering::Relaxed);
+                    }
+                    .boxed()
+                }))
                 .collect();
             results.collect::<Vec<()>>().await;
         }

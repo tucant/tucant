@@ -18,10 +18,7 @@ struct HtmlCommands {
 
 impl HtmlCommands {
     fn span(&self) -> Option<Span> {
-        self.commands
-            .iter()
-            .map(HtmlCommand::span)
-            .reduce(|a, b| a.join(b).unwrap_or(a))
+        self.commands.iter().map(HtmlCommand::span).reduce(|a, b| a.join(b).unwrap_or(a))
     }
 }
 
@@ -99,10 +96,7 @@ struct HtmlExtern {
 
 impl HtmlExtern {
     pub fn span(&self) -> Span {
-        self.extern_
-            .span()
-            .join(self.block.span())
-            .unwrap_or_else(|| self.extern_.span())
+        self.extern_.span().join(self.block.span()).unwrap_or_else(|| self.extern_.span())
     }
 }
 
@@ -123,11 +117,7 @@ struct HtmlUse {
 
 impl HtmlUse {
     pub fn span(&self) -> Span {
-        self.use_
-            .span()
-            .join(self.expr.span())
-            .and_then(|v| v.join(self.semi.span()))
-            .unwrap_or_else(|| self.use_.span())
+        self.use_.span().join(self.expr.span()).and_then(|v| v.join(self.semi.span())).unwrap_or_else(|| self.use_.span())
     }
 }
 
@@ -168,13 +158,7 @@ impl Parse for HtmlLet {
         let eq = input.parse::<Token![=]>()?;
         let inner = input.parse()?;
         let semi = input.parse::<Token![;]>()?;
-        Ok(Self {
-            let_,
-            variable,
-            eq,
-            inner,
-            semi,
-        })
+        Ok(Self { let_, variable, eq, inner, semi })
     }
 }
 
@@ -220,9 +204,7 @@ impl HtmlWhitespace {
 
 impl Parse for HtmlWhitespace {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        Ok(Self {
-            underscore: input.parse()?,
-        })
+        Ok(Self { underscore: input.parse()? })
     }
 }
 
@@ -288,15 +270,8 @@ struct HtmlAttribute {
 
 impl HtmlAttribute {
     fn span(&self) -> Span {
-        let span = self
-            .ident
-            .iter()
-            .map(proc_macro2::Ident::span)
-            .reduce(|a, b| a.join(b).unwrap_or(a))
-            .unwrap();
-        span.join(self.eq.span())
-            .and_then(|a| a.join(self.value.span()))
-            .unwrap_or(span)
+        let span = self.ident.iter().map(proc_macro2::Ident::span).reduce(|a, b| a.join(b).unwrap_or(a)).unwrap();
+        span.join(self.eq.span()).and_then(|a| a.join(self.value.span())).unwrap_or(span)
     }
 }
 
@@ -324,11 +299,7 @@ struct HtmlElement {
 
 impl HtmlElement {
     pub fn span(&self) -> Span {
-        let attrspan = self
-            .attributes
-            .iter()
-            .map(HtmlAttribute::span)
-            .reduce(|a, b| a.join(b).unwrap_or(a));
+        let attrspan = self.attributes.iter().map(HtmlAttribute::span).reduce(|a, b| a.join(b).unwrap_or(a));
         self.open_start
             .span()
             .join(self.element.span())
@@ -699,42 +670,44 @@ fn convert_command(command: HtmlCommand) -> TokenStream {
             let tag = input.element.to_string();
 
             let attributes = input.attributes.iter().map(|iter| {
-                    let name = iter
-                        .ident
-                        .pairs()
-                        .map(|p| {
-                            p.value().to_string()
-                                + match p.punct() {
-                                    Some(DashOrColon::Colon) => ":",
-                                    Some(DashOrColon::Dash) => "-",
-                                    None => "",
-                                }
-                        })
-                        .join("");
-                    let value = &iter.value;
-                    match value {
-                        StringLiteralOrVariable::Literal(lit_str) => {
-                            quote_spanned! {lit_str.span()=>
-                                #[allow(unused_mut)]
-                                let mut html_handler = html_handler.attribute(#name, #lit_str);
+                let name = iter
+                    .ident
+                    .pairs()
+                    .map(|p| {
+                        p.value().to_string()
+                            + match p.punct() {
+                                Some(DashOrColon::Colon) => ":",
+                                Some(DashOrColon::Dash) => "-",
+                                None => "",
                             }
-                        }
-                        StringLiteralOrVariable::Clousure(_brace, expr) => {
-                            quote_spanned! {expr.span()=>
-                                #[allow(unused_mut)]
-                                let (mut html_handler, tmp_internal_html_extractor_proc_macro_2) = html_handler.attribute_value(#name);
-                                #[allow(clippy::redundant_closure_call)]
-                                (#expr)(tmp_internal_html_extractor_proc_macro_2);
-                            }
-                        }
-                        StringLiteralOrVariable::Variable(ident) => {
-                            quote_spanned! {ident.span()=>
-                                #[allow(unused_mut)]
-                                let (mut html_handler, #ident) = html_handler.attribute_value(#name);
-                            }
+                    })
+                    .join("");
+                let value = &iter.value;
+                match value {
+                    StringLiteralOrVariable::Literal(lit_str) => {
+                        quote_spanned! {lit_str.span()=>
+                            #[allow(unused_mut)]
+                            let mut html_handler = html_handler.attribute(#name, #lit_str);
                         }
                     }
-                });
+                    StringLiteralOrVariable::Clousure(_brace, expr) => {
+                        quote_spanned! {expr.span()=>
+                            #[allow(unused_mut)]
+                            let (mut html_handler, tmp_internal_html_extractor_proc_macro_2) =
+                                html_handler.attribute_value(#name);
+                            #[allow(clippy::redundant_closure_call)]
+                            (#expr)(tmp_internal_html_extractor_proc_macro_2);
+                        }
+                    }
+                    StringLiteralOrVariable::Variable(ident) => {
+                        quote_spanned! {ident.span()=>
+                            #[allow(unused_mut)]
+                            let (mut html_handler, #ident) =
+                                html_handler.attribute_value(#name);
+                        }
+                    }
+                }
+            });
 
             let open = quote_spanned! {input.open_start.span()=>
                 #[allow(unused_mut)]
@@ -780,7 +753,8 @@ fn convert_command(command: HtmlCommand) -> TokenStream {
             StringLiteralOrVariable::Clousure(_brace, expr) => {
                 quote_spanned! {expr.span()=>
                     #[allow(unused_mut)]
-                    let (mut html_handler, tmp_internal_html_extractor_proc_macro_2) = html_handler.text();
+                    let (mut html_handler, tmp_internal_html_extractor_proc_macro_2) =
+                        html_handler.text();
                     #[allow(clippy::redundant_closure_call)]
                     (#expr)(tmp_internal_html_extractor_proc_macro_2);
                 }
@@ -792,11 +766,7 @@ fn convert_command(command: HtmlCommand) -> TokenStream {
                 }
             }
         },
-        HtmlCommand::Use(HtmlUse {
-            use_: _,
-            expr,
-            semi,
-        }) => {
+        HtmlCommand::Use(HtmlUse { use_: _, expr, semi }) => {
             quote! {
                 #[allow(unused_mut)]
                 let mut html_handler = #expr #semi
@@ -830,49 +800,55 @@ fn convert_command(command: HtmlCommand) -> TokenStream {
                     let body_stmts = convert_commands(body);
                     let temp_var = Ident::new("temp_var", Span::mixed_site());
                     else_.as_ref().map_or_else(
-                            || {
-                                quote! {
-                                    #[allow(unused_mut, clippy::if_not_else)]
-                                    let (mut html_handler, #variable) = if #conditional {
-                                        #(#body_stmts)*
-                                        (html_handler, Some(#result_expr))
-                                    } else {
-                                        (html_handler, None)
-                                    };
-                                }
-                            },
-                            |HtmlElse {
-                                 else_,
-                                 brace_token: else_brace_token,
-                                 body: else_body,
-                                 eq: _,
-                                 gt: _,
-                                 result_expr: else_result_expr,
-                             }| {
-                                let else_body_stmts = convert_commands(else_body);
-                                let if_inner = quote_spanned! {brace_token.span.span().join(result_expr.span()).unwrap_or_else(|| brace_token.span.span())=>
-                                    {
-                                        #(#body_stmts)*
-                                        (html_handler, ::itertools::Either::Left(#result_expr))
-                                    }
+                        || {
+                            quote! {
+                                #[allow(unused_mut, clippy::if_not_else)]
+                                let (mut html_handler, #variable) = if #conditional {
+                                    #(#body_stmts)*
+                                    (html_handler, Some(#result_expr))
+                                } else {
+                                    (html_handler, None)
                                 };
-                                let else_inner = quote_spanned! {else_brace_token.span.span().join(else_result_expr.span()).unwrap_or_else(|| else_brace_token.span.span())=>
-                                    {
-                                        #(#else_body_stmts)*
-                                        (html_handler, ::itertools::Either::Right(#else_result_expr))
-                                    }
-                                };
-                                quote! {
-                                    #[allow(unused_mut, clippy::suspicious_else_formatting, clippy::branches_sharing_code)]
-                                    let (mut html_handler, #temp_var) = #if_ #conditional
-                                        #if_inner
-                                    #else_
-                                        #else_inner
-                                    ;
-                                    let #variable = #temp_var;
+                            }
+                        },
+                        |HtmlElse {
+                             else_,
+                             brace_token: else_brace_token,
+                             body: else_body,
+                             eq: _,
+                             gt: _,
+                             result_expr: else_result_expr,
+                         }| {
+                            let else_body_stmts = convert_commands(else_body);
+                            let if_inner = quote_spanned! {brace_token.span.span()
+                                                            .join(result_expr.span())
+                                                            .unwrap_or_else(|| brace_token.span.span())=>
+                                {
+                                    #(#body_stmts)*
+                                    (html_handler, ::itertools::Either::Left(#result_expr))
                                 }
-                            },
-                        )
+                            };
+                            let else_inner = quote_spanned! {else_brace_token.span.span()
+                                                                .join(else_result_expr.span())
+                                                                .unwrap_or_else(|| else_brace_token.span.span())=>
+                                {
+                                    #(#else_body_stmts)*
+                                    (html_handler, ::itertools::Either::Right(#else_result_expr))
+                                }
+                            };
+                            quote! {
+                                #[allow(unused_mut,
+                                        clippy::suspicious_else_formatting,
+                                        clippy::branches_sharing_code)]
+                                let (mut html_handler, #temp_var) = #if_ #conditional
+                                    #if_inner
+                                #else_
+                                    #else_inner
+                                ;
+                                let #variable = #temp_var;
+                            }
+                        },
+                    )
                 }
                 HtmlLetInner::While(html_while) => {
                     let conditional = &html_while.conditional;

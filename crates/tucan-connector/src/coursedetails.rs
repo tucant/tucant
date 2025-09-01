@@ -11,10 +11,7 @@ use sha3::{Digest, Sha3_256};
 use time::{Duration, OffsetDateTime};
 use tucant_types::{
     InstructorImage, LoginResponse, RevalidationStrategy, TucanError,
-    coursedetails::{
-        CourseAnmeldefrist, CourseDetailsRequest, CourseDetailsResponse, CourseUebungsGruppe,
-        InstructorImageWithLink, Room, Termin,
-    },
+    coursedetails::{CourseAnmeldefrist, CourseDetailsRequest, CourseDetailsResponse, CourseUebungsGruppe, InstructorImageWithLink, Room, Termin},
 };
 
 pub async fn course_details(
@@ -29,8 +26,7 @@ pub async fn course_details(
     if revalidation_strategy.max_age != 0 {
         if let Some((content, date)) = &old_content_and_date {
             info!("{}", OffsetDateTime::now_utc() - *date);
-            if OffsetDateTime::now_utc() - *date < Duration::seconds(revalidation_strategy.max_age)
-            {
+            if OffsetDateTime::now_utc() - *date < Duration::seconds(revalidation_strategy.max_age) {
                 return course_details_internal(login_response, content, &request);
             }
         }
@@ -45,8 +41,7 @@ pub async fn course_details(
         login_response.id,
         request.inner()
     );
-    let (content, date) =
-        authenticated_retryable_get(tucan, &url, &login_response.cookie_cnsc).await?;
+    let (content, date) = authenticated_retryable_get(tucan, &url, &login_response.cookie_cnsc).await?;
     let result = course_details_internal(login_response, &content, &request)?;
     if invalidate_dependents && old_content_and_date.as_ref().map(|m| &m.0) != Some(&content) {
         // TODO invalidate cached ones?
@@ -61,16 +56,8 @@ fn h(input: &str) -> String {
     BASE64URL_NOPAD.encode(&Sha3_256::digest(input))
 }
 
-#[expect(
-    clippy::similar_names,
-    clippy::too_many_lines,
-    clippy::cognitive_complexity
-)]
-fn course_details_internal(
-    login_response: &LoginResponse,
-    content: &str,
-    request: &CourseDetailsRequest,
-) -> Result<CourseDetailsResponse, TucanError> {
+#[expect(clippy::similar_names, clippy::too_many_lines, clippy::cognitive_complexity)]
+fn course_details_internal(login_response: &LoginResponse, content: &str, request: &CourseDetailsRequest) -> Result<CourseDetailsResponse, TucanError> {
     let document = parse_document(content);
     let html_handler = Root::new(document.root());
     let html_handler = html_handler.document_start();
@@ -716,13 +703,12 @@ fn course_details_internal(
         </div>
     }
     let html_handler = footer(html_handler, login_response.id, 311);
-    let course_anmeldefristen = course_anmeldefristen.map_or_else(Vec::new, |anmeldefristen| {
-        if anmeldefristen.is_left() {
-            anmeldefristen.unwrap_left()
-        } else {
-            anmeldefristen.unwrap_right()
-        }
-    });
+    let course_anmeldefristen = course_anmeldefristen.map_or_else(
+        Vec::new,
+        |anmeldefristen| {
+            if anmeldefristen.is_left() { anmeldefristen.unwrap_left() } else { anmeldefristen.unwrap_right() }
+        },
+    );
     html_handler.end_document();
 
     let instructors = instructors.unwrap_or_default();
@@ -739,25 +725,12 @@ fn course_details_internal(
         // hack, one person has a second name at one place and not at the other
         // place
     } else {
-        assert_eq!(
-            dozent.unwrap().split("; ").sorted().collect::<Vec<_>>(),
-            instructors
-                .iter()
-                .map(|m| &m.0)
-                .sorted()
-                .collect::<Vec<_>>()
-        );
+        assert_eq!(dozent.unwrap().split("; ").sorted().collect::<Vec<_>>(), instructors.iter().map(|m| &m.0).sorted().collect::<Vec<_>>());
     }
-    assert_eq!(
-        anzeige_im_stundenplan.clone().unwrap_or_default(),
-        shortname.trim()
-    );
+    assert_eq!(anzeige_im_stundenplan.clone().unwrap_or_default(), shortname.trim());
 
     let (teilnehmer_range, teilnehmer_min, teilnehmer_max) = teilnehmer.either_into();
-    assert_eq!(
-        teilnehmer_range,
-        format!("{teilnehmer_min} | {teilnehmer_max}")
-    );
+    assert_eq!(teilnehmer_range, format!("{teilnehmer_min} | {teilnehmer_max}"));
 
     let id_and_name: String = id_and_name.either_into();
     let (id, name) = id_and_name.split_once('\n').unwrap();
@@ -781,40 +754,17 @@ fn course_details_internal(
         id: id.trim().to_owned(),
         name: name.trim().to_owned(),
         material_and_messages_url,
-        r#type: course_type_and_number
-            .clone()
-            .either_into::<(String, String)>()
-            .0,
-        type_number: course_type_and_number
-            .either_into::<(String, String)>()
-            .1
-            .parse()
-            .unwrap(),
+        r#type: course_type_and_number.clone().either_into::<(String, String)>().0,
+        type_number: course_type_and_number.either_into::<(String, String)>().1.parse().unwrap(),
         fachbereich,
         anzeige_im_stundenplan,
         courselevel: courselevel.parse().unwrap(),
-        sws: sws
-            .right()
-            .map(|sws| sws.replace(',', ".").parse().expect(&sws)),
-        credits: credits
-            .right()
-            .map(|credits| credits.trim_end_matches(",0").parse().expect(&credits)),
+        sws: sws.right().map(|sws| sws.replace(',', ".").parse().expect(&sws)),
+        credits: credits.right().map(|credits| credits.trim_end_matches(",0").parse().expect(&credits)),
         language: language_and_id.clone().either_into::<(String, String)>().0,
-        language_id: language_and_id
-            .either_into::<(String, String)>()
-            .1
-            .parse()
-            .unwrap(),
-        teilnehmer_min: if teilnehmer_min == "-" {
-            None
-        } else {
-            Some(teilnehmer_min.parse().unwrap())
-        },
-        teilnehmer_max: if teilnehmer_max == "-" {
-            None
-        } else {
-            Some(teilnehmer_max.parse().unwrap())
-        },
+        language_id: language_and_id.either_into::<(String, String)>().1.parse().unwrap(),
+        teilnehmer_min: if teilnehmer_min == "-" { None } else { Some(teilnehmer_min.parse().unwrap()) },
+        teilnehmer_max: if teilnehmer_max == "-" { None } else { Some(teilnehmer_max.parse().unwrap()) },
         description,
         uebungsgruppen: uebungsgruppen.1,
         course_anmeldefristen,

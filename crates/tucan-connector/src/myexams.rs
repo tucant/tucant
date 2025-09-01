@@ -15,19 +15,13 @@ use crate::{
     registration::MODULEDETAILS_REGEX,
 };
 
-pub async fn my_exams(
-    tucan: &TucanConnector,
-    login_response: &LoginResponse,
-    revalidation_strategy: RevalidationStrategy,
-    semester: SemesterId,
-) -> Result<MyExamsResponse, TucanError> {
+pub async fn my_exams(tucan: &TucanConnector, login_response: &LoginResponse, revalidation_strategy: RevalidationStrategy, semester: SemesterId) -> Result<MyExamsResponse, TucanError> {
     let key = format!("unparsed_myexams.{}", semester.inner());
 
     let old_content_and_date = tucan.database.get::<(String, OffsetDateTime)>(&key).await;
     if revalidation_strategy.max_age != 0 {
         if let Some((content, date)) = &old_content_and_date {
-            if OffsetDateTime::now_utc() - *date < Duration::seconds(revalidation_strategy.max_age)
-            {
+            if OffsetDateTime::now_utc() - *date < Duration::seconds(revalidation_strategy.max_age) {
                 return my_exams_internal(login_response, content);
             }
         }
@@ -48,8 +42,7 @@ pub async fn my_exams(
             format!("-N{}", semester.inner())
         }
     );
-    let (content, date) =
-        authenticated_retryable_get(tucan, &url, &login_response.cookie_cnsc).await?;
+    let (content, date) = authenticated_retryable_get(tucan, &url, &login_response.cookie_cnsc).await?;
     let result = my_exams_internal(login_response, &content)?;
     if invalidate_dependents && old_content_and_date.as_ref().map(|m| &m.0) != Some(&content) {
         // TODO invalidate cached ones?
@@ -65,10 +58,7 @@ pub async fn my_exams(
 }
 
 #[expect(clippy::too_many_lines)]
-fn my_exams_internal(
-    login_response: &LoginResponse,
-    content: &str,
-) -> Result<MyExamsResponse, TucanError> {
+fn my_exams_internal(login_response: &LoginResponse, content: &str) -> Result<MyExamsResponse, TucanError> {
     let document = parse_document(content);
     let html_handler = Root::new(document.root());
     let html_handler = html_handler.document_start();

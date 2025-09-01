@@ -31,40 +31,20 @@ impl Database {
         #[cfg(not(target_arch = "wasm32"))]
         {
             let database = if cfg!(target_os = "android") {
-                tokio::fs::create_dir_all("/data/data/com.example.TucantDioxus/files")
-                    .await
-                    .unwrap();
-                sqlx::SqlitePool::connect(
-                    "sqlite:///data/data/com.example.TucantDioxus/files/data.db?mode=rwc",
-                )
-                .await
-                .unwrap()
+                tokio::fs::create_dir_all("/data/data/com.example.TucantDioxus/files").await.unwrap();
+                sqlx::SqlitePool::connect("sqlite:///data/data/com.example.TucantDioxus/files/data.db?mode=rwc").await.unwrap()
             } else {
-                sqlx::SqlitePool::connect("sqlite://data.db?mode=rwc")
-                    .await
-                    .unwrap()
+                sqlx::SqlitePool::connect("sqlite://data.db?mode=rwc").await.unwrap()
             };
-            let version: u32 = sqlx::query_scalar("PRAGMA user_version")
-                .fetch_one(&database)
+            let version: u32 = sqlx::query_scalar("PRAGMA user_version").fetch_one(&database).await.unwrap();
+            if version != 2 {
+                sqlx::query("DROP TABLE IF EXISTS store").execute(&database).await.unwrap();
+                sqlx::query("PRAGMA user_version = 2").execute(&database).await.unwrap();
+            }
+            sqlx::query("CREATE TABLE IF NOT EXISTS store (key TEXT PRIMARY KEY NOT NULL, value TEXT NOT NULL)")
+                .execute(&database)
                 .await
                 .unwrap();
-            if version != 2 {
-                sqlx::query("DROP TABLE IF EXISTS store")
-                    .execute(&database)
-                    .await
-                    .unwrap();
-                sqlx::query("PRAGMA user_version = 2")
-                    .execute(&database)
-                    .await
-                    .unwrap();
-            }
-            sqlx::query(
-                "CREATE TABLE IF NOT EXISTS store (key TEXT PRIMARY KEY NOT NULL, value TEXT NOT \
-                 NULL)",
-            )
-            .execute(&database)
-            .await
-            .unwrap();
             Self { database }
         }
     }
@@ -74,12 +54,10 @@ impl Database {
         //format!("sqlite://{}?mode=rwc", tempfile.path().to_str().unwrap());
         let url = "sqlite://data_test.db?mode=rwc";
         let database = sqlx::SqlitePool::connect(url).await.unwrap();
-        sqlx::query(
-            "CREATE TABLE IF NOT EXISTS store (key TEXT PRIMARY KEY NOT NULL, value TEXT NOT NULL)",
-        )
-        .execute(&database)
-        .await
-        .unwrap();
+        sqlx::query("CREATE TABLE IF NOT EXISTS store (key TEXT PRIMARY KEY NOT NULL, value TEXT NOT NULL)")
+            .execute(&database)
+            .await
+            .unwrap();
         Self { database }
     }
 
@@ -134,15 +112,12 @@ impl Database {
         }
         #[cfg(not(target_arch = "wasm32"))]
         {
-            sqlx::query(
-                "INSERT INTO store (key, value) VALUES (?1, ?2) ON CONFLICT (key) DO UPDATE SET \
-                 value = ?2 WHERE key = ?1",
-            )
-            .bind(key)
-            .bind(serde_json::to_string(&value).unwrap())
-            .execute(&self.database)
-            .await
-            .unwrap();
+            sqlx::query("INSERT INTO store (key, value) VALUES (?1, ?2) ON CONFLICT (key) DO UPDATE SET value = ?2 WHERE key = ?1")
+                .bind(key)
+                .bind(serde_json::to_string(&value).unwrap())
+                .execute(&self.database)
+                .await
+                .unwrap();
         }
     }
 

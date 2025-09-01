@@ -7,10 +7,7 @@ use crate::{
 use html_handler::{Root, parse_document};
 
 #[expect(clippy::too_many_lines)]
-pub async fn veranstaltungen(
-    connector: &TucanConnector,
-    login_response: LoginResponse,
-) -> Result<(), TucanError> {
+pub async fn veranstaltungen(connector: &TucanConnector, login_response: LoginResponse) -> Result<(), TucanError> {
     let (content, ..) = authenticated_retryable_get(
         connector,
         &format!(

@@ -23,9 +23,8 @@ impl Display for GradeOverviewRequest {
 
 // MOFF is module
 // EXEV is course
-static GRADEOVERVIEW_REGEX: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r"^-A(?P<type>EXEV|MOFF),-N(?P<course_or_module_id>\d+),-N0,-N,-N(?P<semester_id>\d+),-A,-N,-A,-N,-N,-N(1|2)(,-N(?P<id>\d+))?$").unwrap()
-});
+static GRADEOVERVIEW_REGEX: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"^-A(?P<type>EXEV|MOFF),-N(?P<course_or_module_id>\d+),-N0,-N,-N(?P<semester_id>\d+),-A,-N,-A,-N,-N,-N(1|2)(,-N(?P<id>\d+))?$").unwrap());
 
 impl GradeOverviewRequest {
     #[must_use]
@@ -36,9 +35,7 @@ impl GradeOverviewRequest {
             &c["type"],
             &c["course_or_module_id"],
             &c["semester_id"],
-            c.name("id")
-                .map(|id| format!(",-N{}", id.as_str()))
-                .unwrap_or_default()
+            c.name("id").map(|id| format!(",-N{}", id.as_str())).unwrap_or_default()
         ))
     }
 
