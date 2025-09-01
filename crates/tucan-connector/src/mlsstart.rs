@@ -12,7 +12,11 @@ use crate::{
 };
 use html_handler::{MyElementRef, MyNode, Root, parse_document};
 
-pub async fn after_login(tucan: &TucanConnector, login_response: &LoginResponse, revalidation_strategy: RevalidationStrategy) -> Result<MlsStart, TucanError> {
+pub async fn after_login(
+    tucan: &TucanConnector,
+    login_response: &LoginResponse,
+    revalidation_strategy: RevalidationStrategy,
+) -> Result<MlsStart, TucanError> {
     // TODO just overwrite old values if id does not match
     let key = format!("unparsed_mlsstart.{}", login_response.id);
 
@@ -20,7 +24,8 @@ pub async fn after_login(tucan: &TucanConnector, login_response: &LoginResponse,
     if revalidation_strategy.max_age != 0 {
         if let Some((content, date)) = &old_content_and_date {
             info!("{}", OffsetDateTime::now_utc() - *date);
-            if OffsetDateTime::now_utc() - *date < Duration::seconds(revalidation_strategy.max_age) {
+            if OffsetDateTime::now_utc() - *date < Duration::seconds(revalidation_strategy.max_age)
+            {
                 return after_login_internal(login_response, content);
             }
         }
@@ -34,7 +39,8 @@ pub async fn after_login(tucan: &TucanConnector, login_response: &LoginResponse,
         "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MLSSTART&ARGUMENTS=-N{},-N000019,",
         login_response.id
     );
-    let (content, date) = authenticated_retryable_get(tucan, &url, &login_response.cookie_cnsc).await?;
+    let (content, date) =
+        authenticated_retryable_get(tucan, &url, &login_response.cookie_cnsc).await?;
     let result = after_login_internal(login_response, &content)?;
     if invalidate_dependents && old_content_and_date.as_ref().map(|m| &m.0) != Some(&content) {
         // TODO invalidate cached ones?
@@ -49,7 +55,10 @@ pub async fn after_login(tucan: &TucanConnector, login_response: &LoginResponse,
 }
 
 #[expect(clippy::too_many_lines)]
-fn after_login_internal(login_response: &LoginResponse, content: &str) -> Result<MlsStart, TucanError> {
+fn after_login_internal(
+    login_response: &LoginResponse,
+    content: &str,
+) -> Result<MlsStart, TucanError> {
     let document = parse_document(content);
     let html_handler = Root::new(document.root());
     let html_handler = html_handler.document_start();

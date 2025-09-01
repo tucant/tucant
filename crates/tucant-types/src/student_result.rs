@@ -33,8 +33,12 @@ impl From<(&str, &str, &str)> for StudentResultState {
     fn from(value: (&str, &str, &str)) -> Self {
         match value {
             ("/img/individual/pass.gif", "Bestanden", "Bestanden") => Self::Bestanden,
-            ("/img/individual/fail.gif", "Nicht Bestanden", "Nicht Bestanden") => Self::NichtBestanden,
-            ("/img/individual/incomplete.gif", "Unvollständig", "Unvollständig") => Self::Unvollstaendig,
+            ("/img/individual/fail.gif", "Nicht Bestanden", "Nicht Bestanden") => {
+                Self::NichtBestanden
+            }
+            ("/img/individual/incomplete.gif", "Unvollständig", "Unvollständig") => {
+                Self::Unvollstaendig
+            }
             ("/img/individual/open.gif", "Offen", "Offen") => Self::Offen,
             s => panic!("{s:?}"),
         }

@@ -18,7 +18,11 @@ use tucant_types::{LoginResponse, TucanError};
 
 fn main() -> Result<(), TucanError> {
     dotenvy::dotenv().unwrap();
-    tokio::runtime::Builder::new_current_thread().enable_all().build().unwrap().block_on(async_main())
+    tokio::runtime::Builder::new_current_thread()
+        .enable_all()
+        .build()
+        .unwrap()
+        .block_on(async_main())
 }
 
 fn validate(errors: &mut Vec<String>, level: &StudentResultLevel) -> (u64, u64) {
@@ -36,7 +40,10 @@ fn validate(errors: &mut Vec<String>, level: &StudentResultLevel) -> (u64, u64) 
         modules += 1;
     }
     if cp > level.rules.max_cp.unwrap_or(u64::MAX) || cp < level.rules.min_cp {
-        errors.push(format!("invalid cp {} <= {} <= {:?} for {:?}", level.rules.min_cp, cp, level.rules.max_cp, level.name))
+        errors.push(format!(
+            "invalid cp {} <= {} <= {:?} for {:?}",
+            level.rules.min_cp, cp, level.rules.max_cp, level.name
+        ))
     }
     if modules > level.rules.max_modules.unwrap_or(u64::MAX) || modules < level.rules.min_modules {
         errors.push(format!(
@@ -63,26 +70,54 @@ async fn async_main() -> Result<(), TucanError> {
         .await
         .unwrap();
 
-    let course_of_studies = tucan.student_result(&login_response, RevalidationStrategy::cache(), 0).await.unwrap();
-    let bachelor = course_of_studies.course_of_study.iter().find(|v| v.name == "B.Sc. Informatik (2015)").unwrap().value;
-    let student_result = tucan.student_result(&login_response, RevalidationStrategy::cache(), bachelor).await.unwrap();
+    let course_of_studies = tucan
+        .student_result(&login_response, RevalidationStrategy::cache(), 0)
+        .await
+        .unwrap();
+    let bachelor = course_of_studies
+        .course_of_study
+        .iter()
+        .find(|v| v.name == "B.Sc. Informatik (2015)")
+        .unwrap()
+        .value;
+    let student_result = tucan
+        .student_result(&login_response, RevalidationStrategy::cache(), bachelor)
+        .await
+        .unwrap();
     println!("{:#?}", student_result);
 
     let mut errors = Vec::new();
     validate(&mut errors, &student_result.level0);
     println!("{:#?}", errors);
 
-    let master = course_of_studies.course_of_study.iter().find(|v| v.name == "M.Sc. Informatik (2023)").unwrap().value;
-    let mut student_result = tucan.student_result(&login_response, RevalidationStrategy::cache(), master).await.unwrap();
+    let master = course_of_studies
+        .course_of_study
+        .iter()
+        .find(|v| v.name == "M.Sc. Informatik (2023)")
+        .unwrap()
+        .value;
+    let mut student_result = tucan
+        .student_result(&login_response, RevalidationStrategy::cache(), master)
+        .await
+        .unwrap();
     println!("{:#?}", student_result);
 
     let fetcher = Arc::new(Fetcher::new());
 
-    let mut stream = pin!(fetcher.recursive_anmeldung(tucan, login_response, AnmeldungRequest::default(), Vec::new(),));
+    let mut stream = pin!(fetcher.recursive_anmeldung(
+        tucan,
+        login_response,
+        AnmeldungRequest::default(),
+        Vec::new(),
+    ));
     while let Some((module, path, module_details)) = stream.next().await {
         let mut level = &mut student_result.level0;
         for element in path {
-            if let Some(inner) = level.children.iter_mut().find(|child| child.name == Some(element.clone())) {
+            if let Some(inner) = level
+                .children
+                .iter_mut()
+                .find(|child| child.name == Some(element.clone()))
+            {
                 level = inner;
             } else {
                 break;
@@ -124,7 +159,16 @@ impl Fetcher {
         let stream = {
             let tucan = tucan.clone();
             let login_response = login_response.clone();
-            async move { tucan.anmeldung(login_response.clone(), RevalidationStrategy::cache(), anmeldung_request.clone()).await.unwrap() }
+            async move {
+                tucan
+                    .anmeldung(
+                        login_response.clone(),
+                        RevalidationStrategy::cache(),
+                        anmeldung_request.clone(),
+                    )
+                    .await
+                    .unwrap()
+            }
         }
         .into_stream();
         stream.flat_map(move |anmeldung_response| {
@@ -136,7 +180,10 @@ impl Fetcher {
                     let path = path.clone();
                     move |entry| {
                         entry.module.as_ref().and_then(|module| {
-                            if matches!(&module.registration_state, RegistrationState::Registered { unregister_link: _ }) {
+                            if matches!(
+                                &module.registration_state,
+                                RegistrationState::Registered { unregister_link: _ }
+                            ) {
                                 Some((module.clone(), path.clone()))
                             } else {
                                 None
@@ -148,27 +195,47 @@ impl Fetcher {
                     let tucan = tucan.clone();
                     let login_response = login_response.clone();
                     async move {
-                        let module_details = tucan.module_details(&login_response, RevalidationStrategy::cache(), module.url.clone()).await.unwrap();
+                        let module_details = tucan
+                            .module_details(
+                                &login_response,
+                                RevalidationStrategy::cache(),
+                                module.url.clone(),
+                            )
+                            .await
+                            .unwrap();
                         (module, path, module_details)
                     }
                 })
                 .collect::<FuturesUnordered<_>>()
-                .chain(stream::iter(anmeldung_response.submenus.into_iter().filter(|entry| entry.0 != "Zusätzliche Leistungen")).flat_map({
-                    let path = path.clone();
-                    let self_clone = self.clone();
-                    let tucan = tucan.clone();
-                    let login_response = login_response.clone();
-                    move |entry| {
-                        self_clone
-                            .clone()
-                            .recursive_anmeldung(tucan.clone(), login_response.clone(), entry.1.clone(), {
-                                let mut path = path.clone();
-                                path.push(entry.0);
-                                path
-                            })
-                            .boxed()
-                    }
-                }))
+                .chain(
+                    stream::iter(
+                        anmeldung_response
+                            .submenus
+                            .into_iter()
+                            .filter(|entry| entry.0 != "Zusätzliche Leistungen"),
+                    )
+                    .flat_map({
+                        let path = path.clone();
+                        let self_clone = self.clone();
+                        let tucan = tucan.clone();
+                        let login_response = login_response.clone();
+                        move |entry| {
+                            self_clone
+                                .clone()
+                                .recursive_anmeldung(
+                                    tucan.clone(),
+                                    login_response.clone(),
+                                    entry.1.clone(),
+                                    {
+                                        let mut path = path.clone();
+                                        path.push(entry.0);
+                                        path
+                                    },
+                                )
+                                .boxed()
+                        }
+                    }),
+                )
         })
     }
 }

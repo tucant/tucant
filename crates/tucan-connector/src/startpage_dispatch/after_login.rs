@@ -3,7 +3,10 @@ use tucant_types::LoginResponse;
 use crate::{TucanConnector, TucanError, authenticated_retryable_get, head::html_head_2};
 use html_handler::{Root, parse_document};
 
-pub async fn redirect_after_login(connector: &TucanConnector, login_response: LoginResponse) -> Result<(), TucanError> {
+pub async fn redirect_after_login(
+    connector: &TucanConnector,
+    login_response: LoginResponse,
+) -> Result<(), TucanError> {
     let (content, ..) = authenticated_retryable_get(
         connector,
         &format!(
@@ -24,8 +27,16 @@ pub async fn redirect_after_login(connector: &TucanConnector, login_response: Lo
             </head>
             <body class="redirect">
                 <div id="wrapper">
-                    <a href="http://http://www.tu-darmstadt.de" title="extern http://www.tu-darmstadt.de">
-                        <img border="0" id="logo" src="/gfx/tuda/logo.png" alt="Logo Technische Universität Darmstadt"></img>
+                    <a
+                        href="http://http://www.tu-darmstadt.de"
+                        title="extern http://www.tu-darmstadt.de"
+                    >
+                        <img
+                            border="0"
+                            id="logo"
+                            src="/gfx/tuda/logo.png"
+                            alt="Logo Technische Universität Darmstadt"
+                        ></img>
                     </a>
                     <h2>
                         <a href=_href_link_1>

@@ -14,15 +14,24 @@ use tucant_types::{
     courseprep::{CoursePrepRequest, CoursePrepType},
 };
 
-pub async fn course_prep(tucan: &TucanConnector, login_response: &LoginResponse, revalidation_strategy: RevalidationStrategy, request: CoursePrepRequest) -> Result<String, TucanError> {
+pub async fn course_prep(
+    tucan: &TucanConnector,
+    login_response: &LoginResponse,
+    revalidation_strategy: RevalidationStrategy,
+    request: CoursePrepRequest,
+) -> Result<String, TucanError> {
     assert_eq!(request.r#type, CoursePrepType::Course);
-    let key = format!("unparsed_course_prep.{}.{}", login_response.id, request.course_id);
+    let key = format!(
+        "unparsed_course_prep.{}.{}",
+        login_response.id, request.course_id
+    );
 
     let old_content_and_date = tucan.database.get::<(String, OffsetDateTime)>(&key).await;
     if revalidation_strategy.max_age != 0 {
         if let Some((content, date)) = &old_content_and_date {
             info!("{}", OffsetDateTime::now_utc() - *date);
-            if OffsetDateTime::now_utc() - *date < Duration::seconds(revalidation_strategy.max_age) {
+            if OffsetDateTime::now_utc() - *date < Duration::seconds(revalidation_strategy.max_age)
+            {
                 return course_prep_internal(login_response, content);
             }
         }
@@ -36,7 +45,8 @@ pub async fn course_prep(tucan: &TucanConnector, login_response: &LoginResponse,
         "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSEPREP&ARGUMENTS=-N{:015},-N000268,{}",
         login_response.id, request
     );
-    let (content, date) = authenticated_retryable_get(tucan, &url, &login_response.cookie_cnsc).await?;
+    let (content, date) =
+        authenticated_retryable_get(tucan, &url, &login_response.cookie_cnsc).await?;
     let result = course_prep_internal(login_response, &content)?;
     if invalidate_dependents && old_content_and_date.as_ref().map(|m| &m.0) != Some(&content) {
         // TODO invalidate cached ones?
@@ -48,7 +58,10 @@ pub async fn course_prep(tucan: &TucanConnector, login_response: &LoginResponse,
 }
 
 #[allow(clippy::too_many_lines)]
-fn course_prep_internal(login_response: &LoginResponse, content: &str) -> Result<String, TucanError> {
+fn course_prep_internal(
+    login_response: &LoginResponse,
+    content: &str,
+) -> Result<String, TucanError> {
     let document = parse_document(content);
     let html_handler = Root::new(document.root());
     let html_handler = html_handler.document_start();
@@ -75,7 +88,14 @@ fn course_prep_internal(login_response: &LoginResponse, content: &str) -> Result
                 <h1>
                     title
                 </h1>
-                let _kleingruppe = if html_handler.peek().unwrap().value().as_element().unwrap().name() == "h2" {
+                let _kleingruppe = if html_handler
+                    .peek()
+                    .unwrap()
+                    .value()
+                    .as_element()
+                    .unwrap()
+                    .name()
+                    == "h2" {
                     <h2>
                         _kleingruppe
                     </h2>
@@ -92,16 +112,37 @@ fn course_prep_internal(login_response: &LoginResponse, content: &str) -> Result
                         _end
                     </span>
                 </p>
-                let _raeume = if html_handler.peek().unwrap().value().as_element().unwrap().name() == "h2" {
+                let _raeume = if html_handler
+                    .peek()
+                    .unwrap()
+                    .value()
+                    .as_element()
+                    .unwrap()
+                    .name()
+                    == "h2" {
                     <h2>
                         "Räume:"
                     </h2>
-                    let _room = if html_handler.peek().unwrap().value().as_element().unwrap().name() == "span" {
+                    let _room = if html_handler
+                        .peek()
+                        .unwrap()
+                        .value()
+                        .as_element()
+                        .unwrap()
+                        .name()
+                        == "span" {
                         <span name="appoinmentRooms">
                             _room
                         </span>
                     } => () else {
-                        let _rooms = while html_handler.peek().unwrap().value().as_element().unwrap().name() == "a" {
+                        let _rooms = while html_handler
+                            .peek()
+                            .unwrap()
+                            .value()
+                            .as_element()
+                            .unwrap()
+                            .name()
+                            == "a" {
                             <a name="appoinmentRooms" class="arrow" href=_room_href>
                                 _room
                             </a>

@@ -2,7 +2,9 @@ use itertools::Itertools;
 use log::info;
 use scraper::CaseSensitivity::CaseSensitive;
 use time::{Duration, OffsetDateTime};
-use tucant_types::moduledetails::{Anmeldefristen, Kurs, KursKategorie, Leistung, Pruefung, Pruefungstermin};
+use tucant_types::moduledetails::{
+    Anmeldefristen, Kurs, KursKategorie, Leistung, Pruefung, Pruefungstermin,
+};
 use tucant_types::{InstructorImage, RevalidationStrategy};
 use tucant_types::{
     LoginResponse,
@@ -28,7 +30,8 @@ pub async fn module_details(
     if revalidation_strategy.max_age != 0 {
         if let Some((content, date)) = &old_content_and_date {
             info!("{}", OffsetDateTime::now_utc() - *date);
-            if OffsetDateTime::now_utc() - *date < Duration::seconds(revalidation_strategy.max_age) {
+            if OffsetDateTime::now_utc() - *date < Duration::seconds(revalidation_strategy.max_age)
+            {
                 return module_details_internal(login_response, content);
             }
         }
@@ -43,7 +46,8 @@ pub async fn module_details(
         login_response.id,
         request.inner()
     );
-    let (content, date) = authenticated_retryable_get(tucan, &url, &login_response.cookie_cnsc).await?;
+    let (content, date) =
+        authenticated_retryable_get(tucan, &url, &login_response.cookie_cnsc).await?;
     let result = module_details_internal(login_response, &content)?;
     if invalidate_dependents && old_content_and_date.as_ref().map(|m| &m.0) != Some(&content) {
         // TODO invalidate cached ones?
@@ -55,7 +59,10 @@ pub async fn module_details(
 }
 
 #[expect(clippy::too_many_lines, clippy::cognitive_complexity)]
-fn module_details_internal(login_response: &LoginResponse, content: &str) -> Result<ModuleDetailsResponse, TucanError> {
+fn module_details_internal(
+    login_response: &LoginResponse,
+    content: &str,
+) -> Result<ModuleDetailsResponse, TucanError> {
     let document = parse_document(content);
     let html_handler = Root::new(document.root());
     let html_handler = html_handler.document_start();
@@ -686,7 +693,11 @@ fn module_details_internal(login_response: &LoginResponse, content: &str) -> Res
     } else {
         assert_eq!(
             dozenten.split("; ").sorted().collect::<Vec<_>>(),
-            modulverantwortliche.iter().map(|m| &m.0).sorted().collect::<Vec<_>>()
+            modulverantwortliche
+                .iter()
+                .map(|m| &m.0)
+                .sorted()
+                .collect::<Vec<_>>()
         );
     }
     Ok(ModuleDetailsResponse {

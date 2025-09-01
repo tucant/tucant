@@ -18,7 +18,10 @@ struct HtmlCommands {
 
 impl HtmlCommands {
     fn span(&self) -> Option<Span> {
-        self.commands.iter().map(HtmlCommand::span).reduce(|a, b| a.join(b).unwrap_or(a))
+        self.commands
+            .iter()
+            .map(HtmlCommand::span)
+            .reduce(|a, b| a.join(b).unwrap_or(a))
     }
 }
 
@@ -96,7 +99,10 @@ struct HtmlExtern {
 
 impl HtmlExtern {
     pub fn span(&self) -> Span {
-        self.extern_.span().join(self.block.span()).unwrap_or_else(|| self.extern_.span())
+        self.extern_
+            .span()
+            .join(self.block.span())
+            .unwrap_or_else(|| self.extern_.span())
     }
 }
 
@@ -117,7 +123,11 @@ struct HtmlUse {
 
 impl HtmlUse {
     pub fn span(&self) -> Span {
-        self.use_.span().join(self.expr.span()).and_then(|v| v.join(self.semi.span())).unwrap_or_else(|| self.use_.span())
+        self.use_
+            .span()
+            .join(self.expr.span())
+            .and_then(|v| v.join(self.semi.span()))
+            .unwrap_or_else(|| self.use_.span())
     }
 }
 
@@ -158,7 +168,13 @@ impl Parse for HtmlLet {
         let eq = input.parse::<Token![=]>()?;
         let inner = input.parse()?;
         let semi = input.parse::<Token![;]>()?;
-        Ok(Self { let_, variable, eq, inner, semi })
+        Ok(Self {
+            let_,
+            variable,
+            eq,
+            inner,
+            semi,
+        })
     }
 }
 
@@ -204,7 +220,9 @@ impl HtmlWhitespace {
 
 impl Parse for HtmlWhitespace {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        Ok(Self { underscore: input.parse()? })
+        Ok(Self {
+            underscore: input.parse()?,
+        })
     }
 }
 
@@ -270,8 +288,15 @@ struct HtmlAttribute {
 
 impl HtmlAttribute {
     fn span(&self) -> Span {
-        let span = self.ident.iter().map(proc_macro2::Ident::span).reduce(|a, b| a.join(b).unwrap_or(a)).unwrap();
-        span.join(self.eq.span()).and_then(|a| a.join(self.value.span())).unwrap_or(span)
+        let span = self
+            .ident
+            .iter()
+            .map(proc_macro2::Ident::span)
+            .reduce(|a, b| a.join(b).unwrap_or(a))
+            .unwrap();
+        span.join(self.eq.span())
+            .and_then(|a| a.join(self.value.span()))
+            .unwrap_or(span)
     }
 }
 
@@ -299,7 +324,11 @@ struct HtmlElement {
 
 impl HtmlElement {
     pub fn span(&self) -> Span {
-        let attrspan = self.attributes.iter().map(HtmlAttribute::span).reduce(|a, b| a.join(b).unwrap_or(a));
+        let attrspan = self
+            .attributes
+            .iter()
+            .map(HtmlAttribute::span)
+            .reduce(|a, b| a.join(b).unwrap_or(a));
         self.open_start
             .span()
             .join(self.element.span())
