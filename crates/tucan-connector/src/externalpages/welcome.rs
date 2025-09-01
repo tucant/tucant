@@ -21,7 +21,8 @@ pub async fn welcome(connector: &TucanConnector) -> Result<LoggedOutHead, TucanE
                   xml:lang="de"
                   lang="de"
                   xmlns:msdt="uuid:C2F41010-65B3-11d1-A29F-00AA00C14882"
-                  xmlns:mso="urn:schemas-microsoft-com:office:office">
+                  xmlns:mso="urn:schemas-microsoft-com:office:office"
+            >
                 <head>
                     use html_head(html_handler)?;
                     <style type="text/css">
@@ -34,7 +35,8 @@ pub async fn welcome(connector: &TucanConnector) -> Result<LoggedOutHead, TucanE
                     </script>
                     <meta http-equiv="content-type" content="text/html; charset=windows-1252"></meta>
                     <div id="inhalt"
-                         style="padding:0px; width:650px; margin:0px; background-color:#ffffff;">
+                         style="padding:0px; width:650px; margin:0px; background-color:#ffffff;"
+                    >
                         let _unused = while html_handler.peek().is_some() {
                             let any_child = html_handler.next_any_child();
                         } => any_child;

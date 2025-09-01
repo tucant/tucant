@@ -89,7 +89,8 @@ fn month_internal(login_response: &LoginResponse, content: &str) -> Result<Vec<(
                             <a href=_url
                                title=_month
                                class="img img_arrowLeft skipLeft"
-                               name="skipBack_btn">
+                               name="skipBack_btn"
+                            >
                             </a>
                             <a href=_url class="link">
                                 "Heute"
@@ -97,7 +98,8 @@ fn month_internal(login_response: &LoginResponse, content: &str) -> Result<Vec<(
                             <a href=_url
                                title=_month
                                class="img img_arrowRight skipRight"
-                               name="skipForward_btn">
+                               name="skipForward_btn"
+                            >
                             </a>
                         </div>
                         <a href=_url class="arrow">
@@ -118,7 +120,8 @@ fn month_internal(login_response: &LoginResponse, content: &str) -> Result<Vec<(
                            id="tbMonth"
                            border="0"
                            cellspacing="0"
-                           cellpadding="0">
+                           cellpadding="0"
+                    >
                         <tbody>
                             <tr>
                                 <th id="KW" scope="col">

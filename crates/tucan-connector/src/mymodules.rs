@@ -83,7 +83,8 @@ fn mymodules_internal(login_response: &LoginResponse, content: &str) -> Result<M
                         <form id="semesterchange"
                               action="/scripts/mgrqispi.dll"
                               method="post"
-                              class="pageElementTop">
+                              class="pageElementTop"
+                        >
                             <div>
                                 <div class="tbhead">
                                     "Modul"
@@ -120,7 +121,8 @@ fn mymodules_internal(login_response: &LoginResponse, content: &str) -> Result<M
                                         <input name="Refresh"
                                                type="submit"
                                                value="Aktualisieren"
-                                               class="img img_arrowReload refresh"></input>
+                                               class="img img_arrowReload refresh"
+                                        ></input>
                                     </div>
                                 </div>
                                 <input name="APPNAME" type="hidden" value="CampusNet"></input>

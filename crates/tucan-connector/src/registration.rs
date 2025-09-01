@@ -121,7 +121,8 @@ fn anmeldung_internal(login_response: &LoginResponse, content: &str) -> Result<A
                                                 <select name="study"
                                                         id="study"
                                                         onchange="reloadpage.submitForm(this.form.id);"
-                                                        class="pageElementLeft">
+                                                        class="pageElementLeft"
+                                                >
                                                     let studiumsauswahl = while html_handler.peek().is_some() {
                                                         let studiumsauswahl = if html_handler
                                                             .peek()
@@ -152,19 +153,22 @@ fn anmeldung_internal(login_response: &LoginResponse, content: &str) -> Result<A
                                                 <input name="Aktualisieren"
                                                        type="submit"
                                                        value="Aktualisieren"
-                                                       class="img img_arrowReload pageElementLeft"></input>
+                                                       class="img img_arrowReload pageElementLeft"
+                                                ></input>
                                             </div>
                                             <input name="APPNAME" type="hidden" value="CampusNet"></input>
                                             <input name="PRGNAME" type="hidden" value="REGISTRATION"></input>
                                             <input name="ARGUMENTS"
                                                    type="hidden"
-                                                   value="sessionno,menuno,study,changestudy,parent1,parent2"></input>
+                                                   value="sessionno,menuno,study,changestudy,parent1,parent2"
+                                            ></input>
                                             <input name="sessionno"
                                                    type="hidden"
                                                    value={|v: String| {
                                                        static REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new("^\\d+$").unwrap());
                                                        assert!(REGEX.is_match(&v), "{v}");
-                                                   }}></input>
+                                                   }}
+                                            ></input>
                                             <input name="menuno" type="hidden" value="000311"></input>
                                             <input name="pa rent1" type="hidden" value="000000000000000"></input>
                                             <input name="parent2" type="hidden" value="000000000000000"></input>
@@ -308,7 +312,8 @@ fn anmeldung_internal(login_response: &LoginResponse, content: &str) -> Result<A
                                                                         register_link: registration_button_link
                                                                     } else {
                                                                         <a href=registration_button_link
-                                                                           class="img img_arrowLeftRed noFLoat unregister">
+                                                                           class="img img_arrowLeftRed noFLoat unregister"
+                                                                        >
                                                                             "Abmelden"
                                                                         </a>
                                                                     } => RegistrationState::Registered {
@@ -375,7 +380,8 @@ fn anmeldung_internal(login_response: &LoginResponse, content: &str) -> Result<A
                                                             <td class="tbdata">
                                                                 let gefaehrdung_schwangere = if html_handler.peek().is_some() {
                                                                     <img src="../../gfx/_default/icons/eventIcon.gif"
-                                                                         title="Gefährdungspotential für Schwangere"></img>
+                                                                         title="Gefährdungspotential für Schwangere"
+                                                                    ></img>
                                                                 } => ();
                                                             </td>
                                                             <td class="tbdata dl-inner">
@@ -454,7 +460,8 @@ fn anmeldung_internal(login_response: &LoginResponse, content: &str) -> Result<A
                                                                         register_link: registration_button_link
                                                                     } else {
                                                                         <a href=registration_button_link
-                                                                           class="img img_arrowLeftRed noFLoat unregister">
+                                                                           class="img img_arrowLeftRed noFLoat unregister"
+                                                                        >
                                                                             "Abmelden"
                                                                         </a>
                                                                     } => RegistrationState::Registered {

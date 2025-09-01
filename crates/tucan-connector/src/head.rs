@@ -27,7 +27,8 @@ pub fn html_head_2<'a>(html_handler: InElement<'a, InElement<'a, InRoot<'a, Root
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8"></meta>
         <meta http-equiv="Content-Script-Type" content="text/javascript"></meta>
         <meta name="viewport"
-              content="width=device-width, initial-scale=1,user-scalable=0"></meta>
+              content="width=device-width, initial-scale=1,user-scalable=0"
+        ></meta>
         <link href="/css/_default/dl.startpage.css" rel="stylesheet" type="text/css"></link>
         <link href="/css/styles.css" rel="stylesheet" type="text/css"></link>
         <link href="/css/colors.css" rel="stylesheet" type="text/css"></link>
@@ -50,7 +51,8 @@ pub fn html_head<'a>(html_handler: InElement<'a, InElement<'a, InRoot<'a, Root<'
         <meta http-equiv="Content-Script-Type" content="text/javascript"></meta>
         <meta name="referrer" content="origin"></meta>
         <meta name="keywords"
-              content="Datenlotsen,Datenlotsen Informationssysteme GmbH,CampusNet,Campus Management"></meta>
+              content="Datenlotsen,Datenlotsen Informationssysteme GmbH,CampusNet,Campus Management"
+        ></meta>
         <link rel="shortcut icon" type="image/x-icon" href="/gfx/tuda/icons/favicon.ico"></link>
         <script src="/js/jquery-3.6.0.min.js" type="text/javascript">
         </script>
@@ -66,27 +68,32 @@ pub fn html_head<'a>(html_handler: InElement<'a, InElement<'a, InRoot<'a, Root<'
               href="/css/_default/def_layout.css"
               rel="stylesheet"
               type="text/css"
-              media="screen"></link>
+              media="screen"
+        ></link>
         <link id="defMenu"
               href="/css/_default/def_menu.css"
               rel="stylesheet"
               type="text/css"
-              media="screen"></link>
+              media="screen"
+        ></link>
         <link id="defStyles"
               href="/css/_default/def_styles.css"
               rel="stylesheet"
-              type="text/css"></link>
+              type="text/css"
+        ></link>
         <link id="pagePrint"
               href="/css/_default/def_print.css"
               rel="stylesheet"
               type="text/css"
-              media="print"></link>
+              media="print"
+        ></link>
         <link id="pageStyle" href="/css/styles.css" rel="stylesheet" type="text/css"></link>
         <link id="pageColors"
               href="/css/colors.css"
               rel="stylesheet"
               type="text/css"
-              media="screen"></link>
+              media="screen"
+        ></link>
         let _unused = if html_handler.peek().is_none() {
             </head>
             let _unused = if html_handler.peek().unwrap().value().as_element().unwrap().has_class("timeout", scraper::CaseSensitivity::CaseSensitive) {
@@ -162,7 +169,8 @@ pub fn page_start<'a>(html_handler: InElement<'a, InElement<'a, InRoot<'a, Root<
                     </a>
                     <a href="#"
                        onclick="window.print();"
-                       class="img img_arrowPrint pageElementLeft">
+                       class="img img_arrowPrint pageElementLeft"
+                    >
                         "Drucken"
                     </a>
                     <a href="#bottom" class="img img_arrowDown pageElementRight">
@@ -174,7 +182,8 @@ pub fn page_start<'a>(html_handler: InElement<'a, InElement<'a, InRoot<'a, Root<
                         <a href="http://www.tu-darmstadt.de" title="extern http://www.tu-darmstadt.de">
                             <img id="imagePageHeadLeft"
                                  src="/gfx/tuda/logo.gif"
-                                 alt="Logo Technische Universität Darmstadt"></img>
+                                 alt="Logo Technische Universität Darmstadt"
+                            ></img>
                         </a>
                     </div>
                     <div id="pageHeadRight" class="pageElementRight">
@@ -281,7 +290,8 @@ fn logged_in_head_internal<'a>(html_handler: InElement5<'a, InElement<'a, InRoot
     html_extractor::html! {
                     <li class="tree depth_1 linkItem branchLinkItem "
                         title="Aktuelles"
-                        id="link000019">
+                        id="link000019"
+                    >
                         <a class="depth_1 link000019 navLink branchLink " href=_aktuelles_url>
                             "Aktuelles"
                         </a>
@@ -295,19 +305,22 @@ fn logged_in_head_internal<'a>(html_handler: InElement5<'a, InElement<'a, InRoot
                     </li>
                     <li class="tree depth_1 linkItem branchLinkItem " title="VV" id="link000326">
                         <a class="depth_1 link000326 navLink branchLink "
-                           href=vorlesungsverzeichnis_url>
+                           href=vorlesungsverzeichnis_url
+                        >
                             "VV"
                         </a>
                         let vv = vv_something(html_handler);
                     </li>
                     <li class="tree depth_1 linkItem branchLinkItem "
                         title="Stundenplan"
-                        id="link000268">
+                        id="link000268"
+                    >
                         <a class="depth_1 link000268 navLink branchLink "
                            href={|v: String| {
                                static REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=SCHEDULER&ARGUMENTS=-N\\d+,-N000268,-A,-A,-N1$").unwrap());
                                assert!(REGEX.is_match(&v), "{v}");
-                           }}>
+                           }}
+                        >
                             "Stundenplan"
                         </a>
                         <ul class="nav depth_2 linkItemContainer">
@@ -317,7 +330,8 @@ fn logged_in_head_internal<'a>(html_handler: InElement5<'a, InElement<'a, InRoot
                                        static REGEX: LazyLock<Regex> =
                                         LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=SCHEDULER&ARGUMENTS=-N\\d+,-N000269,-A,-A,-N0$").unwrap());
                                        assert!(REGEX.is_match(&v), "{v}");
-                                   }}>
+                                   }}
+                                >
                                     "Tagesansicht"
                                 </a>
                             </li>
@@ -327,7 +341,8 @@ fn logged_in_head_internal<'a>(html_handler: InElement5<'a, InElement<'a, InRoot
                                        static REGEX: LazyLock<Regex> =
                                         LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=SCHEDULER&ARGUMENTS=-N\\d+,-N000270,-A,-A,-N1$").unwrap());
                                        assert!(REGEX.is_match(&v), "{v}");
-                                   }}>
+                                   }}
+                                >
                                     "Wochenansicht"
                                 </a>
                             </li>
@@ -336,7 +351,8 @@ fn logged_in_head_internal<'a>(html_handler: InElement5<'a, InElement<'a, InRoot
                                    href={|v: String| {
                                        static REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=MONTH&ARGUMENTS=-N\\d+,-N000271,-A$").unwrap());
                                        assert!(REGEX.is_match(&v), "{v}");
-                                   }}>
+                                   }}
+                                >
                                     "Monatsansicht"
                                 </a>
                             </li>
@@ -346,7 +362,8 @@ fn logged_in_head_internal<'a>(html_handler: InElement5<'a, InElement<'a, InRoot
                                        static REGEX: LazyLock<Regex> =
                                         LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=SCHEDULER_EXPORT&ARGUMENTS=-N\\d+,-N000272,$").unwrap());
                                        assert!(REGEX.is_match(&v), "{v}");
-                                   }}>
+                                   }}
+                                >
                                     "Export"
                                 </a>
                             </li>
@@ -354,13 +371,15 @@ fn logged_in_head_internal<'a>(html_handler: InElement5<'a, InElement<'a, InRoot
                     </li>
                     <li class="tree depth_1 linkItem branchLinkItem "
                         title="Veranstaltungen"
-                        id="link000273">
+                        id="link000273"
+                    >
                         <a class="depth_1 link000273 navLink branchLink "
                            href={|v: String| {
                                static REGEX: LazyLock<Regex> =
                                 LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N\\d+,-N000273,-Astudveranst%2Ehtml$").unwrap());
                                assert!(REGEX.is_match(&v), "{v}");
-                           }}>
+                           }}
+                        >
                             "Veranstaltungen"
                         </a>
                         <ul class="nav depth_2 linkItemContainer">
@@ -369,18 +388,21 @@ fn logged_in_head_internal<'a>(html_handler: InElement5<'a, InElement<'a, InRoot
                                    href={|v: String| {
                                        static REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=MYMODULES&ARGUMENTS=-N\\d+,-N000275,$").unwrap());
                                        assert!(REGEX.is_match(&v), "{v}");
-                                   }}>
+                                   }}
+                                >
                                     "Meine Module"
                                 </a>
                             </li>
                             <li class="intern depth_2 linkItem "
                                 title="Meine Veranstaltungen"
-                                id="link000274">
+                                id="link000274"
+                            >
                                 <a class="depth_2 link000274 navLink "
                                    href={|v: String| {
                                        static REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=PROFCOURSES&ARGUMENTS=-N\\d+,-N000274,$").unwrap());
                                        assert!(REGEX.is_match(&v), "{v}");
-                                   }}>
+                                   }}
+                                >
                                     "Meine Veranstaltungen"
                                 </a>
                             </li>
@@ -390,7 +412,8 @@ fn logged_in_head_internal<'a>(html_handler: InElement5<'a, InElement<'a, InRoot
                                        static REGEX: LazyLock<Regex> =
                                         LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=STUDENTCHOICECOURSES&ARGUMENTS=-N\\d+,-N000307,$").unwrap());
                                        assert!(REGEX.is_match(&v), "{v}");
-                                   }}>
+                                   }}
+                                >
                                     "Meine Wahlbereiche"
                                 </a>
                             </li>
@@ -400,19 +423,22 @@ fn logged_in_head_internal<'a>(html_handler: InElement5<'a, InElement<'a, InRoot
                                        static REGEX: LazyLock<Regex> =
                                         LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N\\d+,-N000311,-A$").unwrap());
                                        assert!(REGEX.is_match(&v), "{v}");
-                                   }}>
+                                   }}
+                                >
                                     "Anmeldung"
                                 </a>
                             </li>
                             <li class="intern depth_2 linkItem "
                                 title="Mein aktueller Anmeldestatus"
-                                id="link000308">
+                                id="link000308"
+                            >
                                 <a class="depth_2 link000308 navLink "
                                    href={|v: String| {
                                        static REGEX: LazyLock<Regex> =
                                         LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=MYREGISTRATIONS&ARGUMENTS=-N\\d+,-N000308,-N000000000000000$").unwrap());
                                        assert!(REGEX.is_match(&v), "{v}");
-                                   }}>
+                                   }}
+                                >
                                     "Mein aktueller Anmeldestatus"
                                 </a>
                             </li>
@@ -420,13 +446,15 @@ fn logged_in_head_internal<'a>(html_handler: InElement5<'a, InElement<'a, InRoot
                     </li>
                     <li class="tree depth_1 linkItem branchLinkItem "
                         title="Prüfungen"
-                        id="link000280">
+                        id="link000280"
+                    >
                         <a class="depth_1 link000280 navLink branchLink "
                            href={|v: String| {
                                static REGEX: LazyLock<Regex> =
                                 LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N\\d+,-N000280,-Astudpruefungen%2Ehtml$").unwrap());
                                assert!(REGEX.is_match(&v), "{v}");
-                           }}>
+                           }}
+                        >
                             "Prüfungen"
                         </a>
                         <ul class="nav depth_2 linkItemContainer">
@@ -435,18 +463,21 @@ fn logged_in_head_internal<'a>(html_handler: InElement5<'a, InElement<'a, InRoot
                                    href={|v: String| {
                                        static REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=MYEXAMS&ARGUMENTS=-N\\d+,-N000318,$").unwrap());
                                        assert!(REGEX.is_match(&v), "{v}");
-                                   }}>
+                                   }}
+                                >
                                     "Meine Prüfungen"
                                 </a>
                             </li>
                             <li class="tree depth_2 linkItem branchLinkItem "
                                 title="Mein Prüfungsplan"
-                                id="link000389">
+                                id="link000389"
+                            >
                                 <a class="depth_2 link000389 navLink branchLink "
                                    href={|v: String| {
                                        static REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=SCPCHOICE&ARGUMENTS=-N\\d+,-N000389,$").unwrap());
                                        assert!(REGEX.is_match(&v), "{v}");
-                                   }}>
+                                   }}
+                                >
                                     "Mein Prüfungsplan"
                                 </a>
                                 <ul class="nav depth_3 linkItemContainer">
@@ -456,7 +487,8 @@ fn logged_in_head_internal<'a>(html_handler: InElement5<'a, InElement<'a, InRoot
                                                static REGEX: LazyLock<Regex> =
                                                 LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N\\d+,-N000391,-Astudplan%2Ehtml$").unwrap());
                                                assert!(REGEX.is_match(&v), "{v}");
-                                           }}>
+                                           }}
+                                        >
                                             "Wichtige Hinweise"
                                         </a>
                                     </li>
@@ -464,13 +496,15 @@ fn logged_in_head_internal<'a>(html_handler: InElement5<'a, InElement<'a, InRoot
                             </li>
                             <li class="tree depth_2 linkItem branchLinkItem "
                                 title="Semesterergebnisse"
-                                id="link000323">
+                                id="link000323"
+                            >
                                 <a class="depth_2 link000323 navLink branchLink "
                                    href={|v: String| {
                                        static REGEX: LazyLock<Regex> =
                                         LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N\\d+,-N000323,-Astudergebnis%2Ehtml$").unwrap());
                                        assert!(REGEX.is_match(&v), "{v}");
-                                   }}>
+                                   }}
+                                >
                                     "Semesterergebnisse"
                                 </a>
                                 <ul class="nav depth_3 linkItemContainer">
@@ -480,7 +514,8 @@ fn logged_in_head_internal<'a>(html_handler: InElement5<'a, InElement<'a, InRoot
                                                static REGEX: LazyLock<Regex> =
                                                 LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=COURSERESULTS&ARGUMENTS=-N\\d+,-N000324,$").unwrap());
                                                assert!(REGEX.is_match(&v), "{v}");
-                                           }}>
+                                           }}
+                                        >
                                             "Modulergebnisse"
                                         </a>
                                     </li>
@@ -490,7 +525,8 @@ fn logged_in_head_internal<'a>(html_handler: InElement5<'a, InElement<'a, InRoot
                                                static REGEX: LazyLock<Regex> =
                                                 LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=EXAMRESULTS&ARGUMENTS=-N\\d+,-N000325,$").unwrap());
                                                assert!(REGEX.is_match(&v), "{v}");
-                                           }}>
+                                           }}
+                                        >
                                             "Prüfungsergebnisse"
                                         </a>
                                     </li>
@@ -507,7 +543,8 @@ fn logged_in_head_internal<'a>(html_handler: InElement5<'a, InElement<'a, InRoot
                                         .unwrap()
                                     });
                                        assert!(REGEX.is_match(&v), "{v}");
-                                   }}>
+                                   }}
+                                >
                                     "Leistungsspiegel"
                                 </a>
                             </li>
@@ -515,13 +552,15 @@ fn logged_in_head_internal<'a>(html_handler: InElement5<'a, InElement<'a, InRoot
                     </li>
                     <li class="tree depth_1 linkItem branchLinkItem "
                         title="Service"
-                        id="link000337">
+                        id="link000337"
+                    >
                         <a class="depth_1 link000337 navLink branchLink "
                            href={|v: String| {
                                static REGEX: LazyLock<Regex> =
                                 LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N\\d+,-N000337,-Aservice%2Ehtml$").unwrap());
                                assert!(REGEX.is_match(&v), "{v}");
-                           }}>
+                           }}
+                        >
                             "Service"
                         </a>
                         <ul class="nav depth_2 linkItemContainer">
@@ -531,7 +570,8 @@ fn logged_in_head_internal<'a>(html_handler: InElement5<'a, InElement<'a, InRoot
                                        static REGEX: LazyLock<Regex> =
                                         LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=PERSADDRESS&ARGUMENTS=-N\\d+,-N000339,-A$").unwrap());
                                        assert!(REGEX.is_match(&v), "{v}");
-                                   }}>
+                                   }}
+                                >
                                     "Persönliche Daten"
                                 </a>
                             </li>
@@ -541,7 +581,8 @@ fn logged_in_head_internal<'a>(html_handler: InElement5<'a, InElement<'a, InRoot
                                        static REGEX: LazyLock<Regex> =
                                         LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=CREATEDOCUMENT&ARGUMENTS=-N\\d+,-N000557,$").unwrap());
                                        assert!(REGEX.is_match(&v), "{v}");
-                                   }}>
+                                   }}
+                                >
                                     "Meine Dokumente"
                                 </a>
                             </li>
@@ -555,7 +596,8 @@ fn logged_in_head_internal<'a>(html_handler: InElement5<'a, InElement<'a, InRoot
                                    href={|v: String| {
                                        static REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=HOLDINFO&ARGUMENTS=-N\\d+,-N000652,$").unwrap());
                                        assert!(REGEX.is_match(&v), "{v}");
-                                   }}>
+                                   }}
+                                >
                                     "Sperren"
                                 </a>
                             </li>
@@ -563,25 +605,29 @@ fn logged_in_head_internal<'a>(html_handler: InElement5<'a, InElement<'a, InRoot
                     </li>
                     <li class="tree depth_1 linkItem branchLinkItem "
                         title="Bewerbung"
-                        id="link000441">
+                        id="link000441"
+                    >
                         <a class="depth_1 link000441 navLink branchLink "
                            href={|v: String| {
                                static REGEX: LazyLock<Regex> =
                                 LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N\\d+,-N000441,-Abewerbung$").unwrap());
                                assert!(REGEX.is_match(&v), "{v}");
-                           }}>
+                           }}
+                        >
                             "Bewerbung"
                         </a>
                         <ul class="nav depth_2 linkItemContainer">
                             <li class="intern depth_2 linkItem "
                                 title="Herzlich Willkommen"
-                                id="link000442">
+                                id="link000442"
+                            >
                                 <a class="depth_2 link000442 navLink "
                                    href={|v: String| {
                                        static REGEX: LazyLock<Regex> =
                                         LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N\\d+,-N000442,-Abewerbung$").unwrap());
                                        assert!(REGEX.is_match(&v), "{v}");
-                                   }}>
+                                   }}
+                                >
                                     "Herzlich Willkommen"
                                 </a>
                             </li>
@@ -596,7 +642,8 @@ fn logged_in_head_internal<'a>(html_handler: InElement5<'a, InElement<'a, InRoot
                                        static REGEX: LazyLock<Regex> =
                                         LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=CREATEDOCUMENT&ARGUMENTS=-N\\d+,-N000444,$").unwrap());
                                        assert!(REGEX.is_match(&v), "{v}");
-                                   }}>
+                                   }}
+                                >
                                     "Meine Dokumente"
                                 </a>
                             </li>
@@ -608,7 +655,8 @@ fn logged_in_head_internal<'a>(html_handler: InElement5<'a, InElement<'a, InRoot
                                static REGEX: LazyLock<Regex> =
                                 LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N\\d+,-N000340,-Ahilfe%2Ehtml$").unwrap());
                                assert!(REGEX.is_match(&v), "{v}");
-                           }}>
+                           }}
+                        >
                             "Hilfe"
                         </a>
                     </li>
@@ -625,7 +673,8 @@ fn logged_in_head_internal<'a>(html_handler: InElement5<'a, InElement<'a, InRoot
                        }}
                        id="logoutButton"
                        class="img img_arrowLogout logout"
-                       title="Abmelden">
+                       title="Abmelden"
+                    >
                         "Abmelden"
                     </a>
                 </div>
@@ -708,38 +757,46 @@ fn logged_out_head_internal<'a>(html_handler: InElement5<'a, InElement<'a, InRoo
     html_extractor::html! {
                     <li class="intern depth_1 linkItem " title="Startseite" id="link000344">
                         <a class="depth_1 link000344 navLink "
-                           href="/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N000000000000001,-N000344,-Awelcome">
+                           href="/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N000000000000001,-N000344,-Awelcome"
+                        >
                             "Startseite"
                         </a>
                     </li>
                     <li class="tree depth_1 linkItem branchLinkItem "
                         title="Vorlesungsverzeichnis (VV)"
-                        id="link000334">
+                        id="link000334"
+                    >
                         <a class="depth_1 link000334 navLink branchLink "
-                           href=vorlesungsverzeichnis_url>
+                           href=vorlesungsverzeichnis_url
+                        >
                             "Vorlesungsverzeichnis (VV)"
                         </a>
                         let vv = vv_something(html_handler);
                     </li>
                     <li class="tree depth_1 linkItem branchLinkItem "
                         title="TUCaN-Account"
-                        id="link000410">
+                        id="link000410"
+                    >
                         <a class="depth_1 link000410 navLink branchLink "
-                           href="/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N000000000000001,-N000410,-Atucan%5Faccount%2Ehtml">
+                           href="/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N000000000000001,-N000410,-Atucan%5Faccount%2Ehtml"
+                        >
                             "TUCaN-Account"
                         </a>
                         <ul class="nav depth_2 linkItemContainer">
                             <li class="intern depth_2 linkItem " title="Account anlegen" id="link000425">
                                 <a class="depth_2 link000425 navLink "
-                                   href="/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=CREATEACCOUNT&ARGUMENTS=-N000000000000001,-N000425,">
+                                   href="/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=CREATEACCOUNT&ARGUMENTS=-N000000000000001,-N000425,"
+                                >
                                     "Account anlegen"
                                 </a>
                             </li>
                             <li class="intern depth_2 linkItem "
                                 title="Passwort vergessen (nur für Bewerber/innen!)"
-                                id="link000426">
+                                id="link000426"
+                            >
                                 <a class="depth_2 link000426 navLink "
-                                   href="/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=LOSTPASS&ARGUMENTS=-N000000000000001,-N000426,-A">
+                                   href="/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=LOSTPASS&ARGUMENTS=-N000000000000001,-N000426,-A"
+                                >
                                     "Passwort vergessen (nur für Bewerber/innen!)"
                                 </a>
                             </li>
@@ -747,7 +804,8 @@ fn logged_out_head_internal<'a>(html_handler: InElement5<'a, InElement<'a, InRoo
                     </li>
                     <li class="intern depth_1 linkItem " title="Hilfe" id="link000340">
                         <a class="depth_1 link000340 navLink "
-                           href="/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N000000000000001,-N000340,-Ahilfe%2Ehtml">
+                           href="/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N000000000000001,-N000340,-Ahilfe%2Ehtml"
+                        >
                             "Hilfe"
                         </a>
                     </li>
@@ -757,7 +815,8 @@ fn logged_out_head_internal<'a>(html_handler: InElement5<'a, InElement<'a, InRoo
                 <div id="pageHeadSwitchLang" class="pageElementRight">
                     <a href="/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=CHANGELANGUAGE&ARGUMENTS=-N000000000000002,-N002"
                        class="img img_LangEnglish pageElementLeft"
-                       title="English">
+                       title="English"
+                    >
                         "English"
                     </a>
                 </div>
@@ -765,7 +824,8 @@ fn logged_out_head_internal<'a>(html_handler: InElement5<'a, InElement<'a, InRoo
                       id="cn_loginForm"
                       action="/scripts/mgrqispi.dll"
                       method="post"
-                      class="pageElementRight">
+                      class="pageElementRight"
+                >
                     <div>
                         <fieldset id="fieldSet_login">
                             <legend>
@@ -783,7 +843,8 @@ fn logged_out_head_internal<'a>(html_handler: InElement5<'a, InElement<'a, InRoo
                                            class="login"
                                            maxlength="255"
                                            accesskey="n"
-                                           autofocus=""></input>
+                                           autofocus=""
+                                    ></input>
                                 </div>
                                 <div class="inputFieldLabel">
                                     <label for="field_pass">
@@ -796,7 +857,8 @@ fn logged_out_head_internal<'a>(html_handler: InElement5<'a, InElement<'a, InRoo
                                            size="15"
                                            class="login"
                                            maxlength="255"
-                                           accesskey="p"></input>
+                                           accesskey="p"
+                                    ></input>
                                 </div>
                             </div>
                         </fieldset>
@@ -804,12 +866,14 @@ fn logged_out_head_internal<'a>(html_handler: InElement5<'a, InElement<'a, InRoo
                                type="submit"
                                id="logIn_btn"
                                value="Anmelden"
-                               onclick="return checkform('cn_loginForm','usrname:TU-ID,pass:Passwort','000000000000001');"></input>
+                               onclick="return checkform('cn_loginForm','usrname:TU-ID,pass:Passwort','000000000000001');"
+                        ></input>
                         <input name="APPNAME" type="hidden" value="CampusNet"></input>
                         <input name="PRGNAME" type="hidden" value="LOGINCHECK"></input>
                         <input name="ARGUMENTS"
                                type="hidden"
-                               value="clino,usrname,pass,menuno,menu_type,browser,platform"></input>
+                               value="clino,usrname,pass,menuno,menu_type,browser,platform"
+                        ></input>
                         <input name="clino" type="hidden" value="000000000000001"></input>
                         <input name="menuno" type="hidden" value=_value></input>
                         <input name="menu_type" type="hidden" value="classic"></input>
@@ -869,7 +933,8 @@ pub fn footer<'a>(html_handler: InElement<'a, InElement<'a, InElement<'a, InRoot
                                        assert!(REGEX.is_match(&v), "{v}");
                                    }}
                                    class="img img_arrowImprint pageElementLeft"
-                                   id="pageFootControl_imp">
+                                   id="pageFootControl_imp"
+                                >
                                     "Impressum"
                                 </a>
                                 <a href={|v: String| {
@@ -877,20 +942,23 @@ pub fn footer<'a>(html_handler: InElement<'a, InElement<'a, InElement<'a, InRoot
                                        assert!(REGEX.is_match(&v), "{v}");
                                    }}
                                    class="img img_arrowContact pageElementLeft"
-                                   id="pageFootControl_con">
+                                   id="pageFootControl_con"
+                                >
                                     "Kontakt"
                                 </a>
                                 <a href="#"
                                    onclick="window.print();"
                                    class="img img_arrowPrint pageElementLeft"
-                                   id="pageFootControl_pri">
+                                   id="pageFootControl_pri"
+                                >
                                     "Drucken"
                                 </a>
                             </div>
                             <div id="pageFootControlsRight">
                                 <a href="#top"
                                    class="img img_arrowUp pageElementRight"
-                                   id="pageFootControl_up">
+                                   id="pageFootControl_up"
+                                >
                                 </a>
                             </div>
                         </div>

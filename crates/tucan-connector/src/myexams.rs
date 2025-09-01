@@ -84,7 +84,8 @@ fn my_exams_internal(login_response: &LoginResponse, content: &str) -> Result<My
                         <form id="semesterchange"
                               action="/scripts/mgrqispi.dll"
                               method="post"
-                              class="pageElementTop">
+                              class="pageElementTop"
+                        >
                             <div>
                                 <div class="tbhead">
                                     "Prüfungen"
@@ -121,7 +122,8 @@ fn my_exams_internal(login_response: &LoginResponse, content: &str) -> Result<My
                                         <input name="Refresh"
                                                type="submit"
                                                value="Aktualisieren"
-                                               class="img img_arrowReload"></input>
+                                               class="img img_arrowReload"
+                                        ></input>
                                     </div>
                                 </div>
                                 <input name="APPNAME" type="hidden" value="CampusNet"></input>

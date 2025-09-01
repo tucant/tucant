@@ -85,7 +85,8 @@ fn mycourses_internal(login_response: &LoginResponse, content: &str) -> Result<M
                         <form id="semesterchange"
                               action="/scripts/mgrqispi.dll"
                               method="post"
-                              class="pageElementTop">
+                              class="pageElementTop"
+                        >
                             <div>
                                 <div class="tbhead">
                                     "Semesterauswahl"
@@ -101,7 +102,8 @@ fn mycourses_internal(login_response: &LoginResponse, content: &str) -> Result<M
                                         <select name="semester"
                                                 id="semester"
                                                 onchange=_onchange
-                                                class="tabledata pageElementLeft">
+                                                class="tabledata pageElementLeft"
+                                        >
                                             let semester = while html_handler.peek().is_some() {
                                                 let option = if html_handler.peek().unwrap().value().as_element().unwrap().attr("selected").is_some() {
                                                     <option value=value selected="selected">
@@ -125,7 +127,8 @@ fn mycourses_internal(login_response: &LoginResponse, content: &str) -> Result<M
                                         <input name="Refresh"
                                                type="submit"
                                                value="Aktualisieren"
-                                               class="img img_arrowReload"></input>
+                                               class="img img_arrowReload"
+                                        ></input>
                                     </div>
                                 </div>
                                 <input name="APPNAME" type="hidden" value="CampusNet"></input>
