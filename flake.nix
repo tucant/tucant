@@ -201,6 +201,7 @@
             ./flake.lock
             ./Dockerfile
             ./README.md
+            ./rustfmt.toml
           ];
         };
 
