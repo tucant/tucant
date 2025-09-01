@@ -276,9 +276,10 @@ fn logged_in_head_internal<'a>(html_handler: InElement5<'a, InElement<'a, InRoot
                         <a
                             class="depth_1 link000268 navLink branchLink "
                             href={|v: String| {
-                            static REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=SCHEDULER&ARGUMENTS=-N\\d+,-N000268,-A,-A,-N1$").unwrap());
-                            assert!(REGEX.is_match(&v), "{v}");
-                        }}
+                                static REGEX: LazyLock<Regex> =
+                                    LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=SCHEDULER&ARGUMENTS=-N\\d+,-N000268,-A,-A,-N1$").unwrap());
+                                assert!(REGEX.is_match(&v), "{v}");
+                            }}
                         >
                             "Stundenplan"
                         </a>
@@ -287,10 +288,10 @@ fn logged_in_head_internal<'a>(html_handler: InElement5<'a, InElement<'a, InRoot
                                 <a
                                     class="depth_2 link000269 navLink "
                                     href={|v: String| {
-                                    static REGEX: LazyLock<Regex> =
-                                        LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=SCHEDULER&ARGUMENTS=-N\\d+,-N000269,-A,-A,-N0$").unwrap());
-                                    assert!(REGEX.is_match(&v), "{v}");
-                                }}
+                                        static REGEX: LazyLock<Regex> =
+                                            LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=SCHEDULER&ARGUMENTS=-N\\d+,-N000269,-A,-A,-N0$").unwrap());
+                                        assert!(REGEX.is_match(&v), "{v}");
+                                    }}
                                 >
                                     "Tagesansicht"
                                 </a>
@@ -299,10 +300,10 @@ fn logged_in_head_internal<'a>(html_handler: InElement5<'a, InElement<'a, InRoot
                                 <a
                                     class="depth_2 link000270 navLink "
                                     href={|v: String| {
-                                    static REGEX: LazyLock<Regex> =
-                                        LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=SCHEDULER&ARGUMENTS=-N\\d+,-N000270,-A,-A,-N1$").unwrap());
-                                    assert!(REGEX.is_match(&v), "{v}");
-                                }}
+                                        static REGEX: LazyLock<Regex> =
+                                            LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=SCHEDULER&ARGUMENTS=-N\\d+,-N000270,-A,-A,-N1$").unwrap());
+                                        assert!(REGEX.is_match(&v), "{v}");
+                                    }}
                                 >
                                     "Wochenansicht"
                                 </a>
@@ -311,9 +312,9 @@ fn logged_in_head_internal<'a>(html_handler: InElement5<'a, InElement<'a, InRoot
                                 <a
                                     class="depth_2 link000271 navLink "
                                     href={|v: String| {
-                                    static REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=MONTH&ARGUMENTS=-N\\d+,-N000271,-A$").unwrap());
-                                    assert!(REGEX.is_match(&v), "{v}");
-                                }}
+                                        static REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=MONTH&ARGUMENTS=-N\\d+,-N000271,-A$").unwrap());
+                                        assert!(REGEX.is_match(&v), "{v}");
+                                    }}
                                 >
                                     "Monatsansicht"
                                 </a>
@@ -322,10 +323,10 @@ fn logged_in_head_internal<'a>(html_handler: InElement5<'a, InElement<'a, InRoot
                                 <a
                                     class="depth_2 link000272 navLink "
                                     href={|v: String| {
-                                    static REGEX: LazyLock<Regex> =
-                                        LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=SCHEDULER_EXPORT&ARGUMENTS=-N\\d+,-N000272,$").unwrap());
-                                    assert!(REGEX.is_match(&v), "{v}");
-                                }}
+                                        static REGEX: LazyLock<Regex> =
+                                            LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=SCHEDULER_EXPORT&ARGUMENTS=-N\\d+,-N000272,$").unwrap());
+                                        assert!(REGEX.is_match(&v), "{v}");
+                                    }}
                                 >
                                     "Export"
                                 </a>
@@ -336,10 +337,10 @@ fn logged_in_head_internal<'a>(html_handler: InElement5<'a, InElement<'a, InRoot
                         <a
                             class="depth_1 link000273 navLink branchLink "
                             href={|v: String| {
-                            static REGEX: LazyLock<Regex> =
-                                LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N\\d+,-N000273,-Astudveranst%2Ehtml$").unwrap());
-                            assert!(REGEX.is_match(&v), "{v}");
-                        }}
+                                static REGEX: LazyLock<Regex> =
+                                    LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N\\d+,-N000273,-Astudveranst%2Ehtml$").unwrap());
+                                assert!(REGEX.is_match(&v), "{v}");
+                            }}
                         >
                             "Veranstaltungen"
                         </a>
@@ -348,9 +349,10 @@ fn logged_in_head_internal<'a>(html_handler: InElement5<'a, InElement<'a, InRoot
                                 <a
                                     class="depth_2 link000275 navLink "
                                     href={|v: String| {
-                                    static REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=MYMODULES&ARGUMENTS=-N\\d+,-N000275,$").unwrap());
-                                    assert!(REGEX.is_match(&v), "{v}");
-                                }}
+                                        static REGEX: LazyLock<Regex> =
+                                            LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=MYMODULES&ARGUMENTS=-N\\d+,-N000275,$").unwrap());
+                                        assert!(REGEX.is_match(&v), "{v}");
+                                    }}
                                 >
                                     "Meine Module"
                                 </a>
@@ -359,9 +361,10 @@ fn logged_in_head_internal<'a>(html_handler: InElement5<'a, InElement<'a, InRoot
                                 <a
                                     class="depth_2 link000274 navLink "
                                     href={|v: String| {
-                                    static REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=PROFCOURSES&ARGUMENTS=-N\\d+,-N000274,$").unwrap());
-                                    assert!(REGEX.is_match(&v), "{v}");
-                                }}
+                                        static REGEX: LazyLock<Regex> =
+                                            LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=PROFCOURSES&ARGUMENTS=-N\\d+,-N000274,$").unwrap());
+                                        assert!(REGEX.is_match(&v), "{v}");
+                                    }}
                                 >
                                     "Meine Veranstaltungen"
                                 </a>
@@ -370,10 +373,10 @@ fn logged_in_head_internal<'a>(html_handler: InElement5<'a, InElement<'a, InRoot
                                 <a
                                     class="depth_2 link000307 navLink "
                                     href={|v: String| {
-                                    static REGEX: LazyLock<Regex> =
-                                        LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=STUDENTCHOICECOURSES&ARGUMENTS=-N\\d+,-N000307,$").unwrap());
-                                    assert!(REGEX.is_match(&v), "{v}");
-                                }}
+                                        static REGEX: LazyLock<Regex> =
+                                            LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=STUDENTCHOICECOURSES&ARGUMENTS=-N\\d+,-N000307,$").unwrap());
+                                        assert!(REGEX.is_match(&v), "{v}");
+                                    }}
                                 >
                                     "Meine Wahlbereiche"
                                 </a>
@@ -382,10 +385,10 @@ fn logged_in_head_internal<'a>(html_handler: InElement5<'a, InElement<'a, InRoot
                                 <a
                                     class="depth_2 link000311 navLink "
                                     href={|v: String| {
-                                    static REGEX: LazyLock<Regex> =
-                                        LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N\\d+,-N000311,-A$").unwrap());
-                                    assert!(REGEX.is_match(&v), "{v}");
-                                }}
+                                        static REGEX: LazyLock<Regex> =
+                                            LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N\\d+,-N000311,-A$").unwrap());
+                                        assert!(REGEX.is_match(&v), "{v}");
+                                    }}
                                 >
                                     "Anmeldung"
                                 </a>
@@ -394,10 +397,10 @@ fn logged_in_head_internal<'a>(html_handler: InElement5<'a, InElement<'a, InRoot
                                 <a
                                     class="depth_2 link000308 navLink "
                                     href={|v: String| {
-                                    static REGEX: LazyLock<Regex> =
-                                        LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=MYREGISTRATIONS&ARGUMENTS=-N\\d+,-N000308,-N000000000000000$").unwrap());
-                                    assert!(REGEX.is_match(&v), "{v}");
-                                }}
+                                        static REGEX: LazyLock<Regex> =
+                                            LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=MYREGISTRATIONS&ARGUMENTS=-N\\d+,-N000308,-N000000000000000$").unwrap());
+                                        assert!(REGEX.is_match(&v), "{v}");
+                                    }}
                                 >
                                     "Mein aktueller Anmeldestatus"
                                 </a>
@@ -408,10 +411,10 @@ fn logged_in_head_internal<'a>(html_handler: InElement5<'a, InElement<'a, InRoot
                         <a
                             class="depth_1 link000280 navLink branchLink "
                             href={|v: String| {
-                            static REGEX: LazyLock<Regex> =
-                                LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N\\d+,-N000280,-Astudpruefungen%2Ehtml$").unwrap());
-                            assert!(REGEX.is_match(&v), "{v}");
-                        }}
+                                static REGEX: LazyLock<Regex> =
+                                    LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N\\d+,-N000280,-Astudpruefungen%2Ehtml$").unwrap());
+                                assert!(REGEX.is_match(&v), "{v}");
+                            }}
                         >
                             "Prüfungen"
                         </a>
@@ -420,9 +423,9 @@ fn logged_in_head_internal<'a>(html_handler: InElement5<'a, InElement<'a, InRoot
                                 <a
                                     class="depth_2 link000318 navLink "
                                     href={|v: String| {
-                                    static REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=MYEXAMS&ARGUMENTS=-N\\d+,-N000318,$").unwrap());
-                                    assert!(REGEX.is_match(&v), "{v}");
-                                }}
+                                        static REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=MYEXAMS&ARGUMENTS=-N\\d+,-N000318,$").unwrap());
+                                        assert!(REGEX.is_match(&v), "{v}");
+                                    }}
                                 >
                                     "Meine Prüfungen"
                                 </a>
@@ -431,9 +434,10 @@ fn logged_in_head_internal<'a>(html_handler: InElement5<'a, InElement<'a, InRoot
                                 <a
                                     class="depth_2 link000389 navLink branchLink "
                                     href={|v: String| {
-                                    static REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=SCPCHOICE&ARGUMENTS=-N\\d+,-N000389,$").unwrap());
-                                    assert!(REGEX.is_match(&v), "{v}");
-                                }}
+                                        static REGEX: LazyLock<Regex> =
+                                            LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=SCPCHOICE&ARGUMENTS=-N\\d+,-N000389,$").unwrap());
+                                        assert!(REGEX.is_match(&v), "{v}");
+                                    }}
                                 >
                                     "Mein Prüfungsplan"
                                 </a>
@@ -442,10 +446,11 @@ fn logged_in_head_internal<'a>(html_handler: InElement5<'a, InElement<'a, InRoot
                                         <a
                                             class="depth_3 link000391 navLink "
                                             href={|v: String| {
-                                            static REGEX: LazyLock<Regex> =
-                                                LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N\\d+,-N000391,-Astudplan%2Ehtml$").unwrap());
-                                            assert!(REGEX.is_match(&v), "{v}");
-                                        }}
+                                                static REGEX: LazyLock<Regex> = LazyLock::new(|| {
+                                                    Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N\\d+,-N000391,-Astudplan%2Ehtml$").unwrap()
+                                                });
+                                                assert!(REGEX.is_match(&v), "{v}");
+                                            }}
                                         >
                                             "Wichtige Hinweise"
                                         </a>
@@ -456,10 +461,10 @@ fn logged_in_head_internal<'a>(html_handler: InElement5<'a, InElement<'a, InRoot
                                 <a
                                     class="depth_2 link000323 navLink branchLink "
                                     href={|v: String| {
-                                    static REGEX: LazyLock<Regex> =
-                                        LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N\\d+,-N000323,-Astudergebnis%2Ehtml$").unwrap());
-                                    assert!(REGEX.is_match(&v), "{v}");
-                                }}
+                                        static REGEX: LazyLock<Regex> =
+                                            LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N\\d+,-N000323,-Astudergebnis%2Ehtml$").unwrap());
+                                        assert!(REGEX.is_match(&v), "{v}");
+                                    }}
                                 >
                                     "Semesterergebnisse"
                                 </a>
@@ -468,10 +473,10 @@ fn logged_in_head_internal<'a>(html_handler: InElement5<'a, InElement<'a, InRoot
                                         <a
                                             class="depth_3 link000324 navLink "
                                             href={|v: String| {
-                                            static REGEX: LazyLock<Regex> =
-                                                LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=COURSERESULTS&ARGUMENTS=-N\\d+,-N000324,$").unwrap());
-                                            assert!(REGEX.is_match(&v), "{v}");
-                                        }}
+                                                static REGEX: LazyLock<Regex> =
+                                                    LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=COURSERESULTS&ARGUMENTS=-N\\d+,-N000324,$").unwrap());
+                                                assert!(REGEX.is_match(&v), "{v}");
+                                            }}
                                         >
                                             "Modulergebnisse"
                                         </a>
@@ -480,10 +485,10 @@ fn logged_in_head_internal<'a>(html_handler: InElement5<'a, InElement<'a, InRoot
                                         <a
                                             class="depth_3 link000325 navLink "
                                             href={|v: String| {
-                                            static REGEX: LazyLock<Regex> =
-                                                LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=EXAMRESULTS&ARGUMENTS=-N\\d+,-N000325,$").unwrap());
-                                            assert!(REGEX.is_match(&v), "{v}");
-                                        }}
+                                                static REGEX: LazyLock<Regex> =
+                                                    LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=EXAMRESULTS&ARGUMENTS=-N\\d+,-N000325,$").unwrap());
+                                                assert!(REGEX.is_match(&v), "{v}");
+                                            }}
                                         >
                                             "Prüfungsergebnisse"
                                         </a>
@@ -494,15 +499,15 @@ fn logged_in_head_internal<'a>(html_handler: InElement5<'a, InElement<'a, InRoot
                                 <a
                                     class="depth_2 link000316 navLink "
                                     href={|v: String| {
-                                    static REGEX: LazyLock<Regex> = LazyLock::new(|| {
-                                        Regex::new(
-                                            "^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=STUDENT_RESULT&ARGUMENTS=-N\\d+,-N000316,-N0,-N000000000000000,-N000000000000000,-N000000000000000,\
-                                             -N0,-N000000000000000$",
-                                        )
-                                        .unwrap()
-                                    });
-                                    assert!(REGEX.is_match(&v), "{v}");
-                                }}
+                                        static REGEX: LazyLock<Regex> = LazyLock::new(|| {
+                                            Regex::new(
+                                                "^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=STUDENT_RESULT&ARGUMENTS=-N\\d+,-N000316,-N0,-N000000000000000,-N000000000000000,\
+                                                 -N000000000000000,-N0,-N000000000000000$",
+                                            )
+                                            .unwrap()
+                                        });
+                                        assert!(REGEX.is_match(&v), "{v}");
+                                    }}
                                 >
                                     "Leistungsspiegel"
                                 </a>
@@ -513,10 +518,10 @@ fn logged_in_head_internal<'a>(html_handler: InElement5<'a, InElement<'a, InRoot
                         <a
                             class="depth_1 link000337 navLink branchLink "
                             href={|v: String| {
-                            static REGEX: LazyLock<Regex> =
-                                LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N\\d+,-N000337,-Aservice%2Ehtml$").unwrap());
-                            assert!(REGEX.is_match(&v), "{v}");
-                        }}
+                                static REGEX: LazyLock<Regex> =
+                                    LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N\\d+,-N000337,-Aservice%2Ehtml$").unwrap());
+                                assert!(REGEX.is_match(&v), "{v}");
+                            }}
                         >
                             "Service"
                         </a>
@@ -525,10 +530,10 @@ fn logged_in_head_internal<'a>(html_handler: InElement5<'a, InElement<'a, InRoot
                                 <a
                                     class="depth_2 link000339 navLink "
                                     href={|v: String| {
-                                    static REGEX: LazyLock<Regex> =
-                                        LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=PERSADDRESS&ARGUMENTS=-N\\d+,-N000339,-A$").unwrap());
-                                    assert!(REGEX.is_match(&v), "{v}");
-                                }}
+                                        static REGEX: LazyLock<Regex> =
+                                            LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=PERSADDRESS&ARGUMENTS=-N\\d+,-N000339,-A$").unwrap());
+                                        assert!(REGEX.is_match(&v), "{v}");
+                                    }}
                                 >
                                     "Persönliche Daten"
                                 </a>
@@ -537,10 +542,10 @@ fn logged_in_head_internal<'a>(html_handler: InElement5<'a, InElement<'a, InRoot
                                 <a
                                     class="depth_2 link000557 navLink "
                                     href={|v: String| {
-                                    static REGEX: LazyLock<Regex> =
-                                        LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=CREATEDOCUMENT&ARGUMENTS=-N\\d+,-N000557,$").unwrap());
-                                    assert!(REGEX.is_match(&v), "{v}");
-                                }}
+                                        static REGEX: LazyLock<Regex> =
+                                            LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=CREATEDOCUMENT&ARGUMENTS=-N\\d+,-N000557,$").unwrap());
+                                        assert!(REGEX.is_match(&v), "{v}");
+                                    }}
                                 >
                                     "Meine Dokumente"
                                 </a>
@@ -554,9 +559,10 @@ fn logged_in_head_internal<'a>(html_handler: InElement5<'a, InElement<'a, InRoot
                                 <a
                                     class="depth_2 link000652 navLink "
                                     href={|v: String| {
-                                    static REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=HOLDINFO&ARGUMENTS=-N\\d+,-N000652,$").unwrap());
-                                    assert!(REGEX.is_match(&v), "{v}");
-                                }}
+                                        static REGEX: LazyLock<Regex> =
+                                            LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=HOLDINFO&ARGUMENTS=-N\\d+,-N000652,$").unwrap());
+                                        assert!(REGEX.is_match(&v), "{v}");
+                                    }}
                                 >
                                     "Sperren"
                                 </a>
@@ -567,10 +573,10 @@ fn logged_in_head_internal<'a>(html_handler: InElement5<'a, InElement<'a, InRoot
                         <a
                             class="depth_1 link000441 navLink branchLink "
                             href={|v: String| {
-                            static REGEX: LazyLock<Regex> =
-                                LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N\\d+,-N000441,-Abewerbung$").unwrap());
-                            assert!(REGEX.is_match(&v), "{v}");
-                        }}
+                                static REGEX: LazyLock<Regex> =
+                                    LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N\\d+,-N000441,-Abewerbung$").unwrap());
+                                assert!(REGEX.is_match(&v), "{v}");
+                            }}
                         >
                             "Bewerbung"
                         </a>
@@ -579,10 +585,10 @@ fn logged_in_head_internal<'a>(html_handler: InElement5<'a, InElement<'a, InRoot
                                 <a
                                     class="depth_2 link000442 navLink "
                                     href={|v: String| {
-                                    static REGEX: LazyLock<Regex> =
-                                        LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N\\d+,-N000442,-Abewerbung$").unwrap());
-                                    assert!(REGEX.is_match(&v), "{v}");
-                                }}
+                                        static REGEX: LazyLock<Regex> =
+                                            LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N\\d+,-N000442,-Abewerbung$").unwrap());
+                                        assert!(REGEX.is_match(&v), "{v}");
+                                    }}
                                 >
                                     "Herzlich Willkommen"
                                 </a>
@@ -596,10 +602,10 @@ fn logged_in_head_internal<'a>(html_handler: InElement5<'a, InElement<'a, InRoot
                                 <a
                                     class="depth_2 link000444 navLink "
                                     href={|v: String| {
-                                    static REGEX: LazyLock<Regex> =
-                                        LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=CREATEDOCUMENT&ARGUMENTS=-N\\d+,-N000444,$").unwrap());
-                                    assert!(REGEX.is_match(&v), "{v}");
-                                }}
+                                        static REGEX: LazyLock<Regex> =
+                                            LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=CREATEDOCUMENT&ARGUMENTS=-N\\d+,-N000444,$").unwrap());
+                                        assert!(REGEX.is_match(&v), "{v}");
+                                    }}
                                 >
                                     "Meine Dokumente"
                                 </a>
@@ -610,10 +616,10 @@ fn logged_in_head_internal<'a>(html_handler: InElement5<'a, InElement<'a, InRoot
                         <a
                             class="depth_1 link000340 navLink "
                             href={|v: String| {
-                            static REGEX: LazyLock<Regex> =
-                                LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N\\d+,-N000340,-Ahilfe%2Ehtml$").unwrap());
-                            assert!(REGEX.is_match(&v), "{v}");
-                        }}
+                                static REGEX: LazyLock<Regex> =
+                                    LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N\\d+,-N000340,-Ahilfe%2Ehtml$").unwrap());
+                                assert!(REGEX.is_match(&v), "{v}");
+                            }}
                         >
                             "Hilfe"
                         </a>
@@ -627,9 +633,9 @@ fn logged_in_head_internal<'a>(html_handler: InElement5<'a, InElement<'a, InRoot
                     </a>
                     <a
                         href={|v: String| {
-                        static REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=LOGOUT&ARGUMENTS=-N\\d+,-N001$").unwrap());
-                        assert!(REGEX.is_match(&v), "{v}");
-                    }}
+                            static REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=LOGOUT&ARGUMENTS=-N\\d+,-N001$").unwrap());
+                            assert!(REGEX.is_match(&v), "{v}");
+                        }}
                         id="logoutButton"
                         class="img img_arrowLogout logout"
                         title="Abmelden"
@@ -839,9 +845,9 @@ pub fn footer<'a>(html_handler: InElement<'a, InElement<'a, InElement<'a, InRoot
                             <div id="pageFootControlsLeft">
                                 <a
                                     href={|v: String| {
-                                    static REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new("^\\?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N\\d+,-N\\d+,-Aimprint$").unwrap());
-                                    assert!(REGEX.is_match(&v), "{v}");
-                                }}
+                                        static REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new("^\\?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N\\d+,-N\\d+,-Aimprint$").unwrap());
+                                        assert!(REGEX.is_match(&v), "{v}");
+                                    }}
                                     class="img img_arrowImprint pageElementLeft"
                                     id="pageFootControl_imp"
                                 >
@@ -849,9 +855,9 @@ pub fn footer<'a>(html_handler: InElement<'a, InElement<'a, InElement<'a, InRoot
                                 </a>
                                 <a
                                     href={|v: String| {
-                                    static REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new("^\\?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N\\d+,-N\\d+,-Acontact$").unwrap());
-                                    assert!(REGEX.is_match(&v), "{v}");
-                                }}
+                                        static REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new("^\\?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N\\d+,-N\\d+,-Acontact$").unwrap());
+                                        assert!(REGEX.is_match(&v), "{v}");
+                                    }}
                                     class="img img_arrowContact pageElementLeft"
                                     id="pageFootControl_con"
                                 >

@@ -155,9 +155,9 @@ fn anmeldung_internal(login_response: &LoginResponse, content: &str) -> Result<A
                                                 name="sessionno"
                                                 type="hidden"
                                                 value={|v: String| {
-                                                static REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new("^\\d+$").unwrap());
-                                                assert!(REGEX.is_match(&v), "{v}");
-                                            }}
+                                                    static REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new("^\\d+$").unwrap());
+                                                    assert!(REGEX.is_match(&v), "{v}");
+                                                }}
                                             ></input>
                                             <input name="menuno" type="hidden" value="000311"></input>
                                             <input name="pa rent1" type="hidden" value="000000000000000"></input>
