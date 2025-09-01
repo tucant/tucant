@@ -44,7 +44,8 @@ pub async fn veranstaltungen(connector: &TucanConnector, login_response: LoginRe
                         <p>
                             <strong>
                                 "Benötigen Sie Hilfe im Umgang mit TUCaN?"
-                                <a href="https://www.tu-darmstadt.de/studieren/studierende_tu/studienorganisation_und_tucan/hilfe_und_faq/index.de.jsp" target="_blank">
+                                <a href="https://www.tu-darmstadt.de/studieren/studierende_tu/studienorganisation_und_tucan/hilfe_und_faq/index.de.jsp"
+    target="_blank">
                                     "Hier"
                                 </a>
                                 "finden Sie zahlreiche Anleitungen und FAQs."
@@ -154,7 +155,8 @@ pub async fn veranstaltungen(connector: &TucanConnector, login_response: LoginRe
                         </p>
                         <p style="line-height: 140%;">
                             "FAQ zu Problemen bei der Anmeldung finden Sie"
-                            <a href="https://www.tu-darmstadt.de/studieren/studierende_tu/studienorganisation_und_tucan/hilfe_und_faq/index.de.jsp" target="_blank">
+                            <a href="https://www.tu-darmstadt.de/studieren/studierende_tu/studienorganisation_und_tucan/hilfe_und_faq/index.de.jsp"
+    target="_blank">
                                 "hier"
                             </a>
                             ". Bei  weiteren Fragen hilft Ihnen"

@@ -21,10 +21,14 @@ pub async fn root(connector: &TucanConnector) -> Result<(), TucanError> {
                 <meta http-equiv="pragma" content="no-cache"></meta>
                 <meta http-equiv="Content-Type" content="text/html; charset=utf-8"></meta>
                 <meta http-equiv="Content-Script-Type" content="text/javascript"></meta>
-                <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=0"></meta>
+                <meta name="viewport"
+    content="width=device-width, initial-scale=1,user-scalable=0"></meta>
                 <link rel="shortcut icon" type="image/x-icon" href="/gfx/tuda/icons/favicon.ico"></link>
-                <link rel="apple-touch-icon" href="/gfx/tuda/icons/iphone_touch_icon.png" type="image/gif"></link>
-                <meta http-equiv="refresh" content="0; URL=/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STARTPAGE_DISPATCH&ARGUMENTS=-N000000000000001"></meta>
+                <link rel="apple-touch-icon"
+    href="/gfx/tuda/icons/iphone_touch_icon.png"
+    type="image/gif"></link>
+                <meta http-equiv="refresh"
+    content="0; URL=/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STARTPAGE_DISPATCH&ARGUMENTS=-N000000000000001"></meta>
                 <link href="/css/_default/dl.startpage.css" rel="stylesheet" type="text/css"></link>
                 <script type="text/javascript" src="/js/mobile_master/jquery.js">
                 </script>
@@ -34,16 +38,21 @@ pub async fn root(connector: &TucanConnector) -> Result<(), TucanError> {
             <body>
                 <div id="wrapper">
                     <a href="http://www.tu-darmstadt.de" title="extern http://www.tu-darmstadt.de">
-                        <img border="0" id="logo" src="/gfx/tuda/logo.png" alt="Logo Technische Universität Darmstadt"></img>
+                        <img border="0"
+    id="logo"
+    src="/gfx/tuda/logo.png"
+    alt="Logo Technische Universität Darmstadt"></img>
                     </a>
                     <ul id="langMenu">
                         <li>
-                            <a class="img img_LangGerman" href="/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STARTPAGE_DISPATCH&ARGUMENTS=-N000000000000001">
+                            <a class="img img_LangGerman"
+    href="/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STARTPAGE_DISPATCH&ARGUMENTS=-N000000000000001">
                                 "de"
                             </a>
                         </li>
                         <li>
-                            <a class="img img_LangEnglish" href="/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STARTPAGE_DISPATCH&ARGUMENTS=-N000000000000002">
+                            <a class="img img_LangEnglish"
+    href="/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STARTPAGE_DISPATCH&ARGUMENTS=-N000000000000002">
                                 "en"
                             </a>
                         </li>
