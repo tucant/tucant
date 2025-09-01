@@ -80,11 +80,7 @@ fn mymodules_internal(login_response: &LoginResponse, content: &str) -> Result<M
                         _module_von_name
                     </h1>
                     <div class="tb">
-                        <form id="semesterchange"
-                              action="/scripts/mgrqispi.dll"
-                              method="post"
-                              class="pageElementTop"
-                        >
+                        <form id="semesterchange" action="/scripts/mgrqispi.dll" method="post" class="pageElementTop">
                             <div>
                                 <div class="tbhead">
                                     "Modul"
@@ -118,11 +114,7 @@ fn mymodules_internal(login_response: &LoginResponse, content: &str) -> Result<M
                                                 };
                                             } => option.either_into();
                                         </select>
-                                        <input name="Refresh"
-                                               type="submit"
-                                               value="Aktualisieren"
-                                               class="img img_arrowReload refresh"
-                                        ></input>
+                                        <input name="Refresh" type="submit" value="Aktualisieren" class="img img_arrowReload refresh"></input>
                                     </div>
                                 </div>
                                 <input name="APPNAME" type="hidden" value="CampusNet"></input>

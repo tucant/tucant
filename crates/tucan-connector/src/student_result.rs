@@ -187,37 +187,26 @@ fn part1<T>(html_handler: InElement<'_, T>, level: i8, name: Option<(String, Vec
                     _summe
                 </td>
                 let sum_cp_and_used_cp = if html_handler.peek().unwrap().value().as_element().unwrap().attr("colspan").is_some() {
-                    <td colspan="4"
-                        class={|v| assert_eq!(v, format!("level0{level}"))}
-                        style="text-align:left;white-space:nowrap;"
-                    >
+                    <td colspan="4" class={|v| assert_eq!(v, format!("level0{level}"))} style="text-align:left;white-space:nowrap;">
                         _summe_wird_erst_berechnet_wenn_der_bereich_abgeschlossen_ist
                     </td>
                 } => (None, None) else {
                     <td class={|v| assert_eq!(v, format!("level0{level}"))}>
                     </td>
-                    <td class={|v| assert_eq!(v, format!("level0{level}"))}
-                        style="text-align:right;white-space:nowrap;"
-                    >
+                    <td class={|v| assert_eq!(v, format!("level0{level}"))} style="text-align:right;white-space:nowrap;">
                         let sum_cp = if html_handler.peek().is_some() {
                             sum_cp
                         } => sum_cp;
                     </td>
-                    <td class={|v| assert_eq!(v, format!("level0{level}"))}
-                        style="text-align:right;white-space:nowrap;"
-                    >
+                    <td class={|v| assert_eq!(v, format!("level0{level}"))} style="text-align:right;white-space:nowrap;">
                         let sum_used_cp = if html_handler.peek().is_some() {
                             sum_used_cp
                         } => sum_used_cp;
                     </td>
-                    <td class={|v| assert_eq!(v, format!("level0{level}"))}
-                        style="text-align:right;"
-                    >
+                    <td class={|v| assert_eq!(v, format!("level0{level}"))} style="text-align:right;">
                     </td>
                 } => (sum_cp, sum_used_cp);
-                <td class={|v| assert_eq!(v, format!("level0{level}"))}
-                    style="text-align:center;"
-                >
+                <td class={|v| assert_eq!(v, format!("level0{level}"))} style="text-align:center;">
                     <img src=src alt=alt title=state></img>
                 </td>
             </tr>
@@ -296,11 +285,7 @@ fn student_result_internal(login_response: &LoginResponse, content: &str) -> Res
                                             <label for="study">
                                                 "Studium:"
                                             </label>
-                                            <select name="study"
-                                                    id="study"
-                                                    onchange="reloadpage.submitForm(this.form.id);"
-                                                    class="tabledata pageElementLeft"
-                                            >
+                                            <select name="study" id="study" onchange="reloadpage.submitForm(this.form.id);" class="tabledata pageElementLeft">
                                                 let course_of_study = while html_handler.peek().is_some() {
                                                     let course_of_study = if html_handler
                                                         .peek()
@@ -328,20 +313,12 @@ fn student_result_internal(login_response: &LoginResponse, content: &str) -> Res
                                                     };
                                                 } => course_of_study.either_into::<CourseOfStudySelection>();
                                             </select>
-                                            <input id="Refresh"
-                                                   name="Refresh"
-                                                   type="submit"
-                                                   value="Aktualisieren"
-                                                   class="img img_arrowReload pageElementLeft update"
-                                            ></input>
+                                            <input id="Refresh" name="Refresh" type="submit" value="Aktualisieren" class="img img_arrowReload pageElementLeft update"></input>
                                         </div>
                                     </div>
                                     <input name="APPNAME" type="hidden" value="CampusNet"></input>
                                     <input name="PRGNAME" type="hidden" value="STUDENT_RESULT"></input>
-                                    <input name="ARGUMENTS"
-                                           type="hidden"
-                                           value="sessionno,menuno,mode, semester,student,study,changestudy,section"
-                                    ></input>
+                                    <input name="ARGUMENTS" type="hidden" value="sessionno,menuno,mode, semester,student,study,changestudy,section"></input>
                                     <input name="sessionno" type="hidden" value=_session_id></input>
                                     <input name="menuno" type="hidden" value="000316"></input>
                                     <input name="resulttype" type="hidden" value="0"></input>

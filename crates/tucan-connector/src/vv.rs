@@ -141,9 +141,7 @@ fn vv_internal(login_response: Option<&LoginResponse>, content: &str) -> Result<
                                             <tr class="tbdata">
                                                 <td>
                                                     let gefaehrdung_schwangere = if html_handler.peek().is_some() {
-                                                        <img src="../../gfx/_default/icons/eventIcon.gif"
-                                                             title="Gefährdungspotential für Schwangere"
-                                                        ></img>
+                                                        <img src="../../gfx/_default/icons/eventIcon.gif" title="Gefährdungspotential für Schwangere"></img>
                                                     } => ();
                                                 </td>
                                                 <td>

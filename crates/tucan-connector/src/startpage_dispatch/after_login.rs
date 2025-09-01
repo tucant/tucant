@@ -24,14 +24,8 @@ pub async fn redirect_after_login(connector: &TucanConnector, login_response: Lo
             </head>
             <body class="redirect">
                 <div id="wrapper">
-                    <a href="http://http://www.tu-darmstadt.de"
-                       title="extern http://www.tu-darmstadt.de"
-                    >
-                        <img border="0"
-                             id="logo"
-                             src="/gfx/tuda/logo.png"
-                             alt="Logo Technische Universität Darmstadt"
-                        ></img>
+                    <a href="http://http://www.tu-darmstadt.de" title="extern http://www.tu-darmstadt.de">
+                        <img border="0" id="logo" src="/gfx/tuda/logo.png" alt="Logo Technische Universität Darmstadt"></img>
                     </a>
                     <h2>
                         <a href=_href_link_1>
