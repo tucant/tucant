@@ -34,7 +34,8 @@ pub async fn startpage_dispatch_1(connector: &TucanConnector) -> Result<(), Tuca
                     "000000000000001"
                 </div>
                 <script>
-                    "window.setTimeout(function() {\n\t\t\twindow.location.href = '/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N000000000000001,-N000344,-Awelcome';\n\t\t}, 500);"
+                    "window.setTimeout(function() {\n\t\t\twindow.location.href = \
+                     '/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N000000000000001,-N000344,-Awelcome';\n\t\t}, 500);"
                 </script>
             </body>
         </html>
