@@ -2,8 +2,10 @@
 
 use std::sync::LazyLock;
 
-// just use the url of another course and change the last number to the last number in the coursedetails url
-// seems like there is access control. if you are not in a course it does not work. though you could easily register and unregister again
+// just use the url of another course and change the last number to the last
+// number in the coursedetails url seems like there is access control. if you
+// are not in a course it does not work. though you could easily register and
+// unregister again
 use crate::{
     TucanConnector, authenticated_retryable_get,
     head::{html_head, logged_in_head, logged_out_head},

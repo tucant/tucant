@@ -30,8 +30,8 @@ impl Display for CourseDetailsRequest {
 // https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSEDETAILS&ARGUMENTS=-N258189491926736,-N000326,-N0,-N391553568139410,-N391035558524778,-N0,-N0,-N0
 // shows that the third number influences the message tab and the termine.
 // the third number seems to be for subcourses like exercises.
-// the dates with stars are from the lecture and the ones without are for exercises
-// TODO for now we ignore the first number, maybe that is a mistake
+// the dates with stars are from the lecture and the ones without are for
+// exercises TODO for now we ignore the first number, maybe that is a mistake
 static COURSE_DETAILS_REGEX: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(
         r"^-N\d+,-N(?P<n2>\d+),-N(?P<n3>\d+),-N(0),-N(0+)(,-N(0|2|3)(,-A[a-zA-Z0-9_~-]+)?)?$",

@@ -736,7 +736,8 @@ fn course_details_internal(
         ]
         .into_iter())
     {
-        // hack, one person has a second name at one place and not at the other place
+        // hack, one person has a second name at one place and not at the other
+        // place
     } else {
         assert_eq!(
             dozent.unwrap().split("; ").sorted().collect::<Vec<_>>(),

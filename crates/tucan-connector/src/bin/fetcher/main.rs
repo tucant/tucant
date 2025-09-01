@@ -101,7 +101,8 @@ impl Fetcher {
                 }
                 Ok(value) => value,
             };
-            //println!("anmeldung counter: {}", self.anmeldung_counter.load(Ordering::Relaxed));
+            //println!("anmeldung counter: {}",
+            // self.anmeldung_counter.load(Ordering::Relaxed));
             self.anmeldung.fetch_add(1, Ordering::Relaxed);
 
             let results: FuturesUnordered<_> = anmeldung_response
@@ -149,10 +150,7 @@ impl Fetcher {
                                         module.url
                                     );
                                 }
-                                Ok(module) => {
-                                    if module.registered {
-                                    }
-                                }
+                                Ok(module) => if module.registered {},
                             }
 
                             self.module.fetch_add(1, Ordering::Relaxed);

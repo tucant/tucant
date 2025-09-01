@@ -14,7 +14,8 @@ pub fn Vorlesungsverzeichnis(vv: ReadSignal<ActionRequest>) -> Element {
             .await
     };
 
-    // TODO FIXME wait does vv loading an unauthenticated url with cookies show the head that is for unauthencitaed?
+    // TODO FIXME wait does vv loading an unauthenticated url with cookies show the
+    // head that is for unauthencitaed?
 
     // this is not fully correct as some urls are only available authenticated
     use_unauthenticated_data_loader(

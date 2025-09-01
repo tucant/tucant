@@ -27,7 +27,8 @@ pub async fn student_result(
 ) -> Result<StudentResultResponse, TucanError> {
     let key = format!("unparsed_student_result.{request}");
 
-    // TODO FIXME this can break as the normal tucan usage will remember which one you selected
+    // TODO FIXME this can break as the normal tucan usage will remember which one
+    // you selected
     let request =
         format!("-N0,-N000000000000000,-N000000000000000,-N{request},-N0,-N000000000000000");
 

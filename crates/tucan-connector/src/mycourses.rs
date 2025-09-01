@@ -52,9 +52,10 @@ pub async fn mycourses(
     let result = mycourses_internal(login_response, &content)?;
     if invalidate_dependents && old_content_and_date.as_ref().map(|m| &m.0) != Some(&content) {
         // TODO invalidate cached ones?
-        // TODO FIXME don't remove from database to be able to do recursive invalidations.
-        // maybe set age to oldest possible value? or more complex set invalidated and then queries can allow to return invalidated.
-        // I think we should do the more complex thing.
+        // TODO FIXME don't remove from database to be able to do recursive
+        // invalidations. maybe set age to oldest possible value? or
+        // more complex set invalidated and then queries can allow to return
+        // invalidated. I think we should do the more complex thing.
     }
 
     tucan.database.put(&key, (content, date)).await;

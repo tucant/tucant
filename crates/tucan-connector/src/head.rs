@@ -245,7 +245,8 @@ pub fn vv_something<'a>(
     InElement5<'a, InElement<'a, InElement<'a, InRoot<'a, Root<'a>>>>>,
     VorlesungsverzeichnisUrls,
 ) {
-    // these link ids are incrementing so they are different if used from different contexts. could in theory be calculated based on some starting number
+    // these link ids are incrementing so they are different if used from different
+    // contexts. could in theory be calculated based on some starting number
     html_extractor::html! {
         <ul class="nav depth_2 linkItemContainer">
             <li class="intern depth_2 linkItem " title="Lehrveranstaltungssuche" id=_id>
