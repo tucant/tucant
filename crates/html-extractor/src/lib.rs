@@ -693,7 +693,12 @@ fn convert_commands(commands: &HtmlCommands) -> Vec<TokenStream> {
     commands
         .commands
         .iter()
-        .map(|command| match command {
+        .map()
+        .collect()
+}
+
+fn convert_command(command: HtmlCommand) -> TokenStream {
+     match command {
             HtmlCommand::ElementOpen(input) => {
                 let tag = input.element.to_string();
 
@@ -893,8 +898,7 @@ fn convert_commands(commands: &HtmlCommands) -> Vec<TokenStream> {
                     }
                 }
             }
-        })
-        .collect()
+        }
 }
 
 #[proc_macro]

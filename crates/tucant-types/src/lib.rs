@@ -259,7 +259,8 @@ impl Display for Grade {
     }
 }
 
-// TODO can this ever store 5,0 or nb? or is it incomplete then? maybe when you failed your last attempt?
+// TODO can this ever store 5,0 or nb? or is it incomplete then?
+// maybe when you failed your last attempt?
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema, PartialEq, Eq)]
 pub enum LeistungsspiegelGrade {
     Grade(Grade),

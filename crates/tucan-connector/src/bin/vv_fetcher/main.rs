@@ -54,10 +54,6 @@ async fn async_main() -> Result<(), TucanError> {
         )
         .await;
 
-    //fetcher.anmeldung_file.flush().await?;
-    //fetcher.module_file.flush().await?;
-    //fetcher.course_file.flush().await?;
-
     Ok(())
 }
 
@@ -83,10 +79,6 @@ impl Fetcher {
         path: String,
     ) -> impl Future<Output = ()> + Send + use<'a, 'b> {
         async move {
-            //self.anmeldung_file.write_all(anmeldung_request.inner().as_bytes()).await?;
-            //self.anmeldung_file.write_all(b"\n").await?;
-
-            //println!("action {}", action);
             let result = AssertUnwindSafe(async {
                 tucan
                     .vv(None, RevalidationStrategy::cache(), action.clone())
@@ -103,7 +95,6 @@ impl Fetcher {
                 Ok(value) => value,
             };
             self.vv.fetch_add(1, Ordering::Relaxed);
-            //println!("anmeldung counter: {}", self.vv.load(Ordering::Relaxed));
 
             let results: FuturesUnordered<_> = anmeldung_response
                 .entries
@@ -148,7 +139,6 @@ impl Fetcher {
                                 }
 
                                 self.course.fetch_add(1, Ordering::Relaxed);
-                                //println!("course counter: {}", self.course.load(Ordering::Relaxed));
                             }
                             .boxed()
                         }),

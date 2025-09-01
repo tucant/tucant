@@ -71,7 +71,8 @@ impl Database {
 
     #[cfg(not(target_arch = "wasm32"))]
     pub async fn new_test() -> Self {
-        let url = "sqlite://data_test.db?mode=rwc"; //format!("sqlite://{}?mode=rwc", tempfile.path().to_str().unwrap());
+        //format!("sqlite://{}?mode=rwc", tempfile.path().to_str().unwrap());
+        let url = "sqlite://data_test.db?mode=rwc";
         let database = sqlx::SqlitePool::connect(url).await.unwrap();
         sqlx::query(
             "CREATE TABLE IF NOT EXISTS store (key TEXT PRIMARY KEY NOT NULL, value TEXT NOT NULL)",
