@@ -353,10 +353,6 @@ mod tests {
 
             sleep(Duration::from_secs(5)).await;
 
-            // driver.query(By::XPath(r#"//div/ul/li/a[text()="Veranstaltungen"]"#)).single().await?.click().await?;
-
-            // driver.query(By::XPath(r#"//ul/li/a[text()="Anmeldung"]"#)).single().await?.click().await?;
-
             session
                 .browsing_context_close(CloseParameters {
                     context: browsing_context,

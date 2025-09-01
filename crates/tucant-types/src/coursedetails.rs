@@ -27,7 +27,6 @@ impl Display for CourseDetailsRequest {
 // the second number seems to be the reference to the course
 // the third number seems to be a reference to the material and messages
 // creating a mixed url
-// https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSEDETAILS&ARGUMENTS=-N258189491926736,-N000326,-N0,-N391553568139410,-N391035558524778,-N0,-N0,-N0
 // shows that the third number influences the message tab and the termine.
 // the third number seems to be for subcourses like exercises.
 // the dates with stars are from the lecture and the ones without are for
