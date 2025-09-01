@@ -151,9 +151,10 @@ fn anmeldung_internal(login_response: &LoginResponse, content: &str) -> Result<A
                                             <input name="APPNAME" type="hidden" value="CampusNet"></input>
                                             <input name="PRGNAME" type="hidden" value="REGISTRATION"></input>
                                             <input name="ARGUMENTS" type="hidden" value="sessionno,menuno,study,changestudy,parent1,parent2"></input>
-                                            <input name="sessionno"
-                                                   type="hidden"
-                                                   value={|v: String| {
+                                            <input
+                                                name="sessionno"
+                                                type="hidden"
+                                                value={|v: String| {
                                                 static REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new("^\\d+$").unwrap());
                                                 assert!(REGEX.is_match(&v), "{v}");
                                             }}
