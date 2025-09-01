@@ -278,24 +278,18 @@ fn use_data_loader<I: Clone + PartialEq + std::fmt::Debug + 'static, O: Clone + 
     };
 
     rsx! {
-        div {
-            class: "container",
+        div { class: "container",
             if loading() {
                 div {
                     style: "z-index: 10000",
                     class: "position-fixed top-50 start-50 translate-middle",
-                    div {
-                        class: "spinner-grow",
-                        role: "status",
-                        span {
-                            class: "visually-hidden",
-                            "Loading..."
-                        }
+                    div { class: "spinner-grow", role: "status",
+                        span { class: "visually-hidden", "Loading..." }
                     }
                 }
             }
             if let Some(course) = data {
-                { render(course.to_owned(), reload) }
+                {render(course.to_owned(), reload)}
             }
         }
     }

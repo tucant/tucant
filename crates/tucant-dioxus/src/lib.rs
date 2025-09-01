@@ -178,51 +178,46 @@ pub enum Route {
 #[component]
 pub fn NotFound(route: Vec<String>) -> Element {
     rsx! {
-        h1 {
-            "Page not found"
-        }
+        h1 { "Page not found" }
     }
 }
 
 #[component]
 pub fn Root() -> Element {
     rsx! {
-        div {
-            class: "container",
-            h1 {
-                { "Willkommen bei TUCaN't!" }
-            }
+        div { class: "container",
+            h1 { {"Willkommen bei TUCaN't!"} }
             p {
-                { "Du kannst gerne die " }
+                {"Du kannst gerne die "}
                 a {
                     href: "https://tucant.github.io/tucant/",
                     target: "_blank",
-                    { "Browsererweiterung herunterladen" }
+                    {"Browsererweiterung herunterladen"}
                 }
-                { ", falls Du diese noch nicht verwendest." }
+                {", falls Du diese noch nicht verwendest."}
             }
             p {
-                { "Der Quellcode dieses Projekts ist unter der AGPL-3.0 Lizenz auf " }
+                {"Der Quellcode dieses Projekts ist unter der AGPL-3.0 Lizenz auf "}
                 a {
                     href: "https://github.com/tucant/tucant/",
                     target: "_blank",
-                    { "GitHub" }
+                    {"GitHub"}
                 }
-                { " verfügbar." }
+                {" verfügbar."}
             }
             p {
-                { "Du kannst Dir deine " }
+                {"Du kannst Dir deine "}
                 Link {
                     to: Route::Registration {
                         registration: AnmeldungRequest::default(),
                     },
-                    { "anmeldbaren Module ansehen" }
+                    {"anmeldbaren Module ansehen"}
                 }
-                { "." }
+                {"."}
             }
             p {
                 "Version "
-                { git_version::git_version!() }
+                {git_version::git_version!()}
             }
         }
     }

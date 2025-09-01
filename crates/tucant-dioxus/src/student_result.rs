@@ -115,50 +115,27 @@ pub fn StudentResultLevelComponent(
     rsx! {
         if !level().entries.is_empty() {
             h5 {
-                nav {
-                    "aria-label": "breadcrumb",
-                    ol {
-                        class: "breadcrumb",
+                nav { "aria-label": "breadcrumb",
+                    ol { class: "breadcrumb",
                         {
-                            path.iter().map(|item| {
-                                rsx! {
-                                    li {
-                                        class: "breadcrumb-item",
-                                        { item.clone() }
+                            path.iter()
+                                .map(|item| {
+                                    rsx! {
+                                        li { class: "breadcrumb-item", {item.clone()} }
                                     }
-                                }
-                            })
+                                })
                         }
-                        li {
-                            class: "breadcrumb-item",
-                            { level().name.clone() }
-                        }
+                        li { class: "breadcrumb-item", {level().name.clone()} }
                     }
                 }
             }
-            table {
-                class: "table table-sm",
+            table { class: "table table-sm",
                 thead {
                     tr {
-                        th {
-                            scope: "col",
-                            { "Name" }
-                        }
-                        th {
-                            scope: "col",
-                            class: "col-1",
-                            { "CP" }
-                        }
-                        th {
-                            scope: "col",
-                            class: "col-1",
-                            { "eCP" }
-                        }
-                        th {
-                            scope: "col",
-                            class: "col-1",
-                            { "Note" }
-                        }
+                        th { scope: "col", {"Name"} }
+                        th { scope: "col", class: "col-1", {"CP"} }
+                        th { scope: "col", class: "col-1", {"eCP"} }
+                        th { scope: "col", class: "col-1", {"Note"} }
                     }
                 }
                 tbody {
@@ -169,23 +146,14 @@ pub fn StudentResultLevelComponent(
                             .map(|entry: StudentResultEntry| {
                                 rsx! {
                                     tr {
-                                        td {
-                                            { entry.name.clone() }
-                                        }
-                                        td {
-                                            { entry.cp.unwrap_or_default().to_string() }
-                                        }
-                                        td {
-                                            { entry.used_cp.unwrap_or_default().to_string() }
-                                        }
+                                        td { {entry.name.clone()} }
+                                        td { {entry.cp.unwrap_or_default().to_string()} }
+                                        td { {entry.used_cp.unwrap_or_default().to_string()} }
                                         td {
                                             if anonymize {
-                                                span {
-                                                    class: "placeholder",
-                                                    "abc"
-                                                }
+                                                span { class: "placeholder", "abc" }
                                             } else {
-                                                { entry.grade.to_string() }
+                                                {entry.grade.to_string()}
                                             }
                                         }
                                     }
@@ -196,18 +164,17 @@ pub fn StudentResultLevelComponent(
             }
         }
         {
-            level().children.into_iter().map(|child| {
-                rsx! {
-                    StudentResultLevelComponent {
-                        level: child.clone(),
-                        path: path()
-                            .iter()
-                            .cloned()
-                            .chain(level().name.into_iter())
-                            .collect::<Vec<_>>(),
+            level()
+                .children
+                .into_iter()
+                .map(|child| {
+                    rsx! {
+                        StudentResultLevelComponent {
+                            level: child.clone(),
+                            path: path().iter().cloned().chain(level().name.into_iter()).collect::<Vec<_>>(),
+                        }
                     }
-                }
-            })
+                })
         }
     }
 }

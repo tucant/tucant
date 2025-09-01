@@ -31,14 +31,12 @@ pub fn LogoutComponent() -> Element {
     };
 
     rsx! {
-        form {
-            onsubmit: on_submit,
-            class: "d-flex",
+        form { onsubmit: on_submit, class: "d-flex",
             button {
                 id: "logout-button",
                 class: "btn btn-outline-success",
                 r#type: "submit",
-                { "Logout" }
+                {"Logout"}
             }
         }
     }
