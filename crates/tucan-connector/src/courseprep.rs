@@ -1,7 +1,9 @@
 // https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSEPREP&ARGUMENTS=-N503526614753137,-N000268,-N0,-N391553606081258,-ACODA,-N393006535520104
 
-// just use the url of another course and change the last number to the last number in the coursedetails url
-// seems like there is access control. if you are not in a course it does not work. though you could easily register and unregister again
+// just use the url of another course and change the last number to the last
+// number in the coursedetails url seems like there is access control. if you
+// are not in a course it does not work. though you could easily register and
+// unregister again
 use crate::{
     TucanConnector, authenticated_retryable_get,
     head::{html_head, logged_in_head, logged_out_head},

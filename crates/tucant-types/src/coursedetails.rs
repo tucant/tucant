@@ -23,20 +23,24 @@ impl Display for CourseDetailsRequest {
     }
 }
 
+// for your own courses the first number is actually not zero.
+// the second number seems to be the reference to the course
+// the third number seems to be a reference to the material and messages
+// creating a mixed url
+// shows that the third number influences the message tab and the termine.
+// the third number seems to be for subcourses like exercises.
+// the dates with stars are from the lecture and the ones without are for
+// exercises TODO for now we ignore the first number, maybe that is a mistake
+static COURSE_DETAILS_REGEX: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(
+        r"^-N\d+,-N(?P<n2>\d+),-N(?P<n3>\d+),-N(0),-N(0+)(,-N(0|2|3)(,-A[a-zA-Z0-9_~-]+)?)?$",
+    )
+    .unwrap()
+});
+
 impl CourseDetailsRequest {
     #[must_use]
     pub fn parse(input: &str) -> Self {
-        // for your own courses the first number is actually not zero.
-        // the second number seems to be the reference to the course
-        // the third number seems to be a reference to the material and messages
-        // creating a mixed url https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSEDETAILS&ARGUMENTS=-N258189491926736,-N000326,-N0,-N391553568139410,-N391035558524778,-N0,-N0,-N0
-        // shows that the third number influences the message tab and the termine.
-        // the third number seems to be for subcourses like exercises.
-        // the dates with stars are from the lecture and the ones without are for exercises
-        // TODO for now we ignore the first number, maybe that is a mistake
-        static COURSE_DETAILS_REGEX: LazyLock<Regex> = LazyLock::new(|| {
-            Regex::new(r"^-N\d+,-N(?P<n2>\d+),-N(?P<n3>\d+),-N(0),-N(0+)(,-N(0|2|3)(,-A[a-zA-Z0-9_~-]+)?)?$").unwrap()
-        });
         let c = &COURSE_DETAILS_REGEX.captures(input).expect(input);
         Self(format!("-N0,-N{},-N{},-N0,-N0,-N0", &c["n2"], &c["n3"]))
     }

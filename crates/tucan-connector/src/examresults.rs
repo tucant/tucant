@@ -52,7 +52,10 @@ pub async fn examresults(
     let result = examresults_internal(login_response, &content)?;
     if invalidate_dependents && old_content_and_date.as_ref().map(|m| &m.0) != Some(&content) {
         // TODO invalidate cached ones?
-        // TODO FIXME don't remove from database to be able to do recursive invalidations. maybe set age to oldest possible value? or more complex set invalidated and then queries can allow to return invalidated. I think we should do the more complex thing.
+        // TODO FIXME don't remove from database to be able to do recursive
+        // invalidations. maybe set age to oldest possible value? or
+        // more complex set invalidated and then queries can allow to return
+        // invalidated. I think we should do the more complex thing.
     }
 
     tucan.database.put(&key, (content, date)).await;
@@ -106,14 +109,7 @@ fn examresults_internal(
                                         </label>
                                         <select id="semester" name="semester" onchange=_onchange class="tabledata">
                                             let semester = while html_handler.peek().is_some() {
-                                                let option = if html_handler
-                                                    .peek()
-                                                    .unwrap()
-                                                    .value()
-                                                    .as_element()
-                                                    .unwrap()
-                                                    .attr("selected")
-                                                    .is_some() {
+                                                let option = if html_handler.peek().unwrap().value().as_element().unwrap().attr("selected").is_some() {
                                                     <option value=value selected="selected">
                                                         name
                                                     </option>
@@ -191,8 +187,7 @@ fn examresults_internal(
                                             grade
                                         </td>
                                         <td style="vertical-align:top;">
-                                            let actual_grade = if let ExamResultsGrade::Grade(grade) =
-                                                ExamResultsGrade::from_str(&grade).unwrap() {
+                                            let actual_grade = if let ExamResultsGrade::Grade(grade) = ExamResultsGrade::from_str(&grade).unwrap() {
                                                 grade_text
                                             } => {
                                                 assert_eq!(grade.long_text(), grade_text);
@@ -215,9 +210,7 @@ fn examresults_internal(
                                                 <script type="text/javascript">
                                                     _popup_script
                                                 </script>
-                                            } => GradeOverviewRequest::parse(
-                                                &GRADEOVERVIEW_REGEX.replace(&average_url, "")
-                                            );
+                                            } => GradeOverviewRequest::parse(&GRADEOVERVIEW_REGEX.replace(&average_url, ""));
                                         </td>
                                     </tr>
                                 } => {

@@ -52,7 +52,10 @@ pub async fn mymodules(
     let result = mymodules_internal(login_response, &content)?;
     if invalidate_dependents && old_content_and_date.as_ref().map(|m| &m.0) != Some(&content) {
         // TODO invalidate cached ones?
-        // TODO FIXME don't remove from database to be able to do recursive invalidations. maybe set age to oldest possible value? or more complex set invalidated and then queries can allow to return invalidated. I think we should do the more complex thing.
+        // TODO FIXME don't remove from database to be able to do recursive
+        // invalidations. maybe set age to oldest possible value? or
+        // more complex set invalidated and then queries can allow to return
+        // invalidated. I think we should do the more complex thing.
     }
 
     tucan.database.put(&key, (content, date)).await;
@@ -103,14 +106,7 @@ fn mymodules_internal(
                                         </label>
                                         <select id="semester" name="semester" onchange=_onchange class="tabledata">
                                             let semester = while html_handler.peek().is_some() {
-                                                let option = if html_handler
-                                                    .peek()
-                                                    .unwrap()
-                                                    .value()
-                                                    .as_element()
-                                                    .unwrap()
-                                                    .attr("selected")
-                                                    .is_some() {
+                                                let option = if html_handler.peek().unwrap().value().as_element().unwrap().attr("selected").is_some() {
                                                     <option value=value selected="selected">
                                                         name
                                                     </option>
@@ -183,13 +179,7 @@ fn mymodules_internal(
                                 } => Module {
                                     nr: module_nr,
                                     title: module_title,
-                                    url: ModuleDetailsRequest::parse(
-                                        MODULEDETAILS_REGEX
-                                            .replace(&moduledetails_url, "")
-                                            .split_once(",-A")
-                                            .unwrap()
-                                            .0
-                                    ),
+                                    url: ModuleDetailsRequest::parse(MODULEDETAILS_REGEX.replace(&moduledetails_url, "").split_once(",-A").unwrap().0),
                                     lecturer,
                                     credits
                                 };

@@ -44,7 +44,10 @@ pub async fn after_login(
     let result = after_login_internal(login_response, &content)?;
     if invalidate_dependents && old_content_and_date.as_ref().map(|m| &m.0) != Some(&content) {
         // TODO invalidate cached ones?
-        // TODO FIXME don't remove from database to be able to do recursive invalidations. maybe set age to oldest possible value? or more complex set invalidated and then queries can allow to return invalidated. I think we should do the more complex thing.
+        // TODO FIXME don't remove from database to be able to do recursive
+        // invalidations. maybe set age to oldest possible value?
+        // or more complex set invalidated and then queries can allow to return
+        // invalidated. I think we should do the more complex thing.
     }
 
     tucan.database.put(&key, (content, date)).await;
@@ -90,14 +93,7 @@ fn after_login_internal(
                                 "Stundenplan"
                             </a>
                         </div>
-                        let stundenplan = if html_handler
-                            .peek()
-                            .unwrap()
-                            .value()
-                            .as_element()
-                            .unwrap()
-                            .name()
-                            == "table" {
+                        let stundenplan = if html_handler.peek().unwrap().value().as_element().unwrap().name() == "table" {
                             <table class="nb rw-table" summary="Studium Generale">
                                 <tbody>
                                     <tr class="tbsubhead">
@@ -117,13 +113,7 @@ fn after_login_internal(
                                     let stundenplan = while html_handler.peek().is_some() {
                                         <tr class="tbdata">
                                             <td headers="Veranstaltung">
-                                                let is_exam = if &**html_handler
-                                                    .peek()
-                                                    .unwrap()
-                                                    .value()
-                                                    .as_text()
-                                                    .unwrap()
-                                                    == "Kurse" {
+                                                let is_exam = if &**html_handler.peek().unwrap().value().as_text().unwrap() == "Kurse" {
                                                     "Kurse"
                                                 } => false else {
                                                     "Examen"
@@ -148,9 +138,7 @@ fn after_login_internal(
                                     } => StundenplanEintrag {
                                         is_exam: is_exam.either_into(),
                                         course_name,
-                                        coursedetails_url: CourseDetailsRequest::parse(
-                                            &COURSEDETAILS_REGEX.replace(&coursedetails_url, "")
-                                        ),
+                                        coursedetails_url: CourseDetailsRequest::parse(&COURSEDETAILS_REGEX.replace(&coursedetails_url, "")),
                                         courseprep_url,
                                         from,
                                         to
@@ -172,14 +160,7 @@ fn after_login_internal(
                                 "Archiv"
                             </a>
                         </div>
-                        let messages = if html_handler
-                            .peek()
-                            .unwrap()
-                            .value()
-                            .as_element()
-                            .unwrap()
-                            .name()
-                            == "table" {
+                        let messages = if html_handler.peek().unwrap().value().as_element().unwrap().name() == "table" {
                             <table class="nb rw-table rw-all" summary="Eingegangene Nachrichten">
                                 <tbody>
                                     <tr class="tbsubhead rw-hide">
@@ -234,8 +215,7 @@ fn after_login_internal(
                                         source,
                                         message: match message.value() {
                                             MyNode::Text(text) => text.to_string(),
-                                            MyNode::Element(_element) =>
-                                                MyElementRef::wrap(message).unwrap().html(),
+                                            MyNode::Element(_element) => MyElementRef::wrap(message).unwrap().html(),
                                             _ => panic!(),
                                         },
                                         delete_url

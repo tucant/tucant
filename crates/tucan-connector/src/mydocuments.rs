@@ -40,7 +40,10 @@ pub async fn my_documents(
     let result = my_documents_internal(login_response, &content)?;
     if invalidate_dependents && old_content_and_date.as_ref().map(|m| &m.0) != Some(&content) {
         // TODO invalidate cached ones?
-        // TODO FIXME don't remove from database to be able to do recursive invalidations. maybe set age to oldest possible value? or more complex set invalidated and then queries can allow to return invalidated. I think we should do the more complex thing.
+        // TODO FIXME don't remove from database to be able to do recursive
+        // invalidations. maybe set age to oldest possible value? or
+        // more complex set invalidated and then queries can allow to return
+        // invalidated. I think we should do the more complex thing.
     }
 
     tucan.database.put(key, (content, date)).await;
@@ -127,7 +130,11 @@ fn my_documents_internal(
                             </table>
                             <input name="APPNAME" type="hidden" value="CampusNet"></input>
                             <input name="PRGNAME" type="hidden" value="CREATEDOCUMENT"></input>
-                            <input name="ARGUMENTS" type="hidden" value="sessionno,menuid,mode,templateid,status,date_from,date_to,documentid"></input>
+                            <input
+                                name="ARGUMENTS"
+                                type="hidden"
+                                value="sessionno,menuid,mode,templateid,status,date_from,date_to,documentid"
+                            ></input>
                             <input name="sessionno" type="hidden" value=_session_id></input>
                             <input name="menuid" type="hidden" value="000557"></input>
                             <input name="mode" type="hidden" value="1"></input>

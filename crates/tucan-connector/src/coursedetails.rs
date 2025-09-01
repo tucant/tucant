@@ -98,15 +98,7 @@ fn course_details_internal(
                         _trash
                     </script>
                     <form name="courseform" action="/scripts/mgrqispi.dll" method="post">
-                        let id_and_name = if html_handler
-                            .peek()
-                            .unwrap()
-                            .value()
-                            .as_element()
-                            .unwrap()
-                            .attrs()
-                            .next()
-                            .is_some() {
+                        let id_and_name = if html_handler.peek().unwrap().value().as_element().unwrap().attrs().next().is_some() {
                             <h1 class="eventTitle img img_arrowEventIcon" title="Gefährdungspotential für Schwangere">
                                 id_and_name
                             </h1>
@@ -115,14 +107,7 @@ fn course_details_internal(
                                 id_and_name
                             </h1>
                         } => id_and_name;
-                        let _kleingruppe = if html_handler
-                            .peek()
-                            .unwrap()
-                            .value()
-                            .as_element()
-                            .unwrap()
-                            .name()
-                            == "h2" {
+                        let _kleingruppe = if html_handler.peek().unwrap().value().as_element().unwrap().name() == "h2" {
                             <h2>
                                 _kleingruppe
                             </h2>
@@ -168,14 +153,7 @@ fn course_details_internal(
                                                     </span>
                                                 </p>
                                             } => dozent;
-                                            let course_type_and_number = if html_handler
-                                                .peek()
-                                                .unwrap()
-                                                .value()
-                                                .as_element()
-                                                .unwrap()
-                                                .name()
-                                                == "input" {
+                                            let course_type_and_number = if html_handler.peek().unwrap().value().as_element().unwrap().name() == "input" {
                                                 <input type="hidden" name="coursetyp" value=course_type_number></input>
                                             } => ("unknown".to_owned(), course_type_number) else {
                                                 <p>
@@ -204,14 +182,7 @@ fn course_details_internal(
                                                 <input type="hidden" name="shortdescription" value=shortname></input>
                                             </p>
                                             <input type="hidden" name="courselevel" value=courselevel></input>
-                                            let _unused = if html_handler
-                                                .peek()
-                                                .unwrap()
-                                                .value()
-                                                .as_element()
-                                                .unwrap()
-                                                .name()
-                                                == "input" {
+                                            let _unused = if html_handler.peek().unwrap().value().as_element().unwrap().name() == "input" {
                                                 <input type="hidden" name="coursearea" value=""></input>
                                             } => () else {
                                                 <p>
@@ -221,14 +192,7 @@ fn course_details_internal(
                                                     <input type="hidden" name="coursearea" value=""></input>
                                                 </p>
                                             } => ();
-                                            let _unused = if html_handler
-                                                .peek()
-                                                .unwrap()
-                                                .value()
-                                                .as_element()
-                                                .unwrap()
-                                                .name()
-                                                == "input" {
+                                            let _unused = if html_handler.peek().unwrap().value().as_element().unwrap().name() == "input" {
                                                 <input type="hidden" name="creditingfor" value=""></input>
                                             } => () else {
                                                 <p>
@@ -238,14 +202,7 @@ fn course_details_internal(
                                                     <input type="hidden" name="creditingfor" value=""></input>
                                                 </p>
                                             } => ();
-                                            let sws = if html_handler
-                                                .peek()
-                                                .unwrap()
-                                                .value()
-                                                .as_element()
-                                                .unwrap()
-                                                .name()
-                                                == "input" {
+                                            let sws = if html_handler.peek().unwrap().value().as_element().unwrap().name() == "input" {
                                                 <input type="hidden" name="sws" value="0"></input>
                                             } => () else {
                                                 <p>
@@ -259,14 +216,7 @@ fn course_details_internal(
                                                 assert_eq!(sws_text, sws);
                                                 sws
                                             };
-                                            let credits = if html_handler
-                                                .peek()
-                                                .unwrap()
-                                                .value()
-                                                .as_element()
-                                                .unwrap()
-                                                .name()
-                                                == "input" {
+                                            let credits = if html_handler.peek().unwrap().value().as_element().unwrap().name() == "input" {
                                                 <input type="hidden" name="credits" value="  0,0"></input>
                                             } => () else {
                                                 <p>
@@ -281,14 +231,7 @@ fn course_details_internal(
                                                 credits_text
                                             };
                                             <input type="hidden" name="location" value="327576461398991"></input>
-                                            let language_and_id = if html_handler
-                                                .peek()
-                                                .unwrap()
-                                                .value()
-                                                .as_element()
-                                                .unwrap()
-                                                .name()
-                                                == "input" {
+                                            let language_and_id = if html_handler.peek().unwrap().value().as_element().unwrap().name() == "input" {
                                                 <input type="hidden" name="language" value=language_id></input>
                                             } => ("unknown".to_owned(), language_id) else {
                                                 <p>
@@ -301,21 +244,10 @@ fn course_details_internal(
                                                     <input type="hidden" name="language" value=language_id></input>
                                                 </p>
                                             } => (language, language_id);
-                                            let teilnehmer = if html_handler
-                                                .peek()
-                                                .unwrap()
-                                                .value()
-                                                .as_element()
-                                                .unwrap()
-                                                .name()
-                                                == "input" {
+                                            let teilnehmer = if html_handler.peek().unwrap().value().as_element().unwrap().name() == "input" {
                                                 <input type="hidden" name="min_participantsno" value=teilnehmer_min></input>
                                                 <input type="hidden" name="max_participantsno" value=teilnehmer_max></input>
-                                            } => (
-                                                format!("{teilnehmer_min} | {teilnehmer_max}"),
-                                                teilnehmer_min,
-                                                teilnehmer_max
-                                            ) else {
+                                            } => (format!("{teilnehmer_min} | {teilnehmer_max}"), teilnehmer_min, teilnehmer_max) else {
                                                 <p>
                                                     <b>
                                                         "Min. | Max. Teilnehmerzahl:"
@@ -329,22 +261,14 @@ fn course_details_internal(
                                                 let child = html_handler.next_any_child();
                                             } => match child.value() {
                                                 MyNode::Text(text) => text.to_string(),
-                                                MyNode::Element(_element) =>
-                                                    MyElementRef::wrap(child).unwrap().html(),
+                                                MyNode::Element(_element) => MyElementRef::wrap(child).unwrap().html(),
                                                 _ => panic!(),
                                             };
                                         </td>
                                     </tr>
                                 </tbody>
                             </table>
-                            let uebungsgruppen = if html_handler
-                                .peek()
-                                .unwrap()
-                                .value()
-                                .as_element()
-                                .unwrap()
-                                .name()
-                                == "div" {
+                            let uebungsgruppen = if html_handler.peek().unwrap().value().as_element().unwrap().name() == "div" {
                                 <div class="tb">
                                     <div>
                                         <div class="tbhead">
@@ -356,10 +280,7 @@ fn course_details_internal(
                                                 <a href=coursedetails_url class="img img_arrowLeft pageElementRight">
                                                     "Plenumsveranstaltung anzeigen"
                                                 </a>
-                                            } => CourseDetailsRequest::parse(
-                                                &COURSEDETAILS_REGEX
-                                                    .replace(&coursedetails_url, "")
-                                            );
+                                            } => CourseDetailsRequest::parse(&COURSEDETAILS_REGEX.replace(&coursedetails_url, ""));
                                         </div>
                                     </div>
                                     <ul class="dl-ul-listview">
@@ -375,10 +296,7 @@ fn course_details_internal(
                                                     .value()
                                                     .as_element()
                                                     .unwrap()
-                                                    .has_class(
-                                                        "tbsubhead",
-                                                        CaseSensitivity::CaseSensitive
-                                                    ) {
+                                                    .has_class("tbsubhead", CaseSensitivity::CaseSensitive) {
                                                     <li class="tbsubhead listelement">
                                                         <div class="dl-inner">
                                                             <p class="dl-ul-li-headline">
@@ -434,9 +352,7 @@ fn course_details_internal(
                                                     date_range,
                                                     name: uebung_name,
                                                     uebungsleiter,
-                                                    url: CourseDetailsRequest::parse(
-                                                        &COURSEDETAILS_REGEX.replace(&url, "")
-                                                    ),
+                                                    url: CourseDetailsRequest::parse(&COURSEDETAILS_REGEX.replace(&url, "")),
                                                     active: false
                                                 };
                                             } => uebungsgruppe.either_into();
@@ -604,16 +520,7 @@ fn course_details_internal(
                                             } => ();
                                         </td>
                                     </tr>
-                                    let termine = if html_handler
-                                        .peek()
-                                        .unwrap()
-                                        .first_child()
-                                        .unwrap()
-                                        .value()
-                                        .as_element()
-                                        .unwrap()
-                                        .attr("colspan")
-                                        .is_some() {
+                                    let termine = if html_handler.peek().unwrap().first_child().unwrap().value().as_element().unwrap().attr("colspan").is_some() {
                                         <tr>
                                             <td class="tbdata" colspan="6">
                                                 "Es liegen keine Termine vor."
@@ -636,67 +543,33 @@ fn course_details_internal(
                                                 </td>
                                                 <td class="tbdata rw rw-course-room">
                                                     let rooms = if html_handler.peek().is_some()
-                                                        && html_handler
-                                                            .peek()
-                                                            .unwrap()
-                                                            .value()
-                                                            .is_element() {
-                                                        let room = if html_handler
-                                                            .peek()
-                                                            .unwrap()
-                                                            .value()
-                                                            .as_element()
-                                                            .unwrap()
-                                                            .name()
-                                                            == "a" {
+                                                        && html_handler.peek().unwrap().value().is_element() {
+                                                        let room = if html_handler.peek().unwrap().value().as_element().unwrap().name() == "a" {
                                                             <a name="appointmentRooms" href=room_url>
                                                                 room
                                                             </a>
-                                                        } => Room {
-                                                            name: room,
-                                                            url: Some(room_url)
-                                                        } else {
+                                                        } => Room { name: room, url: Some(room_url) } else {
                                                             <span name="appointmentRooms">
                                                                 room
                                                             </span>
-                                                        } => Room {
-                                                            name: room,
-                                                            url: None
-                                                        };
+                                                        } => Room { name: room, url: None };
                                                         let more_rooms = while html_handler.peek().is_some() {
                                                             ","
-                                                            let room = if html_handler
-                                                                .peek()
-                                                                .unwrap()
-                                                                .value()
-                                                                .as_element()
-                                                                .unwrap()
-                                                                .name()
+                                                            let room = if html_handler.peek().unwrap().value().as_element().unwrap().name()
                                                                 == "a" {
                                                                 <a name="appointmentRooms" href=room_url>
                                                                     room
                                                                 </a>
-                                                            } => Room {
-                                                                name: room,
-                                                                url: Some(room_url)
-                                                            } else {
+                                                            } => Room { name: room, url: Some(room_url) } else {
                                                                 <span name="appointmentRooms">
                                                                     room
                                                                 </span>
-                                                            } => Room {
-                                                                name: room,
-                                                                url: None
-                                                            };
+                                                            } => Room { name: room, url: None };
                                                         } => room.either_into();
-                                                    } => std::iter::once(room.either_into())
-                                                        .chain(more_rooms.into_iter())
-                                                        .collect::<Vec<_>>() else {
+                                                    } => std::iter::once(room.either_into()).chain(more_rooms.into_iter()).collect::<Vec<_>>() else {
                                                         let room = if html_handler.peek().is_some() {
                                                             room_text
-                                                        } => vec![Room {
-                                                            name: room_text,
-                                                            url: None
-                                                        }] else {
+                                                        } => vec![Room { name: room_text, url: None }] else {
                                                         } => Vec::<Room>::new();
                                                     } => room.either_into::<Vec<Room>>();
                                                 </td>
@@ -762,15 +635,7 @@ fn course_details_internal(
                                     "Übersicht der Kurstermine"
                                 </div>
                                 <ul class="courseList">
-                                    let short_termine = if **html_handler
-                                        .peek()
-                                        .unwrap()
-                                        .children()
-                                        .next()
-                                        .unwrap()
-                                        .value()
-                                        .as_text()
-                                        .unwrap()
+                                    let short_termine = if **html_handler.peek().unwrap().children().next().unwrap().value().as_text().unwrap()
                                         == *"Es liegen keine Termine vor." {
                                         <li class="courseListCell noLink">
                                             "Es liegen keine Termine vor."
@@ -781,14 +646,7 @@ fn course_details_internal(
                                                 let mut i = 0;
                                             }
                                             let short_termine = while i < 5 {
-                                                let short_termin = if html_handler
-                                                    .peek()
-                                                    .unwrap()
-                                                    .value()
-                                                    .as_element()
-                                                    .unwrap()
-                                                    .attr("class")
-                                                    .unwrap()
+                                                let short_termin = if html_handler.peek().unwrap().value().as_element().unwrap().attr("class").unwrap()
                                                     == "courseListCell numout" {
                                                     <li class="courseListCell numout" title=title xss="">
                                                         number
@@ -878,7 +736,8 @@ fn course_details_internal(
         ]
         .into_iter())
     {
-        // hack, one person has a second name at one place and not at the other place
+        // hack, one person has a second name at one place and not at the other
+        // place
     } else {
         assert_eq!(
             dozent.unwrap().split("; ").sorted().collect::<Vec<_>>(),

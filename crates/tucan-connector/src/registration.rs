@@ -18,7 +18,7 @@ use crate::{
     COURSEDETAILS_REGEX, TucanConnector, TucanError, authenticated_retryable_get,
     head::{footer, html_head, logged_in_head},
 };
-use html_handler::{MyElementRef, MyNode, Root, parse_document};
+use html_handler::{InElement, InRoot, MyElementRef, MyNode, Root, parse_document};
 
 pub async fn anmeldung(
     tucan: &TucanConnector,
@@ -53,7 +53,10 @@ pub async fn anmeldung(
     let result = anmeldung_internal(login_response, &content)?;
     if invalidate_dependents && old_content_and_date.as_ref().map(|m| &m.0) != Some(&content) {
         // TODO invalidate cached ones?
-        // TODO FIXME don't remove from database to be able to do recursive invalidations. maybe set age to oldest possible value? or more complex set invalidated and then queries can allow to return invalidated. I think we should do the more complex thing.
+        // TODO FIXME don't remove from database to be able to do recursive
+        // invalidations. maybe set age to oldest possible value? or more
+        // complex set invalidated and then queries can allow to return invalidated.
+        // I think we should do the more complex thing.
         let keys: Vec<String> = result
             .entries
             .iter()
@@ -82,13 +85,47 @@ pub static MODULEDETAILS_REGEX: LazyLock<Regex> = LazyLock::new(|| {
     .unwrap()
 });
 
+fn is_tbsubhead(
+    html_handler: &InElement<
+        '_,
+        InElement<
+            '_,
+            InElement<
+                '_,
+                InElement<
+                    '_,
+                    InElement<
+                        '_,
+                        InElement<'_, InElement<'_, InElement<'_, InRoot<'_, Root<'_>>>>>,
+                    >,
+                >,
+            >,
+        >,
+    >,
+) -> bool {
+    html_handler
+        .peek()
+        .unwrap()
+        .children()
+        .next()
+        .unwrap()
+        .value()
+        .as_element()
+        .unwrap()
+        .has_class("tbsubhead", scraper::CaseSensitivity::CaseSensitive)
+}
+
 #[expect(clippy::too_many_lines, clippy::cognitive_complexity)]
 fn anmeldung_internal(
     login_response: &LoginResponse,
     content: &str,
 ) -> Result<AnmeldungResponse, TucanError> {
     static REGISTRATION_REGEX: LazyLock<Regex> = LazyLock::new(|| {
-        Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N\\d+,-N000311,").unwrap()
+        Regex::new(
+            "^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N\\d+,\
+             -N000311,",
+        )
+        .unwrap()
     });
     static RE: LazyLock<Regex> = LazyLock::new(|| {
         Regex::new(r"^\p{Alphabetic}{2}, \d{1,2}\. \p{Alphabetic}{3}\. \d{4} \[\d\d:\d\d\] - \p{Alphabetic}{2}, \d{1,2}\. \p{Alphabetic}{3}\. \d{4} \[\d\d:\d\d\]$").unwrap()
@@ -132,15 +169,30 @@ fn anmeldung_internal(
                                                 </label>
                                                 <select name="study" id="study" onchange="reloadpage.submitForm(this.form.id);" class="pageElementLeft">
                                                     let studiumsauswahl = while html_handler.peek().is_some() {
-                                                        let studiumsauswahl = if html_handler.peek().unwrap().value().as_element().unwrap().attr("selected").is_some() {
+                                                        let studiumsauswahl = if html_handler
+                                                            .peek()
+                                                            .unwrap()
+                                                            .value()
+                                                            .as_element()
+                                                            .unwrap()
+                                                            .attr("selected")
+                                                            .is_some() {
                                                             <option value=value selected="selected">
                                                                 name
                                                             </option>
-                                                        } => Studiumsauswahl { name, value: AnmeldungRequest::parse(&format!("-N{value},-N0,-N0,-N0")), selected: true } else {
+                                                        } => Studiumsauswahl {
+                                                            name,
+                                                            value: AnmeldungRequest::parse(&format!("-N{value},-N0,-N0,-N0")),
+                                                            selected: true
+                                                        } else {
                                                             <option value=value>
                                                                 name
                                                             </option>
-                                                        } => Studiumsauswahl { name, value: AnmeldungRequest::parse(&format!("-N{value},-N0,-N0,-N0")), selected: false };
+                                                        } => Studiumsauswahl {
+                                                            name,
+                                                            value: AnmeldungRequest::parse(&format!("-N{value},-N0,-N0,-N0")),
+                                                            selected: false
+                                                        };
                                                     } => studiumsauswahl.either_into();
                                                 </select>
                                                 <input name="Aktualisieren" type="submit" value="Aktualisieren" class="img img_arrowReload pageElementLeft"></input>
@@ -148,10 +200,14 @@ fn anmeldung_internal(
                                             <input name="APPNAME" type="hidden" value="CampusNet"></input>
                                             <input name="PRGNAME" type="hidden" value="REGISTRATION"></input>
                                             <input name="ARGUMENTS" type="hidden" value="sessionno,menuno,study,changestudy,parent1,parent2"></input>
-                                            <input name="sessionno" type="hidden" value={|v: String| {
-                                                static REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new("^\\d+$").unwrap());
-                                                assert!(REGEX.is_match(&v), "{v}");
-                                            }}></input>
+                                            <input
+                                                name="sessionno"
+                                                type="hidden"
+                                                value={|v: String| {
+                                                    static REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new("^\\d+$").unwrap());
+                                                    assert!(REGEX.is_match(&v), "{v}");
+                                                }}
+                                            ></input>
                                             <input name="menuno" type="hidden" value="000311"></input>
                                             <input name="pa rent1" type="hidden" value="000000000000000"></input>
                                             <input name="parent2" type="hidden" value="000000000000000"></input>
@@ -197,9 +253,18 @@ fn anmeldung_internal(
                             } => (item, AnmeldungRequest::parse(&REGISTRATION_REGEX.replace(&url, "")));
                         </ul>
                     } => submenus;
-                    let additional_information = while html_handler.peek().unwrap().next_sibling().is_some() && html_handler.peek().and_then(ego_tree::NodeRef::next_sibling).and_then(|e| e.value().as_element()).is_none_or(|e| !e.has_class("tbcoursestatus", CaseSensitivity::CaseSensitive)) {
+                    let additional_information = while html_handler.peek().unwrap().next_sibling().is_some()
+                        && html_handler
+                            .peek()
+                            .and_then(ego_tree::NodeRef::next_sibling)
+                            .and_then(|e| e.value().as_element())
+                            .is_none_or(|e| !e.has_class("tbcoursestatus", CaseSensitivity::CaseSensitive)) {
                         let child = html_handler.next_any_child();
-                    } => if let MyNode::Element(_element) = child.value() { Some(MyElementRef::wrap(child).unwrap().html()) } else { panic!() };
+                    } => if let MyNode::Element(_element) = child.value() {
+                        Some(MyElementRef::wrap(child).unwrap().html())
+                    } else {
+                        panic!()
+                    };
                     <br></br>
                     let anmeldung_entries = if html_handler.peek().is_some() {
                         <table class="tbcoursestatus rw-table rw-all">
@@ -240,7 +305,7 @@ fn anmeldung_internal(
                                                     </td>
                                                 </tr>
                                                 let anmeldung_entries = while html_handler.peek().is_some() {
-                                                    let module = if html_handler.peek().is_some() && html_handler.peek().unwrap().children().next().unwrap().value().as_element().unwrap().has_class("tbsubhead", scraper::CaseSensitivity::CaseSensitive) {
+                                                    let module = if html_handler.peek().is_some() && is_tbsubhead(&html_handler) {
                                                         <tr>
                                                             <td class="tbsubhead">
                                                             </td>
@@ -270,15 +335,27 @@ fn anmeldung_internal(
                                                             </td>
                                                             <td class="tbsubhead rw-qbf">
                                                                 let registration_state = if html_handler.peek().is_some() {
-                                                                    let registered = if html_handler.peek().unwrap().value().as_element().unwrap().attr("class").unwrap() == "img noFloat register" {
+                                                                    let registered = if html_handler
+                                                                        .peek()
+                                                                        .unwrap()
+                                                                        .value()
+                                                                        .as_element()
+                                                                        .unwrap()
+                                                                        .attr("class")
+                                                                        .unwrap()
+                                                                        == "img noFloat register" {
                                                                         <a href=registration_button_link class="img noFloat register">
                                                                             "Anmelden"
                                                                         </a>
-                                                                    } => RegistrationState::NotRegistered { register_link: registration_button_link } else {
+                                                                    } => RegistrationState::NotRegistered {
+                                                                        register_link: registration_button_link
+                                                                    } else {
                                                                         <a href=registration_button_link class="img img_arrowLeftRed noFLoat unregister">
                                                                             "Abmelden"
                                                                         </a>
-                                                                    } => RegistrationState::Registered { unregister_link: registration_button_link };
+                                                                    } => RegistrationState::Registered {
+                                                                        unregister_link: registration_button_link
+                                                                    };
                                                                 } => registered.either_into::<RegistrationState>() else {
                                                                 } => RegistrationState::Unknown;
                                                             </td>
@@ -297,8 +374,29 @@ fn anmeldung_internal(
                                                             registration_state: registration_state.either_into(),
                                                         }
                                                     };
-                                                    let courses = while html_handler.peek().is_some() && !html_handler.peek().unwrap().children().next().unwrap().value().as_element().unwrap().has_class("tbsubhead", scraper::CaseSensitivity::CaseSensitive) {
-                                                        let exam = if html_handler.peek().unwrap().children().nth(1).unwrap().value().as_element().unwrap().attr("class").unwrap() == "tbdata" {
+                                                    let courses = while html_handler.peek().is_some()
+                                                        && !html_handler
+                                                            .peek()
+                                                            .unwrap()
+                                                            .children()
+                                                            .next()
+                                                            .unwrap()
+                                                            .value()
+                                                            .as_element()
+                                                            .unwrap()
+                                                            .has_class("tbsubhead", scraper::CaseSensitivity::CaseSensitive) {
+                                                        let exam = if html_handler
+                                                            .peek()
+                                                            .unwrap()
+                                                            .children()
+                                                            .nth(1)
+                                                            .unwrap()
+                                                            .value()
+                                                            .as_element()
+                                                            .unwrap()
+                                                            .attr("class")
+                                                            .unwrap()
+                                                            == "tbdata" {
                                                             <tr>
                                                                 <td class="tbdata">
                                                                 </td>
@@ -333,7 +431,10 @@ fn anmeldung_internal(
                                                                     </strong>
                                                                 </p>
                                                                 <p>
-                                                                    let lecturers = if html_handler.peek().is_some() && !RE.is_match(html_handler.peek().unwrap().value().as_text().unwrap()) {
+                                                                    let lecturers = if html_handler.peek().is_some()
+                                                                        && !RE.is_match(
+                                                                            html_handler.peek().unwrap().value().as_text().unwrap()
+                                                                        ) {
                                                                             lecturers
                                                                         </p>
                                                                         <p>
@@ -343,7 +444,9 @@ fn anmeldung_internal(
                                                                         </p>
                                                                         <p>
                                                                     } => begin_and_end;
-                                                                    let location_or_additional_info = if html_handler.peek().is_some() {
+                                                                    let location_or_additional_info = if html_handler
+                                                                        .peek()
+                                                                        .is_some() {
                                                                             let location_or_additional_info = html_handler.next_any_child();
                                                                         </p>
                                                                     } => match location_or_additional_info.value() {
@@ -362,7 +465,11 @@ fn anmeldung_internal(
                                                                 } => location;
                                                             </td>
                                                             <td class="tbdata">
-                                                                let registration_until = if html_handler.peek().unwrap().value().is_text() {
+                                                                let registration_until = if html_handler
+                                                                    .peek()
+                                                                    .unwrap()
+                                                                    .value()
+                                                                    .is_text() {
                                                                     registration_until
                                                                 } => registration_until;
                                                                 <br></br>
@@ -372,15 +479,27 @@ fn anmeldung_internal(
                                                             </td>
                                                             <td class="tbdata rw-qbf">
                                                                 let registration_button_link = if html_handler.peek().is_some() {
-                                                                    let registration_button_link = if html_handler.peek().unwrap().value().as_element().unwrap().attr("class").unwrap() == "img noFLoat register" {
+                                                                    let registration_button_link = if html_handler
+                                                                        .peek()
+                                                                        .unwrap()
+                                                                        .value()
+                                                                        .as_element()
+                                                                        .unwrap()
+                                                                        .attr("class")
+                                                                        .unwrap()
+                                                                        == "img noFLoat register" {
                                                                         <a href=registration_button_link class="img noFLoat register">
                                                                             "Anmelden"
                                                                         </a>
-                                                                    } => RegistrationState::NotRegistered { register_link: registration_button_link } else {
+                                                                    } => RegistrationState::NotRegistered {
+                                                                        register_link: registration_button_link
+                                                                    } else {
                                                                         <a href=registration_button_link class="img img_arrowLeftRed noFLoat unregister">
                                                                             "Abmelden"
                                                                         </a>
-                                                                    } => RegistrationState::Registered { unregister_link: registration_button_link };
+                                                                    } => RegistrationState::Registered {
+                                                                        unregister_link: registration_button_link
+                                                                    };
                                                                 } => registration_button_link.either_into::<RegistrationState>() else {
                                                                 } => RegistrationState::Unknown;
                                                             </td>

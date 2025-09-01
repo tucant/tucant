@@ -1,7 +1,7 @@
 use dioxus::prelude::*;
-use tucant_types::{vv::ActionRequest, Tucan};
+use tucant_types::{Tucan, vv::ActionRequest};
 
-use crate::{common::use_unauthenticated_data_loader, RcTucanType, Route};
+use crate::{RcTucanType, Route, common::use_unauthenticated_data_loader};
 
 #[component]
 pub fn Vorlesungsverzeichnis(vv: ReadSignal<ActionRequest>) -> Element {
@@ -14,7 +14,8 @@ pub fn Vorlesungsverzeichnis(vv: ReadSignal<ActionRequest>) -> Element {
             .await
     };
 
-    // TODO FIXME wait does vv loading an unauthenticated url with cookies show the head that is for unauthencitaed?
+    // TODO FIXME wait does vv loading an unauthenticated url with cookies show the
+    // head that is for unauthencitaed?
 
     // this is not fully correct as some urls are only available authenticated
     use_unauthenticated_data_loader(

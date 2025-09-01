@@ -9,8 +9,8 @@ pub fn use_authenticated_data_loader<
     O: Clone + 'static,
 >(
     handler: impl AsyncFn(RcTucanType, LoginResponse, RevalidationStrategy, I) -> Result<O, TucanError>
-        + Copy
-        + 'static,
+    + Copy
+    + 'static,
     request: ReadSignal<I>,
     cache_age_seconds: i64,
     max_stale_age_seconds: i64,
@@ -42,13 +42,13 @@ pub fn use_unauthenticated_data_loader<
     O: Clone + 'static,
 >(
     handler: impl AsyncFn(
-            RcTucanType,
-            Option<LoginResponse>,
-            RevalidationStrategy,
-            I,
-        ) -> Result<O, TucanError>
-        + Copy
-        + 'static,
+        RcTucanType,
+        Option<LoginResponse>,
+        RevalidationStrategy,
+        I,
+    ) -> Result<O, TucanError>
+    + Copy
+    + 'static,
     request: ReadSignal<I>,
     cache_age_seconds: i64,
     max_stale_age_seconds: i64,
@@ -67,13 +67,13 @@ pub fn use_unauthenticated_data_loader<
 fn use_data_loader<I: Clone + PartialEq + std::fmt::Debug + 'static, O: Clone + 'static>(
     authentication_required: bool,
     handler: impl AsyncFn(
-            RcTucanType,
-            Option<LoginResponse>,
-            RevalidationStrategy,
-            I,
-        ) -> Result<O, TucanError>
-        + Copy
-        + 'static,
+        RcTucanType,
+        Option<LoginResponse>,
+        RevalidationStrategy,
+        I,
+    ) -> Result<O, TucanError>
+    + Copy
+    + 'static,
     request: ReadSignal<I>,
     cache_age_seconds: i64,
     max_stale_age_seconds: i64,

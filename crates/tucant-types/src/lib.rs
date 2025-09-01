@@ -115,9 +115,12 @@ impl IntoResponse for TucanError {
 
 #[derive(Serialize, Deserialize, Clone, Copy)]
 pub struct RevalidationStrategy {
-    /// Try the cache first if age is not larger than `max_age` seconds, then try network. `max_age` = 0 means never try cache and `max_age` = `i64::MAX` means always try cache first.
+    /// Try the cache first if age is not larger than `max_age` seconds, then
+    /// try network. `max_age` = 0 means never try cache and `max_age` =
+    /// `i64::MAX` means always try cache first.
     pub max_age: i64,
-    /// If `invalidate_dependents` is None, then network is never used but failure is returned.
+    /// If `invalidate_dependents` is None, then network is never used but
+    /// failure is returned.
     pub invalidate_dependents: Option<bool>,
 }
 
@@ -259,7 +262,8 @@ impl Display for Grade {
     }
 }
 
-// TODO can this ever store 5,0 or nb? or is it incomplete then? maybe when you failed your last attempt?
+// TODO can this ever store 5,0 or nb? or is it incomplete then?
+// maybe when you failed your last attempt?
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema, PartialEq, Eq)]
 pub enum LeistungsspiegelGrade {
     Grade(Grade),
@@ -329,7 +333,8 @@ impl Display for ExamResultsGrade {
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema, PartialEq, Eq)]
 pub enum ModuleGrade {
     Grade(Grade),
-    /// Entweder erst in einem späteren Semester abgeschlossen oder noch gar nicht abgeschlossen
+    /// Entweder erst in einem späteren Semester abgeschlossen oder noch gar
+    /// nicht abgeschlossen
     NochNichtGesetzt,
     /// Probably only used for Validierung
     BestandenOhneNote,

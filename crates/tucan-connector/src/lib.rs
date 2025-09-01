@@ -404,7 +404,8 @@ mod tests {
 
     /// /
     /// redirects to
-    /// /scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STARTPAGE_DISPATCH&ARGUMENTS=-N000000000000001
+    /// /scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STARTPAGE_DISPATCH&
+    /// ARGUMENTS=-N000000000000001
     #[test]
     pub fn test_startpage_dispatch_1() {
         runtime().block_on(async {
@@ -413,9 +414,10 @@ mod tests {
         });
     }
 
-    /// /scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STARTPAGE_DISPATCH&ARGUMENTS=-N000000000000001
-    /// redirects to
-    /// /scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N000000000000001,-N000344,-Awelcome
+    /// /scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STARTPAGE_DISPATCH&
+    /// ARGUMENTS=-N000000000000001 redirects to
+    /// /scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&
+    /// ARGUMENTS=-N000000000000001,-N000344,-Awelcome
     #[test]
     pub fn test_welcome() {
         runtime().block_on(async {

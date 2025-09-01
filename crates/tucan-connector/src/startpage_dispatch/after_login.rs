@@ -7,7 +7,15 @@ pub async fn redirect_after_login(
     connector: &TucanConnector,
     login_response: LoginResponse,
 ) -> Result<(), TucanError> {
-    let (content, ..) = authenticated_retryable_get(connector, &format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STARTPAGE_DISPATCH&ARGUMENTS=-N{},-N000019,-N000000000000000", login_response.id), &login_response.cookie_cnsc).await?;
+    let (content, ..) = authenticated_retryable_get(
+        connector,
+        &format!(
+            "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STARTPAGE_DISPATCH&ARGUMENTS=-N{},-N000019,-N000000000000000",
+            login_response.id
+        ),
+        &login_response.cookie_cnsc,
+    )
+    .await?;
     let document = parse_document(&content);
     let html_handler = Root::new(document.root());
     let html_handler = html_handler.document_start();
@@ -19,8 +27,16 @@ pub async fn redirect_after_login(
             </head>
             <body class="redirect">
                 <div id="wrapper">
-                    <a href="http://http://www.tu-darmstadt.de" title="extern http://www.tu-darmstadt.de">
-                        <img border="0" id="logo" src="/gfx/tuda/logo.png" alt="Logo Technische Universität Darmstadt"></img>
+                    <a
+                        href="http://http://www.tu-darmstadt.de"
+                        title="extern http://www.tu-darmstadt.de"
+                    >
+                        <img
+                            border="0"
+                            id="logo"
+                            src="/gfx/tuda/logo.png"
+                            alt="Logo Technische Universität Darmstadt"
+                        ></img>
                     </a>
                     <h2>
                         <a href=_href_link_1>

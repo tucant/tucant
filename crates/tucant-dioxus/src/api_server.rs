@@ -1,5 +1,6 @@
 use reqwest::Client;
 use tucant_types::{
+    LoginRequest, LoginResponse, RevalidationStrategy, SemesterId, Tucan, TucanError,
     coursedetails::{CourseDetailsRequest, CourseDetailsResponse},
     courseresults::ModuleResultsResponse,
     examresults::ExamResultsResponse,
@@ -13,7 +14,6 @@ use tucant_types::{
     registration::AnmeldungRequest,
     student_result::StudentResultResponse,
     vv::{ActionRequest, Vorlesungsverzeichnis},
-    LoginRequest, LoginResponse, RevalidationStrategy, SemesterId, Tucan, TucanError,
 };
 use url::Url;
 

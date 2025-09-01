@@ -11,7 +11,15 @@ pub async fn logout(
     connector: &TucanConnector,
     login_response: &LoginResponse,
 ) -> Result<(), TucanError> {
-    let _content = authenticated_retryable_get(connector, &format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=LOGOUT&ARGUMENTS=-N{:015},-N001", login_response.id), &login_response.cookie_cnsc).await?;
+    let _content = authenticated_retryable_get(
+        connector,
+        &format!(
+            "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=LOGOUT&ARGUMENTS=-N{:015},-N001",
+            login_response.id
+        ),
+        &login_response.cookie_cnsc,
+    )
+    .await?;
     Ok(())
 }
 
@@ -78,7 +86,8 @@ pub async fn login(
     assert_eq!(
         response.headers_mut().remove("content-security-policy"),
         Some(HeaderValue::from_static(
-            "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'unsafe-eval';"
+            "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' \
+             'unsafe-inline' 'unsafe-eval';"
         ))
     );
     response.headers_mut().remove("x-powered-by"); // this header randomly appears and disappears. DO NOT ASK

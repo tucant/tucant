@@ -1,8 +1,9 @@
 [package]
 name = "tucant-dioxus"
-version = "0.1.0"
-authors = ["Moritz Hedtke <Moritz.Hedtke@t-online.de>"]
-edition = "2021"
+license.workspace = true
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

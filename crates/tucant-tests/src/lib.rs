@@ -213,7 +213,9 @@ mod tests {
         let mut session = get_session().await;
 
         let try_catch: anyhow::Result<()> = async {
-            session.web_extension_install(InstallParameters::new(ExtensionData::ExtensionPath(ExtensionPath::new(std::env::var("EXTENSION_DIR").unwrap())))).await?;
+            session
+                .web_extension_install(InstallParameters::new(ExtensionData::ExtensionPath(ExtensionPath::new(std::env::var("EXTENSION_DIR").unwrap()))))
+                .await?;
             sleep(Duration::from_secs(1)).await; // wait for extension to be installed
 
             let contexts = session.browsing_context_get_tree(GetTreeParameters { max_depth: None, root: None }).await?;
@@ -222,7 +224,10 @@ mod tests {
 
             session
                 .register_event_handler(EventType::LogEntryAdded, async |event| {
-                    println!("log entry {}", event.as_object().unwrap().get_key_value("params").unwrap().1.as_object().unwrap().get_key_value("args").unwrap().1);
+                    println!(
+                        "log entry {}",
+                        event.as_object().unwrap().get_key_value("params").unwrap().1.as_object().unwrap().get_key_value("args").unwrap().1
+                    );
                 })
                 .await;
 
@@ -232,9 +237,17 @@ mod tests {
                 })
                 .await;
 
-            session.session_subscribe(SubscriptionRequest::new(vec!["log.entryAdded".to_owned()], Some(vec![browsing_context.clone()]), None)).await?;
+            session
+                .session_subscribe(SubscriptionRequest::new(vec!["log.entryAdded".to_owned()], Some(vec![browsing_context.clone()]), None))
+                .await?;
 
-            session.session_subscribe(SubscriptionRequest::new(vec!["browsingContext.userPromptOpened".to_owned()], Some(vec![browsing_context.clone()]), None)).await?;
+            session
+                .session_subscribe(SubscriptionRequest::new(
+                    vec!["browsingContext.userPromptOpened".to_owned()],
+                    Some(vec![browsing_context.clone()]),
+                    None,
+                ))
+                .await?;
 
             session
                 .browsing_context_set_viewport(SetViewportParameters {
@@ -258,7 +271,15 @@ mod tests {
             println!("input_login_username {:?}", start.elapsed());
             write_text(&mut session, browsing_context.clone(), "#login-password", &password).await?;
 
-            let node = session.browsing_context_locate_nodes(LocateNodesParameters::new(browsing_context.clone(), Locator::CssLocator(CssLocator::new("#login-button".to_owned())), None, None, None)).await?;
+            let node = session
+                .browsing_context_locate_nodes(LocateNodesParameters::new(
+                    browsing_context.clone(),
+                    Locator::CssLocator(CssLocator::new("#login-button".to_owned())),
+                    None,
+                    None,
+                    None,
+                ))
+                .await?;
             let node = &node.nodes[0];
             click_element(&mut session, browsing_context.clone(), node).await?;
 
@@ -297,23 +318,47 @@ mod tests {
                 panic!();
             };
 
-            session.script_evaluate(EvaluateParameters::new(r#"chrome.runtime.sendMessage("open-in-tucan-page")"#.to_owned(), Target::ContextTarget(ContextTarget::new(browsing_context.clone(), None)), false, None, None, Some(true))).await?;
+            session
+                .script_evaluate(EvaluateParameters::new(
+                    r#"chrome.runtime.sendMessage("open-in-tucan-page")"#.to_owned(),
+                    Target::ContextTarget(ContextTarget::new(browsing_context.clone(), None)),
+                    false,
+                    None,
+                    None,
+                    Some(true),
+                ))
+                .await?;
 
             sleep(Duration::from_secs(5)).await;
 
             let realms = session.script_get_realms(GetRealmsParameters::new(Some(browsing_context.clone()), None)).await?;
 
-            let contexts = session.browsing_context_get_tree(GetTreeParameters { max_depth: None, root: Some(browsing_context.clone()) }).await?;
+            let contexts = session
+                .browsing_context_get_tree(GetTreeParameters {
+                    max_depth: None,
+                    root: Some(browsing_context.clone()),
+                })
+                .await?;
 
-            session.script_evaluate(EvaluateParameters::new(r#"window.dispatchEvent(new CustomEvent('tucant', { detail: "open-in-tucan-page" }));"#.to_owned(), Target::ContextTarget(ContextTarget::new(browsing_context.clone(), None)), false, None, None, Some(true))).await?;
+            session
+                .script_evaluate(EvaluateParameters::new(
+                    r#"window.dispatchEvent(new CustomEvent('tucant', { detail: "open-in-tucan-page" }));"#.to_owned(),
+                    Target::ContextTarget(ContextTarget::new(browsing_context.clone(), None)),
+                    false,
+                    None,
+                    None,
+                    Some(true),
+                ))
+                .await?;
 
             sleep(Duration::from_secs(5)).await;
 
-            // driver.query(By::XPath(r#"//div/ul/li/a[text()="Veranstaltungen"]"#)).single().await?.click().await?;
-
-            // driver.query(By::XPath(r#"//ul/li/a[text()="Anmeldung"]"#)).single().await?.click().await?;
-
-            session.browsing_context_close(CloseParameters { context: browsing_context, prompt_unload: None }).await?;
+            session
+                .browsing_context_close(CloseParameters {
+                    context: browsing_context,
+                    prompt_unload: None,
+                })
+                .await?;
 
             Ok(())
         }

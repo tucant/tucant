@@ -2,8 +2,10 @@
 
 use std::sync::LazyLock;
 
-// just use the url of another course and change the last number to the last number in the coursedetails url
-// seems like there is access control. if you are not in a course it does not work. though you could easily register and unregister again
+// just use the url of another course and change the last number to the last
+// number in the coursedetails url seems like there is access control. if you
+// are not in a course it does not work. though you could easily register and
+// unregister again
 use crate::{
     TucanConnector, authenticated_retryable_get,
     head::{html_head, logged_in_head, logged_out_head},
@@ -64,7 +66,11 @@ fn month_internal(
     content: &str,
 ) -> Result<Vec<(String, CoursePrepRequest)>, TucanError> {
     static COURSEPREP_REGEX: LazyLock<Regex> = LazyLock::new(|| {
-        Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=COURSEPREP&ARGUMENTS=-N\\d+,-N000271,").unwrap()
+        Regex::new(
+            "^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=COURSEPREP&ARGUMENTS=-N\\d+,\
+             -N000271,",
+        )
+        .unwrap()
     });
 
     let document = parse_document(content);
@@ -164,10 +170,7 @@ fn month_internal(
                                                 .value()
                                                 .as_element()
                                                 .unwrap()
-                                                .has_class(
-                                                    "emptyDay",
-                                                    CaseSensitivity::CaseSensitive
-                                                ) {
+                                                .has_class("emptyDay", CaseSensitivity::CaseSensitive) {
                                                 <div class="tbMonthDay nb emptyDay">
                                                     <img src="/gfx/_default/clear.gif" alt="empty"></img>
                                                 </div>
@@ -187,12 +190,7 @@ fn month_internal(
                                                                 <br></br>
                                                             } => ();
                                                         </div>
-                                                    } => (
-                                                        name,
-                                                        CoursePrepRequest::parse(
-                                                            &COURSEPREP_REGEX.replace(&url, "")
-                                                        )
-                                                    );
+                                                    } => (name, CoursePrepRequest::parse(&COURSEPREP_REGEX.replace(&url, "")));
                                                 </div>
                                             } => appointments;
                                         </td>

@@ -21,7 +21,11 @@ pub async fn vv(
 ) -> Result<Vorlesungsverzeichnis, TucanError> {
     let key = format!(
         "unparsed_vv.{}.{}",
-        login_response.is_some(), // TODO FIXME I think the complete cache should be separated for logged in and logged out? Otherwise we pass a session to the parser but the cached stuff is without a session? Probably only relevant for stuff where you can have both and where parsing differs depending on session?
+        // TODO FIXME I think the complete cache should be separated for logged in and logged out?
+        // Otherwise we pass a session to the parser but the cached stuff is without a session
+        // Probably only relevant for stuff where you can have both and where parsing differs
+        // depending on session?
+        login_response.is_some(),
         request.inner()
     );
 
@@ -89,10 +93,7 @@ fn vv_internal(
                         title
                     </h1>
                     <h2>
-                        let path = while html_handler
-                            .peek()
-                            .and_then(ego_tree::NodeRef::next_sibling)
-                            .is_some() {
+                        let path = while html_handler.peek().and_then(ego_tree::NodeRef::next_sibling).is_some() {
                             <a href=url>
                                 title
                             </a>
@@ -101,32 +102,18 @@ fn vv_internal(
                         </a>
                     </h2>
                     let description = if html_handler.peek().unwrap().value().is_element()
-                        && html_handler
-                            .peek()
-                            .unwrap()
-                            .value()
-                            .as_element()
-                            .unwrap()
-                            .has_class("nb", scraper::CaseSensitivity::CaseSensitive) {
+                        && html_handler.peek().unwrap().value().as_element().unwrap().has_class("nb", scraper::CaseSensitivity::CaseSensitive) {
                         <div class="tb nb">
                             let description = while html_handler.peek().is_some() {
                                 let any_child = html_handler.next_any_child();
                             } => match any_child.value() {
                                 MyNode::Text(text) => text.to_string(),
-                                MyNode::Element(_element) =>
-                                    MyElementRef::wrap(any_child).unwrap().html(),
+                                MyNode::Element(_element) => MyElementRef::wrap(any_child).unwrap().html(),
                                 _ => panic!(),
                             };
                         </div>
                     } => description;
-                    let entries = if html_handler
-                        .peek()
-                        .unwrap()
-                        .value()
-                        .as_element()
-                        .unwrap()
-                        .name()
-                        == "ul" {
+                    let entries = if html_handler.peek().unwrap().value().as_element().unwrap().name() == "ul" {
                         <ul class="auditRegistrationList" id="auditRegistration_list">
                             let entries = while html_handler.peek().is_some() {
                                 <li title=_title xss="">
@@ -134,10 +121,7 @@ fn vv_internal(
                                         title
                                     </a>
                                 </li>
-                            } => (
-                                title,
-                                ActionRequest::parse(&ACTION_REGEX.replace(&reg_href, ""))
-                            );
+                            } => (title, ActionRequest::parse(&ACTION_REGEX.replace(&reg_href, "")));
                         </ul>
                     } => entries;
                     let veranstaltungen_or_module = if html_handler.peek().is_some() {
@@ -145,14 +129,7 @@ fn vv_internal(
                             <div class="tbhead">
                                 "Veranstaltungen / Module"
                             </div>
-                            let veranstaltungen_or_module = if html_handler
-                                .peek()
-                                .unwrap()
-                                .value()
-                                .as_element()
-                                .unwrap()
-                                .name()
-                                == "table" {
+                            let veranstaltungen_or_module = if html_handler.peek().unwrap().value().as_element().unwrap().name() == "table" {
                                 <table class="nb eventTable">
                                     <tbody>
                                         <tr class="tbsubhead">
@@ -201,15 +178,11 @@ fn vv_internal(
                                             </tr>
                                         } => Veranstaltung {
                                             title,
-                                            coursedetails_url: CourseDetailsRequest::parse(
-                                                &COURSEDETAILS_REGEX
-                                                    .replace(&coursedetails_url, "")
-                                            ),
+                                            coursedetails_url: CourseDetailsRequest::parse(&COURSEDETAILS_REGEX.replace(&coursedetails_url, "")),
                                             lecturer_name,
                                             date_range,
                                             course_type,
-                                            gefaehrdung_schwangere: gefaehrdung_schwangere
-                                                .is_some()
+                                            gefaehrdung_schwangere: gefaehrdung_schwangere.is_some()
                                         };
                                     </tbody>
                                 </table>

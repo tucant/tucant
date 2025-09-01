@@ -96,15 +96,7 @@ fn module_details_internal(
                                     "Moduldetails"
                                 </caption>
                                 <tbody>
-                                    let registered = if html_handler
-                                        .peek()
-                                        .unwrap()
-                                        .value()
-                                        .as_element()
-                                        .unwrap()
-                                        .attr("class")
-                                        .unwrap()
-                                        == "tbsubhead" {
+                                    let registered = if html_handler.peek().unwrap().value().as_element().unwrap().attr("class").unwrap() == "tbsubhead" {
                                         <tr class="tbsubhead">
                                             <td colspan="3">
                                                 "Sie sind angemeldet!"
@@ -170,11 +162,7 @@ fn module_details_internal(
                                                     .first_child()
                                                     .unwrap()
                                                     .first_child()
-                                                    .is_some_and(|v| &**v
-                                                        .value()
-                                                        .as_text()
-                                                        .unwrap()
-                                                        == "Warteliste:") {
+                                                    .is_some_and(|v| &**v.value().as_text().unwrap() == "Warteliste:") {
                                                 <p>
                                                     <b>
                                                         "Warteliste:"
@@ -192,8 +180,7 @@ fn module_details_internal(
                                                 let child = html_handler.next_any_child();
                                             } => match child.value() {
                                                 MyNode::Text(text) => text.to_string(),
-                                                MyNode::Element(_element) =>
-                                                    MyElementRef::wrap(child).unwrap().html(),
+                                                MyNode::Element(_element) => MyElementRef::wrap(child).unwrap().html(),
                                                 _ => panic!(),
                                             };
                                         </td>
@@ -219,15 +206,7 @@ fn module_details_internal(
                                             "Ende Abmeldung"
                                         </td>
                                     </tr>
-                                    let anmeldefristen = if html_handler
-                                        .peek()
-                                        .unwrap()
-                                        .children()
-                                        .nth(1)
-                                        .unwrap()
-                                        .children()
-                                        .next()
-                                        .is_none() {
+                                    let anmeldefristen = if html_handler.peek().unwrap().children().nth(1).unwrap().children().next().is_none() {
                                         <tr class="tbdata">
                                             <td class="rw rw-detail-phase">
                                             </td>
@@ -320,11 +299,7 @@ fn module_details_internal(
                                                 <td>
                                                 </td>
                                             </tr>
-                                            let kurse = while html_handler
-                                                .peek()
-                                                .and_then(|e| e.value().as_element())
-                                                .map(|e| e.has_class("tbdata", CaseSensitive))
-                                                == Some(true) {
+                                            let kurse = while html_handler.peek().and_then(|e| e.value().as_element()).map(|e| e.has_class("tbdata", CaseSensitive)) == Some(true) {
                                                 <tr class="tbdata">
                                                     <td class="tbdata">
                                                         let gefaehrungspotential_schwangere = if html_handler.peek().is_some() {
@@ -356,8 +331,7 @@ fn module_details_internal(
                                             } => Kurs {
                                                 name,
                                                 course_id,
-                                                gefaehrungspotential_schwangere:
-                                                    gefaehrungspotential_schwangere.is_some(),
+                                                gefaehrungspotential_schwangere: gefaehrungspotential_schwangere.is_some(),
                                                 semester,
                                                 url
                                             };
@@ -372,10 +346,7 @@ fn module_details_internal(
                                                 panic!("unknown mandatory {mandatory}")
                                             },
                                             semester,
-                                            credits: credits
-                                                .replace(',', ".")
-                                                .parse()
-                                                .expect(&credits),
+                                            credits: credits.replace(',', ".").parse().expect(&credits),
                                             kurse
                                         };
                                     </tbody>
@@ -391,12 +362,7 @@ fn module_details_internal(
                                             "Kurs/Modulabschlussleistungen"
                                         </th>
                                         <th scope="col">
-                                            let leistungskombination = if **html_handler
-                                                .peek()
-                                                .unwrap()
-                                                .value()
-                                                .as_text()
-                                                .unwrap()
+                                            let leistungskombination = if **html_handler.peek().unwrap().value().as_text().unwrap()
                                                 == *"Leistungskombination" {
                                                     "Leistungskombination"
                                                 </th>
@@ -492,9 +458,7 @@ fn module_details_internal(
                                                         } else if compulsory == "Nein" {
                                                             false
                                                         } else {
-                                                            panic!(
-                                                                "unknown compulsory {compulsory}"
-                                                            )
+                                                            panic!("unknown compulsory {compulsory}")
                                                         },
                                                         weight_more,
                                                     }
@@ -510,9 +474,7 @@ fn module_details_internal(
                                                         } else if compulsory == "Nein" {
                                                             false
                                                         } else {
-                                                            panic!(
-                                                                "unknown compulsory {compulsory}"
-                                                            )
+                                                            panic!("unknown compulsory {compulsory}")
                                                         },
                                                         weight_more: None,
                                                     },
@@ -551,9 +513,7 @@ fn module_details_internal(
                                                         } else if compulsory == "Nein" {
                                                             false
                                                         } else {
-                                                            panic!(
-                                                                "unknown compulsory {compulsory}"
-                                                            )
+                                                            panic!("unknown compulsory {compulsory}")
                                                         },
                                                         weight_more: None,
                                                     }
@@ -569,9 +529,7 @@ fn module_details_internal(
                                                         } else if compulsory == "Nein" {
                                                             false
                                                         } else {
-                                                            panic!(
-                                                                "unknown compulsory {compulsory}"
-                                                            )
+                                                            panic!("unknown compulsory {compulsory}")
                                                         },
                                                         weight_more: None,
                                                     },
@@ -589,12 +547,7 @@ fn module_details_internal(
                                     <thead>
                                         <tr class="tbsubhead rw-hide">
                                             <th scope="col">
-                                                let leistungskombination = if **html_handler
-                                                    .peek()
-                                                    .unwrap()
-                                                    .value()
-                                                    .as_text()
-                                                    .unwrap()
+                                                let leistungskombination = if **html_handler.peek().unwrap().value().as_text().unwrap()
                                                     == *"Leistungskombination" {
                                                         "Leistungskombination"
                                                     </th>
@@ -655,21 +608,10 @@ fn module_details_internal(
                                                     </tr>
                                                 } => {
                                                     rowspan -= 1;
-                                                    Pruefungstermin {
-                                                        date,
-                                                        examiner,
-                                                        subname,
-                                                    }
+                                                    Pruefungstermin { date, examiner, subname }
                                                 };
                                             } => {
-                                                termine.insert(
-                                                    0,
-                                                    Pruefungstermin {
-                                                        date,
-                                                        examiner,
-                                                        subname,
-                                                    },
-                                                );
+                                                termine.insert(0, Pruefungstermin { date, examiner, subname });
                                                 Pruefung {
                                                     compulsory: if compulsory == "Ja" {
                                                         true
@@ -705,11 +647,7 @@ fn module_details_internal(
                                                 } else {
                                                     panic!("unknown compulsory {compulsory}")
                                                 },
-                                                termine: vec![Pruefungstermin {
-                                                    date,
-                                                    examiner,
-                                                    subname: name
-                                                }]
+                                                termine: vec![Pruefungstermin { date, examiner, subname: name }]
                                             };
                                         } => pruefung.either_into();
                                     </tbody>
@@ -724,14 +662,7 @@ fn module_details_internal(
                                     </caption>
                                     <tbody>
                                         let modulverantwortliche = while html_handler.peek().is_some() {
-                                            let bild = if html_handler
-                                                .peek()
-                                                .unwrap()
-                                                .value()
-                                                .as_element()
-                                                .unwrap()
-                                                .attrs
-                                                .is_empty() {
+                                            let bild = if html_handler.peek().unwrap().value().as_element().unwrap().attrs.is_empty() {
                                                 <tr>
                                                     <td class="tbdata_nob" style="text-align:center;padding-top:10px;padding-left:0px;">
                                                         <img src=imgsrc width="120" height="160" border="0" alt=alt></img>

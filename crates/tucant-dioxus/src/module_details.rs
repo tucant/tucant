@@ -1,7 +1,7 @@
 use dioxus::prelude::*;
-use tucant_types::{moduledetails::ModuleDetailsRequest, Tucan};
+use tucant_types::{Tucan, moduledetails::ModuleDetailsRequest};
 
-use crate::{common::use_authenticated_data_loader, RcTucanType};
+use crate::{RcTucanType, common::use_authenticated_data_loader};
 
 #[component]
 pub fn ModuleDetails(module: ReadSignal<ModuleDetailsRequest>) -> Element {

@@ -688,197 +688,226 @@ impl Parse for HtmlWhile {
     }
 }
 
-#[expect(clippy::too_many_lines)]
 fn convert_commands(commands: &HtmlCommands) -> Vec<TokenStream> {
-    commands
-        .commands
-        .iter()
-        .map(|command| match command {
-            HtmlCommand::ElementOpen(input) => {
-                let tag = input.element.to_string();
+    commands.commands.iter().map(convert_command).collect()
+}
 
-                let attributes = input.attributes.iter().map(|iter| {
-                    let name = iter
-                        .ident
-                        .pairs()
-                        .map(|p| {
-                            p.value().to_string()
-                                + match p.punct() {
-                                    Some(DashOrColon::Colon) => ":",
-                                    Some(DashOrColon::Dash) => "-",
-                                    None => "",
-                                }
-                        })
-                        .join("");
-                    let value = &iter.value;
-                    match value {
-                        StringLiteralOrVariable::Literal(lit_str) => {
-                            quote_spanned! {lit_str.span()=>
-                                #[allow(unused_mut)]
-                                let mut html_handler = html_handler.attribute(#name, #lit_str);
+#[allow(clippy::too_many_lines)]
+fn convert_command(command: &HtmlCommand) -> TokenStream {
+    match command {
+        HtmlCommand::ElementOpen(input) => {
+            let tag = input.element.to_string();
+
+            let attributes = input.attributes.iter().map(|iter| {
+                let name = iter
+                    .ident
+                    .pairs()
+                    .map(|p| {
+                        p.value().to_string()
+                            + match p.punct() {
+                                Some(DashOrColon::Colon) => ":",
+                                Some(DashOrColon::Dash) => "-",
+                                None => "",
                             }
-                        }
-                        StringLiteralOrVariable::Clousure(_brace, expr) => {
-                            quote_spanned! {expr.span()=>
-                                #[allow(unused_mut)]
-                                let (mut html_handler, tmp_internal_html_extractor_proc_macro_2) = html_handler.attribute_value(#name);
-                                #[allow(clippy::redundant_closure_call)]
-                                (#expr)(tmp_internal_html_extractor_proc_macro_2);
-                            }
-                        }
-                        StringLiteralOrVariable::Variable(ident) => {
-                            quote_spanned! {ident.span()=>
-                                #[allow(unused_mut)]
-                                let (mut html_handler, #ident) = html_handler.attribute_value(#name);
-                            }
+                    })
+                    .join("");
+                let value = &iter.value;
+                match value {
+                    StringLiteralOrVariable::Literal(lit_str) => {
+                        quote_spanned! {lit_str.span()=>
+                            #[allow(unused_mut)]
+                            let mut html_handler = html_handler.attribute(#name, #lit_str);
                         }
                     }
-                });
-
-                let open = quote_spanned! {input.open_start.span()=>
-                    #[allow(unused_mut)]
-                    let mut html_handler = html_handler.next_child_tag_open_start(#tag);
-                };
-
-                let close = quote_spanned! {input.open_end.span()=>
-                    #[allow(unused_mut)]
-                    let mut html_handler = html_handler.tag_open_end();
-                };
-
-                quote! {
-                    #open
-                    #(
-                        #attributes
-                    )*
-                    #close
-                }
-            }
-            HtmlCommand::Whitespace(html_whitespace) => {
-                quote_spanned! {html_whitespace.underscore.span()=>
-                    #[allow(unused_mut)]
-                    let mut html_handler = html_handler.skip_whitespace();
-                }
-            }
-            HtmlCommand::ElementClose(html_element_close) => {
-                let name = html_element_close.element.to_string();
-                quote_spanned! {html_element_close.close_start.span()=>
-                    #[allow(unused_mut)]
-                    let mut html_handler = html_handler.close_element(#name);
-                }
-            }
-            HtmlCommand::Comment(_html_comment) => {
-                quote! {}
-            }
-            HtmlCommand::Text(html_text) => match html_text {
-                StringLiteralOrVariable::Literal(lit_str) => {
-                    quote_spanned! {lit_str.span()=>
-                        #[allow(unused_mut)]
-                        let mut html_handler = html_handler.skip_text(#lit_str);
-                    }
-                }
-                StringLiteralOrVariable::Clousure(_brace, expr) => {
-                    quote_spanned! {expr.span()=>
-                        #[allow(unused_mut)]
-                        let (mut html_handler, tmp_internal_html_extractor_proc_macro_2) = html_handler.text();
-                        #[allow(clippy::redundant_closure_call)]
-                        (#expr)(tmp_internal_html_extractor_proc_macro_2);
-                    }
-                }
-                StringLiteralOrVariable::Variable(ident) => {
-                    quote_spanned! {ident.span()=>
-                        #[allow(unused_mut)]
-                        let (mut html_handler, #ident) = html_handler.text();
-                    }
-                }
-            },
-            HtmlCommand::Use(HtmlUse { use_: _, expr, semi }) => {
-                quote! {
-                    #[allow(unused_mut)]
-                    let mut html_handler = #expr #semi
-                }
-            }
-            HtmlCommand::Extern(HtmlExtern { extern_: _, block }) => {
-                let body = &block.stmts;
-                quote! {
-                    #(#body)*
-                }
-            }
-            HtmlCommand::Let(html_let) => {
-                let variable = &html_let.variable;
-                match &html_let.inner {
-                    HtmlLetInner::Expr(expr) => {
+                    StringLiteralOrVariable::Clousure(_brace, expr) => {
                         quote_spanned! {expr.span()=>
                             #[allow(unused_mut)]
-                            let (mut html_handler, #variable) = #expr;
+                            let (mut html_handler, tmp_internal_html_extractor_proc_macro_2) =
+                                html_handler.attribute_value(#name);
+                            #[allow(clippy::redundant_closure_call)]
+                            (#expr)(tmp_internal_html_extractor_proc_macro_2);
                         }
                     }
-                    HtmlLetInner::If(HtmlIf { if_, conditional, brace_token, body, eq: _, gt: _, result_expr, else_ }) => {
-                        let body_stmts = convert_commands(body);
-                        let temp_var = Ident::new("temp_var", Span::mixed_site());
-                        else_.as_ref().map_or_else(
-                            || {
-                                quote! {
-                                    #[allow(unused_mut, clippy::if_not_else)]
-                                    let (mut html_handler, #variable) = if #conditional {
-                                        #(#body_stmts)*
-                                        (html_handler, Some(#result_expr))
-                                    } else {
-                                        (html_handler, None)
-                                    };
-                                }
-                            },
-                            |HtmlElse { else_, brace_token: else_brace_token, body: else_body, eq: _, gt: _, result_expr: else_result_expr }| {
-                                let else_body_stmts = convert_commands(else_body);
-                                let if_inner = quote_spanned! {brace_token.span.span().join(result_expr.span()).unwrap_or_else(|| brace_token.span.span())=>
-                                    {
-                                        #(#body_stmts)*
-                                        (html_handler, ::itertools::Either::Left(#result_expr))
-                                    }
-                                };
-                                let else_inner = quote_spanned! {else_brace_token.span.span().join(else_result_expr.span()).unwrap_or_else(|| else_brace_token.span.span())=>
-                                    {
-                                        #(#else_body_stmts)*
-                                        (html_handler, ::itertools::Either::Right(#else_result_expr))
-                                    }
-                                };
-                                quote! {
-                                    #[allow(unused_mut, clippy::suspicious_else_formatting, clippy::branches_sharing_code)]
-                                    let (mut html_handler, #temp_var) = #if_ #conditional
-                                        #if_inner
-                                    #else_
-                                        #else_inner
-                                    ;
-                                    let #variable = #temp_var;
-                                }
-                            },
-                        )
-                    }
-                    HtmlLetInner::While(html_while) => {
-                        let conditional = &html_while.conditional;
-                        let body = convert_commands(&html_while.body);
-                        let result_expr = &html_while.result_expr;
-                        let temp_vec = Ident::new("temp_vec", Span::mixed_site());
-                        quote_spanned! {html_while.body.span().unwrap_or_else(|| html_while.brace_token.span.span())=>
-                            let mut #temp_vec = Vec::new();
-                            while #conditional {
-                                html_handler = {
-                                    let (html_handler, tmp) = {
-                                        #(#body)*
-
-                                        (html_handler, #result_expr)
-                                    };
-                                    #temp_vec.push(tmp);
-                                    html_handler
-                                };
-                            }
+                    StringLiteralOrVariable::Variable(ident) => {
+                        quote_spanned! {ident.span()=>
                             #[allow(unused_mut)]
-                            let mut #variable = #temp_vec;
+                            let (mut html_handler, #ident) =
+                                html_handler.attribute_value(#name);
                         }
                     }
                 }
+            });
+
+            let open = quote_spanned! {input.open_start.span()=>
+                #[allow(unused_mut)]
+                let mut html_handler = html_handler.next_child_tag_open_start(#tag);
+            };
+
+            let close = quote_spanned! {input.open_end.span()=>
+                #[allow(unused_mut)]
+                let mut html_handler = html_handler.tag_open_end();
+            };
+
+            quote! {
+                #open
+                #(
+                    #attributes
+                )*
+                #close
             }
-        })
-        .collect()
+        }
+        HtmlCommand::Whitespace(html_whitespace) => {
+            quote_spanned! {html_whitespace.underscore.span()=>
+                #[allow(unused_mut)]
+                let mut html_handler = html_handler.skip_whitespace();
+            }
+        }
+        HtmlCommand::ElementClose(html_element_close) => {
+            let name = html_element_close.element.to_string();
+            quote_spanned! {html_element_close.close_start.span()=>
+                #[allow(unused_mut)]
+                let mut html_handler = html_handler.close_element(#name);
+            }
+        }
+        HtmlCommand::Comment(_html_comment) => {
+            quote! {}
+        }
+        HtmlCommand::Text(html_text) => match html_text {
+            StringLiteralOrVariable::Literal(lit_str) => {
+                quote_spanned! {lit_str.span()=>
+                    #[allow(unused_mut)]
+                    let mut html_handler = html_handler.skip_text(#lit_str);
+                }
+            }
+            StringLiteralOrVariable::Clousure(_brace, expr) => {
+                quote_spanned! {expr.span()=>
+                    #[allow(unused_mut)]
+                    let (mut html_handler, tmp_internal_html_extractor_proc_macro_2) =
+                        html_handler.text();
+                    #[allow(clippy::redundant_closure_call)]
+                    (#expr)(tmp_internal_html_extractor_proc_macro_2);
+                }
+            }
+            StringLiteralOrVariable::Variable(ident) => {
+                quote_spanned! {ident.span()=>
+                    #[allow(unused_mut)]
+                    let (mut html_handler, #ident) = html_handler.text();
+                }
+            }
+        },
+        HtmlCommand::Use(HtmlUse {
+            use_: _,
+            expr,
+            semi,
+        }) => {
+            quote! {
+                #[allow(unused_mut)]
+                let mut html_handler = #expr #semi
+            }
+        }
+        HtmlCommand::Extern(HtmlExtern { extern_: _, block }) => {
+            let body = &block.stmts;
+            quote! {
+                #(#body)*
+            }
+        }
+        HtmlCommand::Let(html_let) => {
+            let variable = &html_let.variable;
+            match &html_let.inner {
+                HtmlLetInner::Expr(expr) => {
+                    quote_spanned! {expr.span()=>
+                        #[allow(unused_mut)]
+                        let (mut html_handler, #variable) = #expr;
+                    }
+                }
+                HtmlLetInner::If(HtmlIf {
+                    if_,
+                    conditional,
+                    brace_token,
+                    body,
+                    eq: _,
+                    gt: _,
+                    result_expr,
+                    else_,
+                }) => {
+                    let body_stmts = convert_commands(body);
+                    let temp_var = Ident::new("temp_var", Span::mixed_site());
+                    else_.as_ref().map_or_else(
+                        || {
+                            quote! {
+                                #[allow(unused_mut, clippy::if_not_else)]
+                                let (mut html_handler, #variable) = if #conditional {
+                                    #(#body_stmts)*
+                                    (html_handler, Some(#result_expr))
+                                } else {
+                                    (html_handler, None)
+                                };
+                            }
+                        },
+                        |HtmlElse {
+                             else_,
+                             brace_token: else_brace_token,
+                             body: else_body,
+                             eq: _,
+                             gt: _,
+                             result_expr: else_result_expr,
+                         }| {
+                            let else_body_stmts = convert_commands(else_body);
+                            let if_inner = quote_spanned! {brace_token.span.span()
+                                                            .join(result_expr.span())
+                                                            .unwrap_or_else(|| brace_token.span.span())=>
+                                {
+                                    #(#body_stmts)*
+                                    (html_handler, ::itertools::Either::Left(#result_expr))
+                                }
+                            };
+                            let else_inner = quote_spanned! {else_brace_token.span.span()
+                                                                .join(else_result_expr.span())
+                                                                .unwrap_or_else(|| else_brace_token.span.span())=>
+                                {
+                                    #(#else_body_stmts)*
+                                    (html_handler, ::itertools::Either::Right(#else_result_expr))
+                                }
+                            };
+                            quote! {
+                                #[allow(unused_mut,
+                                        clippy::suspicious_else_formatting,
+                                        clippy::branches_sharing_code)]
+                                let (mut html_handler, #temp_var) = #if_ #conditional
+                                    #if_inner
+                                #else_
+                                    #else_inner
+                                ;
+                                let #variable = #temp_var;
+                            }
+                        },
+                    )
+                }
+                HtmlLetInner::While(html_while) => {
+                    let conditional = &html_while.conditional;
+                    let body = convert_commands(&html_while.body);
+                    let result_expr = &html_while.result_expr;
+                    let temp_vec = Ident::new("temp_vec", Span::mixed_site());
+                    quote_spanned! {html_while.body.span().unwrap_or_else(|| html_while.brace_token.span.span())=>
+                        let mut #temp_vec = Vec::new();
+                        while #conditional {
+                            html_handler = {
+                                let (html_handler, tmp) = {
+                                    #(#body)*
+
+                                    (html_handler, #result_expr)
+                                };
+                                #temp_vec.push(tmp);
+                                html_handler
+                            };
+                        }
+                        #[allow(unused_mut)]
+                        let mut #variable = #temp_vec;
+                    }
+                }
+            }
+        }
+    }
 }
 
 #[proc_macro]

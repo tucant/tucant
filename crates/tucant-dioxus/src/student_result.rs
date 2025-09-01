@@ -1,8 +1,8 @@
-use crate::{common::use_authenticated_data_loader, Anonymize, RcTucanType, Route};
+use crate::{Anonymize, RcTucanType, Route, common::use_authenticated_data_loader};
 use dioxus::prelude::*;
 use tucant_types::{
-    student_result::{StudentResultEntry, StudentResultLevel, StudentResultResponse},
     Tucan,
+    student_result::{StudentResultEntry, StudentResultLevel, StudentResultResponse},
 };
 
 #[component]
@@ -142,8 +142,8 @@ pub fn StudentResultLevelComponent(
                     {
                         level()
                             .entries
-                            .iter()
-                            .map(|entry: &StudentResultEntry| {
+                            .into_iter()
+                            .map(|entry: StudentResultEntry| {
                                 rsx! {
                                     tr {
                                         td { {entry.name.clone()} }
@@ -166,7 +166,7 @@ pub fn StudentResultLevelComponent(
         {
             level()
                 .children
-                .iter()
+                .into_iter()
                 .map(|child| {
                     rsx! {
                         StudentResultLevelComponent {

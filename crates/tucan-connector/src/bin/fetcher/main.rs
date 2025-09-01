@@ -101,7 +101,8 @@ impl Fetcher {
                 }
                 Ok(value) => value,
             };
-            //println!("anmeldung counter: {}", self.anmeldung_counter.load(Ordering::Relaxed));
+            //println!("anmeldung counter: {}",
+            // self.anmeldung_counter.load(Ordering::Relaxed));
             self.anmeldung.fetch_add(1, Ordering::Relaxed);
 
             let results: FuturesUnordered<_> = anmeldung_response
@@ -123,10 +124,6 @@ impl Fetcher {
                 .chain(anmeldung_response.entries.iter().map(|entry| {
                     async {
                         if let Some(module) = &entry.module {
-                            //println!("module {}", module.url.inner());
-                            //self.module_file.write_all(module.url.inner().as_bytes()).await.unwrap();
-                            //self.module_file.write_all(b"\n").await.unwrap();
-
                             if matches!(
                                 &module.registration_state,
                                 RegistrationState::Registered { unregister_link: _ }
@@ -153,22 +150,13 @@ impl Fetcher {
                                         module.url
                                     );
                                 }
-                                Ok(module) => {
-                                    if module.registered {
-                                        //println!("registered for {} at {}", module.module_id, path)
-                                    }
-                                }
+                                Ok(module) => if module.registered {},
                             }
 
-                            //println!("module counter: {}", self.module.load(Ordering::Relaxed));
                             self.module.fetch_add(1, Ordering::Relaxed);
                         }
 
                         for course in &entry.courses {
-                            //println!("course {}", course.1.url.inner());
-                            //self.course_file.write_all(course.1.url.inner().as_bytes()).await.unwrap();
-                            //self.course_file.write_all(b"\n").await.unwrap();
-
                             let result = AssertUnwindSafe(async {
                                 let course_details = tucan
                                     .course_details(
@@ -189,8 +177,6 @@ impl Fetcher {
                                     course.1.url
                                 );
                             }
-
-                            //println!("course counter: {}", self.course.load(Ordering::Relaxed));
                             self.course.fetch_add(1, Ordering::Relaxed);
                         }
                     }

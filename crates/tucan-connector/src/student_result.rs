@@ -27,7 +27,8 @@ pub async fn student_result(
 ) -> Result<StudentResultResponse, TucanError> {
     let key = format!("unparsed_student_result.{request}");
 
-    // TODO FIXME this can break as the normal tucan usage will remember which one you selected
+    // TODO FIXME this can break as the normal tucan usage will remember which one
+    // you selected
     let request =
         format!("-N0,-N000000000000000,-N000000000000000,-N{request},-N0,-N000000000000000");
 
@@ -111,7 +112,11 @@ fn part0<T>(
                         id
                     </td>
                     <td class="tbdata">
-                        let name_and_resultdetails_url = if html_handler.peek().unwrap().value().is_text() {
+                        let name_and_resultdetails_url = if html_handler
+                            .peek()
+                            .unwrap()
+                            .value()
+                            .is_text() {
                             name
                         } => (name, None::<String>) else {
                             <a name=_name id=_result_id href=resultdetails_url onclick=_onclick>
@@ -231,7 +236,9 @@ fn part1<T>(
             .unwrap()
             .attrs
             .is_empty()
-            && get_level(&html_handler.peek().unwrap().first_child().unwrap()) == level {
+            && get_level(
+                &html_handler.peek().unwrap().first_child().unwrap()
+            ) == level {
             <tr>
                 <td colspan="2" class={|v| assert_eq!(v, format!("level0{level}"))}>
                     _summe
@@ -244,18 +251,28 @@ fn part1<T>(
                     .unwrap()
                     .attr("colspan")
                     .is_some() {
-                    <td colspan="4" class={|v| assert_eq!(v, format!("level0{level}"))} style="text-align:left;white-space:nowrap;">
+                    <td
+                        colspan="4"
+                        class={|v| assert_eq!(v, format!("level0{level}"))}
+                        style="text-align:left;white-space:nowrap;"
+                    >
                         _summe_wird_erst_berechnet_wenn_der_bereich_abgeschlossen_ist
                     </td>
                 } => (None, None) else {
                     <td class={|v| assert_eq!(v, format!("level0{level}"))}>
                     </td>
-                    <td class={|v| assert_eq!(v, format!("level0{level}"))} style="text-align:right;white-space:nowrap;">
+                    <td
+                        class={|v| assert_eq!(v, format!("level0{level}"))}
+                        style="text-align:right;white-space:nowrap;"
+                    >
                         let sum_cp = if html_handler.peek().is_some() {
                             sum_cp
                         } => sum_cp;
                     </td>
-                    <td class={|v| assert_eq!(v, format!("level0{level}"))} style="text-align:right;white-space:nowrap;">
+                    <td
+                        class={|v| assert_eq!(v, format!("level0{level}"))}
+                        style="text-align:right;white-space:nowrap;"
+                    >
                         let sum_used_cp = if html_handler.peek().is_some() {
                             sum_used_cp
                         } => sum_used_cp;
@@ -382,8 +399,7 @@ fn student_result_internal(
                                                         value: value.parse().unwrap(),
                                                         selected: false
                                                     };
-                                                } => course_of_study
-                                                    .either_into::<CourseOfStudySelection>();
+                                                } => course_of_study.either_into::<CourseOfStudySelection>();
                                             </select>
                                             <input id="Refresh" name="Refresh" type="submit" value="Aktualisieren" class="img img_arrowReload pageElementLeft update"></input>
                                         </div>
@@ -437,12 +453,7 @@ fn student_result_internal(
                                                     let level5_title = part0(html_handler, 5);
                                                     let level6 = while get_level(html_handler.peek().unwrap()) >= 6 {
                                                         let level6_title = part0(html_handler, 6);
-                                                        let level6_contents = part1(
-                                                            html_handler,
-                                                            6,
-                                                            level6_title,
-                                                            Vec::new()
-                                                        );
+                                                        let level6_contents = part1(html_handler, 6, level6_title, Vec::new());
                                                     } => level6_contents;
                                                     let level5_contents = part1(html_handler, 5, level5_title, level6);
                                                 } => level5_contents;
