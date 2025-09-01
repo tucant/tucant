@@ -53,7 +53,10 @@ pub fn LoginComponent() -> Element {
                         .await;
 
                     #[cfg(any(feature = "desktop", feature = "mobile"))]
-                    keyring::Entry::new("tucant", "session").unwrap().set_password(&serde_json::to_string(&response).unwrap()).unwrap();
+                    keyring::Entry::new("tucant", "session")
+                        .unwrap()
+                        .set_password(&serde_json::to_string(&response).unwrap())
+                        .unwrap();
 
                     current_session.set(Some(response.clone()));
                     error_message.set(None);
@@ -67,7 +70,11 @@ pub fn LoginComponent() -> Element {
         });
     };
 
-    let is_invalid = if error_message().is_some() { "is-invalid" } else { "" };
+    let is_invalid = if error_message().is_some() {
+        "is-invalid"
+    } else {
+        ""
+    };
     rsx! {
         form { onsubmit: on_submit, class: "d-flex",
             input {

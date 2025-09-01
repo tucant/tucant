@@ -13,7 +13,12 @@ use crate::{
 };
 use html_handler::{MyElementRef, MyNode, Root, parse_document};
 
-pub async fn vv(tucan: &TucanConnector, login_response: Option<&LoginResponse>, revalidation_strategy: RevalidationStrategy, request: ActionRequest) -> Result<Vorlesungsverzeichnis, TucanError> {
+pub async fn vv(
+    tucan: &TucanConnector,
+    login_response: Option<&LoginResponse>,
+    revalidation_strategy: RevalidationStrategy,
+    request: ActionRequest,
+) -> Result<Vorlesungsverzeichnis, TucanError> {
     let key = format!(
         "unparsed_vv.{}.{}",
         // TODO FIXME I think the complete cache should be separated for logged in and logged out?
@@ -28,7 +33,8 @@ pub async fn vv(tucan: &TucanConnector, login_response: Option<&LoginResponse>, 
     if revalidation_strategy.max_age != 0 {
         if let Some((content, date)) = &old_content_and_date {
             info!("{}", OffsetDateTime::now_utc() - *date);
-            if OffsetDateTime::now_utc() - *date < Duration::seconds(revalidation_strategy.max_age) {
+            if OffsetDateTime::now_utc() - *date < Duration::seconds(revalidation_strategy.max_age)
+            {
                 return vv_internal(login_response, content);
             }
         }
@@ -55,7 +61,10 @@ pub async fn vv(tucan: &TucanConnector, login_response: Option<&LoginResponse>, 
 }
 
 #[expect(clippy::too_many_lines)]
-fn vv_internal(login_response: Option<&LoginResponse>, content: &str) -> Result<Vorlesungsverzeichnis, TucanError> {
+fn vv_internal(
+    login_response: Option<&LoginResponse>,
+    content: &str,
+) -> Result<Vorlesungsverzeichnis, TucanError> {
     let document = parse_document(content);
     let html_handler = Root::new(document.root());
     let html_handler = html_handler.document_start();

@@ -11,12 +11,19 @@ use crate::{RcTucanType, Route, common::use_authenticated_data_loader};
 
 #[component]
 pub fn MySemesterModules(semester: ReadSignal<SemesterId>) -> Element {
-    let handler = async |tucan: RcTucanType, current_session, revalidation_strategy: RevalidationStrategy, additional: SemesterId| {
-        let first = tucan.my_modules(&current_session, revalidation_strategy, additional.clone()).await?;
+    let handler = async |tucan: RcTucanType,
+                         current_session,
+                         revalidation_strategy: RevalidationStrategy,
+                         additional: SemesterId| {
+        let first = tucan
+            .my_modules(&current_session, revalidation_strategy, additional.clone())
+            .await?;
         let after = first.semester.iter().skip_while(|e| !e.selected).nth(1);
         warn!("after {additional} comes {after:?}");
         if let Some(after) = after {
-            let second = tucan.my_modules(&current_session, revalidation_strategy, after.value.clone()).await?;
+            let second = tucan
+                .my_modules(&current_session, revalidation_strategy, after.value.clone())
+                .await?;
             let first_modules: HashSet<Module> = first.modules.iter().cloned().collect();
             let second_modules: HashSet<Module> = second.modules.iter().cloned().collect();
             let diff = first_modules.difference(&second_modules).cloned().collect();
@@ -31,16 +38,21 @@ pub fn MySemesterModules(semester: ReadSignal<SemesterId>) -> Element {
 
     let navigator = use_navigator();
 
-    use_authenticated_data_loader(handler, semester, 14 * 24 * 60 * 60, 60 * 60, |my_modules: MyModulesResponse, reload| {
-        let on_semester_change = {
-            Callback::new(move |e: Event<FormData>| {
-                let value = e.value();
-                navigator.push(Route::MySemesterModules {
-                    semester: SemesterId::from_str(&value).unwrap(),
-                });
-            })
-        };
-        rsx! {
+    use_authenticated_data_loader(
+        handler,
+        semester,
+        14 * 24 * 60 * 60,
+        60 * 60,
+        |my_modules: MyModulesResponse, reload| {
+            let on_semester_change = {
+                Callback::new(move |e: Event<FormData>| {
+                    let value = e.value();
+                    navigator.push(Route::MySemesterModules {
+                        semester: SemesterId::from_str(&value).unwrap(),
+                    });
+                })
+            };
+            rsx! {
             div {
                 h1 {
                     {"Meine Semestermodule"}
@@ -122,5 +134,6 @@ pub fn MySemesterModules(semester: ReadSignal<SemesterId>) -> Element {
                 }
             }
         }
-    })
+        },
+    )
 }

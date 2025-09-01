@@ -12,22 +12,32 @@ use scraper::CaseSensitivity;
 use time::{Duration, OffsetDateTime};
 use tucant_types::{
     LeistungsspiegelGrade, LoginResponse, RevalidationStrategy, TucanError,
-    student_result::{CourseOfStudySelection, StudentResultEntry, StudentResultLevel, StudentResultResponse, StudentResultRules, StudentResultState},
+    student_result::{
+        CourseOfStudySelection, StudentResultEntry, StudentResultLevel, StudentResultResponse,
+        StudentResultRules, StudentResultState,
+    },
 };
 
 /// 0 is the default
-pub async fn student_result(tucan: &TucanConnector, login_response: &LoginResponse, revalidation_strategy: RevalidationStrategy, request: u64) -> Result<StudentResultResponse, TucanError> {
+pub async fn student_result(
+    tucan: &TucanConnector,
+    login_response: &LoginResponse,
+    revalidation_strategy: RevalidationStrategy,
+    request: u64,
+) -> Result<StudentResultResponse, TucanError> {
     let key = format!("unparsed_student_result.{request}");
 
     // TODO FIXME this can break as the normal tucan usage will remember which one
     // you selected
-    let request = format!("-N0,-N000000000000000,-N000000000000000,-N{request},-N0,-N000000000000000");
+    let request =
+        format!("-N0,-N000000000000000,-N000000000000000,-N{request},-N0,-N000000000000000");
 
     let old_content_and_date = tucan.database.get::<(String, OffsetDateTime)>(&key).await;
     if revalidation_strategy.max_age != 0 {
         if let Some((content, date)) = &old_content_and_date {
             info!("{}", OffsetDateTime::now_utc() - *date);
-            if OffsetDateTime::now_utc() - *date < Duration::seconds(revalidation_strategy.max_age) {
+            if OffsetDateTime::now_utc() - *date < Duration::seconds(revalidation_strategy.max_age)
+            {
                 return student_result_internal(login_response, content);
             }
         }
@@ -42,7 +52,8 @@ pub async fn student_result(tucan: &TucanConnector, login_response: &LoginRespon
         login_response.id, request
     );
     println!("{url}");
-    let (content, date) = authenticated_retryable_get(tucan, &url, &login_response.cookie_cnsc).await?;
+    let (content, date) =
+        authenticated_retryable_get(tucan, &url, &login_response.cookie_cnsc).await?;
     let result = student_result_internal(login_response, &content)?;
     if invalidate_dependents && old_content_and_date.as_ref().map(|m| &m.0) != Some(&content) {
         // TODO invalidate cached ones?
@@ -58,10 +69,18 @@ fn get_level(node: &NodeRef<MyNode>) -> i8 {
         .as_element()
         .unwrap()
         .attr("class")
-        .map_or(-1, |v| v.trim_start_matches("subhead ").trim_start_matches("level0").parse::<i8>().unwrap())
+        .map_or(-1, |v| {
+            v.trim_start_matches("subhead ")
+                .trim_start_matches("level0")
+                .parse::<i8>()
+                .unwrap()
+        })
 }
 
-fn part0<T>(html_handler: InElement<'_, T>, level: i8) -> (InElement<'_, T>, Option<(String, Vec<StudentResultEntry>)>) {
+fn part0<T>(
+    html_handler: InElement<'_, T>,
+    level: i8,
+) -> (InElement<'_, T>, Option<(String, Vec<StudentResultEntry>)>) {
     html_extractor::html! {
         let result = if get_level(html_handler.peek().unwrap()) == level {
             <tr class={|l| assert_eq!(l, format!("subhead level0{level}"))}>
@@ -93,7 +112,11 @@ fn part0<T>(html_handler: InElement<'_, T>, level: i8) -> (InElement<'_, T>, Opt
                         id
                     </td>
                     <td class="tbdata">
-                        let name_and_resultdetails_url = if html_handler.peek().unwrap().value().is_text() {
+                        let name_and_resultdetails_url = if html_handler
+                            .peek()
+                            .unwrap()
+                            .value()
+                            .is_text() {
                             name
                         } => (name, None::<String>) else {
                             <a name=_name id=_result_id href=resultdetails_url onclick=_onclick>
@@ -127,11 +150,19 @@ fn part0<T>(html_handler: InElement<'_, T>, level: i8) -> (InElement<'_, T>, Opt
                 </tr>
             } => StudentResultEntry {
                 id: if id == "Anerkennung" { None } else { Some(id) },
-                name: name_and_resultdetails_url.clone().either_into::<(String, Option<String>)>().0,
-                resultdetails_url: name_and_resultdetails_url.either_into::<(String, Option<String>)>().1,
+                name: name_and_resultdetails_url
+                    .clone()
+                    .either_into::<(String, Option<String>)>()
+                    .0,
+                resultdetails_url: name_and_resultdetails_url
+                    .either_into::<(String, Option<String>)>()
+                    .1,
                 cp: cp.map(|v| v.trim_end_matches(",0").parse().unwrap()),
                 used_cp: used_cp.map(|v| v.trim_end_matches(",0").parse().unwrap()),
-                grade: LeistungsspiegelGrade::from((grade.as_deref(), StudentResultState::from((src.as_str(), alt.as_str(), state.as_str())))),
+                grade: LeistungsspiegelGrade::from((
+                    grade.as_deref(),
+                    StudentResultState::from((src.as_str(), alt.as_str(), state.as_str()))
+                )),
             };
         } => (level_i, entries);
     }
@@ -139,14 +170,24 @@ fn part0<T>(html_handler: InElement<'_, T>, level: i8) -> (InElement<'_, T>, Opt
 }
 
 fn parse_rules(rules: &[String]) -> StudentResultRules {
-    static RULES_1: LazyLock<Regex> =
-        LazyLock::new(|| Regex::new(r"^Es sind mindestens +(?P<min>\d+),0 Credits einzubringen. Die Ergebnisse von maximal +(?P<max>\d+),0 Credits gehen in die Notenberechnung ein.$").unwrap());
-    static RULES_2: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^Maximal +(?P<max>\d+),0 Credits gehen in die Notenberechnung ein.$").unwrap());
-    static RULES_3: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^In diesem Bereich sind +(?P<eq>\d+),0 Credits einzubringen.$").unwrap());
-    static RULES_4: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^Erforderliche Credits für Abschluss: +(?P<eq>\d+),0$").unwrap());
-    static RULES_5: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^Es sind mindestens +(?P<min>\d+),0 Credits einzubringen.$").unwrap());
-    static RULES_6: LazyLock<Regex> =
-        LazyLock::new(|| Regex::new(r"^In diesem Bereich sind mindestens[[:space:]]+(?P<min>\d+)[[:space:]]+und maximal[[:space:]]+(?P<max>\d+) Module zu belegen.$").unwrap());
+    static RULES_1: LazyLock<Regex> = LazyLock::new(|| {
+        Regex::new(r"^Es sind mindestens +(?P<min>\d+),0 Credits einzubringen. Die Ergebnisse von maximal +(?P<max>\d+),0 Credits gehen in die Notenberechnung ein.$").unwrap()
+    });
+    static RULES_2: LazyLock<Regex> = LazyLock::new(|| {
+        Regex::new(r"^Maximal +(?P<max>\d+),0 Credits gehen in die Notenberechnung ein.$").unwrap()
+    });
+    static RULES_3: LazyLock<Regex> = LazyLock::new(|| {
+        Regex::new(r"^In diesem Bereich sind +(?P<eq>\d+),0 Credits einzubringen.$").unwrap()
+    });
+    static RULES_4: LazyLock<Regex> = LazyLock::new(|| {
+        Regex::new(r"^Erforderliche Credits für Abschluss: +(?P<eq>\d+),0$").unwrap()
+    });
+    static RULES_5: LazyLock<Regex> = LazyLock::new(|| {
+        Regex::new(r"^Es sind mindestens +(?P<min>\d+),0 Credits einzubringen.$").unwrap()
+    });
+    static RULES_6: LazyLock<Regex> = LazyLock::new(|| {
+        Regex::new(r"^In diesem Bereich sind mindestens[[:space:]]+(?P<min>\d+)[[:space:]]+und maximal[[:space:]]+(?P<max>\d+) Module zu belegen.$").unwrap()
+    });
     let mut result = StudentResultRules {
         min_cp: 0,
         max_cp: None,
@@ -180,26 +221,58 @@ fn parse_rules(rules: &[String]) -> StudentResultRules {
     result
 }
 
-fn part1<T>(html_handler: InElement<'_, T>, level: i8, name: Option<(String, Vec<StudentResultEntry>)>, children: Vec<StudentResultLevel>) -> (InElement<'_, T>, StudentResultLevel) {
+fn part1<T>(
+    html_handler: InElement<'_, T>,
+    level: i8,
+    name: Option<(String, Vec<StudentResultEntry>)>,
+    children: Vec<StudentResultLevel>,
+) -> (InElement<'_, T>, StudentResultLevel) {
     html_extractor::html! {
-        let optional = if html_handler.peek().unwrap().value().as_element().unwrap().attrs.is_empty() && get_level(&html_handler.peek().unwrap().first_child().unwrap()) == level {
+        let optional = if html_handler
+            .peek()
+            .unwrap()
+            .value()
+            .as_element()
+            .unwrap()
+            .attrs
+            .is_empty()
+            && get_level(
+                &html_handler.peek().unwrap().first_child().unwrap()
+            ) == level {
             <tr>
                 <td colspan="2" class={|v| assert_eq!(v, format!("level0{level}"))}>
                     _summe
                 </td>
-                let sum_cp_and_used_cp = if html_handler.peek().unwrap().value().as_element().unwrap().attr("colspan").is_some() {
-                    <td colspan="4" class={|v| assert_eq!(v, format!("level0{level}"))} style="text-align:left;white-space:nowrap;">
+                let sum_cp_and_used_cp = if html_handler
+                    .peek()
+                    .unwrap()
+                    .value()
+                    .as_element()
+                    .unwrap()
+                    .attr("colspan")
+                    .is_some() {
+                    <td
+                        colspan="4"
+                        class={|v| assert_eq!(v, format!("level0{level}"))}
+                        style="text-align:left;white-space:nowrap;"
+                    >
                         _summe_wird_erst_berechnet_wenn_der_bereich_abgeschlossen_ist
                     </td>
                 } => (None, None) else {
                     <td class={|v| assert_eq!(v, format!("level0{level}"))}>
                     </td>
-                    <td class={|v| assert_eq!(v, format!("level0{level}"))} style="text-align:right;white-space:nowrap;">
+                    <td
+                        class={|v| assert_eq!(v, format!("level0{level}"))}
+                        style="text-align:right;white-space:nowrap;"
+                    >
                         let sum_cp = if html_handler.peek().is_some() {
                             sum_cp
                         } => sum_cp;
                     </td>
-                    <td class={|v| assert_eq!(v, format!("level0{level}"))} style="text-align:right;white-space:nowrap;">
+                    <td
+                        class={|v| assert_eq!(v, format!("level0{level}"))}
+                        style="text-align:right;white-space:nowrap;"
+                    >
                         let sum_used_cp = if html_handler.peek().is_some() {
                             sum_used_cp
                         } => sum_used_cp;
@@ -229,7 +302,12 @@ fn part1<T>(html_handler: InElement<'_, T>, level: i8, name: Option<(String, Vec
             } => rule;
         } => {
             let (sum_cp, sum_used_cp) = sum_cp_and_used_cp.either_into();
-            (sum_cp, sum_used_cp, StudentResultState::from((src.as_str(), alt.as_str(), state.as_str())), rules)
+            (
+                sum_cp,
+                sum_used_cp,
+                StudentResultState::from((src.as_str(), alt.as_str(), state.as_str())),
+                rules,
+            )
         };
     }
     (
@@ -237,8 +315,14 @@ fn part1<T>(html_handler: InElement<'_, T>, level: i8, name: Option<(String, Vec
         StudentResultLevel {
             name: name.as_ref().map(|n| n.0.clone()),
             entries: name.map(|n| n.1).unwrap_or_default(),
-            sum_cp: optional.clone().and_then(|o| o.0).map(|v| v.trim_end_matches(",0").parse().unwrap()),
-            sum_used_cp: optional.clone().and_then(|o| o.1).map(|v| v.trim_end_matches(",0").parse().unwrap()),
+            sum_cp: optional
+                .clone()
+                .and_then(|o| o.0)
+                .map(|v| v.trim_end_matches(",0").parse().unwrap()),
+            sum_used_cp: optional
+                .clone()
+                .and_then(|o| o.1)
+                .map(|v| v.trim_end_matches(",0").parse().unwrap()),
             state: optional.clone().map(|o| o.2),
             rules: parse_rules(&optional.map(|o| o.3).unwrap_or_default()),
             children,
@@ -247,7 +331,10 @@ fn part1<T>(html_handler: InElement<'_, T>, level: i8, name: Option<(String, Vec
 }
 
 #[expect(clippy::too_many_lines)]
-fn student_result_internal(login_response: &LoginResponse, content: &str) -> Result<StudentResultResponse, TucanError> {
+fn student_result_internal(
+    login_response: &LoginResponse,
+    content: &str,
+) -> Result<StudentResultResponse, TucanError> {
     let document = parse_document(content);
     let html_handler = Root::new(document.root());
     let html_handler = html_handler.document_start();

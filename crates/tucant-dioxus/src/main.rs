@@ -57,7 +57,10 @@ pub async fn main() {
             js_sys::Reflect::set(&obj, &"anonymize".into(), &false.into()).unwrap();
             let storage = web_extensions_sys::chrome().storage().sync();
             let result = storage.get(&obj).await.unwrap();
-            js_sys::Reflect::get(&result, &"anonymize".into()).unwrap().as_bool().unwrap()
+            js_sys::Reflect::get(&result, &"anonymize".into())
+                .unwrap()
+                .as_bool()
+                .unwrap()
         }
         #[cfg(not(feature = "direct"))]
         false
@@ -66,16 +69,22 @@ pub async fn main() {
     let launcher = dioxus::LaunchBuilder::new();
 
     #[cfg(feature = "web")]
-    let launcher = launcher.with_cfg(dioxus::web::Config::new().history(std::rc::Rc::new(dioxus::web::HashHistory::new(false))));
+    let launcher = launcher.with_cfg(
+        dioxus::web::Config::new().history(std::rc::Rc::new(dioxus::web::HashHistory::new(false))),
+    );
 
     let login_response = tucant_dioxus::login_response().await;
     let launcher = launcher.with_context(login_response);
 
     #[cfg(feature = "api")]
-    let launcher = launcher.with_context(tucant_dioxus::RcTucanType(tucant_types::DynTucan::new_arc(tucant_dioxus::api_server::ApiServerTucan::new())));
+    let launcher = launcher.with_context(tucant_dioxus::RcTucanType(
+        tucant_types::DynTucan::new_arc(tucant_dioxus::api_server::ApiServerTucan::new()),
+    ));
 
     #[cfg(any(feature = "direct", feature = "desktop", feature = "mobile"))]
-    let launcher = launcher.with_context(tucant_dioxus::RcTucanType(tucant_types::DynTucan::new_arc(tucan_connector::TucanConnector::new().await.unwrap())));
+    let launcher = launcher.with_context(tucant_dioxus::RcTucanType(
+        tucant_types::DynTucan::new_arc(tucan_connector::TucanConnector::new().await.unwrap()),
+    ));
 
     let launcher = launcher.with_context(Anonymize(anonymize));
 

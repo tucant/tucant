@@ -7,20 +7,29 @@ use crate::{RcTucanType, Route, common::use_authenticated_data_loader};
 
 #[component]
 pub fn MyModules(semester: ReadSignal<SemesterId>) -> Element {
-    let handler = async |tucan: RcTucanType, current_session, revalidation_strategy, additional| tucan.my_modules(&current_session, revalidation_strategy, additional).await;
+    let handler = async |tucan: RcTucanType, current_session, revalidation_strategy, additional| {
+        tucan
+            .my_modules(&current_session, revalidation_strategy, additional)
+            .await
+    };
 
     let navigator = use_navigator();
 
-    use_authenticated_data_loader(handler, semester, 14 * 24 * 60 * 60, 60 * 60, |my_modules: MyModulesResponse, reload| {
-        let on_semester_change = {
-            Callback::new(move |e: Event<FormData>| {
-                let value = e.value();
-                navigator.push(Route::MyModules {
-                    semester: SemesterId::from_str(&value).unwrap(),
-                });
-            })
-        };
-        rsx! {
+    use_authenticated_data_loader(
+        handler,
+        semester,
+        14 * 24 * 60 * 60,
+        60 * 60,
+        |my_modules: MyModulesResponse, reload| {
+            let on_semester_change = {
+                Callback::new(move |e: Event<FormData>| {
+                    let value = e.value();
+                    navigator.push(Route::MyModules {
+                        semester: SemesterId::from_str(&value).unwrap(),
+                    });
+                })
+            };
+            rsx! {
             div {
                 h1 {
                     {"Meine Module"}
@@ -101,5 +110,6 @@ pub fn MyModules(semester: ReadSignal<SemesterId>) -> Element {
                 }
             }
         }
-    })
+        },
+    )
 }

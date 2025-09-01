@@ -30,8 +30,15 @@ pub fn Vorlesungsverzeichnisse(data: ReadSignal<Option<MlsStart>>) -> Element {
 }
 
 #[component]
-pub fn NavbarLoggedIn(current_session: ReadSignal<LoginResponse>, data: ReadSignal<Option<MlsStart>>) -> Element {
-    let disabled = if data().is_none() { "disabled" } else { Default::default() };
+pub fn NavbarLoggedIn(
+    current_session: ReadSignal<LoginResponse>,
+    data: ReadSignal<Option<MlsStart>>,
+) -> Element {
+    let disabled = if data().is_none() {
+        "disabled"
+    } else {
+        Default::default()
+    };
     rsx! {
         li { class: "nav-item dropdown",
             a {

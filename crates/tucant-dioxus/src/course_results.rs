@@ -7,22 +7,31 @@ use crate::{Anonymize, RcTucanType, Route, common::use_authenticated_data_loader
 
 #[component]
 pub fn CourseResults(semester: ReadSignal<SemesterId>) -> Element {
-    let handler = async |tucan: RcTucanType, current_session, revalidation_strategy, additional| tucan.course_results(&current_session, revalidation_strategy, additional).await;
+    let handler = async |tucan: RcTucanType, current_session, revalidation_strategy, additional| {
+        tucan
+            .course_results(&current_session, revalidation_strategy, additional)
+            .await
+    };
 
     let navigator = use_navigator();
 
     let anonymize = use_context::<Anonymize>().0;
 
-    use_authenticated_data_loader(handler, semester, 14 * 24 * 60 * 60, 60 * 60, |course_results: ModuleResultsResponse, reload| {
-        let on_semester_change = {
-            Callback::new(move |e: Event<FormData>| {
-                let value = e.value();
-                navigator.push(Route::CourseResults {
-                    semester: SemesterId::from_str(&value).unwrap(),
-                });
-            })
-        };
-        rsx! {
+    use_authenticated_data_loader(
+        handler,
+        semester,
+        14 * 24 * 60 * 60,
+        60 * 60,
+        |course_results: ModuleResultsResponse, reload| {
+            let on_semester_change = {
+                Callback::new(move |e: Event<FormData>| {
+                    let value = e.value();
+                    navigator.push(Route::CourseResults {
+                        semester: SemesterId::from_str(&value).unwrap(),
+                    });
+                })
+            };
+            rsx! {
             div {
                 h1 {
                     {"Modulergebnisse"}
@@ -121,5 +130,6 @@ pub fn CourseResults(semester: ReadSignal<SemesterId>) -> Element {
                 }
             }
         }
-    })
+        },
+    )
 }

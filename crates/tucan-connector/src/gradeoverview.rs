@@ -14,7 +14,12 @@ use crate::{
 };
 use html_handler::{Root, parse_document};
 
-pub static GRADEOVERVIEW_REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=GRADEOVERVIEW&ARGUMENTS=-N\\d+,-N\\d+,").unwrap());
+pub static GRADEOVERVIEW_REGEX: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(
+        "^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=GRADEOVERVIEW&ARGUMENTS=-N\\d+,-N\\d+,",
+    )
+    .unwrap()
+});
 
 pub async fn gradeoverview(
     tucan: &TucanConnector,
@@ -28,7 +33,8 @@ pub async fn gradeoverview(
     if revalidation_strategy.max_age != 0 {
         if let Some((content, date)) = &old_content_and_date {
             info!("{}", OffsetDateTime::now_utc() - *date);
-            if OffsetDateTime::now_utc() - *date < Duration::seconds(revalidation_strategy.max_age) {
+            if OffsetDateTime::now_utc() - *date < Duration::seconds(revalidation_strategy.max_age)
+            {
                 return gradeoverview_internal(login_response, content);
             }
         }
@@ -42,7 +48,8 @@ pub async fn gradeoverview(
         "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=GRADEOVERVIEW&ARGUMENTS=-N{},-N000325,{request}",
         login_response.id
     );
-    let (content, date) = authenticated_retryable_get(tucan, &url, &login_response.cookie_cnsc).await?;
+    let (content, date) =
+        authenticated_retryable_get(tucan, &url, &login_response.cookie_cnsc).await?;
     let result = gradeoverview_internal(login_response, &content)?;
     if invalidate_dependents && old_content_and_date.as_ref().map(|m| &m.0) != Some(&content) {
         // TODO invalidate cached ones?
@@ -58,7 +65,10 @@ pub async fn gradeoverview(
 }
 
 #[expect(clippy::too_many_lines)]
-fn gradeoverview_internal(login_response: &LoginResponse, content: &str) -> Result<GradeOverviewResponse, TucanError> {
+fn gradeoverview_internal(
+    login_response: &LoginResponse,
+    content: &str,
+) -> Result<GradeOverviewResponse, TucanError> {
     let document = parse_document(content);
     let html_handler = Root::new(document.root());
     let html_handler = html_handler.document_start();
@@ -87,7 +97,14 @@ fn gradeoverview_internal(login_response: &LoginResponse, content: &str) -> Resu
                     <h2>
                         module_and_semester
                     </h2>
-                    let modulangebot = if html_handler.peek().unwrap().value().as_element().unwrap().name() == "table" {
+                    let modulangebot = if html_handler
+                        .peek()
+                        .unwrap()
+                        .value()
+                        .as_element()
+                        .unwrap()
+                        .name()
+                        == "table" {
                         <table class="tb">
                             <tbody>
                                 <tr>
@@ -104,7 +121,9 @@ fn gradeoverview_internal(login_response: &LoginResponse, content: &str) -> Resu
                         </table>
                     } => modulangebot;
                     <h2>
-                        let studienleistung = if html_handler.peek().is_some() {
+                        let studienleistung = if html_handler
+                            .peek()
+                            .is_some() {
                             studienleistung
                         } => studienleistung;
                     </h2>
@@ -116,7 +135,14 @@ fn gradeoverview_internal(login_response: &LoginResponse, content: &str) -> Resu
                                 "Zurück"
                             </a>
                         </div>
-                        let maybe_grades = if html_handler.peek().unwrap().value().as_element().unwrap().name() == "table" {
+                        let maybe_grades = if html_handler
+                            .peek()
+                            .unwrap()
+                            .value()
+                            .as_element()
+                            .unwrap()
+                            .name()
+                            == "table" {
                             <table class="nb">
                                 <tbody>
                                     <tr>
@@ -137,7 +163,11 @@ fn gradeoverview_internal(login_response: &LoginResponse, content: &str) -> Resu
                                             <td class="tbdata">
                                                 value
                                             </td>
-                                        } => if value == "---" { 0 } else { value.parse().expect(&value) };
+                                        } => if value == "---" {
+                                            0
+                                        } else {
+                                            value.parse().expect(&value)
+                                        };
                                     </tr>
                                 </tbody>
                             </table>

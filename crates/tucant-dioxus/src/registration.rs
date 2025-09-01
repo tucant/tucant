@@ -8,26 +8,38 @@ use crate::{RcTucanType, Route, common::use_authenticated_data_loader};
 
 #[component]
 pub fn Registration(registration: ReadSignal<AnmeldungRequest>) -> Element {
-    let handler = async |tucan: RcTucanType, current_session, revalidation_strategy, additional| tucan.anmeldung(current_session, revalidation_strategy, additional).await;
+    let handler = async |tucan: RcTucanType, current_session, revalidation_strategy, additional| {
+        tucan
+            .anmeldung(current_session, revalidation_strategy, additional)
+            .await
+    };
 
     let navigator = use_navigator();
 
-    use_authenticated_data_loader(handler, registration.to_owned(), 28 * 24 * 60 * 60, 24 * 60 * 60, |data, reload| {
-        if data.submenus.len() == 1 && data.additional_information.is_empty() && data.entries.is_empty() {
-            navigator.replace(Route::Registration {
-                registration: data.submenus[0].1.clone(),
-            });
-            return rsx! {};
-        }
-        let on_course_of_study_change = {
-            Callback::new(move |e: Event<FormData>| {
-                let value = e.value();
-                navigator.push(Route::Registration {
-                    registration: AnmeldungRequest::parse(&value),
+    use_authenticated_data_loader(
+        handler,
+        registration.to_owned(),
+        28 * 24 * 60 * 60,
+        24 * 60 * 60,
+        |data, reload| {
+            if data.submenus.len() == 1
+                && data.additional_information.is_empty()
+                && data.entries.is_empty()
+            {
+                navigator.replace(Route::Registration {
+                    registration: data.submenus[0].1.clone(),
                 });
-            })
-        };
-        rsx! {
+                return rsx! {};
+            }
+            let on_course_of_study_change = {
+                Callback::new(move |e: Event<FormData>| {
+                    let value = e.value();
+                    navigator.push(Route::Registration {
+                        registration: AnmeldungRequest::parse(&value),
+                    });
+                })
+            };
+            rsx! {
             div { class: "container",
                 h2 { class: "text-center",
                     {"Registration "}
@@ -252,5 +264,6 @@ pub fn Registration(registration: ReadSignal<AnmeldungRequest>) -> Element {
                 }
             }
         }
-    })
+        },
+    )
 }

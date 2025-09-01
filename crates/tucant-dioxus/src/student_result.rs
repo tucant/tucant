@@ -7,22 +7,39 @@ use tucant_types::{
 
 #[component]
 pub fn StudentResult(course_of_study: ReadSignal<String>) -> Element {
-    let handler = async |tucan: RcTucanType, current_session, revalidation_strategy, additional| tucan.student_result(&current_session, revalidation_strategy, additional).await;
+    let handler = async |tucan: RcTucanType, current_session, revalidation_strategy, additional| {
+        tucan
+            .student_result(&current_session, revalidation_strategy, additional)
+            .await
+    };
 
     let navigator = use_navigator();
 
-    let memo = use_memo(move || if course_of_study() == "default" { 0 } else { course_of_study().parse().unwrap() });
+    let memo = use_memo(move || {
+        if course_of_study() == "default" {
+            0
+        } else {
+            course_of_study().parse().unwrap()
+        }
+    });
 
     let anonymize = use_context::<Anonymize>().0;
 
-    use_authenticated_data_loader(handler, memo.into(), 14 * 24 * 60 * 60, 60 * 60, |student_result: StudentResultResponse, reload| {
-        let on_course_of_study_change = {
-            Callback::new(move |e: Event<FormData>| {
-                let value = e.value();
-                navigator.push(Route::StudentResult { course_of_study: value });
-            })
-        };
-        rsx! {
+    use_authenticated_data_loader(
+        handler,
+        memo.into(),
+        14 * 24 * 60 * 60,
+        60 * 60,
+        |student_result: StudentResultResponse, reload| {
+            let on_course_of_study_change = {
+                Callback::new(move |e: Event<FormData>| {
+                    let value = e.value();
+                    navigator.push(Route::StudentResult {
+                        course_of_study: value,
+                    });
+                })
+            };
+            rsx! {
             h1 {
                 {"Leistungsspiegel"}
                 {" "}
@@ -84,11 +101,15 @@ pub fn StudentResult(course_of_study: ReadSignal<String>) -> Element {
                 }
             }
         }
-    })
+        },
+    )
 }
 
 #[component]
-pub fn StudentResultLevelComponent(level: ReadSignal<StudentResultLevel>, path: ReadSignal<Vec<String>>) -> Element {
+pub fn StudentResultLevelComponent(
+    level: ReadSignal<StudentResultLevel>,
+    path: ReadSignal<Vec<String>>,
+) -> Element {
     let anonymize = use_context::<Anonymize>().0;
 
     rsx! {

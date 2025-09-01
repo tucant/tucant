@@ -15,10 +15,17 @@ use log::info;
 use regex::Regex;
 use scraper::CaseSensitivity;
 use time::{Duration, OffsetDateTime};
-use tucant_types::{LoginResponse, RevalidationStrategy, TucanError, courseprep::CoursePrepRequest};
+use tucant_types::{
+    LoginResponse, RevalidationStrategy, TucanError, courseprep::CoursePrepRequest,
+};
 
 /// 04.2025
-pub async fn month(tucan: &TucanConnector, login_response: &LoginResponse, revalidation_strategy: RevalidationStrategy, request: String) -> Result<Vec<(String, CoursePrepRequest)>, TucanError> {
+pub async fn month(
+    tucan: &TucanConnector,
+    login_response: &LoginResponse,
+    revalidation_strategy: RevalidationStrategy,
+    request: String,
+) -> Result<Vec<(String, CoursePrepRequest)>, TucanError> {
     println!("{request}");
     let key = format!("unparsed_month.{request}");
 
@@ -26,7 +33,8 @@ pub async fn month(tucan: &TucanConnector, login_response: &LoginResponse, reval
     if revalidation_strategy.max_age != 0 {
         if let Some((content, date)) = &old_content_and_date {
             info!("{}", OffsetDateTime::now_utc() - *date);
-            if OffsetDateTime::now_utc() - *date < Duration::seconds(revalidation_strategy.max_age) {
+            if OffsetDateTime::now_utc() - *date < Duration::seconds(revalidation_strategy.max_age)
+            {
                 return month_internal(login_response, content);
             }
         }
@@ -40,7 +48,8 @@ pub async fn month(tucan: &TucanConnector, login_response: &LoginResponse, reval
         "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MONTH&ARGUMENTS=-N{:015},-N000271,-A01.{},-A,-N000000000000000",
         login_response.id, request
     );
-    let (content, date) = authenticated_retryable_get(tucan, &url, &login_response.cookie_cnsc).await?;
+    let (content, date) =
+        authenticated_retryable_get(tucan, &url, &login_response.cookie_cnsc).await?;
     let result = month_internal(login_response, &content)?;
     if invalidate_dependents && old_content_and_date.as_ref().map(|m| &m.0) != Some(&content) {
         // TODO invalidate cached ones?
@@ -52,8 +61,17 @@ pub async fn month(tucan: &TucanConnector, login_response: &LoginResponse, reval
 }
 
 #[expect(clippy::too_many_lines)]
-fn month_internal(login_response: &LoginResponse, content: &str) -> Result<Vec<(String, CoursePrepRequest)>, TucanError> {
-    static COURSEPREP_REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=COURSEPREP&ARGUMENTS=-N\\d+,-N000271,").unwrap());
+fn month_internal(
+    login_response: &LoginResponse,
+    content: &str,
+) -> Result<Vec<(String, CoursePrepRequest)>, TucanError> {
+    static COURSEPREP_REGEX: LazyLock<Regex> = LazyLock::new(|| {
+        Regex::new(
+            "^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=COURSEPREP&ARGUMENTS=-N\\d+,\
+             -N000271,",
+        )
+        .unwrap()
+    });
 
     let document = parse_document(content);
     //println!("{}", html(&document));

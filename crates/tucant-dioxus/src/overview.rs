@@ -5,10 +5,20 @@ use crate::{RcTucanType, Route, common::use_authenticated_data_loader};
 
 #[component]
 pub fn Overview() -> Element {
-    let handler = async |tucan: RcTucanType, current_session, revalidation_strategy, _additional| tucan.after_login(&current_session, revalidation_strategy).await;
+    let handler =
+        async |tucan: RcTucanType, current_session, revalidation_strategy, _additional| {
+            tucan
+                .after_login(&current_session, revalidation_strategy)
+                .await
+        };
 
-    use_authenticated_data_loader(handler, ReadSignal::new(Signal::new(())), 14 * 24 * 60 * 60, 60 * 60, |mlsstart: MlsStart, reload| {
-        rsx! {
+    use_authenticated_data_loader(
+        handler,
+        ReadSignal::new(Signal::new(())),
+        14 * 24 * 60 * 60,
+        60 * 60,
+        |mlsstart: MlsStart, reload| {
+            rsx! {
             div {
                 h1 {
                     {"Übersicht"}
@@ -119,5 +129,6 @@ pub fn Overview() -> Element {
                 }
             }
         }
-    })
+        },
+    )
 }

@@ -4,10 +4,19 @@ use tucant_types::{Tucan, coursedetails::CourseDetailsRequest};
 
 #[component]
 pub fn CourseDetails(course: ReadSignal<CourseDetailsRequest>) -> Element {
-    let handler = async |tucan: RcTucanType, current_session, revalidation_strategy, additional| tucan.course_details(&current_session, revalidation_strategy, additional).await;
+    let handler = async |tucan: RcTucanType, current_session, revalidation_strategy, additional| {
+        tucan
+            .course_details(&current_session, revalidation_strategy, additional)
+            .await
+    };
 
-    use_authenticated_data_loader(handler, course.to_owned(), 14 * 24 * 60 * 60, 60 * 60, |course, reload| {
-        rsx! {
+    use_authenticated_data_loader(
+        handler,
+        course.to_owned(),
+        14 * 24 * 60 * 60,
+        60 * 60,
+        |course, reload| {
+            rsx! {
             div {
                 h1 {
                     {course.name.clone()}
@@ -273,5 +282,6 @@ pub fn CourseDetails(course: ReadSignal<CourseDetailsRequest>) -> Element {
                 }
             }
         }
-    })
+        },
+    )
 }

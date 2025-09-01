@@ -11,15 +11,22 @@ mod tests {
     use webdriverbidi::{
         events::EventType,
         model::{
-            browsing_context::{BrowsingContext, CloseParameters, CssLocator, GetTreeParameters, LocateNodesParameters, Locator, NavigateParameters, ReadinessState, SetViewportParameters, Viewport},
+            browsing_context::{
+                BrowsingContext, CloseParameters, CssLocator, GetTreeParameters,
+                LocateNodesParameters, Locator, NavigateParameters, ReadinessState,
+                SetViewportParameters, Viewport,
+            },
             common::Extensible,
             input::{
-                ElementOrigin, KeyDownAction, KeySourceAction, KeySourceActions, KeyUpAction, Origin, PerformActionsParameters, PointerCommonProperties, PointerDownAction, PointerMoveAction,
-                PointerParameters, PointerSourceAction, PointerSourceActions, PointerType, PointerUpAction, SourceActions,
+                ElementOrigin, KeyDownAction, KeySourceAction, KeySourceActions, KeyUpAction,
+                Origin, PerformActionsParameters, PointerCommonProperties, PointerDownAction,
+                PointerMoveAction, PointerParameters, PointerSourceAction, PointerSourceActions,
+                PointerType, PointerUpAction, SourceActions,
             },
             script::{
-                CallFunctionParameters, ContextTarget, EvaluateParameters, GetRealmsParameters, IncludeShadowTree, LocalValue, NodeRemoteValue, RealmInfo, RemoteReference, ResultOwnership,
-                SerializationOptions, SharedReference, Target,
+                CallFunctionParameters, ContextTarget, EvaluateParameters, GetRealmsParameters,
+                IncludeShadowTree, LocalValue, NodeRemoteValue, RealmInfo, RemoteReference,
+                ResultOwnership, SerializationOptions, SharedReference, Target,
             },
             session::SubscriptionRequest,
             web_extension::{ExtensionData, ExtensionPath, InstallParameters},
@@ -35,7 +42,10 @@ mod tests {
     static ACTION_ID: AtomicUsize = AtomicUsize::new(1);
 
     async fn get_session() -> WebDriverBiDiSession {
-        SESSION.get_or_init(async || setup_session().await.unwrap()).await.clone()
+        SESSION
+            .get_or_init(async || setup_session().await.unwrap())
+            .await
+            .clone()
     }
 
     async fn setup_session() -> anyhow::Result<WebDriverBiDiSession> {
@@ -49,13 +59,20 @@ mod tests {
                 }),
             ),
         ]));
-        capabilities.add_first_match(HashMap::from([("browserName".to_owned(), json!("firefox"))]));
+        capabilities.add_first_match(HashMap::from([(
+            "browserName".to_owned(),
+            json!("firefox"),
+        )]));
         let mut session = WebDriverBiDiSession::new("localhost".to_owned(), 4444, capabilities);
         session.start().await?;
         Ok(session)
     }
 
-    async fn navigate(session: &mut WebDriverBiDiSession, ctx: BrowsingContext, url: String) -> anyhow::Result<()> {
+    async fn navigate(
+        session: &mut WebDriverBiDiSession,
+        ctx: BrowsingContext,
+        url: String,
+    ) -> anyhow::Result<()> {
         let navigate_params = NavigateParameters::new(ctx, url, Some(ReadinessState::Complete));
         session.browsing_context_navigate(navigate_params).await?;
         Ok(())
@@ -73,7 +90,11 @@ mod tests {
             .collect()
     }
 
-    async fn click_element(session: &mut WebDriverBiDiSession, browsing_context: String, node: &NodeRemoteValue) -> anyhow::Result<()> {
+    async fn click_element(
+        session: &mut WebDriverBiDiSession,
+        browsing_context: String,
+        node: &NodeRemoteValue,
+    ) -> anyhow::Result<()> {
         let a: Box<[PointerSourceAction]> = Box::new([
             PointerSourceAction::PointerMoveAction(PointerMoveAction::new(
                 5.0,
@@ -86,24 +107,36 @@ mod tests {
                 }))),
                 PointerCommonProperties::new(None, None, None, None, None, None, None),
             )),
-            PointerSourceAction::PointerDownAction(PointerDownAction::new(0, PointerCommonProperties::new(None, None, None, None, None, None, None))),
+            PointerSourceAction::PointerDownAction(PointerDownAction::new(
+                0,
+                PointerCommonProperties::new(None, None, None, None, None, None, None),
+            )),
             PointerSourceAction::PointerUpAction(PointerUpAction::new(0)),
         ]);
         let a = a.into_vec();
 
         let id = ACTION_ID.fetch_add(1, Ordering::Relaxed);
-        let b: Box<[SourceActions]> = Box::new([SourceActions::PointerSourceActions(PointerSourceActions::new(
-            id.to_string(),
-            Some(PointerParameters::new(Some(PointerType::Mouse))),
-            a,
-        ))]);
+        let b: Box<[SourceActions]> = Box::new([SourceActions::PointerSourceActions(
+            PointerSourceActions::new(
+                id.to_string(),
+                Some(PointerParameters::new(Some(PointerType::Mouse))),
+                a,
+            ),
+        )]);
         let b = b.into_vec();
 
-        session.input_perform_actions(PerformActionsParameters::new(browsing_context.clone(), b)).await?;
+        session
+            .input_perform_actions(PerformActionsParameters::new(browsing_context.clone(), b))
+            .await?;
         Ok(())
     }
 
-    async fn write_text(session: &mut WebDriverBiDiSession, browsing_context: String, element: &str, input: &str) -> anyhow::Result<()> {
+    async fn write_text(
+        session: &mut WebDriverBiDiSession,
+        browsing_context: String,
+        element: &str,
+        input: &str,
+    ) -> anyhow::Result<()> {
         let node = session
             .browsing_context_locate_nodes(LocateNodesParameters::new(
                 browsing_context.clone(),
@@ -125,11 +158,13 @@ mod tests {
                 .to_owned(),
                 false,
                 Target::ContextTarget(ContextTarget::new(browsing_context.clone(), None)),
-                Some(vec![LocalValue::RemoteReference(RemoteReference::SharedReference(SharedReference {
-                    handle: node.handle.clone(),
-                    shared_id: node.shared_id.clone().unwrap(),
-                    extensible: HashMap::default(),
-                }))]),
+                Some(vec![LocalValue::RemoteReference(
+                    RemoteReference::SharedReference(SharedReference {
+                        handle: node.handle.clone(),
+                        shared_id: node.shared_id.clone().unwrap(),
+                        extensible: HashMap::default(),
+                    }),
+                )]),
                 Some(ResultOwnership::Root),
                 Some(SerializationOptions {
                     max_dom_depth: Some(10),
@@ -147,10 +182,14 @@ mod tests {
         click_element(session, browsing_context.clone(), node).await?;
 
         let id = ACTION_ID.fetch_add(1, Ordering::Relaxed);
-        let e: Box<[SourceActions]> = Box::new([SourceActions::KeySourceActions(KeySourceActions::new(id.to_string(), generate_keypresses(input)))]);
+        let e: Box<[SourceActions]> = Box::new([SourceActions::KeySourceActions(
+            KeySourceActions::new(id.to_string(), generate_keypresses(input)),
+        )]);
         let e = e.into_vec();
 
-        session.input_perform_actions(PerformActionsParameters::new(browsing_context.clone(), e)).await?;
+        session
+            .input_perform_actions(PerformActionsParameters::new(browsing_context.clone(), e))
+            .await?;
 
         Ok(())
     }
@@ -158,8 +197,10 @@ mod tests {
     #[tokio::test]
     async fn it_works() -> anyhow::Result<()> {
         dotenvy::dotenv().unwrap();
-        let username = std::env::var("TUCAN_USERNAME").expect("env variable TUCAN_USERNAME missing");
-        let password = std::env::var("TUCAN_PASSWORD").expect("env variable TUCAN_PASSWORD missing");
+        let username =
+            std::env::var("TUCAN_USERNAME").expect("env variable TUCAN_USERNAME missing");
+        let password =
+            std::env::var("TUCAN_PASSWORD").expect("env variable TUCAN_PASSWORD missing");
 
         env_logger::init();
 
