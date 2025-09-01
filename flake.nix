@@ -24,7 +24,7 @@
 
         inherit (pkgs) lib;
 
-        rustToolchainFor = p: p.rust-bin.stable.latest.minimal.override {
+        rustToolchainFor = p: p.rust-bin.nightly.latest.minimal.override {
           targets = [ "wasm32-unknown-unknown" ];
           extensions = [ "rustfmt" ];
         };
