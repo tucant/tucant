@@ -338,6 +338,8 @@ pub enum ModuleGrade {
     NochNichtGesetzt,
     /// Probably only used for Validierung
     BestandenOhneNote,
+    // Krankschreibung?
+    Unvollständig,
 }
 
 impl From<(Option<&str>, Option<&str>)> for ModuleGrade {
@@ -346,6 +348,7 @@ impl From<(Option<&str>, Option<&str>)> for ModuleGrade {
             (Some("noch nicht gesetzt"), None) => Self::NochNichtGesetzt,
             (None, Some("bestanden")) => Self::BestandenOhneNote,
             (Some(s), Some("bestanden")) => Self::Grade(Grade::from_str(s).unwrap()),
+            (None, Some("unvollständig")) => Self::Unvollständig,
             _ => panic!("{s:?}"),
         }
     }
@@ -356,6 +359,7 @@ impl Display for ModuleGrade {
         match self {
             Self::NochNichtGesetzt => write!(f, "noch nicht gesetzt"),
             Self::BestandenOhneNote => write!(f, "bestanden ohne Note"),
+            Self::Unvollständig => write!(f, "unvollständig"),
             Self::Grade(grade) => write!(f, "{grade}"),
         }
     }
