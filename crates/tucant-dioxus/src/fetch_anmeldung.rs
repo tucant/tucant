@@ -74,12 +74,17 @@ pub fn FetchAnmeldung() -> Element {
     );
 
     rsx! {
-        div { class: "container",
-            h1 { class: "text-center", "Anmeldungsexporte" }
-            p {
-                "Das Laden könnte etwas länger dauern (5-10 Minuten). Außerdem macht es ca. 1500 Anfragen an TUCaN und benötigt ca. 30MB Datenvolumen."
+        div {
+            class: "container",
+            h1 {
+                class: "text-center",
+                "Anmeldungsexporte"
             }
-            {result}
+            p {
+                "Das Laden könnte etwas länger dauern (5-10 Minuten). Außerdem macht es ca. 1500 \
+                 Anfragen an TUCaN und benötigt ca. 30MB Datenvolumen."
+            }
+            { result }
         }
     }
 }

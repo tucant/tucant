@@ -68,7 +68,8 @@ pub fn Navbar() -> Element {
                     width: "16",
                     xmlns: "http://www.w3.org/2000/svg",
                     path {
-                        d: "M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8",
+                        d: "M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 \
+                         0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8",
                         fill_rule: "evenodd",
                     }
                 }
@@ -79,10 +80,16 @@ pub fn Navbar() -> Element {
     };
 
     rsx! {
-        nav { class: "navbar navbar-expand-xl bg-body-tertiary",
-            div { class: "container-fluid",
-                {back_button}
-                a { class: "navbar-brand", href: "#/", "TUCaN't" }
+        nav {
+            class: "navbar navbar-expand-xl bg-body-tertiary",
+            div {
+                class: "container-fluid",
+                { back_button }
+                a {
+                    class: "navbar-brand",
+                    href: "#/",
+                    "TUCaN't"
+                }
                 button {
                     aria_controls: "navbarSupportedContent",
                     aria_expanded: "false",
@@ -91,30 +98,41 @@ pub fn Navbar() -> Element {
                     "data-bs-target": "#navbarSupportedContent",
                     "data-bs-toggle": "collapse",
                     r#type: "button",
-                    span { class: "navbar-toggler-icon" }
+                    span {
+                        class: "navbar-toggler-icon",
+                    }
                 }
                 div {
                     class: "collapse navbar-collapse",
                     id: "navbarSupportedContent",
-                    ul { class: "navbar-nav me-auto mb-2 mb-xl-0",
+                    ul {
+                        class: "navbar-nav me-auto mb-2 mb-xl-0",
                         if let Some(current_session) = current_session() {
                             if let Some(Ok(data)) = data() {
-                                NavbarLoggedIn { current_session, data }
+                                NavbarLoggedIn {
+                                    current_session,
+                                    data,
+                                }
                             } else {
-                                NavbarLoggedOut {}
+                                NavbarLoggedOut {
+                                }
                             }
                         } else {
-                            NavbarLoggedOut {}
+                            NavbarLoggedOut {
+                            }
                         }
                     }
                     if let Some(_current_session) = current_session() {
-                        LogoutComponent {}
+                        LogoutComponent {
+                        }
                     } else {
-                        LoginComponent {}
+                        LoginComponent {
+                        }
                     }
                 }
             }
         }
-        Outlet::<Route> {}
+        Outlet::<Route> {
+        }
     }
 }
