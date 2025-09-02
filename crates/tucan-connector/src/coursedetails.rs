@@ -373,7 +373,7 @@ fn course_details_internal(
                                     </tr>
                                 </tbody>
                             </table>
-                            let _kein_material = if html_handler
+                            let _material = if html_handler
                                 .peek()
                                 .unwrap()
                                 .first_child()
@@ -388,11 +388,34 @@ fn course_details_internal(
                                         "Material zur gesamten Veranstaltung"
                                     </caption>
                                     <tbody>
-                                        <tr>
-                                            <td class="tbdata" colspan="3">
-                                                "Es liegt kein Material vor."
-                                            </td>
-                                        </tr>
+                                        let material = if html_handler.peek().unwrap().first_child().unwrap().value().as_element().unwrap().has_class("tbsubhead", CaseSensitivity::CaseSensitive) {
+                                            let material = while html_handler.peek().is_some() && html_handler.peek().unwrap().first_child().unwrap().value().as_element().unwrap().has_class("tbsubhead", CaseSensitivity::CaseSensitive) {
+                                                <tr>
+                                                    <td class="tbsubhead" colspan="3"><span name="materialCategory">"Information"</span></td>
+                                                </tr>
+                                                <tr>
+                                                    <td>"1"</td>
+                                                    <td class="tbdata_nob" name="materialDescription" materialid=material_id colspan="2">material_title</td>
+                                                </tr>
+                                                <tr class="tbdata">
+                                                    <td></td>
+                                                    <td colspan="2"></td>
+                                                </tr>
+                                                <tr class="tbdata">
+                                                    <td></td>
+											        <td colspan="2">
+                                                        text
+                                                        <a title=link_title href=link_href target="_blank">link_text</a>
+											        </td>
+											    </tr>
+                                            } => ();
+                                        } => () else {
+                                            <tr>
+                                                <td class="tbdata" colspan="3">
+                                                    "Es liegt kein Material vor."
+                                                </td>
+                                            </tr>
+                                        } => ();
                                     </tbody>
                                 </table>
                             } => ();
@@ -826,3 +849,17 @@ fn course_details_internal(
         plenumsveranstaltung_url: uebungsgruppen.0,
     })
 }
+
+/*
+#[test]
+fn test_course_details() {
+    course_details_internal(
+        &LoginResponse {
+            id: 42,
+            cookie_cnsc: String::new(),
+        },
+        include_str!("../private/test.html"),
+        &CourseDetailsRequest::parse("-N0,-N393376110023289,-N393376110091290,-N0,-N0,-N3"),
+    );
+}
+*/
