@@ -39,7 +39,7 @@ impl From<(&str, &str, &str)> for StudentResultState {
             ("/img/individual/incomplete.gif", "Unvollständig", "Unvollständig") => {
                 Self::Unvollstaendig
             }
-            ("/img/individual/open.gif", "Offen", "Offen") => Self::Offen,
+            ("/img/individual/incomplete.gif", "Offen", "Offen") => Self::Offen,
             s => panic!("{s:?}"),
         }
     }
