@@ -191,8 +191,10 @@ fn my_exams_internal(
                                                     </b>
                                                     _topic
                                                     <br></br>
-                                                    _submitted_date
-                                                    <br></br>
+                                                    let submitted = if html_handler.peek().is_some() {
+                                                        _submitted_date
+                                                        <br></br>
+                                                    } => ();
                                                 } => ();
                                             } => (name, None, Some(ModuleDetailsRequest::parse(&MODULEDETAILS_REGEX.replace(&moduledetails_url, ""))), None);
                                         </td>
