@@ -273,6 +273,8 @@ pub enum LeistungsspiegelGrade {
     Offen,
     /// Validierung
     BestandenOhneNote,
+    /// DO NOT ASK, wenn Summe Bereich noch keinen Haken hat, ist das dort
+    OffenerBereich,
 }
 
 impl From<(Option<&str>, StudentResultState)> for LeistungsspiegelGrade {
@@ -281,6 +283,7 @@ impl From<(Option<&str>, StudentResultState)> for LeistungsspiegelGrade {
             (Some("unvollständig"), StudentResultState::Unvollstaendig) => Self::Unvollständig,
             (None, StudentResultState::Offen) => Self::Offen,
             (None, StudentResultState::Bestanden) => Self::BestandenOhneNote,
+            (None, StudentResultState::OffenerBereich) => Self::OffenerBereich,
             (Some(s), StudentResultState::Bestanden | StudentResultState::NichtBestanden) => {
                 Self::Grade(Grade::from_str(s).unwrap())
             }
@@ -295,6 +298,7 @@ impl Display for LeistungsspiegelGrade {
             Self::Unvollständig => write!(f, "unvollständig"),
             Self::Offen => write!(f, "offen"),
             Self::BestandenOhneNote => write!(f, "bestanden ohne Note"),
+            Self::OffenerBereich => write!(f, "offener Bereich"),
             Self::Grade(grade) => write!(f, "{grade}"),
         }
     }

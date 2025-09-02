@@ -7,8 +7,7 @@ use crate::{ModuleGrade, Semesterauswahl, gradeoverview::GradeOverviewRequest};
 pub struct ModuleResultsResponse {
     pub semester: Vec<Semesterauswahl>,
     pub results: Vec<ModuleResult>,
-    pub average_grade: String,
-    pub sum_credits: String,
+    pub gpas: Vec<(String, String, String)>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]

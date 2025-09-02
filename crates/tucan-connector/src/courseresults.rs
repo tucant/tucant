@@ -160,7 +160,7 @@ fn courseresults_internal(
                                 </tr>
                             </thead>
                             <tbody>
-                                let results = while html_handler.peek().unwrap().next_sibling().is_some() {
+                                let results = while html_handler.peek().unwrap().first_child().unwrap().value().as_element().unwrap().name() == "td" {
                                     <tr>
                                         <td class="tbdata">
                                             nr
@@ -212,19 +212,21 @@ fn courseresults_internal(
                                     pruefungen_url,
                                     average_url
                                 };
-                                <tr>
-                                    <th colspan="2">
-                                        "Semester-GPA"
-                                    </th>
-                                    <th class="tbdata">
-                                        average_grade
-                                    </th>
-                                    <th>
-                                        sum_credits
-                                    </th>
-                                    <th class="tbdata" colspan="4">
-                                    </th>
-                                </tr>
+                                let gpas = while html_handler.peek().is_some() {
+                                    <tr>
+                                        <th colspan="2">
+                                            course_of_study
+                                        </th>
+                                        <th class="tbdata">
+                                            average_grade
+                                        </th>
+                                        <th>
+                                            sum_credits
+                                        </th>
+                                        <th class="tbdata" colspan="4">
+                                        </th>
+                                    </tr>
+                                } => (course_of_study, average_grade, sum_credits);
                             </tbody>
                         </table>
                     </div>
@@ -237,7 +239,6 @@ fn courseresults_internal(
     Ok(ModuleResultsResponse {
         semester,
         results,
-        average_grade,
-        sum_credits,
+        gpas,
     })
 }

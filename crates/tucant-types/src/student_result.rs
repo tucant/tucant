@@ -25,8 +25,12 @@ pub struct StudentResultEntry {
 pub enum StudentResultState {
     Bestanden,
     NichtBestanden,
+    /// Krankschreibung?
     Unvollstaendig,
+    /// vermutlich verspätete Note
     Offen,
+    /// DO NOT ASK, wenn Summe Bereich noch keinen Haken hat, ist das dort
+    OffenerBereich,
 }
 
 impl From<(&str, &str, &str)> for StudentResultState {
@@ -36,10 +40,9 @@ impl From<(&str, &str, &str)> for StudentResultState {
             ("/img/individual/fail.gif", "Nicht Bestanden", "Nicht Bestanden") => {
                 Self::NichtBestanden
             }
-            ("/img/individual/incomplete.gif", "Unvollständig", "Unvollständig") => {
-                Self::Unvollstaendig
-            }
-            ("/img/individual/incomplete.gif", "Offen", "Offen") => Self::Offen,
+            ("/img/individual/open.gif", "Offen", "Offen") => Self::OffenerBereich,
+            // DO NOT ASK
+            ("/img/individual/incomplete.gif", "Offen", "Offen") => Self::Unvollstaendig,
             s => panic!("{s:?}"),
         }
     }
@@ -52,6 +55,7 @@ impl std::fmt::Display for StudentResultState {
             Self::NichtBestanden => write!(f, "Nicht Bestanden"),
             Self::Unvollstaendig => write!(f, "Unvollständig"),
             Self::Offen => write!(f, "Offen"),
+            Self::OffenerBereich => write!(f, "Offener Bereich"),
         }
     }
 }
