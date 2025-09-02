@@ -69,7 +69,7 @@ pub struct LoggedOutHead {
 pub struct VorlesungsverzeichnisUrls {
     pub lehrveranstaltungssuche_url: String,
     pub vvs: Vec<(String, ActionRequest)>,
-    pub archiv_links: Vec<(String, String, String)>,
+    pub archiv_links: Vec<(String, ActionRequest, String)>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, ToSchema)]

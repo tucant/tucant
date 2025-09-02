@@ -79,7 +79,7 @@ fn vv_internal(
                     <style type="text/css">
                         _ignore
                     </style>
-                    let _ewf = if html_handler.peek().is_some() {
+                    let _ewf = while html_handler.peek().is_some() {
                         <style type="text/css">
                             _ignore
                         </style>

@@ -283,7 +283,11 @@ pub fn vv_something<'a>(
                                 text
                             </a>
                         </li>
-                    } => (title, url, text);
+                    } => (
+                        title,
+                        ActionRequest::parse(&ACTION_REGEX.replace(&url, "")),
+                        text
+                    );
                 </ul>
             </li>
         </ul>
