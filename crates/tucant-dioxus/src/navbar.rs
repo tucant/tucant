@@ -80,10 +80,16 @@ pub fn Navbar() -> Element {
     };
 
     rsx! {
-        nav { class: "navbar navbar-expand-xl bg-body-tertiary",
-            div { class: "container-fluid",
-                {back_button}
-                a { class: "navbar-brand", href: "#/", "TUCaN't" }
+        nav {
+            class: "navbar navbar-expand-xl bg-body-tertiary",
+            div {
+                class: "container-fluid",
+                { back_button }
+                a {
+                    class: "navbar-brand",
+                    href: "#/",
+                    "TUCaN't"
+                }
                 button {
                     aria_controls: "navbarSupportedContent",
                     aria_expanded: "false",
@@ -92,15 +98,21 @@ pub fn Navbar() -> Element {
                     "data-bs-target": "#navbarSupportedContent",
                     "data-bs-toggle": "collapse",
                     r#type: "button",
-                    span { class: "navbar-toggler-icon" }
+                    span {
+                        class: "navbar-toggler-icon",
+                    }
                 }
                 div {
                     class: "collapse navbar-collapse",
                     id: "navbarSupportedContent",
-                    ul { class: "navbar-nav me-auto mb-2 mb-xl-0",
+                    ul {
+                        class: "navbar-nav me-auto mb-2 mb-xl-0",
                         if let Some(current_session) = current_session() {
                             if let Some(Ok(data)) = data() {
-                                NavbarLoggedIn { current_session, data }
+                                NavbarLoggedIn {
+                                    current_session,
+                                    data,
+                                }
                             } else {
                                 NavbarLoggedOut {
                                 }

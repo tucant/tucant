@@ -76,7 +76,9 @@ pub fn LoginComponent() -> Element {
         ""
     };
     rsx! {
-        form { onsubmit: on_submit, class: "d-flex",
+        form {
+            onsubmit: on_submit,
+            class: "d-flex",
             input {
                 id: "login-username",
                 value: "{username}",
@@ -89,7 +91,8 @@ pub fn LoginComponent() -> Element {
                 autocomplete: "current-username",
                 disabled: loading(),
             }
-            div { class: "align-self-start input-group has-validation",
+            div {
+                class: "align-self-start input-group has-validation",
                 input {
                     id: "login-password",
                     value: "{password}",
@@ -104,7 +107,11 @@ pub fn LoginComponent() -> Element {
                     disabled: loading(),
                 }
                 if let Some(error_message) = error_message() {
-                    div { id: "password-feedback", class: "invalid-feedback", "{error_message}" }
+                    div {
+                        id: "password-feedback",
+                        class: "invalid-feedback",
+                        "{error_message}"
+                    }
                 }
             }
             button {

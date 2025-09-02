@@ -97,10 +97,17 @@ fn App() -> Element {
     let login_response = use_signal(|| login_response);
     provide_context(login_response);
     rsx! {
-        document::Link { rel: "stylesheet", href: BOOTSTRAP_CSS }
+        document::Link {
+            rel: "stylesheet",
+            href: BOOTSTRAP_CSS,
+        }
         Router::<Route> {
         }
-        script { src: BOOTSTRAP_JS }
-        script { src: BOOTSTRAP_PATCH_JS }
+        script {
+            src: BOOTSTRAP_JS,
+        }
+        script {
+            src: BOOTSTRAP_PATCH_JS,
+        }
     }
 }
