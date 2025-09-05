@@ -83,7 +83,7 @@ fn course_details_internal(
                         "lbOQfuwTSH1NQfB9sjkC-_xOS0UGzyKBoNNl8bXs_FE"
                     </style>
                     <style type="text/css">
-                        "qZ_1IiJLIcPvkbl6wYm5QbasBhsSKdRw5fl6vVyINxY"
+                        _efw
                     </style>
                 </head>
                 <body class="coursedetails">
@@ -118,19 +118,41 @@ fn course_details_internal(
                                     "Veranstaltungsdetails"
                                 </caption>
                                 <tbody>
-                                    <tr>
-                                        <td class="tbcontrol" colspan="3">
-                                            let material_and_messages_url = if html_handler.peek().is_some() {
-                                                <a href=material_url class="arrow">
-                                                    "Material"
-                                                </a>
-                                                use html_handler.skip_any_comment();
-                                                <a href=messages_url class="arrow">
-                                                    "Nachrichten"
-                                                </a>
-                                            } => (material_url, messages_url);
-                                        </td>
-                                    </tr>
+                                    let editor = if html_handler.peek().unwrap().first_child().unwrap().value().as_element().unwrap().has_class("tbdata", CaseSensitivity::CaseSensitive) {
+                                        <tr>
+				<td class="tbdata" colspan="3">
+					<b>anmeldungsstatus
+					</b>
+				</td>
+			</tr>
+        
+		<tr>
+			<td class="tbcontrol" colspan="3">
+                            <a href=newprep_url class="arrow">
+									"Material hinzufügen"
+								</a>
+                                        <a href=material_url class="arrow">"Material"</a>
+								<a href=action_url class="arrow">"Nachrichten"</a>
+                                                                <a href=courseequipment_url class="arrow">"Ausstattung"</a>
+                                                    <a href=examslist_url class="arrow">"Noteneingabe"</a>
+						<a href=action_url class="arrow">"Teilnehmer"</a>
+                                                        </td>
+		</tr>
+                                    } => () else {
+                                        <tr>
+                                            <td class="tbcontrol" colspan="3">
+                                                let material_and_messages_url = if html_handler.peek().is_some() {
+                                                    <a href=material_url class="arrow">
+                                                        "Material"
+                                                    </a>
+                                                    use html_handler.skip_any_comment();
+                                                    <a href=messages_url class="arrow">
+                                                        "Nachrichten"
+                                                    </a>
+                                                } => (material_url, messages_url);
+                                            </td>
+                                        </tr>
+                                    } => ();
                                     <tr>
                                         <td class="tbdata" colspan="3">
                                             let dozent = if &**html_handler
@@ -410,6 +432,11 @@ fn course_details_internal(
 											    </tr>
                                             } => ();
                                         } => () else {
+                                            let editor = if html_handler.peek().unwrap().first_child().unwrap().value().as_element().unwrap().has_class("tbcontrol", CaseSensitivity::CaseSensitive) {
+                                                <tr>
+                                                    <td class="tbcontrol" colspan="3"><a href=newprep_url class="arrow">"Material hinzufügen"</a></td>
+                                                </tr>
+                                            } => ();
                                             <tr>
                                                 <td class="tbdata" colspan="3">
                                                     "Es liegt kein Material vor."
@@ -552,17 +579,29 @@ fn course_details_internal(
                                     } => Vec::<Termin>::new() else {
                                         let termine = while html_handler.peek().is_some() {
                                             <tr>
-                                                <td class="tbdata rw">
+                                                <td class=_>
                                                     id
                                                 </td>
-                                                <td class="tbdata rw rw-course-date" name="appointmentDate">
-                                                    date
+                                                <td class="tbdata rw rw-course-date" xss="">
+                                                    let date = if html_handler.peek().unwrap().value().is_element() {
+                                                        <a name="appointmentDate" appointmentid=id href=courseprep_url>date</a>
+                                                    } => date else {
+                                                        date
+                                                    } => date;
                                                 </td>
-                                                <td class="tbdata rw rw-course-from" name="appointmentTimeFrom">
-                                                    time_start
+                                                <td class="tbdata rw rw-course-from" xss="">
+                                                    let time_start = if html_handler.peek().unwrap().value().is_element() {
+                                                        <a name="appointmentTimeFrom" href=courseprep_url>time_start</a>
+                                                    } => time_start else {
+                                                        time_start
+                                                    } => time_start;
                                                 </td>
-                                                <td class="tbdata rw rw-course-to" name="appointmentDateTo">
-                                                    time_end
+                                                <td class="tbdata rw rw-course-to" xss="">
+                                                    let time_end = if html_handler.peek().unwrap().value().is_element() {
+                                                        <a name="appointmentTimeTo" href=courseprep_url>time_end</a>
+                                                    } => time_end else {
+                                                        time_end
+                                                    } => time_end;
                                                 </td>
                                                 <td class="tbdata rw rw-course-room">
                                                     let rooms = if html_handler.peek().is_some()
@@ -604,9 +643,9 @@ fn course_details_internal(
                                             </tr>
                                         } => Termin {
                                             id,
-                                            date,
-                                            time_start,
-                                            time_end,
+                                            date: date.either_into(),
+                                            time_start: time_start.either_into(),
+                                            time_end: time_end.either_into(),
                                             instructors,
                                             rooms: rooms.either_into()
                                         };
@@ -658,8 +697,7 @@ fn course_details_internal(
                                     "Übersicht der Kurstermine"
                                 </div>
                                 <ul class="courseList">
-                                    let short_termine = if **html_handler.peek().unwrap().children().next().unwrap().value().as_text().unwrap()
-                                        == *"Es liegen keine Termine vor." {
+                                    let short_termine = if html_handler.peek().unwrap().value().as_element().unwrap().attr("class").unwrap() == "courseListCell noLink"  {
                                         <li class="courseListCell noLink">
                                             "Es liegen keine Termine vor."
                                         </li>
@@ -670,20 +708,25 @@ fn course_details_internal(
                                             }
                                             let short_termine = while i < 5 {
                                                 let short_termin = if html_handler.peek().unwrap().value().as_element().unwrap().attr("class").unwrap()
-                                                    == "courseListCell numout" {
-                                                    <li class="courseListCell numout" title=title xss="">
-                                                        number
-                                                    </li>
-                                                    let _comment = if i == 4 {
-                                                    } => ();
-                                                } => (title, number) else {
+                                                    == "courseListCell noLink" {
                                                     <li class="courseListCell noLink">
                                                     </li>
-                                                } => ();
+                                                } => () else {
+                                                    let short_termin = if html_handler.peek().unwrap().value().as_element().unwrap().attr("class").unwrap()
+                                                    == "courseListCell numout" {
+                                                        <li class="courseListCell numout" title=title xss="">
+                                                            number
+                                                        </li>
+                                                    } => (title, number) else {
+                                                        <li class="courseListCellHover numout" title=title>
+                                                            <a href=href class="numlink">number</a>
+                                                        </li>
+                                                    } => (title, number);
+                                                } => short_termin.either_into();
                                                 extern {
                                                     i += 1;
                                                 }
-                                            } => short_termin.left();
+                                            } => short_termin.right();
                                         } => short_termine.into_iter().flatten().collect::<Vec<_>>();
                                     } => short_termine.into_iter().flatten().collect::<Vec<_>>();
                                 </ul>
@@ -728,6 +771,19 @@ fn course_details_internal(
                                 </table>
                             } => instructors;
                         </div>
+                        let _inputs = if html_handler.peek().is_some() {
+                            <input name="APPNAME" type="hidden" value="CampusNet"></input>
+                            <input name="PRGNAME" type="hidden" value="COURSEDETAILSSAVE"></input>
+                            <input name="ARGUMENTS" type="hidden" value="sessionno,menuid,study,coursedetailid,showdate,mgshowdate,lgshow,sign,close,coursename,credits,location,language,max_participantsno,min_participantsno,sws,shortdescription,coursetyp,courselevel,medianumbers"></input>
+                            <input name="sessionno" type="hidden" value=sessionno></input>
+                            <input name="menuid" type="hidden" value=menuid></input>
+                            <input name="study" type="hidden" value=study></input>
+                            <input name="courseno" type="hidden" value=courseno></input>
+                            <input name="coursedetailid" type="hidden" value=coursedetailid></input>
+                            <input name="close" type="hidden" value=close></input>
+                            <input name="coursename" type="hidden" value=coursename></input>
+                            <input name="medianumbers" type="hidden" value=medianumbers></input>
+                        } => ();
                     </form>
                     <script type="text/javascript">
                         _trash
@@ -803,7 +859,7 @@ fn course_details_internal(
     Ok(CourseDetailsResponse {
         id: id.trim().to_owned(),
         name: name.trim().to_owned(),
-        material_and_messages_url,
+        material_and_messages_url: None,
         r#type: course_type_and_number
             .clone()
             .either_into::<(String, String)>()
