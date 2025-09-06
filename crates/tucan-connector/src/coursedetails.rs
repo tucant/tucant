@@ -120,23 +120,23 @@ fn course_details_internal(
                                 <tbody>
                                     let editor = if html_handler.peek().unwrap().first_child().unwrap().value().as_element().unwrap().has_class("tbdata", CaseSensitivity::CaseSensitive) {
                                         <tr>
-				<td class="tbdata" colspan="3">
-					<b>anmeldungsstatus
-					</b>
-				</td>
-			</tr>
-		<tr>
-			<td class="tbcontrol" colspan="3">
+                <td class="tbdata" colspan="3">
+                    <b>anmeldungsstatus
+                    </b>
+                </td>
+            </tr>
+        <tr>
+            <td class="tbcontrol" colspan="3">
                             <a href=newprep_url class="arrow">
-									"Material hinzufügen"
-								</a>
+                                    "Material hinzufügen"
+                                </a>
                                         <a href=material_url class="arrow">"Material"</a>
-								<a href=action_url class="arrow">"Nachrichten"</a>
+                                <a href=action_url class="arrow">"Nachrichten"</a>
                                                                 <a href=courseequipment_url class="arrow">"Ausstattung"</a>
                                                     <a href=examslist_url class="arrow">"Noteneingabe"</a>
-						<a href=action_url class="arrow">"Teilnehmer"</a>
+                        <a href=action_url class="arrow">"Teilnehmer"</a>
                                                         </td>
-		</tr>
+        </tr>
                                     } => () else {
                                         <tr>
                                             <td class="tbcontrol" colspan="3">
@@ -424,11 +424,11 @@ fn course_details_internal(
                                                 </tr>
                                                 <tr class="tbdata">
                                                     <td></td>
-											        <td colspan="2">
+                                                    <td colspan="2">
                                                         text
                                                         <a title=link_title href=link_href target="_blank">link_text</a>
-											        </td>
-											    </tr>
+                                                    </td>
+                                                </tr>
                                             } => ();
                                         } => () else {
                                             let editor = if html_handler.peek().unwrap().first_child().unwrap().value().as_element().unwrap().has_class("tbcontrol", CaseSensitivity::CaseSensitive) {
