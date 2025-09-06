@@ -5,7 +5,8 @@ use sqlite_wasm_rs::{
     relaxed_idb_vfs::{RelaxedIdbCfg, install as install_idb_vfs},
 };
 use tucant_planning::abc;
-use web_sys::{FileList, HtmlInputElement};
+use wasm_bindgen_futures::JsFuture;
+use web_sys::{FileList, FileReader, HtmlInputElement};
 
 // TODO at some point put opfs into a dedicated worker as that is the most
 // correct approach TODO put this into a shared worker so there are no race
@@ -53,7 +54,10 @@ pub fn Planning() -> Element {
                         let b: HtmlInputElement = a.dyn_into::<HtmlInputElement>().unwrap();
                         let files: FileList = b.files().unwrap();
                         for i in 0..files.length() {
-                            info!("{}", files.get(i).unwrap().name())
+                            let file = files.get(i).unwrap();
+                            info!("{}", file.name());
+                            let array_buffer = JsFuture::from(file.array_buffer()).await.unwrap();
+                            info!("{}", array_buffer);
                         }
                     }
                 },
