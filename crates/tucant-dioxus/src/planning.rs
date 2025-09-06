@@ -1,25 +1,24 @@
 use dioxus::prelude::*;
-use tucant_planning::abc;
-
 use sqlite_wasm_rs::{
     self as ffi,
-    sahpool_vfs::{install as install_opfs_sahpool, OpfsSAHPoolCfg},
+    relaxed_idb_vfs::{RelaxedIdbCfg, install as install_idb_vfs},
 };
+use tucant_planning::abc;
 
 async fn open_db() {
-    // install opfs-sahpool persistent vfs and set as default vfs
-    install_opfs_sahpool(&OpfsSAHPoolCfg::default(), true)
+    // install relaxed-idb persistent vfs and set as default vfs
+    install_idb_vfs(&RelaxedIdbCfg::default(), true)
         .await
         .unwrap();
 
-    // open with opfs-sahpool vfs
+    // open with relaxed-idb vfs
     let mut db = std::ptr::null_mut();
     let ret = unsafe {
         ffi::sqlite3_open_v2(
-            c"opfs-sahpool.db".as_ptr().cast(),
+            c"relaxed-idb.db".as_ptr().cast(),
             &mut db as *mut _,
             ffi::SQLITE_OPEN_READWRITE | ffi::SQLITE_OPEN_CREATE,
-            std::ptr::null()
+            std::ptr::null(),
         )
     };
     assert_eq!(ffi::SQLITE_OK, ret);
@@ -27,8 +26,11 @@ async fn open_db() {
 
 #[component]
 pub fn Planning() -> Element {
-    let a = abc();
-    rsx! {
+    let test = use_resource(move || async move {
+        let test = open_db().await;
         "Test"
+    });
+    rsx! {
+        { *test.read() }
     }
 }

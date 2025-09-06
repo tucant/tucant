@@ -34,7 +34,7 @@ git-version = "0.3"
 tokio = { features = ["macros", "rt", "rt-multi-thread"], version = "1" }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
-sqlite-wasm-rs = { version = "0.4", default-features = false, features = ["bundled"] }
+sqlite-wasm-rs = { version = "0.4", default-features = false, features = ["bundled", "relaxed-idb"] }
 
 [features]
 direct = ["web", "dep:tucan-connector", "dep:web-extensions-sys"]
