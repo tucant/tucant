@@ -125,7 +125,6 @@ fn course_details_internal(
 					</b>
 				</td>
 			</tr>
-        
 		<tr>
 			<td class="tbcontrol" colspan="3">
                             <a href=newprep_url class="arrow">
