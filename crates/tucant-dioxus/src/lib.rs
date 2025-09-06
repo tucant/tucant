@@ -18,10 +18,11 @@ pub mod navbar;
 pub mod navbar_logged_in;
 pub mod navbar_logged_out;
 pub mod overview;
+#[cfg(target_arch = "wasm32")]
+pub mod planning;
 pub mod registration;
 pub mod student_result;
 pub mod vv;
-pub mod planning;
 
 use std::ops::Deref;
 use std::sync::Arc;
@@ -29,6 +30,8 @@ use std::sync::Arc;
 use crate::fetch_anmeldung::FetchAnmeldung;
 use crate::navbar::Navbar;
 use crate::overview::Overview;
+#[cfg(target_arch = "wasm32")]
+use crate::planning::Planning;
 use dioxus::prelude::*;
 use tucant_types::DynTucan;
 use tucant_types::gradeoverview::GradeOverviewRequest;
@@ -36,7 +39,6 @@ use tucant_types::{
     SemesterId, coursedetails::CourseDetailsRequest, moduledetails::ModuleDetailsRequest,
     registration::AnmeldungRequest, vv::ActionRequest,
 };
-use crate::planning::Planning;
 
 #[derive(Copy, Clone)]
 pub struct Anonymize(pub bool);

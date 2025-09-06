@@ -5772,6 +5772,7 @@ dependencies = [
  "plotters",
  "reqwest",
  "serde_json",
+ "sqlite-wasm-rs",
  "tokio",
  "tracing",
  "tucan-connector",
