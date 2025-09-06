@@ -29,8 +29,9 @@ impl AnmeldungRequest {
         if input.is_empty() || input == "-A" {
             Self("-A".to_owned())
         } else {
+            // just_registered_module_id will be added but 0 for just registering a course
             static REGISTRATION_DETAILS_REGEX: LazyLock<Regex> = LazyLock::new(|| {
-                Regex::new(r"^-N(?P<n1>\d+),-N0,-N(?P<n3>\d+),-N(?P<n4>\d+)$").unwrap()
+                Regex::new(r"^-N(?P<n1>\d+),-N0,-N(?P<n3>\d+),-N(?P<n4>\d+)(,-N(?P<just_registered_module_id>\d+,-N0))?$").unwrap()
             });
             let c = &REGISTRATION_DETAILS_REGEX.captures(input).expect(input);
             Self(format!("-N{},-N0,-N{},-N{}", &c["n1"], &c["n3"], &c["n4"],))

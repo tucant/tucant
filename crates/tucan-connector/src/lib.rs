@@ -707,6 +707,32 @@ mod authenticated_tests {
     }
 
     #[test]
+    pub fn vv_archiv_top_level() {
+        runtime().block_on(async {
+            dotenvy::dotenv().unwrap();
+            let tucan = get_tucan_connector().await;
+            let login_response = get_login_session().await;
+            let action = tucan
+                .after_login(login_response, RevalidationStrategy::default())
+                .await
+                .unwrap()
+                .logged_in_head
+                .vv
+                .archiv_links[0]
+                .1
+                .clone();
+            let _result = tucan
+                .vv(
+                    Some(login_response),
+                    RevalidationStrategy::default(),
+                    action,
+                )
+                .await
+                .unwrap();
+        });
+    }
+
+    #[test]
     pub fn vv_first_level() {
         runtime().block_on(async {
             dotenvy::dotenv().unwrap();

@@ -69,7 +69,7 @@ pub struct LoggedOutHead {
 pub struct VorlesungsverzeichnisUrls {
     pub lehrveranstaltungssuche_url: String,
     pub vvs: Vec<(String, ActionRequest)>,
-    pub archiv_links: Vec<(String, String, String)>,
+    pub archiv_links: Vec<(String, ActionRequest, String)>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, ToSchema)]
@@ -273,6 +273,8 @@ pub enum LeistungsspiegelGrade {
     Offen,
     /// Validierung
     BestandenOhneNote,
+    /// DO NOT ASK, wenn Summe Bereich noch keinen Haken hat, ist das dort
+    OffenerBereich,
 }
 
 impl From<(Option<&str>, StudentResultState)> for LeistungsspiegelGrade {
@@ -281,6 +283,7 @@ impl From<(Option<&str>, StudentResultState)> for LeistungsspiegelGrade {
             (Some("unvollständig"), StudentResultState::Unvollstaendig) => Self::Unvollständig,
             (None, StudentResultState::Offen) => Self::Offen,
             (None, StudentResultState::Bestanden) => Self::BestandenOhneNote,
+            (None, StudentResultState::OffenerBereich) => Self::OffenerBereich,
             (Some(s), StudentResultState::Bestanden | StudentResultState::NichtBestanden) => {
                 Self::Grade(Grade::from_str(s).unwrap())
             }
@@ -295,6 +298,7 @@ impl Display for LeistungsspiegelGrade {
             Self::Unvollständig => write!(f, "unvollständig"),
             Self::Offen => write!(f, "offen"),
             Self::BestandenOhneNote => write!(f, "bestanden ohne Note"),
+            Self::OffenerBereich => write!(f, "offener Bereich"),
             Self::Grade(grade) => write!(f, "{grade}"),
         }
     }
@@ -338,6 +342,8 @@ pub enum ModuleGrade {
     NochNichtGesetzt,
     /// Probably only used for Validierung
     BestandenOhneNote,
+    // Krankschreibung?
+    Unvollständig,
 }
 
 impl From<(Option<&str>, Option<&str>)> for ModuleGrade {
@@ -346,6 +352,7 @@ impl From<(Option<&str>, Option<&str>)> for ModuleGrade {
             (Some("noch nicht gesetzt"), None) => Self::NochNichtGesetzt,
             (None, Some("bestanden")) => Self::BestandenOhneNote,
             (Some(s), Some("bestanden")) => Self::Grade(Grade::from_str(s).unwrap()),
+            (None, Some("unvollständig")) => Self::Unvollständig,
             _ => panic!("{s:?}"),
         }
     }
@@ -356,6 +363,7 @@ impl Display for ModuleGrade {
         match self {
             Self::NochNichtGesetzt => write!(f, "noch nicht gesetzt"),
             Self::BestandenOhneNote => write!(f, "bestanden ohne Note"),
+            Self::Unvollständig => write!(f, "unvollständig"),
             Self::Grade(grade) => write!(f, "{grade}"),
         }
     }

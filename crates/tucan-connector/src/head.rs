@@ -277,13 +277,33 @@ pub fn vv_something<'a>(
                     "Archiv"
                 </a>
                 <ul class="nav depth_3 linkItemContainer">
-                    let archiv_links = while html_handler.peek().is_some() {
+                    let archiv_links = while html_handler.peek().is_some()
+                        && html_handler
+                            .peek()
+                            .unwrap()
+                            .value()
+                            .as_element()
+                            .unwrap()
+                            .attr("title")
+                            .unwrap()
+                            != "Altsysteme" {
                         <li class="intern depth_3 linkItem " title=title id=_linkclass>
                             <a class=_linkclass href=url>
                                 text
                             </a>
                         </li>
-                    } => (title, url, text);
+                    } => (
+                        title,
+                        ActionRequest::parse(&ACTION_REGEX.replace(&url, "")),
+                        text
+                    );
+                    let _altsysteme = if html_handler.peek().is_some() {
+                        <li class="intern depth_3 linkItem " title="Altsysteme" id=_linkclass>
+                            <a class=_linkclass href=url>
+                                "Altsysteme"
+                            </a>
+                        </li>
+                    } => ();
                 </ul>
             </li>
         </ul>
