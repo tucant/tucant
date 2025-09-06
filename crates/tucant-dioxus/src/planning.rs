@@ -6,7 +6,7 @@ use sqlite_wasm_rs::{
 };
 use tucant_planning::abc;
 use wasm_bindgen_futures::JsFuture;
-use web_sys::{FileList, FileReader, HtmlInputElement};
+use web_sys::{FileList, FileReader, HtmlInputElement, console};
 
 // TODO at some point put opfs into a dedicated worker as that is the most
 // correct approach TODO put this into a shared worker so there are no race
@@ -57,7 +57,7 @@ pub fn Planning() -> Element {
                             let file = files.get(i).unwrap();
                             info!("{}", file.name());
                             let array_buffer = JsFuture::from(file.array_buffer()).await.unwrap();
-                            info!("{}", array_buffer);
+                            console::log_1(&array_buffer);
                         }
                     }
                 },
