@@ -21,6 +21,7 @@ pub mod overview;
 pub mod registration;
 pub mod student_result;
 pub mod vv;
+pub mod planning;
 
 use std::ops::Deref;
 use std::sync::Arc;
@@ -35,6 +36,7 @@ use tucant_types::{
     SemesterId, coursedetails::CourseDetailsRequest, moduledetails::ModuleDetailsRequest,
     registration::AnmeldungRequest, vv::ActionRequest,
 };
+use crate::planning::Planning;
 
 #[derive(Copy, Clone)]
 pub struct Anonymize(pub bool);
@@ -173,6 +175,8 @@ pub enum Route {
     GradeOverview { gradeoverview: GradeOverviewRequest },
     #[route("/fetch-anmeldung")]
     FetchAnmeldung {},
+    #[route("/planning")]
+    Planning {},
 }
 
 #[component]

@@ -443,20 +443,22 @@ pub fn NavbarLoggedIn(
                         {"Meine Dokumente"}
                     }
                 }
-                a {
-                    class: "dropdown-item {disabled}",
-                    href: data.as_ref()
-                        .map(|v| {
-                            format!("https://www.tucan.tu-darmstadt.de{}", v.logged_in_head.antraege_url)
-                        }),
-                    "Anträge"
-                    if data().is_none() {
-                        " "
-                        span {
-                            class: "spinner-grow spinner-grow-sm",
-                            "aria-hidden": "true",
+                li {
+                    a {
+                        class: "dropdown-item {disabled}",
+                        href: data.as_ref()
+                            .map(|v| {
+                                format!("https://www.tucan.tu-darmstadt.de{}", v.logged_in_head.antraege_url)
+                            }),
+                        "Anträge"
+                        if data().is_none() {
+                            " "
+                            span {
+                                class: "spinner-grow spinner-grow-sm",
+                                "aria-hidden": "true",
+                            }
+                            span { class: "visually-hidden", role: "status", "Loading..." }
                         }
-                        span { class: "visually-hidden", role: "status", "Loading..." }
                     }
                 }
                 li {
@@ -493,23 +495,25 @@ pub fn NavbarLoggedIn(
                 li {
                     hr { class: "dropdown-divider" }
                 }
-                a {
-                    class: "dropdown-item {disabled}",
-                    href: data.as_ref()
-                        .map(|v| {
-                            format!(
-                                "https://www.tucan.tu-darmstadt.de{}",
-                                v.logged_in_head.meine_bewerbung_url,
-                            )
-                        }),
-                    {"Meine Bewerbung"}
-                    if data().is_none() {
-                        " "
-                        span {
-                            class: "spinner-grow spinner-grow-sm",
-                            "aria-hidden": "true",
+                li {
+                    a {
+                        class: "dropdown-item {disabled}",
+                        href: data.as_ref()
+                            .map(|v| {
+                                format!(
+                                    "https://www.tucan.tu-darmstadt.de{}",
+                                    v.logged_in_head.meine_bewerbung_url,
+                                )
+                            }),
+                        {"Meine Bewerbung"}
+                        if data().is_none() {
+                            " "
+                            span {
+                                class: "spinner-grow spinner-grow-sm",
+                                "aria-hidden": "true",
+                            }
+                            span { class: "visually-hidden", role: "status", "Loading..." }
                         }
-                        span { class: "visually-hidden", role: "status", "Loading..." }
                     }
                 }
                 li {
@@ -533,8 +537,26 @@ pub fn NavbarLoggedIn(
                 {"Hilfe"}
             }
         }
-        li { class: "nav-item",
-            Link { to: Route::FetchAnmeldung {}, class: "nav-link", "Studiumsplanung" }
+        li { class: "nav-item dropdown",
+            a {
+                class: "nav-link dropdown-toggle",
+                role: "button",
+                "data-bs-toggle": "dropdown",
+                "aria-expanded": "false",
+                {"Studiumsplanung"}
+            }
+            ul { class: "dropdown-menu",
+                li {
+                    Link { to: Route::FetchAnmeldung {}, class: "dropdown-item",
+                        "data-bs-target": "#navbarSupportedContent",
+                        "data-bs-hide": "collapse", "Semesterexport" }
+                }
+                li {
+                    Link { to: Route::Planning {}, class: "dropdown-item",
+                        "data-bs-target": "#navbarSupportedContent",
+                        "data-bs-hide": "collapse", "Semesterplanung" }
+                }
+            }
         }
     }
 }

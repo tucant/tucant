@@ -56,6 +56,7 @@ cd crates/tucant-dioxus/
 dx serve --platform web --features api --verbose
 
 # in second tab
+cargo install --locked bacon
 bacon tucant-api
 
 # http://localhost:8080/#/
