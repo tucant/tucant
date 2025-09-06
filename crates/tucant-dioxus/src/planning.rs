@@ -1,9 +1,11 @@
 use dioxus::prelude::*;
+use log::info;
 use sqlite_wasm_rs::{
     self as ffi,
     relaxed_idb_vfs::{RelaxedIdbCfg, install as install_idb_vfs},
 };
 use tucant_planning::abc;
+use web_sys::{FileList, HtmlInputElement};
 
 // TODO at some point put opfs into a dedicated worker as that is the most
 // correct approach TODO put this into a shared worker so there are no race
@@ -30,6 +32,8 @@ async fn open_db() {
 
 #[component]
 pub fn Planning() -> Element {
+    let mut sommersemester: Signal<Option<web_sys::Element>> = use_signal(|| None);
+    let mut wintersemester: Signal<Option<web_sys::Element>> = use_signal(|| None);
     let test = use_resource(move || async move {
         let test = open_db().await;
         "Semesterplanung"
@@ -41,6 +45,18 @@ pub fn Planning() -> Element {
                 { *test.read() }
             }
             form {
+                onsubmit: move |evt| {
+                    evt.prevent_default();
+                    async move {
+                        use wasm_bindgen::JsCast;
+                        let a: web_sys::Element = sommersemester().unwrap();
+                        let b: HtmlInputElement = a.dyn_into::<HtmlInputElement>().unwrap();
+                        let files: FileList = b.files().unwrap();
+                        for i in 0..files.length() {
+                            info!("{}", files.get(i).unwrap().name())
+                        }
+                    }
+                },
                 div {
                     class: "mb-3",
                     label {
@@ -52,6 +68,10 @@ pub fn Planning() -> Element {
                         type: "file",
                         class: "form-control",
                         id: "sommersemester-file",
+                        onmounted: move |element| {
+                            use dioxus::web::WebEventExt;
+                            sommersemester.set(Some(element.as_web_event()))
+                        },
                         onchange: move |evt| {
                             async move {
                                 if let Some(file_engine) = evt.files() {
@@ -78,6 +98,10 @@ pub fn Planning() -> Element {
                         type: "file",
                         class: "form-control",
                         id: "wintersemester-file",
+                        onmounted: move |element| {
+                            use dioxus::web::WebEventExt;
+                            wintersemester.set(Some(element.as_web_event()))
+                        },
                         onchange: move |evt| {
                             async move {
                                 if let Some(file_engine) = evt.files() {
@@ -92,6 +116,11 @@ pub fn Planning() -> Element {
                             }
                         }
                     }
+                }
+                button {
+                    type: "submit",
+                    class: "btn btn-primary",
+                    "Planung starten"
                 }
             }
         }
