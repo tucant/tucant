@@ -1,9 +1,11 @@
 -- Your SQL goes here
 CREATE TABLE anmeldungen (
-    url TEXT PRIMARY KEY NOT NULL,
+    semester TEXT NOT NULL, -- s or w
+    url TEXT NOT NULL,
     name TEXT NOT NULL,
-    parent TEXT REFERENCES anmeldungen (url)
-);
+    parent TEXT REFERENCES anmeldungen (url),
+    PRIMARY KEY (semester, url)
+ STRICT);
 
 CREATE TABLE anmeldungen_entries (
     anmeldung TEXT REFERENCES anmeldungen (url),
@@ -11,4 +13,4 @@ CREATE TABLE anmeldungen_entries (
     id TEXT NOT NULL,
     name TEXT NOT NULL,
     PRIMARY KEY (anmeldung, module_url)
-);
+) STRICT;
