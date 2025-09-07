@@ -21,7 +21,7 @@ use web_sys::{FileList, FileReader, HtmlInputElement, console};
 
 use crate::MyRc;
 use crate::models::{Anmeldung, NewAnmeldung, Semester};
-use crate::schema::anmeldungen::{self, url};
+use crate::schema::anmeldungen_plan::{self, url};
 
 // TODO at some point put opfs into a dedicated worker as that is the most
 // correct approach TODO put this into a shared worker so there are no race
@@ -68,7 +68,6 @@ async fn handle_semester(connection_clone: MyRc<RefCell<SqliteConnection>>, seme
         let inserts: Vec<_> = result
             .iter()
             .map(|e| NewAnmeldung {
-                semester: semester,
                 url: e.path.last().unwrap().1.inner(),
                 name: &e.path.last().unwrap().0,
                 parent: e.path.len().checked_sub(2).map(|v| e.path[v].1.inner()),
@@ -76,11 +75,11 @@ async fn handle_semester(connection_clone: MyRc<RefCell<SqliteConnection>>, seme
             .collect();
         let mut connection = connection_clone.borrow_mut();
         let connection = &mut *connection;
-        let result = diesel::insert_into(anmeldungen::table)
+        let result = diesel::insert_into(anmeldungen_plan::table)
             .values(&inserts)
-            .on_conflict((anmeldungen::semester, anmeldungen::url))
+            .on_conflict((anmeldungen_plan::url))
             .do_update()
-            .set(anmeldungen::parent.eq(excluded(anmeldungen::parent)))
+            .set(anmeldungen_plan::parent.eq(excluded(anmeldungen_plan::parent)))
             .execute(connection)
             .expect("Error saving anmeldungen");
     }
@@ -94,8 +93,8 @@ pub fn PlanningInner(connection: MyRc<RefCell<SqliteConnection>>) -> Element {
     let mut future = use_resource(move || {
         let connection_clone = connection_clone.clone();
         async move {
-            use crate::schema::anmeldungen::dsl::anmeldungen;
-            let results: Vec<Anmeldung> = anmeldungen
+            use crate::schema::anmeldungen_plan::dsl::anmeldungen_plan;
+            let results: Vec<Anmeldung> = anmeldungen_plan
                 .select(Anmeldung::as_select())
                 .load(&mut *connection_clone.borrow_mut())
                 .expect("Error loading anmeldungen");

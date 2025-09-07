@@ -1,10 +1,13 @@
 -- Your SQL goes here
-CREATE TABLE anmeldungen (
-    semester TEXT NOT NULL, -- s or w
+CREATE TABLE anmeldungen_plan (
     url TEXT NOT NULL,
     name TEXT NOT NULL,
     parent TEXT REFERENCES anmeldungen (url),
-    PRIMARY KEY (semester, url)
+    min_cp INT NOT NULL,
+    max_cp INT,
+    min_modules INT NOT NULL,
+    max_modules INT,
+    PRIMARY KEY (url)
 ) STRICT;
 
 CREATE TABLE anmeldungen_entries (
@@ -13,6 +16,6 @@ CREATE TABLE anmeldungen_entries (
     module_url TEXT NOT NULL,
     id TEXT NOT NULL,
     name TEXT NOT NULL,
-    PRIMARY KEY (anmeldung, module_url),
-    FOREIGN KEY (semester, anmeldung) REFERENCES anmeldungen (semester, url)
+    PRIMARY KEY (anmeldung, semester, module_url),
+    FOREIGN KEY (anmeldung) REFERENCES anmeldungen (url)
 ) STRICT;

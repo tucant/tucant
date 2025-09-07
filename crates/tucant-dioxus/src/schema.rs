@@ -1,16 +1,7 @@
 // @generated automatically by Diesel CLI.
 
 diesel::table! {
-    anmeldungen (semester, url) {
-        semester -> Text,
-        url -> Text,
-        name -> Text,
-        parent -> Nullable<Text>,
-    }
-}
-
-diesel::table! {
-    anmeldungen_entries (anmeldung, module_url) {
+    anmeldungen_entries (semester, anmeldung, module_url) {
         semester -> Text,
         anmeldung -> Text,
         module_url -> Text,
@@ -19,7 +10,19 @@ diesel::table! {
     }
 }
 
+diesel::table! {
+    anmeldungen_plan (url) {
+        url -> Text,
+        name -> Text,
+        parent -> Nullable<Text>,
+        min_cp -> Integer,
+        max_cp -> Nullable<Integer>,
+        min_modules -> Integer,
+        max_modules -> Nullable<Integer>,
+    }
+}
+
 diesel::allow_tables_to_appear_in_same_query!(
-    anmeldungen,
     anmeldungen_entries,
+    anmeldungen_plan,
 );

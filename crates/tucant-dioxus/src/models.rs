@@ -36,20 +36,18 @@ where
 }
 
 #[derive(Queryable, Selectable, Debug)]
-#[diesel(table_name = anmeldungen)]
+#[diesel(table_name = anmeldungen_plan)]
 #[diesel(check_for_backend(diesel::sqlite::Sqlite))]
 pub struct Anmeldung {
-    pub semester: Semester,
     pub url: String,
     pub name: String,
     pub parent: Option<String>,
 }
 
 #[derive(Insertable, Debug)]
-#[diesel(table_name = anmeldungen)]
+#[diesel(table_name = anmeldungen_plan)]
 #[diesel(treat_none_as_default_value = false)]
 pub struct NewAnmeldung<'a> {
-    pub semester: Semester,
     pub url: &'a str,
     pub name: &'a str,
     pub parent: Option<&'a str>,

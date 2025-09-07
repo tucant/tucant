@@ -1,4 +1,5 @@
 {
     "rust-analyzer.cargo.target": "wasm32-unknown-unknown",
-    "rust-analyzer.check.workspace": false
+    "rust-analyzer.cargo.features": ["web"],
+    "rust-analyzer.linkedProjects": ["./Cargo.toml"]
 }

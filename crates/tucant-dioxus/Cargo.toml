@@ -43,7 +43,7 @@ sqlite-wasm-rs = { version = "0.4", default-features = false, features = ["bundl
 [features]
 direct = ["web", "dep:tucan-connector", "dep:web-extensions-sys"]
 api = ["web"]
-default = []
+default = ["web"]
 web = ["dioxus/web"]
 desktop = ["dioxus/desktop", "dep:dioxus-desktop", "dep:tucan-connector", "dep:keyring"]
 mobile = ["dioxus/mobile", "dep:dioxus-desktop", "dep:tucan-connector", "dep:keyring", "dep:android-keyring"]
