@@ -1,5 +1,5 @@
 {
     "rust-analyzer.cargo.target": "wasm32-unknown-unknown",
     "rust-analyzer.cargo.features": ["web"],
-    "rust-analyzer.linkedProjects": ["./Cargo.toml"]
+    "rust-analyzer.check.overrideCommand": ["cargo", "check", "--message-format=json", "-p", "tucant-dioxus", "--target", "wasm32-unknown-unknown"]
 }
