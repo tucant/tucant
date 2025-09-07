@@ -3,6 +3,7 @@ use std::rc::Rc;
 use std::sync::Arc;
 
 use diesel::prelude::*;
+use diesel::upsert::excluded;
 use diesel::{Connection, SqliteConnection};
 use diesel_migrations::{EmbeddedMigrations, MigrationHarness as _, embed_migrations};
 use dioxus::prelude::*;
@@ -20,7 +21,7 @@ use web_sys::{FileList, FileReader, HtmlInputElement, console};
 
 use crate::MyRc;
 use crate::models::{Anmeldung, NewAnmeldung};
-use crate::schema::anmeldungen;
+use crate::schema::anmeldungen::{self, url};
 
 // TODO at some point put opfs into a dedicated worker as that is the most
 // correct approach TODO put this into a shared worker so there are no race
@@ -96,8 +97,12 @@ pub fn PlanningInner(connection: MyRc<RefCell<SqliteConnection>>) -> Element {
                 let connection = &mut *connection;
                 let result = diesel::insert_into(anmeldungen::table)
                     .values(&inserts)
+                    .on_conflict(anmeldungen::url)
+                    .do_update()
+                    .set(anmeldungen::parent.eq(excluded(anmeldungen::parent)))
                     .execute(connection)
                     .expect("Error saving anmeldungen");
+                info!("done");
             }
         }
     };
