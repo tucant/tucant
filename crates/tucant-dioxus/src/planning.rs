@@ -6,7 +6,7 @@ use diesel::prelude::*;
 use diesel::upsert::excluded;
 use diesel::{Connection, SqliteConnection};
 use diesel_migrations::{EmbeddedMigrations, MigrationHarness as _, embed_migrations};
-use dioxus::prelude::*;
+use dioxus::prelude::{*, Element as DioxusElement};
 use futures::FutureExt;
 use js_sys::{ArrayBuffer, Uint8Array};
 use log::info;
@@ -52,6 +52,40 @@ pub fn Planning() -> Element {
     }
 }
 
+async fn handle_semester(connection_clone: MyRc<RefCell<SqliteConnection>>, semester: Semester, element: Signal<Option<web_sys::Element>>) {
+    use wasm_bindgen::JsCast;
+    let element = element().unwrap();
+    let b: HtmlInputElement = element.dyn_into::<HtmlInputElement>().unwrap();
+    let files: FileList = b.files().unwrap();
+    for i in 0..files.length() {
+        let file = files.get(i).unwrap();
+        let array_buffer = JsFuture::from(file.array_buffer()).await.unwrap();
+        let array = Uint8Array::new(&array_buffer);
+        let decompressed = decompress(&array.to_vec()).await.unwrap();
+        let mut result: Vec<AnmeldungResponse> =
+            serde_json::from_reader(decompressed.as_slice()).unwrap();
+        result.sort_by_key(|e| e.path.len());
+        let inserts: Vec<_> = result
+            .iter()
+            .map(|e| NewAnmeldung {
+                semester: semester,
+                url: e.path.last().unwrap().1.inner(),
+                name: &e.path.last().unwrap().0,
+                parent: e.path.len().checked_sub(2).map(|v| e.path[v].1.inner()),
+            })
+            .collect();
+        let mut connection = connection_clone.borrow_mut();
+        let connection = &mut *connection;
+        let result = diesel::insert_into(anmeldungen::table)
+            .values(&inserts)
+            .on_conflict((anmeldungen::semester, anmeldungen::url))
+            .do_update()
+            .set(anmeldungen::parent.eq(excluded(anmeldungen::parent)))
+            .execute(connection)
+            .expect("Error saving anmeldungen");
+    }
+}
+
 #[component]
 pub fn PlanningInner(connection: MyRc<RefCell<SqliteConnection>>) -> Element {
     let mut sommersemester: Signal<Option<web_sys::Element>> = use_signal(|| None);
@@ -73,38 +107,10 @@ pub fn PlanningInner(connection: MyRc<RefCell<SqliteConnection>>) -> Element {
         let connection_clone = connection_clone.clone();
         evt.prevent_default();
         async move {
-            use wasm_bindgen::JsCast;
-            let a: web_sys::Element = sommersemester().unwrap();
-            let b: HtmlInputElement = a.dyn_into::<HtmlInputElement>().unwrap();
-            let files: FileList = b.files().unwrap();
-            for i in 0..files.length() {
-                let file = files.get(i).unwrap();
-                let array_buffer = JsFuture::from(file.array_buffer()).await.unwrap();
-                let array = Uint8Array::new(&array_buffer);
-                let decompressed = decompress(&array.to_vec()).await.unwrap();
-                let mut result: Vec<AnmeldungResponse> =
-                    serde_json::from_reader(decompressed.as_slice()).unwrap();
-                result.sort_by_key(|e| e.path.len());
-                let inserts: Vec<_> = result
-                    .iter()
-                    .map(|e| NewAnmeldung {
-                        semester: Semester::Sommersemester,
-                        url: e.path.last().unwrap().1.inner(),
-                        name: &e.path.last().unwrap().0,
-                        parent: e.path.len().checked_sub(2).map(|v| e.path[v].1.inner()),
-                    })
-                    .collect();
-                let mut connection = connection_clone.borrow_mut();
-                let connection = &mut *connection;
-                let result = diesel::insert_into(anmeldungen::table)
-                    .values(&inserts)
-                    .on_conflict(anmeldungen::url)
-                    .do_update()
-                    .set(anmeldungen::parent.eq(excluded(anmeldungen::parent)))
-                    .execute(connection)
-                    .expect("Error saving anmeldungen");
-                info!("done");
-            }
+            handle_semester(connection_clone.clone(), Semester::Sommersemester, sommersemester).await;
+            handle_semester(connection_clone, Semester::Wintersemester, wintersemester).await;
+            info!("done");
+            future.restart();
         }
     };
     rsx! {

@@ -3,7 +3,7 @@ use diesel::{
     backend::Backend, deserialize::{self, FromSql, FromSqlRow}, expression::AsExpression, prelude::*, serialize::{self, IsNull, Output, ToSql}, sql_types::Text, sqlite::{Sqlite, SqliteValue}
 };
 
-#[derive(Debug, PartialEq, FromSqlRow, AsExpression, Eq)]
+#[derive(Debug, PartialEq, FromSqlRow, AsExpression, Eq, Copy, Clone)]
 #[diesel(sql_type = Text)]
 pub enum Semester {
     Sommersemester,
