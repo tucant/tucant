@@ -209,7 +209,8 @@ pub fn PlanningInner(connection: MyRc<RefCell<SqliteConnection>>) -> Element {
                     for entry in value {
                         PlanningAnmeldung {
                             connection: connection.clone(),
-                            anmeldung: entry.clone()
+                            anmeldung: entry.clone(),
+                            depth: 1
                         }
                     }
                 }
@@ -221,19 +222,30 @@ pub fn PlanningInner(connection: MyRc<RefCell<SqliteConnection>>) -> Element {
 
 
 #[component]
-pub fn PlanningAnmeldung(connection: MyRc<RefCell<SqliteConnection>>, anmeldung: Anmeldung) -> Element {
+pub fn PlanningAnmeldung(connection: MyRc<RefCell<SqliteConnection>>, anmeldung: Anmeldung, depth: i32) -> Element {
     let results: Vec<Anmeldung> = QueryDsl::filter(anmeldungen_plan::table, anmeldungen_plan::parent.eq(anmeldung.url))
         .select(Anmeldung::as_select())
         .load(&mut *connection.borrow_mut())
         .expect("Error loading anmeldungen");
     rsx! {
         h2 {
+            class: "h{depth}",
             { anmeldung.name } 
-        }   
-        for result in results {
-            PlanningAnmeldung {
-                connection: connection.clone(),
-                anmeldung: result
+        }
+        if depth < 3 {
+            for result in results {
+                PlanningAnmeldung {
+                    connection: connection.clone(),
+                    anmeldung: result,
+                    depth: depth + 1
+                }
+            }
+        }
+        if anmeldung.min_cp != 0 || anmeldung.max_cp.is_some() || anmeldung.min_modules != 0 || anmeldung.max_modules.is_some() {
+            p {
+                "CP: " { anmeldung.min_cp.to_string() } { anmeldung.max_cp.map(|max_cp| " - ".to_string() + &max_cp.to_string()) }
+                br {}
+                "Module: " { anmeldung.min_modules.to_string() } { anmeldung.max_modules.map(|max_modules| " - ".to_string() + &max_modules.to_string()) }
             }
         }
     }
