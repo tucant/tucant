@@ -104,13 +104,22 @@ pub fn PlanningInner(connection: MyRc<RefCell<SqliteConnection>>) -> Element {
         async move {
             let current_session = current_session_handle().unwrap();
             let student_result = tucan
-                .student_result(&current_session, RevalidationStrategy::default(), 0)
+                .student_result(&current_session, RevalidationStrategy::cache(), 0)
                 .await.unwrap();
 
+            // top level anmeldung has name "M.Sc. Informatik (2023)"
+            // top level leistunggspiegel has "Informatik"
+
+            let name = &student_result.course_of_study.iter().find(|e| e.selected).unwrap().name;
+            let elem: Anmeldung = anmeldungen_plan::table
+                .filter(anmeldungen_plan::name.eq(name))
+                .select(Anmeldung::as_select())
+                .first(&mut *connection_clone.borrow_mut())
+                .expect("Error loading anmeldungen");
+            info!("{:?}", elem);
 
 
-            use crate::schema::anmeldungen_plan::dsl::anmeldungen_plan;
-            let results: Vec<Anmeldung> = anmeldungen_plan
+            let results: Vec<Anmeldung> = anmeldungen_plan::table
                 .select(Anmeldung::as_select())
                 .load(&mut *connection_clone.borrow_mut())
                 .expect("Error loading anmeldungen");
