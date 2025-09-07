@@ -1,3 +1,5 @@
+use diesel::{Connection, SqliteConnection};
+use diesel_migrations::{EmbeddedMigrations, MigrationHarness as _, embed_migrations};
 use dioxus::prelude::*;
 use js_sys::{ArrayBuffer, Uint8Array};
 use log::info;
@@ -14,23 +16,16 @@ use web_sys::{FileList, FileReader, HtmlInputElement, console};
 // correct approach TODO put this into a shared worker so there are no race
 // conditions
 
+const MIGRATIONS: EmbeddedMigrations = embed_migrations!("migrations");
+
 async fn open_db() {
     // install relaxed-idb persistent vfs and set as default vfs
     install_idb_vfs(&RelaxedIdbCfg::default(), true)
         .await
         .unwrap();
 
-    // open with relaxed-idb vfs
-    let mut db = std::ptr::null_mut();
-    let ret = unsafe {
-        ffi::sqlite3_open_v2(
-            c"relaxed-idb.db".as_ptr().cast(),
-            &mut db as *mut _,
-            ffi::SQLITE_OPEN_READWRITE | ffi::SQLITE_OPEN_CREATE,
-            std::ptr::null(),
-        )
-    };
-    assert_eq!(ffi::SQLITE_OK, ret);
+    let mut connection = SqliteConnection::establish("tucant.db").unwrap();
+    connection.run_pending_migrations(MIGRATIONS).unwrap();
 }
 
 #[component]
