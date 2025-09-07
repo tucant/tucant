@@ -123,7 +123,7 @@ pub fn PlanningInner(connection: MyRc<RefCell<SqliteConnection>>) -> Element {
 
             for child in student_result.level0.children {
                 let name = &child.name.unwrap();
-                diesel::update(anmeldungen_plan::table.filter(anmeldungen_plan::url.eq(&the_url).and(anmeldungen_plan::name.eq(name))))
+                diesel::update(anmeldungen_plan::table.filter(anmeldungen_plan::parent.eq(&the_url).and(anmeldungen_plan::name.eq(name))))
                     .set((anmeldungen_plan::min_cp.eq(child.rules.min_cp as i32),
                                 anmeldungen_plan::max_cp.eq(child.rules.max_cp.map(|v| v as i32)),
                                 anmeldungen_plan::min_modules.eq(child.rules.min_modules as i32),
