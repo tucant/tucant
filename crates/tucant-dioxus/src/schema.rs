@@ -1,7 +1,8 @@
 // @generated automatically by Diesel CLI.
 
 diesel::table! {
-    anmeldungen (url) {
+    anmeldungen (semester, url) {
+        semester -> Text,
         url -> Text,
         name -> Text,
         parent -> Nullable<Text>,
@@ -10,14 +11,13 @@ diesel::table! {
 
 diesel::table! {
     anmeldungen_entries (anmeldung, module_url) {
-        anmeldung -> Nullable<Text>,
+        semester -> Text,
+        anmeldung -> Text,
         module_url -> Text,
         id -> Text,
         name -> Text,
     }
 }
-
-diesel::joinable!(anmeldungen_entries -> anmeldungen (anmeldung));
 
 diesel::allow_tables_to_appear_in_same_query!(
     anmeldungen,
