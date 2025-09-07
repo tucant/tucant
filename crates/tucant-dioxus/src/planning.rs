@@ -138,7 +138,7 @@ pub fn PlanningInner(connection: MyRc<RefCell<SqliteConnection>>) -> Element {
 
             recursive_update(connection_clone.clone(), the_url, student_result.level0).await;
             
-            let results: Vec<Anmeldung> = QueryDsl::filter(anmeldungen_plan::table, anmeldungen_plan::parent.eq(None::<String>))
+            let results: Vec<Anmeldung> = QueryDsl::filter(anmeldungen_plan::table, anmeldungen_plan::parent.is_null())
                 .select(Anmeldung::as_select())
                 .load(&mut *connection_clone.borrow_mut())
                 .expect("Error loading anmeldungen");
@@ -207,8 +207,9 @@ pub fn PlanningInner(connection: MyRc<RefCell<SqliteConnection>>) -> Element {
             ul {
                 if let Some(value) = &*future.read() {
                     for entry in value {
-                        li {
-                            "{entry:?}"
+                        PlanningAnmeldung {
+                            connection: connection.clone(),
+                            anmeldung: entry.clone()
                         }
                     }
                 }
@@ -221,10 +222,19 @@ pub fn PlanningInner(connection: MyRc<RefCell<SqliteConnection>>) -> Element {
 
 #[component]
 pub fn PlanningAnmeldung(connection: MyRc<RefCell<SqliteConnection>>, anmeldung: Anmeldung) -> Element {
-
+    let results: Vec<Anmeldung> = QueryDsl::filter(anmeldungen_plan::table, anmeldungen_plan::parent.eq(anmeldung.url))
+        .select(Anmeldung::as_select())
+        .load(&mut *connection.borrow_mut())
+        .expect("Error loading anmeldungen");
     rsx! {
         h2 {
             { anmeldung.name } 
         }   
+        for result in results {
+            PlanningAnmeldung {
+                connection: connection.clone(),
+                anmeldung: result
+            }
+        }
     }
 }
