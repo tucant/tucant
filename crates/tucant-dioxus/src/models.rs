@@ -35,7 +35,7 @@ where
     }
 }
 
-#[derive(Queryable, Selectable, Debug)]
+#[derive(Queryable, Selectable, Clone, PartialEq, Debug)]
 #[diesel(table_name = anmeldungen_plan)]
 #[diesel(check_for_backend(diesel::sqlite::Sqlite))]
 pub struct Anmeldung {

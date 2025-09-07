@@ -1,25 +1,23 @@
 use std::cell::RefCell;
-use std::rc::Rc;
 use std::sync::Arc;
 
 use diesel::prelude::*;
+use diesel::query_dsl::methods::FilterDsl;
 use diesel::upsert::excluded;
 use diesel::{Connection, SqliteConnection};
 use diesel_migrations::{EmbeddedMigrations, MigrationHarness as _, embed_migrations};
-use dioxus::prelude::{*, Element as DioxusElement};
-use futures::FutureExt;
-use js_sys::{ArrayBuffer, Uint8Array};
+use dioxus::prelude::{*};
+use js_sys::{Uint8Array};
 use log::info;
 use sqlite_wasm_rs::{
-    self as ffi,
     relaxed_idb_vfs::{RelaxedIdbCfg, install as install_idb_vfs},
 };
-use tucant_planning::{abc, decompress};
+use tucant_planning::{decompress};
 use tucant_types::student_result::StudentResultLevel;
 use tucant_types::{LoginResponse, RevalidationStrategy, Tucan as _};
 use tucant_types::registration::AnmeldungResponse;
 use wasm_bindgen_futures::JsFuture;
-use web_sys::{FileList, FileReader, HtmlInputElement, console};
+use web_sys::{FileList, HtmlInputElement};
 
 use crate::{MyRc, RcTucanType};
 use crate::models::{Anmeldung, NewAnmeldung, Semester};
@@ -94,7 +92,7 @@ async fn handle_semester(connection_clone: MyRc<RefCell<SqliteConnection>>, seme
 pub async fn recursive_update(connection_clone: MyRc<RefCell<SqliteConnection>>, url: String, level: StudentResultLevel) {
     for child in level.children {
         let name = child.name.as_ref().unwrap();
-        let child_url = diesel::update(anmeldungen_plan::table.filter(anmeldungen_plan::parent.eq(&url).and(anmeldungen_plan::name.eq(name))))
+        let child_url = diesel::update(QueryDsl::filter(anmeldungen_plan::table, anmeldungen_plan::parent.eq(&url).and(anmeldungen_plan::name.eq(name))))
             .set((anmeldungen_plan::min_cp.eq(child.rules.min_cp as i32),
                         anmeldungen_plan::max_cp.eq(child.rules.max_cp.map(|v| v as i32)),
                         anmeldungen_plan::min_modules.eq(child.rules.min_modules as i32),
@@ -128,7 +126,7 @@ pub fn PlanningInner(connection: MyRc<RefCell<SqliteConnection>>) -> Element {
             // top level leistunggspiegel has "Informatik"
 
             let name = &student_result.course_of_study.iter().find(|e| e.selected).unwrap().name;
-            let the_url: String = diesel::update(anmeldungen_plan::table.filter(anmeldungen_plan::name.eq(name)))
+            let the_url: String = diesel::update(QueryDsl::filter(anmeldungen_plan::table, anmeldungen_plan::name.eq(name)))
                 .set((anmeldungen_plan::min_cp.eq(student_result.level0.rules.min_cp as i32),
                              anmeldungen_plan::max_cp.eq(student_result.level0.rules.max_cp.map(|v| v as i32)),
                              anmeldungen_plan::min_modules.eq(student_result.level0.rules.min_modules as i32),
@@ -140,7 +138,7 @@ pub fn PlanningInner(connection: MyRc<RefCell<SqliteConnection>>) -> Element {
 
             recursive_update(connection_clone.clone(), the_url, student_result.level0).await;
             
-            let results: Vec<Anmeldung> = anmeldungen_plan::table
+            let results: Vec<Anmeldung> = QueryDsl::filter(anmeldungen_plan::table, anmeldungen_plan::parent.eq(None::<String>))
                 .select(Anmeldung::as_select())
                 .load(&mut *connection_clone.borrow_mut())
                 .expect("Error loading anmeldungen");
@@ -216,5 +214,17 @@ pub fn PlanningInner(connection: MyRc<RefCell<SqliteConnection>>) -> Element {
                 }
             }
         }
+    }
+}
+
+
+
+#[component]
+pub fn PlanningAnmeldung(connection: MyRc<RefCell<SqliteConnection>>, anmeldung: Anmeldung) -> Element {
+
+    rsx! {
+        h2 {
+            { anmeldung.name } 
+        }   
     }
 }
