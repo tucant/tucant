@@ -1,10 +1,12 @@
 use dioxus::prelude::*;
+use js_sys::{ArrayBuffer, Uint8Array};
 use log::info;
 use sqlite_wasm_rs::{
     self as ffi,
     relaxed_idb_vfs::{RelaxedIdbCfg, install as install_idb_vfs},
 };
-use tucant_planning::abc;
+use tucant_planning::{abc, decompress};
+use tucant_types::registration::AnmeldungResponse;
 use wasm_bindgen_futures::JsFuture;
 use web_sys::{FileList, FileReader, HtmlInputElement, console};
 
@@ -39,6 +41,25 @@ pub fn Planning() -> Element {
         let test = open_db().await;
         "Semesterplanung"
     });
+    let onsubmit = move |evt: Event<FormData>| {
+        evt.prevent_default();
+        async move {
+            use wasm_bindgen::JsCast;
+            let a: web_sys::Element = sommersemester().unwrap();
+            let b: HtmlInputElement = a.dyn_into::<HtmlInputElement>().unwrap();
+            let files: FileList = b.files().unwrap();
+            for i in 0..files.length() {
+                let file = files.get(i).unwrap();
+                info!("{}", file.name());
+                let array_buffer = JsFuture::from(file.array_buffer()).await.unwrap();
+                let array = Uint8Array::new(&array_buffer);
+                let decompressed = decompress(&array.to_vec()).await.unwrap();
+                let result: Vec<AnmeldungResponse> =
+                    serde_json::from_reader(decompressed.as_slice()).unwrap();
+                info!("{:?}", result);
+            }
+        }
+    };
     rsx! {
         div { class: "container",
             h2 {
@@ -46,21 +67,7 @@ pub fn Planning() -> Element {
                 { *test.read() }
             }
             form {
-                onsubmit: move |evt| {
-                    evt.prevent_default();
-                    async move {
-                        use wasm_bindgen::JsCast;
-                        let a: web_sys::Element = sommersemester().unwrap();
-                        let b: HtmlInputElement = a.dyn_into::<HtmlInputElement>().unwrap();
-                        let files: FileList = b.files().unwrap();
-                        for i in 0..files.length() {
-                            let file = files.get(i).unwrap();
-                            info!("{}", file.name());
-                            let array_buffer = JsFuture::from(file.array_buffer()).await.unwrap();
-                            console::log_1(&array_buffer);
-                        }
-                    }
-                },
+                onsubmit: onsubmit,
                 div {
                     class: "mb-3",
                     label {
