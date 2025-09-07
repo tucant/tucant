@@ -55,4 +55,8 @@ pub struct NewAnmeldung<'a> {
     pub url: &'a str,
     pub name: &'a str,
     pub parent: Option<&'a str>,
+    pub min_cp: i32,
+    pub max_cp: Option<i32>,
+    pub min_modules: i32,
+    pub max_modules: Option<i32>,
 }

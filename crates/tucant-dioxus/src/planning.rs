@@ -71,6 +71,10 @@ async fn handle_semester(connection_clone: MyRc<RefCell<SqliteConnection>>, seme
                 url: e.path.last().unwrap().1.inner(),
                 name: &e.path.last().unwrap().0,
                 parent: e.path.len().checked_sub(2).map(|v| e.path[v].1.inner()),
+                min_cp: 0,
+                max_cp: None,
+                min_modules: 0,
+                max_modules: None,
             })
             .collect();
         let mut connection = connection_clone.borrow_mut();
