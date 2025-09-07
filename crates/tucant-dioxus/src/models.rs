@@ -1,7 +1,7 @@
 use crate::schema::*;
 use diesel::prelude::*;
 
-#[derive(Queryable, Selectable)]
+#[derive(Queryable, Selectable, Debug)]
 #[diesel(table_name = anmeldungen)]
 #[diesel(check_for_backend(diesel::sqlite::Sqlite))]
 pub struct Anmeldung {
@@ -10,7 +10,7 @@ pub struct Anmeldung {
     pub parent: Option<String>,
 }
 
-#[derive(Insertable)]
+#[derive(Insertable, Debug)]
 #[diesel(table_name = anmeldungen)]
 #[diesel(treat_none_as_default_value = false)]
 pub struct NewAnmeldung<'a> {

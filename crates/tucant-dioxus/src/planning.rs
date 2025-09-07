@@ -151,6 +151,15 @@ pub fn PlanningInner(connection: MyRc<RefCell<SqliteConnection>>) -> Element {
                     "Planung starten"
                 }
             }
+            ul {
+                if let Some(value) = &*future.read() {
+                    for entry in value {
+                        li {
+                            "{entry:?}"
+                        }
+                    }
+                }
+            }
         }
     }
 }
