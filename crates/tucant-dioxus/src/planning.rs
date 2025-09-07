@@ -230,9 +230,9 @@ pub fn PlanningAnmeldung(connection: MyRc<RefCell<SqliteConnection>>, anmeldung:
     rsx! {
         h2 {
             class: "h{depth}",
-            { anmeldung.name } 
+            { anmeldung.name.clone() } 
         }
-        if depth < 3 {
+        if depth < 3 { // TODO don't do this if any child has some specified cp / module count
             for result in results {
                 PlanningAnmeldung {
                     connection: connection.clone(),
@@ -243,9 +243,17 @@ pub fn PlanningAnmeldung(connection: MyRc<RefCell<SqliteConnection>>, anmeldung:
         }
         if anmeldung.min_cp != 0 || anmeldung.max_cp.is_some() || anmeldung.min_modules != 0 || anmeldung.max_modules.is_some() {
             p {
-                "CP: " { anmeldung.min_cp.to_string() } { anmeldung.max_cp.map(|max_cp| " - ".to_string() + &max_cp.to_string()) }
+                { "Summe ".to_owned() + &anmeldung.name + ":" }
                 br {}
-                "Module: " { anmeldung.min_modules.to_string() } { anmeldung.max_modules.map(|max_modules| " - ".to_string() + &max_modules.to_string()) }
+                if anmeldung.min_cp != 0 || anmeldung.max_cp.is_some() {
+                   "CP: " { anmeldung.min_cp.to_string() } { anmeldung.max_cp.map(|max_cp| " - ".to_string() + &max_cp.to_string()) }
+                }
+                if (anmeldung.min_cp != 0 || anmeldung.max_cp.is_some()) && (anmeldung.min_modules != 0 || anmeldung.max_modules.is_some()) {
+                    br {}
+                }
+                if anmeldung.min_modules != 0 || anmeldung.max_modules.is_some() {
+                    "Module: " { anmeldung.min_modules.to_string() } { anmeldung.max_modules.map(|max_modules| " - ".to_string() + &max_modules.to_string()) }
+                }
             }
         }
     }
