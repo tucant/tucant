@@ -20,7 +20,7 @@ use wasm_bindgen_futures::JsFuture;
 use web_sys::{FileList, FileReader, HtmlInputElement, console};
 
 use crate::MyRc;
-use crate::models::{Anmeldung, NewAnmeldung};
+use crate::models::{Anmeldung, NewAnmeldung, Semester};
 use crate::schema::anmeldungen::{self, url};
 
 // TODO at some point put opfs into a dedicated worker as that is the most
@@ -88,6 +88,7 @@ pub fn PlanningInner(connection: MyRc<RefCell<SqliteConnection>>) -> Element {
                 let inserts: Vec<_> = result
                     .iter()
                     .map(|e| NewAnmeldung {
+                        semester: Semester::Sommersemester,
                         url: e.path.last().unwrap().1.inner(),
                         name: &e.path.last().unwrap().0,
                         parent: e.path.len().checked_sub(2).map(|v| e.path[v].1.inner()),
