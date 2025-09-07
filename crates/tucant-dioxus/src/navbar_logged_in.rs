@@ -552,16 +552,7 @@ pub fn NavbarLoggedIn(
                         "data-bs-hide": "collapse", "Semesterexport" }
                 }
                 li {
-                    Link { to: {
-                        #[cfg(target_arch = "wasm32")]
-                        {
-                            Route::Planning {}
-                        }
-                        #[cfg(not(target_arch = "wasm32"))]
-                        {
-                            Route::NotFound { route: Vec::new() }
-                        }
-                    }, class: "dropdown-item",
+                    Link { to: Route::Planning {}, class: "dropdown-item",
                         "data-bs-target": "#navbarSupportedContent",
                         "data-bs-hide": "collapse", "Semesterplanung" }
                 }
