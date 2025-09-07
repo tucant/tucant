@@ -111,12 +111,12 @@ pub fn PlanningInner(connection: MyRc<RefCell<SqliteConnection>>) -> Element {
             // top level leistunggspiegel has "Informatik"
 
             let name = &student_result.course_of_study.iter().find(|e| e.selected).unwrap().name;
-            let elem: Anmeldung = anmeldungen_plan::table
+            diesel::update(anmeldungen_plan::table)
                 .filter(anmeldungen_plan::name.eq(name))
-                .select(Anmeldung::as_select())
-                .first(&mut *connection_clone.borrow_mut())
-                .expect("Error loading anmeldungen");
-            info!("{:?}", elem);
+                .set(anmeldungen_plan::min_cp.eq(student_result.level0.rules.min_cp as i32))
+                .execute(&mut *connection_clone.borrow_mut())
+                .expect("Error updating anmeldungen");
+            info!("updated");
 
 
             let results: Vec<Anmeldung> = anmeldungen_plan::table
