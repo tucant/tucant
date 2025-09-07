@@ -8,6 +8,7 @@ pub mod fetch_anmeldung;
 pub mod gradeoverview;
 pub mod login_component;
 pub mod logout_component;
+pub mod models;
 pub mod module_details;
 pub mod my_courses;
 pub mod my_documents;
@@ -21,6 +22,7 @@ pub mod overview;
 #[cfg(target_arch = "wasm32")]
 pub mod planning;
 pub mod registration;
+pub mod schema;
 pub mod student_result;
 pub mod vv;
 

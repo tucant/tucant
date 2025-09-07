@@ -29,7 +29,7 @@ plotters = { version = "0.3.7", default-features = false, features = ["svg_backe
 keyring = { version = "3", optional = true }
 android-keyring = { version = "0.2", optional = true }
 git-version = "0.3"
-diesel = { version = "2", features = ["sqlite"] }
+diesel = { version = "2", features = ["sqlite", "returning_clauses_for_sqlite_3_35"] }
 diesel_migrations = { version = "2", features = ["sqlite"] }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
