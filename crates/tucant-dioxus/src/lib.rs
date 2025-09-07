@@ -177,6 +177,7 @@ pub enum Route {
     GradeOverview { gradeoverview: GradeOverviewRequest },
     #[route("/fetch-anmeldung")]
     FetchAnmeldung {},
+    #[cfg(target_arch = "wasm32")]
     #[route("/planning")]
     Planning {},
 }
