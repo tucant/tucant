@@ -1,7 +1,11 @@
+use std::rc::Rc;
+use std::sync::Arc;
+
 use diesel::prelude::*;
 use diesel::{Connection, SqliteConnection};
 use diesel_migrations::{EmbeddedMigrations, MigrationHarness as _, embed_migrations};
 use dioxus::prelude::*;
+use futures::FutureExt;
 use js_sys::{ArrayBuffer, Uint8Array};
 use log::info;
 use sqlite_wasm_rs::{
@@ -35,12 +39,31 @@ async fn open_db() -> SqliteConnection {
 
 #[component]
 pub fn Planning() -> Element {
+    let connection = use_resource(move || async move { open_db().await });
+    rsx! {
+        if let Some(connection) = connection() {
+            PlanningInner {
+                connection
+            }
+        }
+    }
+}
+
+#[component]
+pub fn PlanningInner(connection: SqliteConnection) -> Element {
     let mut sommersemester: Signal<Option<web_sys::Element>> = use_signal(|| None);
     let mut wintersemester: Signal<Option<web_sys::Element>> = use_signal(|| None);
+    let mut future = use_resource(|| async move {
+        use crate::schema::anmeldungen::dsl::anmeldungen;
+        let results: Vec<Anmeldung> = anmeldungen
+            .select(Anmeldung::as_select())
+            .load(connection)
+            .expect("Error loading anmeldungen");
+        results
+    });
     let onsubmit = move |evt: Event<FormData>| {
         evt.prevent_default();
         async move {
-            let mut connection = open_db().await;
             use wasm_bindgen::JsCast;
             let a: web_sys::Element = sommersemester().unwrap();
             let b: HtmlInputElement = a.dyn_into::<HtmlInputElement>().unwrap();
@@ -65,7 +88,7 @@ pub fn Planning() -> Element {
                     .collect();
                 let result = diesel::insert_into(anmeldungen::table)
                     .values(&inserts)
-                    .execute(&mut connection)
+                    .execute(connection)
                     .expect("Error saving anmeldungen");
             }
         }

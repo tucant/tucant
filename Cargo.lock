@@ -6079,6 +6079,7 @@ dependencies = [
  "diesel_migrations",
  "dioxus",
  "dioxus-desktop",
+ "futures",
  "git-version",
  "js-sys",
  "keyring",
