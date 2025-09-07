@@ -553,12 +553,12 @@ pub fn NavbarLoggedIn(
                 }
                 li {
                     Link { to: {
+                        #[cfg(target_arch = "wasm32")]
                         {
-                            #[cfg(target_arch = "wasm32")]
                             Route::Planning {}
                         }
+                        #[cfg(not(target_arch = "wasm32"))]
                         {
-                            #[cfg(not(target_arch = "wasm32"))]
                             Route::NotFound { route: Vec::new() }
                         }
                     }, class: "dropdown-item",
