@@ -15,6 +15,7 @@ use sqlite_wasm_rs::{
     relaxed_idb_vfs::{RelaxedIdbCfg, install as install_idb_vfs},
 };
 use tucant_planning::{abc, decompress};
+use tucant_types::student_result::StudentResultLevel;
 use tucant_types::{LoginResponse, RevalidationStrategy, Tucan as _};
 use tucant_types::registration::AnmeldungResponse;
 use wasm_bindgen_futures::JsFuture;
@@ -22,7 +23,7 @@ use web_sys::{FileList, FileReader, HtmlInputElement, console};
 
 use crate::{MyRc, RcTucanType};
 use crate::models::{Anmeldung, NewAnmeldung, Semester};
-use crate::schema::anmeldungen_plan::{self, url};
+use crate::schema::anmeldungen_plan;
 
 // TODO at some point put opfs into a dedicated worker as that is the most
 // correct approach TODO put this into a shared worker so there are no race
@@ -90,6 +91,22 @@ async fn handle_semester(connection_clone: MyRc<RefCell<SqliteConnection>>, seme
     }
 }
 
+pub async fn recursive_update(connection_clone: MyRc<RefCell<SqliteConnection>>, url: String, level: StudentResultLevel) {
+    for child in level.children {
+        let name = child.name.as_ref().unwrap();
+        let child_url = diesel::update(anmeldungen_plan::table.filter(anmeldungen_plan::parent.eq(&url).and(anmeldungen_plan::name.eq(name))))
+            .set((anmeldungen_plan::min_cp.eq(child.rules.min_cp as i32),
+                        anmeldungen_plan::max_cp.eq(child.rules.max_cp.map(|v| v as i32)),
+                        anmeldungen_plan::min_modules.eq(child.rules.min_modules as i32),
+                        anmeldungen_plan::max_modules.eq(child.rules.max_modules.map(|v| v as i32))))
+            .returning(anmeldungen_plan::url)
+            .get_result(&mut *connection_clone.borrow_mut())
+            .expect("Error updating anmeldungen");
+        info!("updated");
+        Box::pin(recursive_update(connection_clone.clone(), child_url, child)).await;
+    }
+}
+
 #[component]
 pub fn PlanningInner(connection: MyRc<RefCell<SqliteConnection>>) -> Element {
     let mut sommersemester: Signal<Option<web_sys::Element>> = use_signal(|| None);
@@ -121,19 +138,8 @@ pub fn PlanningInner(connection: MyRc<RefCell<SqliteConnection>>) -> Element {
                 .expect("Error updating anmeldungen");
             info!("updated");
 
-            for child in student_result.level0.children {
-                let name = &child.name.unwrap();
-                diesel::update(anmeldungen_plan::table.filter(anmeldungen_plan::parent.eq(&the_url).and(anmeldungen_plan::name.eq(name))))
-                    .set((anmeldungen_plan::min_cp.eq(child.rules.min_cp as i32),
-                                anmeldungen_plan::max_cp.eq(child.rules.max_cp.map(|v| v as i32)),
-                                anmeldungen_plan::min_modules.eq(child.rules.min_modules as i32),
-                                anmeldungen_plan::max_modules.eq(child.rules.max_modules.map(|v| v as i32))))
-                    .execute(&mut *connection_clone.borrow_mut())
-                    .expect("Error updating anmeldungen");
-                info!("updated");
-            }
-
-
+            recursive_update(connection_clone.clone(), the_url, student_result.level0).await;
+            
             let results: Vec<Anmeldung> = anmeldungen_plan::table
                 .select(Anmeldung::as_select())
                 .load(&mut *connection_clone.borrow_mut())
