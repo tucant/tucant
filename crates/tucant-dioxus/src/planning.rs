@@ -78,20 +78,18 @@ pub fn PlanningInner(connection: MyRc<RefCell<SqliteConnection>>) -> Element {
             let files: FileList = b.files().unwrap();
             for i in 0..files.length() {
                 let file = files.get(i).unwrap();
-                info!("{}", file.name());
                 let array_buffer = JsFuture::from(file.array_buffer()).await.unwrap();
                 let array = Uint8Array::new(&array_buffer);
                 let decompressed = decompress(&array.to_vec()).await.unwrap();
                 let mut result: Vec<AnmeldungResponse> =
                     serde_json::from_reader(decompressed.as_slice()).unwrap();
-                info!("{:?}", result);
                 result.sort_by_key(|e| e.path.len());
                 let inserts: Vec<_> = result
                     .iter()
                     .map(|e| NewAnmeldung {
                         url: e.path.last().unwrap().1.inner(),
                         name: &e.path.last().unwrap().0,
-                        parent: None,
+                        parent: e.path.len().checked_sub(2).map(|v| e.path[v].1.inner()),
                     })
                     .collect();
                 let mut connection = connection_clone.borrow_mut();
