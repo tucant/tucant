@@ -60,3 +60,52 @@ pub struct NewAnmeldung<'a> {
     pub min_modules: i32,
     pub max_modules: Option<i32>,
 }
+
+
+#[derive(Debug, PartialEq, FromSqlRow, AsExpression, Eq, Copy, Clone)]
+#[diesel(sql_type = Text)]
+pub enum State {
+    NotPlanned,
+    Planned,
+    Done,
+}
+
+impl ToSql<Text, diesel::sqlite::Sqlite> for State
+{
+    fn to_sql<'b>(&'b self, out: &mut Output<'b, '_, diesel::sqlite::Sqlite>) -> serialize::Result {
+        out.set_value(match self {
+            Self::NotPlanned => "not_planned",
+            Self::Planned => "planned",
+            Self::Done => "done",
+        });
+        Ok(IsNull::No)
+    }
+}
+
+impl<DB> FromSql<Text, DB> for State
+where
+    DB: Backend,
+    String: FromSql<Text, DB>,
+{
+    fn from_sql(bytes: DB::RawValue<'_>) -> deserialize::Result<Self> {
+        match String::from_sql(bytes)?.as_str() {
+            "not_planned" => Ok(Self::NotPlanned),
+            "planned" => Ok(Self::Planned),
+            "done" => Ok(Self::Done),
+            x => Err(format!("Unrecognized variant {}", x).into()),
+        }
+    }
+}
+
+
+#[derive(Insertable, Debug)]
+#[diesel(table_name = anmeldungen_entries)]
+#[diesel(treat_none_as_default_value = false)]
+pub struct NewAnmeldungEntry<'a> {
+    semester: Semester,
+    anmeldung: &'a str,
+    module_url: &'a str,
+    id: &'a str,
+    name: &'a str,
+    state: State,
+}

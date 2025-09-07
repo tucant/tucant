@@ -1,4 +1,4 @@
 -- This file should undo anything in `up.sql`
-DROP TABLE anmeldungen_entries;
+DROP TABLE IF EXISTS anmeldungen_entries;
 
-DROP TABLE anmeldungen;
+DROP TABLE IF EXISTS anmeldungen_plan;

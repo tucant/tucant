@@ -7,6 +7,7 @@ diesel::table! {
         module_url -> Text,
         id -> Text,
         name -> Text,
+        state -> Text,
     }
 }
 

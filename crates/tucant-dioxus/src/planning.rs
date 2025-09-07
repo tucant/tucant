@@ -20,8 +20,8 @@ use wasm_bindgen_futures::JsFuture;
 use web_sys::{FileList, HtmlInputElement};
 
 use crate::{MyRc, RcTucanType};
-use crate::models::{Anmeldung, NewAnmeldung, Semester};
-use crate::schema::anmeldungen_plan;
+use crate::models::{Anmeldung, NewAnmeldung, NewAnmeldungEntry, Semester};
+use crate::schema::{anmeldungen_entries, anmeldungen_plan};
 
 // TODO at some point put opfs into a dedicated worker as that is the most
 // correct approach TODO put this into a shared worker so there are no race
@@ -103,6 +103,21 @@ pub async fn recursive_update(connection_clone: MyRc<RefCell<SqliteConnection>>,
         info!("updated");
         Box::pin(recursive_update(connection_clone.clone(), child_url, child)).await;
     }
+    let inserts: Vec<_> = level.entries.iter().map(|entry| NewAnmeldungEntry {
+        semester: todo!(),
+        anmeldung: todo!(),
+        module_url: todo!(),
+        id: todo!(),
+        name: todo!(),
+        state: todo!(),
+    }).collect();
+    let result = diesel::insert_into(anmeldungen_entries::table)
+        .values(&inserts)
+        .on_conflict((anmeldungen_entries::url))
+        .do_update()
+        .set(anmeldungen_entries::parent.eq(excluded(anmeldungen_entries::parent)))
+        .execute(connection)
+        .expect("Error saving anmeldungen");
 }
 
 #[component]
