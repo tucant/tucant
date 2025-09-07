@@ -15,11 +15,12 @@ use sqlite_wasm_rs::{
     relaxed_idb_vfs::{RelaxedIdbCfg, install as install_idb_vfs},
 };
 use tucant_planning::{abc, decompress};
+use tucant_types::{LoginResponse, RevalidationStrategy, Tucan as _};
 use tucant_types::registration::AnmeldungResponse;
 use wasm_bindgen_futures::JsFuture;
 use web_sys::{FileList, FileReader, HtmlInputElement, console};
 
-use crate::MyRc;
+use crate::{MyRc, RcTucanType};
 use crate::models::{Anmeldung, NewAnmeldung, Semester};
 use crate::schema::anmeldungen_plan::{self, url};
 
@@ -94,9 +95,20 @@ pub fn PlanningInner(connection: MyRc<RefCell<SqliteConnection>>) -> Element {
     let mut sommersemester: Signal<Option<web_sys::Element>> = use_signal(|| None);
     let mut wintersemester: Signal<Option<web_sys::Element>> = use_signal(|| None);
     let connection_clone = connection.clone();
+    let tucan: RcTucanType = use_context();
+    let mut current_session_handle = use_context::<Signal<Option<LoginResponse>>>();
     let mut future = use_resource(move || {
         let connection_clone = connection_clone.clone();
+        let current_session_handle = current_session_handle.clone();
+        let tucan = tucan.clone();
         async move {
+            let current_session = current_session_handle().unwrap();
+            let student_result = tucan
+                .student_result(&current_session, RevalidationStrategy::default(), 0)
+                .await.unwrap();
+
+
+
             use crate::schema::anmeldungen_plan::dsl::anmeldungen_plan;
             let results: Vec<Anmeldung> = anmeldungen_plan
                 .select(Anmeldung::as_select())
