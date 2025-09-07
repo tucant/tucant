@@ -228,9 +228,9 @@ pub fn PlanningAnmeldung(connection: MyRc<RefCell<SqliteConnection>>, anmeldung:
         .load(&mut *connection.borrow_mut())
         .expect("Error loading anmeldungen");
     rsx! {
-        h2 {
+        p {
             class: "h{depth}",
-            { anmeldung.name.clone() } 
+            { depth.to_string() + ". " + &anmeldung.name }
         }
         if depth < 3 { // TODO don't do this if any child has some specified cp / module count
             for result in results {
