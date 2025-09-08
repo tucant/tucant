@@ -38,13 +38,13 @@ nix run .#test-dev
 We use a fork of rustfmt to format our custom html extractor macro.
 ```
 # install minimal profile
-rustup toolchain install nightly-2025-04-02 --component rust-src --component rustc-dev --component llvm-tools-preview
-rustup component remove --toolchain nightly-2025-04-02 rustfmt
-cargo +nightly-2025-04-02 install --force --git https://github.com/tucant/rustfmt --branch html-extractor-formatting rustfmt-nightly
-cargo +nightly-2025-04-02 fmt
-rustup run nightly-2025-04-02 dx fmt
+rustup toolchain install nightly-2025-09-08 --component rust-src --component rustc-dev --component llvm-tools-preview
+rustup component remove --toolchain nightly-2025-09-08 rustfmt
+cargo +nightly-2025-09-08 install --force --git https://github.com/tucant/rustfmt --branch html-extractor-formatting rustfmt-nightly
+cargo +nightly-2025-09-08 fmt
+rustup run nightly-2025-09-08 dx fmt
 
-rustup toolchain install nightly-2025-04-02 --component rustfmt
+rustup toolchain install nightly-2025-09-08 --component rustfmt
 ```
 
 ### Running as local webserver
