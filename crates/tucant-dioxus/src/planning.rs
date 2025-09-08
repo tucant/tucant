@@ -6,22 +6,20 @@ use diesel::query_dsl::methods::FilterDsl;
 use diesel::upsert::excluded;
 use diesel::{Connection, SqliteConnection};
 use diesel_migrations::{EmbeddedMigrations, MigrationHarness as _, embed_migrations};
-use dioxus::prelude::{*};
-use js_sys::{Uint8Array};
+use dioxus::prelude::*;
+use js_sys::Uint8Array;
 use log::info;
-use sqlite_wasm_rs::{
-    relaxed_idb_vfs::{RelaxedIdbCfg, install as install_idb_vfs},
-};
-use tucant_planning::{decompress};
+use sqlite_wasm_rs::relaxed_idb_vfs::{RelaxedIdbCfg, install as install_idb_vfs};
+use tucant_planning::decompress;
+use tucant_types::registration::AnmeldungResponse;
 use tucant_types::student_result::StudentResultLevel;
 use tucant_types::{LoginResponse, RevalidationStrategy, Tucan as _};
-use tucant_types::registration::AnmeldungResponse;
 use wasm_bindgen_futures::JsFuture;
 use web_sys::{FileList, HtmlInputElement};
 
-use crate::{MyRc, RcTucanType};
 use crate::models::{Anmeldung, NewAnmeldung, NewAnmeldungEntry, Semester};
 use crate::schema::{anmeldungen_entries, anmeldungen_plan};
+use crate::{MyRc, RcTucanType};
 
 // TODO at some point put opfs into a dedicated worker as that is the most
 // correct approach TODO put this into a shared worker so there are no race
@@ -46,13 +44,17 @@ pub fn Planning() -> Element {
     rsx! {
         if let Some(connection) = connection() {
             PlanningInner {
-                connection
+                connection,
             }
         }
     }
 }
 
-async fn handle_semester(connection_clone: MyRc<RefCell<SqliteConnection>>, semester: Semester, element: Signal<Option<web_sys::Element>>) {
+async fn handle_semester(
+    connection_clone: MyRc<RefCell<SqliteConnection>>,
+    semester: Semester,
+    element: Signal<Option<web_sys::Element>>,
+) {
     use wasm_bindgen::JsCast;
     let element = element().unwrap();
     let b: HtmlInputElement = element.dyn_into::<HtmlInputElement>().unwrap();
@@ -89,28 +91,43 @@ async fn handle_semester(connection_clone: MyRc<RefCell<SqliteConnection>>, seme
     }
 }
 
-pub async fn recursive_update(connection_clone: MyRc<RefCell<SqliteConnection>>, url: String, level: StudentResultLevel) {
+pub async fn recursive_update(
+    connection_clone: MyRc<RefCell<SqliteConnection>>,
+    url: String,
+    level: StudentResultLevel,
+) {
     for child in level.children {
         let name = child.name.as_ref().unwrap();
-        let child_url = diesel::update(QueryDsl::filter(anmeldungen_plan::table, anmeldungen_plan::parent.eq(&url).and(anmeldungen_plan::name.eq(name))))
-            .set((anmeldungen_plan::min_cp.eq(child.rules.min_cp as i32),
-                        anmeldungen_plan::max_cp.eq(child.rules.max_cp.map(|v| v as i32)),
-                        anmeldungen_plan::min_modules.eq(child.rules.min_modules as i32),
-                        anmeldungen_plan::max_modules.eq(child.rules.max_modules.map(|v| v as i32))))
-            .returning(anmeldungen_plan::url)
-            .get_result(&mut *connection_clone.borrow_mut())
-            .expect("Error updating anmeldungen");
+        let child_url = diesel::update(QueryDsl::filter(
+            anmeldungen_plan::table,
+            anmeldungen_plan::parent
+                .eq(&url)
+                .and(anmeldungen_plan::name.eq(name)),
+        ))
+        .set((
+            anmeldungen_plan::min_cp.eq(child.rules.min_cp as i32),
+            anmeldungen_plan::max_cp.eq(child.rules.max_cp.map(|v| v as i32)),
+            anmeldungen_plan::min_modules.eq(child.rules.min_modules as i32),
+            anmeldungen_plan::max_modules.eq(child.rules.max_modules.map(|v| v as i32)),
+        ))
+        .returning(anmeldungen_plan::url)
+        .get_result(&mut *connection_clone.borrow_mut())
+        .expect("Error updating anmeldungen");
         info!("updated");
         Box::pin(recursive_update(connection_clone.clone(), child_url, child)).await;
     }
-    let inserts: Vec<_> = level.entries.iter().map(|entry| NewAnmeldungEntry {
-        semester: todo!(),
-        anmeldung: todo!(),
-        module_url: todo!(),
-        id: todo!(),
-        name: todo!(),
-        state: todo!(),
-    }).collect();
+    let inserts: Vec<_> = level
+        .entries
+        .iter()
+        .map(|entry| NewAnmeldungEntry {
+            semester: todo!(),
+            anmeldung: todo!(),
+            module_url: todo!(),
+            id: todo!(),
+            name: todo!(),
+            state: todo!(),
+        })
+        .collect();
     let result = diesel::insert_into(anmeldungen_entries::table)
         .values(&inserts)
         .on_conflict((anmeldungen_entries::url))
@@ -135,28 +152,44 @@ pub fn PlanningInner(connection: MyRc<RefCell<SqliteConnection>>) -> Element {
             let current_session = current_session_handle().unwrap();
             let student_result = tucan
                 .student_result(&current_session, RevalidationStrategy::cache(), 0)
-                .await.unwrap();
+                .await
+                .unwrap();
 
             // top level anmeldung has name "M.Sc. Informatik (2023)"
             // top level leistunggspiegel has "Informatik"
 
-            let name = &student_result.course_of_study.iter().find(|e| e.selected).unwrap().name;
-            let the_url: String = diesel::update(QueryDsl::filter(anmeldungen_plan::table, anmeldungen_plan::name.eq(name)))
-                .set((anmeldungen_plan::min_cp.eq(student_result.level0.rules.min_cp as i32),
-                             anmeldungen_plan::max_cp.eq(student_result.level0.rules.max_cp.map(|v| v as i32)),
-                             anmeldungen_plan::min_modules.eq(student_result.level0.rules.min_modules as i32),
-                             anmeldungen_plan::max_modules.eq(student_result.level0.rules.max_modules.map(|v| v as i32))))
-                .returning(anmeldungen_plan::url)
-                .get_result(&mut *connection_clone.borrow_mut())
-                .expect("Error updating anmeldungen");
+            let name = &student_result
+                .course_of_study
+                .iter()
+                .find(|e| e.selected)
+                .unwrap()
+                .name;
+            let the_url: String = diesel::update(QueryDsl::filter(
+                anmeldungen_plan::table,
+                anmeldungen_plan::name.eq(name),
+            ))
+            .set((
+                anmeldungen_plan::min_cp.eq(student_result.level0.rules.min_cp as i32),
+                anmeldungen_plan::max_cp.eq(student_result.level0.rules.max_cp.map(|v| v as i32)),
+                anmeldungen_plan::min_modules.eq(student_result.level0.rules.min_modules as i32),
+                anmeldungen_plan::max_modules.eq(student_result
+                    .level0
+                    .rules
+                    .max_modules
+                    .map(|v| v as i32)),
+            ))
+            .returning(anmeldungen_plan::url)
+            .get_result(&mut *connection_clone.borrow_mut())
+            .expect("Error updating anmeldungen");
             info!("updated");
 
             recursive_update(connection_clone.clone(), the_url, student_result.level0).await;
-            
-            let results: Vec<Anmeldung> = QueryDsl::filter(anmeldungen_plan::table, anmeldungen_plan::parent.is_null())
-                .select(Anmeldung::as_select())
-                .load(&mut *connection_clone.borrow_mut())
-                .expect("Error loading anmeldungen");
+
+            let results: Vec<Anmeldung> =
+                QueryDsl::filter(anmeldungen_plan::table, anmeldungen_plan::parent.is_null())
+                    .select(Anmeldung::as_select())
+                    .load(&mut *connection_clone.borrow_mut())
+                    .expect("Error loading anmeldungen");
             results
         }
     });
@@ -165,14 +198,20 @@ pub fn PlanningInner(connection: MyRc<RefCell<SqliteConnection>>) -> Element {
         let connection_clone = connection_clone.clone();
         evt.prevent_default();
         async move {
-            handle_semester(connection_clone.clone(), Semester::Sommersemester, sommersemester).await;
+            handle_semester(
+                connection_clone.clone(),
+                Semester::Sommersemester,
+                sommersemester,
+            )
+            .await;
             handle_semester(connection_clone, Semester::Wintersemester, wintersemester).await;
             info!("done");
             future.restart();
         }
     };
     rsx! {
-        div { class: "container",
+        div {
+            class: "container",
             h2 {
                 class: "text-center",
                 "Semesterplanung"
@@ -193,7 +232,7 @@ pub fn PlanningInner(connection: MyRc<RefCell<SqliteConnection>>) -> Element {
                         onmounted: move |element| {
                             use dioxus::web::WebEventExt;
                             sommersemester.set(Some(element.as_web_event()))
-                        }
+                        },
                     }
                 }
                 div {
@@ -210,7 +249,7 @@ pub fn PlanningInner(connection: MyRc<RefCell<SqliteConnection>>) -> Element {
                         onmounted: move |element| {
                             use dioxus::web::WebEventExt;
                             wintersemester.set(Some(element.as_web_event()))
-                        }
+                        },
                     }
                 }
                 button {
@@ -225,7 +264,7 @@ pub fn PlanningInner(connection: MyRc<RefCell<SqliteConnection>>) -> Element {
                         PlanningAnmeldung {
                             connection: connection.clone(),
                             anmeldung: entry.clone(),
-                            depth: 1
+                            depth: 1,
                         }
                     }
                 }
@@ -234,40 +273,63 @@ pub fn PlanningInner(connection: MyRc<RefCell<SqliteConnection>>) -> Element {
     }
 }
 
-
-
 #[component]
-pub fn PlanningAnmeldung(connection: MyRc<RefCell<SqliteConnection>>, anmeldung: Anmeldung, depth: i32) -> Element {
-    let results: Vec<Anmeldung> = QueryDsl::filter(anmeldungen_plan::table, anmeldungen_plan::parent.eq(anmeldung.url))
-        .select(Anmeldung::as_select())
-        .load(&mut *connection.borrow_mut())
-        .expect("Error loading anmeldungen");
+pub fn PlanningAnmeldung(
+    connection: MyRc<RefCell<SqliteConnection>>,
+    anmeldung: Anmeldung,
+    depth: i32,
+) -> Element {
+    let results: Vec<Anmeldung> = QueryDsl::filter(
+        anmeldungen_plan::table,
+        anmeldungen_plan::parent.eq(anmeldung.url),
+    )
+    .select(Anmeldung::as_select())
+    .load(&mut *connection.borrow_mut())
+    .expect("Error loading anmeldungen");
     rsx! {
         p {
             class: "h{depth}",
             { depth.to_string() + ". " + &anmeldung.name }
         }
-        if depth < 3 { // TODO don't do this if any child has some specified cp / module count
+        if depth < 3 {
             for result in results {
                 PlanningAnmeldung {
                     connection: connection.clone(),
                     anmeldung: result,
-                    depth: depth + 1
+                    depth: depth + 1,
                 }
             }
         }
-        if anmeldung.min_cp != 0 || anmeldung.max_cp.is_some() || anmeldung.min_modules != 0 || anmeldung.max_modules.is_some() {
+        if anmeldung.min_cp != 0
+            || anmeldung.max_cp.is_some()
+            || anmeldung.min_modules != 0
+            || anmeldung.max_modules.is_some() {
             p {
                 { "Summe ".to_owned() + &anmeldung.name + ":" }
-                br {}
-                if anmeldung.min_cp != 0 || anmeldung.max_cp.is_some() {
-                   "CP: " { anmeldung.min_cp.to_string() } { anmeldung.max_cp.map(|max_cp| " - ".to_string() + &max_cp.to_string()) }
+                br {
                 }
-                if (anmeldung.min_cp != 0 || anmeldung.max_cp.is_some()) && (anmeldung.min_modules != 0 || anmeldung.max_modules.is_some()) {
-                    br {}
+                if anmeldung.min_cp != 0 || anmeldung.max_cp.is_some() {
+                    "CP: "
+                    { anmeldung.min_cp.to_string() }
+                    {
+                        anmeldung
+                            .max_cp
+                            .map(|max_cp| " - ".to_string() + &max_cp.to_string())
+                    }
+                }
+                if (anmeldung.min_cp != 0 || anmeldung.max_cp.is_some())
+                    && (anmeldung.min_modules != 0 || anmeldung.max_modules.is_some()) {
+                    br {
+                    }
                 }
                 if anmeldung.min_modules != 0 || anmeldung.max_modules.is_some() {
-                    "Module: " { anmeldung.min_modules.to_string() } { anmeldung.max_modules.map(|max_modules| " - ".to_string() + &max_modules.to_string()) }
+                    "Module: "
+                    { anmeldung.min_modules.to_string() }
+                    {
+                        anmeldung
+                            .max_modules
+                            .map(|max_modules| " - ".to_string() + &max_modules.to_string())
+                    }
                 }
             }
         }

@@ -1,6 +1,12 @@
 use crate::schema::*;
 use diesel::{
-    backend::Backend, deserialize::{self, FromSql, FromSqlRow}, expression::AsExpression, prelude::*, serialize::{self, IsNull, Output, ToSql}, sql_types::Text, sqlite::{Sqlite, SqliteValue}
+    backend::Backend,
+    deserialize::{self, FromSql, FromSqlRow},
+    expression::AsExpression,
+    prelude::*,
+    serialize::{self, IsNull, Output, ToSql},
+    sql_types::Text,
+    sqlite::{Sqlite, SqliteValue},
 };
 
 #[derive(Debug, PartialEq, FromSqlRow, AsExpression, Eq, Copy, Clone)]
@@ -10,8 +16,7 @@ pub enum Semester {
     Wintersemester,
 }
 
-impl ToSql<Text, diesel::sqlite::Sqlite> for Semester
-{
+impl ToSql<Text, diesel::sqlite::Sqlite> for Semester {
     fn to_sql<'b>(&'b self, out: &mut Output<'b, '_, diesel::sqlite::Sqlite>) -> serialize::Result {
         out.set_value(match self {
             Semester::Sommersemester => "s",
@@ -61,7 +66,6 @@ pub struct NewAnmeldung<'a> {
     pub max_modules: Option<i32>,
 }
 
-
 #[derive(Debug, PartialEq, FromSqlRow, AsExpression, Eq, Copy, Clone)]
 #[diesel(sql_type = Text)]
 pub enum State {
@@ -70,8 +74,7 @@ pub enum State {
     Done,
 }
 
-impl ToSql<Text, diesel::sqlite::Sqlite> for State
-{
+impl ToSql<Text, diesel::sqlite::Sqlite> for State {
     fn to_sql<'b>(&'b self, out: &mut Output<'b, '_, diesel::sqlite::Sqlite>) -> serialize::Result {
         out.set_value(match self {
             Self::NotPlanned => "not_planned",
@@ -96,7 +99,6 @@ where
         }
     }
 }
-
 
 #[derive(Insertable, Debug)]
 #[diesel(table_name = anmeldungen_entries)]

@@ -55,6 +55,4 @@ pub fn recursive_anmeldung<'a, 'b>(
     }
 }
 
-pub fn abc() {
-    
-}
+pub fn abc() {}
