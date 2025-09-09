@@ -123,7 +123,8 @@ pub async fn recursive_update(
             semester: Semester::Sommersemester, // TODO FIXME
             anmeldung: &url,
             module_url: "TODO", // TODO FIXME
-            id: entry.id.as_ref().unwrap_or_else(|| &entry.name), // TODO FIXME, use two columns and both as primary key
+            id: entry.id.as_ref().unwrap_or_else(|| &entry.name), /* TODO FIXME, use two columns
+                                 * and both as primary key */
             name: &entry.name,
             state: State::Done,
         })
@@ -144,55 +145,76 @@ pub fn PlanningInner(connection: MyRc<RefCell<SqliteConnection>>) -> Element {
     let connection_clone = connection.clone();
     let tucan: RcTucanType = use_context();
     let mut current_session_handle = use_context::<Signal<Option<LoginResponse>>>();
-    let mut future = use_resource(move || {
+    let mut future = {
         let connection_clone = connection_clone.clone();
         let current_session_handle = current_session_handle.clone();
         let tucan = tucan.clone();
-        async move {
-            let current_session = current_session_handle().unwrap();
-            let student_result = tucan
-                .student_result(&current_session, RevalidationStrategy::cache(), 0)
-                .await
-                .unwrap();
+        use_resource(move || {
+            let connection_clone = connection_clone.clone();
+            let current_session_handle = current_session_handle.clone();
+            let tucan = tucan.clone();
+            async move {
+                let results: Vec<Anmeldung> =
+                    QueryDsl::filter(anmeldungen_plan::table, anmeldungen_plan::parent.is_null())
+                        .select(Anmeldung::as_select())
+                        .load(&mut *connection_clone.borrow_mut())
+                        .expect("Error loading anmeldungen");
+                results
+            }
+        })
+    };
+    let mut load_leistungsspiegel = {
+        let connection_clone = connection_clone.clone();
+        let current_session_handle = current_session_handle.clone();
+        let tucan = tucan.clone();
+        move |evt: Event<MouseData>| {
+            let connection_clone = connection_clone.clone();
+            let current_session_handle = current_session_handle.clone();
+            let tucan = tucan.clone();
+            async move {
+                let current_session = current_session_handle().unwrap();
+                let student_result = tucan
+                    .student_result(&current_session, RevalidationStrategy::cache(), 0)
+                    .await
+                    .unwrap();
 
-            // top level anmeldung has name "M.Sc. Informatik (2023)"
-            // top level leistunggspiegel has "Informatik"
+                // top level anmeldung has name "M.Sc. Informatik (2023)"
+                // top level leistunggspiegel has "Informatik"
 
-            let name = &student_result
-                .course_of_study
-                .iter()
-                .find(|e| e.selected)
-                .unwrap()
-                .name;
-            let the_url: String = diesel::update(QueryDsl::filter(
-                anmeldungen_plan::table,
-                anmeldungen_plan::name.eq(name),
-            ))
-            .set((
-                anmeldungen_plan::min_cp.eq(student_result.level0.rules.min_cp as i32),
-                anmeldungen_plan::max_cp.eq(student_result.level0.rules.max_cp.map(|v| v as i32)),
-                anmeldungen_plan::min_modules.eq(student_result.level0.rules.min_modules as i32),
-                anmeldungen_plan::max_modules.eq(student_result
-                    .level0
-                    .rules
-                    .max_modules
-                    .map(|v| v as i32)),
-            ))
-            .returning(anmeldungen_plan::url)
-            .get_result(&mut *connection_clone.borrow_mut())
-            .expect("Error updating anmeldungen");
-            info!("updated");
+                let name = &student_result
+                    .course_of_study
+                    .iter()
+                    .find(|e| e.selected)
+                    .unwrap()
+                    .name;
+                let the_url: String = diesel::update(QueryDsl::filter(
+                    anmeldungen_plan::table,
+                    anmeldungen_plan::name.eq(name),
+                ))
+                .set((
+                    anmeldungen_plan::min_cp.eq(student_result.level0.rules.min_cp as i32),
+                    anmeldungen_plan::max_cp.eq(student_result
+                        .level0
+                        .rules
+                        .max_cp
+                        .map(|v| v as i32)),
+                    anmeldungen_plan::min_modules
+                        .eq(student_result.level0.rules.min_modules as i32),
+                    anmeldungen_plan::max_modules.eq(student_result
+                        .level0
+                        .rules
+                        .max_modules
+                        .map(|v| v as i32)),
+                ))
+                .returning(anmeldungen_plan::url)
+                .get_result(&mut *connection_clone.borrow_mut())
+                .expect("Error updating anmeldungen");
+                info!("updated");
 
-            recursive_update(connection_clone.clone(), the_url, student_result.level0).await;
-
-            let results: Vec<Anmeldung> =
-                QueryDsl::filter(anmeldungen_plan::table, anmeldungen_plan::parent.is_null())
-                    .select(Anmeldung::as_select())
-                    .load(&mut *connection_clone.borrow_mut())
-                    .expect("Error loading anmeldungen");
-            results
+                recursive_update(connection_clone.clone(), the_url, student_result.level0).await;
+            }
         }
-    });
+    };
     let connection_clone = connection.clone();
     let onsubmit = move |evt: Event<FormData>| {
         let connection_clone = connection_clone.clone();
@@ -218,6 +240,7 @@ pub fn PlanningInner(connection: MyRc<RefCell<SqliteConnection>>) -> Element {
             }
             form {
                 onsubmit: onsubmit,
+                class: "mb-3",
                 div {
                     class: "mb-3",
                     label {
@@ -257,6 +280,12 @@ pub fn PlanningInner(connection: MyRc<RefCell<SqliteConnection>>) -> Element {
                     class: "btn btn-primary",
                     "Planung starten"
                 }
+            }
+            button {
+                type: "button",
+                class: "btn btn-primary",
+                onclick: load_leistungsspiegel,
+                "Leistungsspiegel laden (nach Laden der Semester)"
             }
             ul {
                 if let Some(value) = &*future.read() {
