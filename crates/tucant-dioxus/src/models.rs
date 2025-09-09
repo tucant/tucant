@@ -109,6 +109,7 @@ pub struct AnmeldungEntry {
     pub module_url: String,
     pub id: String,
     pub name: String,
+    pub credits: i32,
     pub state: State,
 }
 
@@ -121,5 +122,6 @@ pub struct NewAnmeldungEntry<'a> {
     pub module_url: &'a str,
     pub id: &'a str,
     pub name: &'a str,
+    pub credits: i32,
     pub state: State,
 }

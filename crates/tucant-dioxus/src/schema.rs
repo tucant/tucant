@@ -1,12 +1,13 @@
 // @generated automatically by Diesel CLI.
 
 diesel::table! {
-    anmeldungen_entries (semester, anmeldung, module_url) {
+    anmeldungen_entries (semester, anmeldung, id) {
         semester -> Text,
         anmeldung -> Text,
         module_url -> Text,
         id -> Text,
         name -> Text,
+        credits -> Integer,
         state -> Text,
     }
 }
