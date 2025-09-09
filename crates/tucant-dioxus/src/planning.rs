@@ -343,10 +343,21 @@ fn prep_planning(
                 class: "ms-2 ps-2",
                 style: "border-left: 1px solid #ccc;",
                 if !entries.is_empty() {
-                    ul {
-                        for entry in entries {
-                            li {
-                                { entry.name }
+                    table {
+                        class: "table",
+                        tbody {
+                            for entry in entries {
+                                tr {
+                                    td {
+                                        { entry.id }
+                                    }
+                                    td {
+                                        { entry.name }
+                                    }
+                                    td {
+                                        { format!("{:?}", entry.state) }
+                                    }
+                                }
                             }
                         }
                     }
