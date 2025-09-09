@@ -306,12 +306,11 @@ pub fn PlanningInner(connection: MyRc<RefCell<SqliteConnection>>) -> Element {
     }
 }
 
-#[component]
-pub fn PlanningAnmeldung(
+fn prep_planning(
     connection: MyRc<RefCell<SqliteConnection>>,
     anmeldung: Anmeldung,
     depth: i32,
-) -> Element {
+) -> (bool, Element) {
     let results: Vec<Anmeldung> = QueryDsl::filter(
         anmeldungen_plan::table,
         anmeldungen_plan::parent.eq(&anmeldung.url),
@@ -326,61 +325,75 @@ pub fn PlanningAnmeldung(
     .select(AnmeldungEntry::as_select())
     .load(&mut *connection.borrow_mut())
     .expect("Error loading anmeldungen");
-    rsx! {
-        p {
-            class: "h{depth}",
-            { depth.to_string() + ". " + &anmeldung.name }
-        }
-        if !entries.is_empty() {
-            ul {
-                for entry in entries {
-                    li {
-                        { entry.name }
-                    }
-                }
-            }
-        }
-        if depth < 4 {
-            for result in results {
-                PlanningAnmeldung {
-                    connection: connection.clone(),
-                    anmeldung: result,
-                    depth: depth + 1,
-                }
-            }
-        }
-        if anmeldung.min_cp != 0
-            || anmeldung.max_cp.is_some()
-            || anmeldung.min_modules != 0
-            || anmeldung.max_modules.is_some() {
+    let inner: Vec<(bool, Element)> = results
+        .into_iter()
+        .map(|result| prep_planning(connection.clone(), result, depth + 1))
+        .collect();
+    let has_rules = anmeldung.min_cp != 0
+        || anmeldung.max_cp.is_some()
+        || anmeldung.min_modules != 0
+        || anmeldung.max_modules.is_some();
+    let interesting = has_rules || !entries.is_empty() || inner.iter().any(|v| v.0);
+    (
+        interesting,
+        rsx! {
             p {
-                { "Summe ".to_owned() + &anmeldung.name + ":" }
-                br {
-                }
-                if anmeldung.min_cp != 0 || anmeldung.max_cp.is_some() {
-                    "CP: "
-                    { anmeldung.min_cp.to_string() }
-                    {
-                        anmeldung
-                            .max_cp
-                            .map(|max_cp| " - ".to_string() + &max_cp.to_string())
+                class: "h{depth}",
+                { depth.to_string() + ". " + &anmeldung.name }
+            }
+            if !entries.is_empty() {
+                ul {
+                    for entry in entries {
+                        li {
+                            { entry.name }
+                        }
                     }
                 }
-                if (anmeldung.min_cp != 0 || anmeldung.max_cp.is_some())
-                    && (anmeldung.min_modules != 0 || anmeldung.max_modules.is_some()) {
+            }
+            if inner.iter().any(|v| v.0) {
+                for inner in inner {
+                    { inner.1 }
+                }
+            }
+            if has_rules {
+                p {
+                    { "Summe ".to_owned() + &anmeldung.name + ":" }
                     br {
                     }
-                }
-                if anmeldung.min_modules != 0 || anmeldung.max_modules.is_some() {
-                    "Module: "
-                    { anmeldung.min_modules.to_string() }
-                    {
-                        anmeldung
-                            .max_modules
-                            .map(|max_modules| " - ".to_string() + &max_modules.to_string())
+                    if anmeldung.min_cp != 0 || anmeldung.max_cp.is_some() {
+                        "CP: "
+                        { anmeldung.min_cp.to_string() }
+                        {
+                            anmeldung
+                                .max_cp
+                                .map(|max_cp| " - ".to_string() + &max_cp.to_string())
+                        }
+                    }
+                    if (anmeldung.min_cp != 0 || anmeldung.max_cp.is_some())
+                        && (anmeldung.min_modules != 0 || anmeldung.max_modules.is_some()) {
+                        br {
+                        }
+                    }
+                    if anmeldung.min_modules != 0 || anmeldung.max_modules.is_some() {
+                        "Module: "
+                        { anmeldung.min_modules.to_string() }
+                        {
+                            anmeldung
+                                .max_modules
+                                .map(|max_modules| " - ".to_string() + &max_modules.to_string())
+                        }
                     }
                 }
             }
-        }
-    }
+        },
+    )
+}
+
+#[component]
+pub fn PlanningAnmeldung(
+    connection: MyRc<RefCell<SqliteConnection>>,
+    anmeldung: Anmeldung,
+    depth: i32,
+) -> Element {
+    prep_planning(connection, anmeldung, depth).1
 }
