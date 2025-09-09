@@ -111,7 +111,7 @@ async fn handle_semester(
             ))
             .do_update()
             .set(anmeldungen_entries::state.eq(excluded(anmeldungen_entries::state)))
-            .execute(&mut *connection_clone.borrow_mut())
+            .execute(connection)
             .expect("Error saving anmeldungen");
     }
 }
