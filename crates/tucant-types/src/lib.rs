@@ -369,6 +369,8 @@ impl Display for ModuleGrade {
     }
 }
 
+pub const CONCURRENCY: usize = 10;
+
 #[dynosaur(pub DynTucan = dyn(box) Tucan)]
 pub trait Tucan: Send + Sync {
     fn login(

@@ -15,7 +15,7 @@ use sqlite_wasm_rs::relaxed_idb_vfs::{RelaxedIdbCfg, install as install_idb_vfs}
 use tucant_planning::decompress;
 use tucant_types::registration::AnmeldungResponse;
 use tucant_types::student_result::StudentResultLevel;
-use tucant_types::{LoginResponse, RevalidationStrategy, Tucan as _};
+use tucant_types::{CONCURRENCY, LoginResponse, RevalidationStrategy, Tucan as _};
 use wasm_bindgen_futures::JsFuture;
 use web_sys::{FileList, HtmlInputElement};
 
@@ -94,7 +94,7 @@ async fn handle_semester(
             .expect("Error saving anmeldungen");
         let inserts: Vec<NewAnmeldungEntry> = futures::stream::iter(result.iter())
             .flat_map(|anmeldung| {
-                futures::stream::iter(anmeldung.entries.iter()).then(async |entry| {
+                futures::stream::iter(anmeldung.entries.iter()).map(async |entry| {
                     NewAnmeldungEntry {
                         semester,
                         anmeldung: anmeldung.path.last().unwrap().1.inner(),
@@ -110,13 +110,14 @@ async fn handle_semester(
                             .await
                             .unwrap()
                             .credits
-                            .unwrap()
+                            .unwrap_or_default()
                             .try_into()
                             .unwrap(),
                         state: State::NotPlanned,
                     }
                 })
             })
+            .buffer_unordered(CONCURRENCY)
             .collect()
             .await;
         diesel::insert_into(anmeldungen_entries::table)
