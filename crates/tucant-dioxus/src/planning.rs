@@ -128,7 +128,10 @@ async fn handle_semester(
                 anmeldungen_entries::id,
             ))
             .do_update()
-            .set(anmeldungen_entries::state.eq(excluded(anmeldungen_entries::state)))
+            .set((
+                anmeldungen_entries::state.eq(excluded(anmeldungen_entries::state)),
+                (anmeldungen_entries::credits.eq(excluded(anmeldungen_entries::credits))),
+            ))
             .execute(connection)
             .expect("Error saving anmeldungen");
     }
