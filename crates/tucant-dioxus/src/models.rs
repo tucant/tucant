@@ -103,6 +103,7 @@ where
 #[derive(Queryable, Selectable, Clone, PartialEq, Debug, AsChangeset)]
 #[diesel(table_name = anmeldungen_entries)]
 #[diesel(check_for_backend(diesel::sqlite::Sqlite))]
+#[diesel(primary_key(semester, anmeldung, id))]
 pub struct AnmeldungEntry {
     pub semester: Semester,
     pub anmeldung: String,
