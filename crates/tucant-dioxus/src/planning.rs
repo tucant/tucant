@@ -371,6 +371,7 @@ pub fn PlanningInner(connection: MyRc<RefCell<SqliteConnection>>) -> Element {
             if let Some(value) = &*future.read() {
                 for entry in value {
                     PlanningAnmeldung {
+                        future,
                         connection: connection.clone(),
                         anmeldung: entry.clone(),
                         depth: 1,
@@ -382,6 +383,7 @@ pub fn PlanningInner(connection: MyRc<RefCell<SqliteConnection>>) -> Element {
 }
 
 fn prep_planning(
+    mut future: Resource<Vec<Anmeldung>>,
     connection: MyRc<RefCell<SqliteConnection>>,
     anmeldung: Anmeldung,
     depth: i32,
@@ -402,7 +404,7 @@ fn prep_planning(
     .expect("Error loading anmeldungen");
     let inner: Vec<(bool, Element)> = results
         .into_iter()
-        .map(|result| prep_planning(connection.clone(), result, depth + 1))
+        .map(|result| prep_planning(future, connection.clone(), result, depth + 1))
         .collect();
     let has_rules = anmeldung.min_cp != 0
         || anmeldung.max_cp.is_some()
@@ -464,6 +466,7 @@ fn prep_planning(
                                                                             .borrow_mut(),
                                                                     )
                                                                     .unwrap();
+                                                                future.restart();
                                                             }
                                                         },
                                                         { format!("{:?}", State::NotPlanned) }
@@ -487,6 +490,7 @@ fn prep_planning(
                                                                             .borrow_mut(),
                                                                     )
                                                                     .unwrap();
+                                                                future.restart();
                                                             }
                                                         },
                                                         { format!("{:?}", State::Planned) }
@@ -510,6 +514,7 @@ fn prep_planning(
                                                                             .borrow_mut(),
                                                                     )
                                                                     .unwrap();
+                                                                future.restart();
                                                             }
                                                         },
                                                         { format!("{:?}", State::Done) }
@@ -565,9 +570,10 @@ fn prep_planning(
 
 #[component]
 pub fn PlanningAnmeldung(
+    future: Resource<Vec<Anmeldung>>,
     connection: MyRc<RefCell<SqliteConnection>>,
     anmeldung: Anmeldung,
     depth: i32,
 ) -> Element {
-    prep_planning(connection, anmeldung, depth).1
+    prep_planning(future, connection, anmeldung, depth).1
 }
