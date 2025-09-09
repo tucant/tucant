@@ -229,7 +229,9 @@ fn module_details_internal(
                                                 registration_range
                                             </td>
                                             <td class="rw rw-detail-unreg">
-                                                unregistration_range
+                                                let unregistration_range = if html_handler.peek().is_some() {
+                                                    unregistration_range
+                                                } => unregistration_range;
                                             </td>
                                         </tr>
                                     } => Anmeldefristen {

@@ -61,7 +61,7 @@ pub struct ModuleDetailsResponse {
 pub struct Anmeldefristen {
     pub anmeldeart: String,
     pub registration_range: String,
-    pub unregistration_range: String,
+    pub unregistration_range: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, ToSchema)]

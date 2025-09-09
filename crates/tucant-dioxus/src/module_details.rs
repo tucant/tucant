@@ -203,7 +203,7 @@ pub fn ModuleDetails(module: ReadSignal<ModuleDetailsRequest>) -> Element {
                     }
                     if let Some(anmeldefristen) = &module.anmeldefristen {
                         div { {format!("Anmeldefrist: {}", anmeldefristen.registration_range)} }
-                        div { {format!("Abmeldefrist: {}", anmeldefristen.unregistration_range)} }
+                        div { {format!("Abmeldefrist: {}", anmeldefristen.unregistration_range.as_deref().unwrap_or("-"))} }
                     }
                     div { {format!("Startsemester: {}", module.start_semester)} }
                     if let Some(display_in_timetable) = &module.display_in_timetable {
