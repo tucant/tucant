@@ -426,7 +426,40 @@ fn prep_planning(
                                         { entry.credits.to_string() }
                                     }
                                     td {
-                                        { format!("{:?}", entry.state) }
+                                        div {
+                                            class: "dropdown",
+                                            button {
+                                                class: "btn btn-primary dropdown-toggle",
+                                                type: "button",
+                                                "data-bs-toggle": "dropdown",
+                                                "aria-expanded": false,
+                                                { format!("{:?}", entry.state) }
+                                            }
+                                            ul {
+                                                class: "dropdown-menu",
+                                                li {
+                                                    a {
+                                                        class: "dropdown-item",
+                                                        href: "",
+                                                        { format!("{:?}", State::NotPlanned) }
+                                                    }
+                                                }
+                                                li {
+                                                    a {
+                                                        class: "dropdown-item",
+                                                        href: "",
+                                                        { format!("{:?}", State::Planned) }
+                                                    }
+                                                }
+                                                li {
+                                                    a {
+                                                        class: "dropdown-item",
+                                                        href: "",
+                                                        { format!("{:?}", State::Done) }
+                                                    }
+                                                }
+                                            }
+                                        }
                                     }
                                 }
                             }
