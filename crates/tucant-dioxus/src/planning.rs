@@ -239,9 +239,11 @@ pub fn PlanningInner(connection: MyRc<RefCell<SqliteConnection>>) -> Element {
                 .returning(anmeldungen_plan::url)
                 .get_result(&mut *connection_clone.borrow_mut())
                 .expect("Error updating anmeldungen");
-                info!("updated");
 
                 recursive_update(connection_clone.clone(), the_url, student_result.level0).await;
+
+                info!("updated");
+                future.restart();
             }
         }
     };
