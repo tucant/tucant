@@ -11,7 +11,7 @@
     "rust-analyzer.check.workspace": false,
     "rust-analyzer.cargo.features": [
         //"desktop",
-        "authenticated_tests"
+        //"authenticated_tests"
         //"direct"
     ],
     "rust-analyzer.check.command": "clippy",

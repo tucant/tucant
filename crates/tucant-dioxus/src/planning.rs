@@ -17,7 +17,7 @@ use tucant_types::{LoginResponse, RevalidationStrategy, Tucan as _};
 use wasm_bindgen_futures::JsFuture;
 use web_sys::{FileList, HtmlInputElement};
 
-use crate::models::{Anmeldung, NewAnmeldung, NewAnmeldungEntry, Semester};
+use crate::models::{Anmeldung, NewAnmeldung, NewAnmeldungEntry, Semester, State};
 use crate::schema::{anmeldungen_entries, anmeldungen_plan};
 use crate::{MyRc, RcTucanType};
 
@@ -120,20 +120,20 @@ pub async fn recursive_update(
         .entries
         .iter()
         .map(|entry| NewAnmeldungEntry {
-            semester: todo!(),
-            anmeldung: todo!(),
-            module_url: todo!(),
-            id: todo!(),
-            name: todo!(),
-            state: todo!(),
+            semester: Semester::Sommersemester, // TODO FIXME
+            anmeldung: &url,
+            module_url: "TODO", // TODO FIXME
+            id: entry.id.as_ref().unwrap_or_else(|| &entry.name), // TODO FIXME, use two columns and both as primary key
+            name: &entry.name,
+            state: State::Done,
         })
         .collect();
     let result = diesel::insert_into(anmeldungen_entries::table)
         .values(&inserts)
-        .on_conflict((anmeldungen_entries::url))
+        .on_conflict((anmeldungen_entries::id))
         .do_update()
-        .set(anmeldungen_entries::parent.eq(excluded(anmeldungen_entries::parent)))
-        .execute(connection)
+        .set(anmeldungen_entries::state.eq(excluded(anmeldungen_entries::state)))
+        .execute(&mut *connection_clone.borrow_mut())
         .expect("Error saving anmeldungen");
 }
 

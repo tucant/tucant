@@ -104,10 +104,10 @@ where
 #[diesel(table_name = anmeldungen_entries)]
 #[diesel(treat_none_as_default_value = false)]
 pub struct NewAnmeldungEntry<'a> {
-    semester: Semester,
-    anmeldung: &'a str,
-    module_url: &'a str,
-    id: &'a str,
-    name: &'a str,
-    state: State,
+    pub semester: Semester,
+    pub anmeldung: &'a str,
+    pub module_url: &'a str,
+    pub id: &'a str,
+    pub name: &'a str,
+    pub state: State,
 }

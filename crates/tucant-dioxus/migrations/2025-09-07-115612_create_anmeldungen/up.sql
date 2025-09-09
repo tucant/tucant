@@ -17,6 +17,6 @@ CREATE TABLE anmeldungen_entries (
     id TEXT NOT NULL,
     name TEXT NOT NULL,
     state TEXT NOT NULL, -- not_planned or planned or done
-    PRIMARY KEY (anmeldung, semester, module_url),
+    PRIMARY KEY (anmeldung, semester, id),
     FOREIGN KEY (anmeldung) REFERENCES anmeldungen (url)
 ) STRICT;
