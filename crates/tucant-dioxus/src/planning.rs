@@ -445,6 +445,7 @@ fn prep_planning(
                                                             let connection = connection.clone();
                                                             let mut entry = entry.clone();
                                                             move |event| {
+                                                                event.prevent_default();
                                                                 let connection = connection.clone();
                                                                 entry.state = State::NotPlanned;
                                                                 diesel::update(
@@ -468,6 +469,7 @@ fn prep_planning(
                                                             let connection = connection.clone();
                                                             let mut entry = entry.clone();
                                                             move |event| {
+                                                                event.prevent_default();
                                                                 let connection = connection.clone();
                                                                 entry.state = State::Planned;
                                                                 diesel::update(
@@ -491,6 +493,7 @@ fn prep_planning(
                                                             let connection = connection.clone();
                                                             let mut entry = entry.clone();
                                                             move |event| {
+                                                                event.prevent_default();
                                                                 let connection = connection.clone();
                                                                 entry.state = State::Done;
                                                                 diesel::update(

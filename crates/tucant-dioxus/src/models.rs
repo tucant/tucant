@@ -104,6 +104,8 @@ where
 #[diesel(table_name = anmeldungen_entries)]
 #[diesel(check_for_backend(diesel::sqlite::Sqlite))]
 #[diesel(primary_key(semester, anmeldung, id))]
+#[diesel(treat_none_as_default_value = false)]
+#[diesel(treat_none_as_null = true)]
 pub struct AnmeldungEntry {
     pub semester: Semester,
     pub anmeldung: String,
