@@ -368,7 +368,7 @@ pub fn PlanningInner(connection: MyRc<RefCell<SqliteConnection>>) -> Element {
                 onclick: load_leistungsspiegel,
                 "Leistungsspiegel laden (nach Laden der Semester)"
             }
-            if let Some(value) = &*future.read() {
+            if let Some(value) = future() {
                 for entry in value {
                     PlanningAnmeldung {
                         future,
@@ -575,5 +575,6 @@ pub fn PlanningAnmeldung(
     anmeldung: Anmeldung,
     depth: i32,
 ) -> Element {
+    let _ = future();
     prep_planning(future, connection, anmeldung, depth).1
 }
