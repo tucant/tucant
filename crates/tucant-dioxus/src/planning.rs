@@ -129,6 +129,7 @@ async fn handle_semester(
             ))
             .do_update()
             .set((
+                // TODO FIXME I think updating does not work
                 anmeldungen_entries::state.eq(excluded(anmeldungen_entries::state)),
                 (anmeldungen_entries::credits.eq(excluded(anmeldungen_entries::credits))),
             ))
