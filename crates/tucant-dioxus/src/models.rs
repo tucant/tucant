@@ -9,7 +9,7 @@ use diesel::{
     sqlite::{Sqlite, SqliteValue},
 };
 
-#[derive(Debug, PartialEq, FromSqlRow, AsExpression, Eq, Copy, Clone)]
+#[derive(Debug, PartialEq, FromSqlRow, AsExpression, Eq, Copy, Clone, Hash)]
 #[diesel(sql_type = Text)]
 pub enum Semester {
     Sommersemester,
@@ -100,7 +100,7 @@ where
     }
 }
 
-#[derive(Queryable, Selectable, Clone, PartialEq, Debug, AsChangeset)]
+#[derive(Queryable, Selectable, Clone, PartialEq, Debug, AsChangeset, Identifiable)]
 #[diesel(table_name = anmeldungen_entries)]
 #[diesel(check_for_backend(diesel::sqlite::Sqlite))]
 #[diesel(primary_key(semester, anmeldung, id))]

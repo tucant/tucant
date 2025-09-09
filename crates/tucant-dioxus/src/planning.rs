@@ -448,14 +448,13 @@ fn prep_planning(
                                                                 event.prevent_default();
                                                                 let connection = connection.clone();
                                                                 entry.state = State::NotPlanned;
-                                                                diesel::update(
-                                                                    anmeldungen_entries::table,
-                                                                )
-                                                                .set(&entry)
-                                                                .execute(
-                                                                    &mut *connection.borrow_mut(),
-                                                                )
-                                                                .unwrap();
+                                                                diesel::update(&entry)
+                                                                    .set(&entry)
+                                                                    .execute(
+                                                                        &mut *connection
+                                                                            .borrow_mut(),
+                                                                    )
+                                                                    .unwrap();
                                                             }
                                                         },
                                                         { format!("{:?}", State::NotPlanned) }
@@ -472,14 +471,13 @@ fn prep_planning(
                                                                 event.prevent_default();
                                                                 let connection = connection.clone();
                                                                 entry.state = State::Planned;
-                                                                diesel::update(
-                                                                    anmeldungen_entries::table,
-                                                                )
-                                                                .set(&entry)
-                                                                .execute(
-                                                                    &mut *connection.borrow_mut(),
-                                                                )
-                                                                .unwrap();
+                                                                diesel::update(&entry)
+                                                                    .set(&entry)
+                                                                    .execute(
+                                                                        &mut *connection
+                                                                            .borrow_mut(),
+                                                                    )
+                                                                    .unwrap();
                                                             }
                                                         },
                                                         { format!("{:?}", State::Planned) }
@@ -496,14 +494,13 @@ fn prep_planning(
                                                                 event.prevent_default();
                                                                 let connection = connection.clone();
                                                                 entry.state = State::Done;
-                                                                diesel::update(
-                                                                    anmeldungen_entries::table,
-                                                                )
-                                                                .set(&entry)
-                                                                .execute(
-                                                                    &mut *connection.borrow_mut(),
-                                                                )
-                                                                .unwrap();
+                                                                diesel::update(&entry)
+                                                                    .set(&entry)
+                                                                    .execute(
+                                                                        &mut *connection
+                                                                            .borrow_mut(),
+                                                                    )
+                                                                    .unwrap();
                                                             }
                                                         },
                                                         { format!("{:?}", State::Done) }
