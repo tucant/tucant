@@ -417,10 +417,10 @@ fn prep_planning(
                             for entry in entries {
                                 tr {
                                     td {
-                                        { entry.id }
+                                        { entry.id.clone() }
                                     }
                                     td {
-                                        { entry.name }
+                                        { entry.name.clone() }
                                     }
                                     td {
                                         { entry.credits.to_string() }
@@ -440,21 +440,69 @@ fn prep_planning(
                                                 li {
                                                     a {
                                                         class: "dropdown-item",
-                                                        href: "",
+                                                        href: "#",
+                                                        onclick: {
+                                                            let connection = connection.clone();
+                                                            let mut entry = entry.clone();
+                                                            move |event| {
+                                                                let connection = connection.clone();
+                                                                entry.state = State::NotPlanned;
+                                                                diesel::update(
+                                                                    anmeldungen_entries::table,
+                                                                )
+                                                                .set(&entry)
+                                                                .execute(
+                                                                    &mut *connection.borrow_mut(),
+                                                                )
+                                                                .unwrap();
+                                                            }
+                                                        },
                                                         { format!("{:?}", State::NotPlanned) }
                                                     }
                                                 }
                                                 li {
                                                     a {
                                                         class: "dropdown-item",
-                                                        href: "",
+                                                        href: "#",
+                                                        onclick: {
+                                                            let connection = connection.clone();
+                                                            let mut entry = entry.clone();
+                                                            move |event| {
+                                                                let connection = connection.clone();
+                                                                entry.state = State::Planned;
+                                                                diesel::update(
+                                                                    anmeldungen_entries::table,
+                                                                )
+                                                                .set(&entry)
+                                                                .execute(
+                                                                    &mut *connection.borrow_mut(),
+                                                                )
+                                                                .unwrap();
+                                                            }
+                                                        },
                                                         { format!("{:?}", State::Planned) }
                                                     }
                                                 }
                                                 li {
                                                     a {
                                                         class: "dropdown-item",
-                                                        href: "",
+                                                        href: "#",
+                                                        onclick: {
+                                                            let connection = connection.clone();
+                                                            let mut entry = entry.clone();
+                                                            move |event| {
+                                                                let connection = connection.clone();
+                                                                entry.state = State::Done;
+                                                                diesel::update(
+                                                                    anmeldungen_entries::table,
+                                                                )
+                                                                .set(&entry)
+                                                                .execute(
+                                                                    &mut *connection.borrow_mut(),
+                                                                )
+                                                                .unwrap();
+                                                            }
+                                                        },
                                                         { format!("{:?}", State::Done) }
                                                     }
                                                 }

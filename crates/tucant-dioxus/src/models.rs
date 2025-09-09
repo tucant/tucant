@@ -100,7 +100,7 @@ where
     }
 }
 
-#[derive(Queryable, Selectable, Clone, PartialEq, Debug)]
+#[derive(Queryable, Selectable, Clone, PartialEq, Debug, AsChangeset)]
 #[diesel(table_name = anmeldungen_entries)]
 #[diesel(check_for_backend(diesel::sqlite::Sqlite))]
 pub struct AnmeldungEntry {
