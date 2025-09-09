@@ -7,6 +7,8 @@ use diesel::upsert::excluded;
 use diesel::{Connection, SqliteConnection};
 use diesel_migrations::{EmbeddedMigrations, MigrationHarness as _, embed_migrations};
 use dioxus::prelude::*;
+use futures::StreamExt;
+use futures::stream::FuturesOrdered;
 use js_sys::Uint8Array;
 use log::info;
 use sqlite_wasm_rs::relaxed_idb_vfs::{RelaxedIdbCfg, install as install_idb_vfs};
@@ -51,6 +53,8 @@ pub fn Planning() -> Element {
 }
 
 async fn handle_semester(
+    tucan: RcTucanType,
+    login_response: &LoginResponse,
     connection_clone: MyRc<RefCell<SqliteConnection>>,
     semester: Semester,
     element: Signal<Option<web_sys::Element>>,
@@ -88,20 +92,33 @@ async fn handle_semester(
             .set(anmeldungen_plan::parent.eq(excluded(anmeldungen_plan::parent)))
             .execute(connection)
             .expect("Error saving anmeldungen");
-        let inserts: Vec<NewAnmeldungEntry> = result
-            .iter()
+        let inserts: Vec<NewAnmeldungEntry> = futures::stream::iter(result.iter())
             .flat_map(|anmeldung| {
-                anmeldung.entries.iter().map(|entry| NewAnmeldungEntry {
-                    semester,
-                    anmeldung: anmeldung.path.last().unwrap().1.inner(),
-                    module_url: entry.module.as_ref().unwrap().url.inner(),
-                    id: &entry.module.as_ref().unwrap().id,
-                    name: &entry.module.as_ref().unwrap().name,
-                    credits: 42, // TODO fetch
-                    state: State::NotPlanned,
+                futures::stream::iter(anmeldung.entries.iter()).then(async |entry| {
+                    NewAnmeldungEntry {
+                        semester,
+                        anmeldung: anmeldung.path.last().unwrap().1.inner(),
+                        module_url: entry.module.as_ref().unwrap().url.inner(),
+                        id: &entry.module.as_ref().unwrap().id,
+                        name: &entry.module.as_ref().unwrap().name,
+                        credits: tucan
+                            .module_details(
+                                login_response,
+                                RevalidationStrategy::cache(),
+                                entry.module.as_ref().unwrap().url.clone(),
+                            )
+                            .await
+                            .unwrap()
+                            .credits
+                            .unwrap()
+                            .try_into()
+                            .unwrap(),
+                        state: State::NotPlanned,
+                    }
                 })
             })
-            .collect();
+            .collect()
+            .await;
         diesel::insert_into(anmeldungen_entries::table)
             .values(&inserts)
             .on_conflict((
@@ -255,17 +272,28 @@ pub fn PlanningInner(connection: MyRc<RefCell<SqliteConnection>>) -> Element {
         }
     };
     let connection_clone = connection.clone();
+    let tucan = tucan.clone();
     let onsubmit = move |evt: Event<FormData>| {
         let connection_clone = connection_clone.clone();
+        let tucan = tucan.clone();
         evt.prevent_default();
         async move {
             handle_semester(
+                tucan.clone(),
+                &current_session_handle().unwrap(),
                 connection_clone.clone(),
                 Semester::Sommersemester,
                 sommersemester,
             )
             .await;
-            handle_semester(connection_clone, Semester::Wintersemester, wintersemester).await;
+            handle_semester(
+                tucan.clone(),
+                &current_session_handle().unwrap(),
+                connection_clone,
+                Semester::Wintersemester,
+                wintersemester,
+            )
+            .await;
             info!("done");
             future.restart();
         }
