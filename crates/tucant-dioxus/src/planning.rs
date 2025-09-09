@@ -15,7 +15,9 @@ use sqlite_wasm_rs::relaxed_idb_vfs::{RelaxedIdbCfg, install as install_idb_vfs}
 use tucant_planning::decompress;
 use tucant_types::registration::AnmeldungResponse;
 use tucant_types::student_result::StudentResultLevel;
-use tucant_types::{CONCURRENCY, LoginResponse, RevalidationStrategy, Tucan as _};
+use tucant_types::{
+    CONCURRENCY, LeistungsspiegelGrade, LoginResponse, RevalidationStrategy, Tucan as _,
+};
 use wasm_bindgen_futures::JsFuture;
 use web_sys::{FileList, HtmlInputElement};
 
@@ -181,7 +183,14 @@ pub async fn recursive_update(
             }))
             .unwrap(),
             name: &entry.name,
-            state: State::Done,
+            state: if matches!(
+                entry.grade,
+                LeistungsspiegelGrade::Grade(_) | LeistungsspiegelGrade::BestandenOhneNote
+            ) {
+                State::Done
+            } else {
+                State::Planned
+            },
         })
         .collect();
     diesel::insert_into(anmeldungen_entries::table)
