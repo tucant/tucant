@@ -17,7 +17,7 @@ use tucant_types::{LoginResponse, RevalidationStrategy, Tucan as _};
 use wasm_bindgen_futures::JsFuture;
 use web_sys::{FileList, HtmlInputElement};
 
-use crate::models::{Anmeldung, NewAnmeldung, NewAnmeldungEntry, Semester, State};
+use crate::models::{Anmeldung, AnmeldungEntry, NewAnmeldung, NewAnmeldungEntry, Semester, State};
 use crate::schema::{anmeldungen_entries, anmeldungen_plan};
 use crate::{MyRc, RcTucanType};
 
@@ -131,7 +131,11 @@ pub async fn recursive_update(
         .collect();
     let result = diesel::insert_into(anmeldungen_entries::table)
         .values(&inserts)
-        .on_conflict((anmeldungen_entries::id))
+        .on_conflict((
+            anmeldungen_entries::anmeldung,
+            anmeldungen_entries::semester,
+            anmeldungen_entries::id,
+        ))
         .do_update()
         .set(anmeldungen_entries::state.eq(excluded(anmeldungen_entries::state)))
         .execute(&mut *connection_clone.borrow_mut())
@@ -310,15 +314,31 @@ pub fn PlanningAnmeldung(
 ) -> Element {
     let results: Vec<Anmeldung> = QueryDsl::filter(
         anmeldungen_plan::table,
-        anmeldungen_plan::parent.eq(anmeldung.url),
+        anmeldungen_plan::parent.eq(&anmeldung.url),
     )
     .select(Anmeldung::as_select())
+    .load(&mut *connection.borrow_mut())
+    .expect("Error loading anmeldungen");
+    let entries: Vec<AnmeldungEntry> = QueryDsl::filter(
+        anmeldungen_entries::table,
+        anmeldungen_entries::anmeldung.eq(&anmeldung.url),
+    )
+    .select(AnmeldungEntry::as_select())
     .load(&mut *connection.borrow_mut())
     .expect("Error loading anmeldungen");
     rsx! {
         p {
             class: "h{depth}",
             { depth.to_string() + ". " + &anmeldung.name }
+        }
+        if !entries.is_empty() {
+            ul {
+                for entry in entries {
+                    li {
+                        { entry.name }
+                    }
+                }
+            }
         }
         if depth < 3 {
             for result in results {
