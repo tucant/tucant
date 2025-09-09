@@ -340,7 +340,7 @@ pub fn PlanningAnmeldung(
                 }
             }
         }
-        if depth < 3 {
+        if depth < 4 {
             for result in results {
                 PlanningAnmeldung {
                     connection: connection.clone(),
