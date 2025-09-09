@@ -81,12 +81,37 @@ async fn handle_semester(
             .collect();
         let mut connection = connection_clone.borrow_mut();
         let connection = &mut *connection;
-        let result = diesel::insert_into(anmeldungen_plan::table)
+        diesel::insert_into(anmeldungen_plan::table)
             .values(&inserts)
             .on_conflict((anmeldungen_plan::url))
             .do_update()
             .set(anmeldungen_plan::parent.eq(excluded(anmeldungen_plan::parent)))
             .execute(connection)
+            .expect("Error saving anmeldungen");
+        let inserts: Vec<NewAnmeldungEntry> = result
+            .iter()
+            .flat_map(|anmeldung| {
+                anmeldung.entries.iter().map(|entry| NewAnmeldungEntry {
+                    semester,
+                    anmeldung: anmeldung.path.last().unwrap().1.inner(),
+                    module_url: entry.module.as_ref().unwrap().url.inner(),
+                    id: &entry.module.as_ref().unwrap().id,
+                    name: &entry.module.as_ref().unwrap().name,
+                    credits: 42, // TODO fetch
+                    state: State::NotPlanned,
+                })
+            })
+            .collect();
+        diesel::insert_into(anmeldungen_entries::table)
+            .values(&inserts)
+            .on_conflict((
+                anmeldungen_entries::anmeldung,
+                anmeldungen_entries::semester,
+                anmeldungen_entries::id,
+            ))
+            .do_update()
+            .set(anmeldungen_entries::state.eq(excluded(anmeldungen_entries::state)))
+            .execute(&mut *connection_clone.borrow_mut())
             .expect("Error saving anmeldungen");
     }
 }
@@ -130,7 +155,7 @@ pub async fn recursive_update(
             state: State::Done,
         })
         .collect();
-    let result = diesel::insert_into(anmeldungen_entries::table)
+    diesel::insert_into(anmeldungen_entries::table)
         .values(&inserts)
         .on_conflict((
             anmeldungen_entries::anmeldung,
@@ -354,6 +379,9 @@ fn prep_planning(
                                     }
                                     td {
                                         { entry.name }
+                                    }
+                                    td {
+                                        { entry.credits.to_string() }
                                     }
                                     td {
                                         { format!("{:?}", entry.state) }
