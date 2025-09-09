@@ -150,7 +150,14 @@ pub async fn recursive_update(
             module_url: "TODO", // TODO FIXME
             id: entry.id.as_ref().unwrap_or_else(|| &entry.name), /* TODO FIXME, use two columns
                                  * and both as primary key */
-            credits: i32::try_from(entry.used_cp.unwrap_or_default()).unwrap(),
+            credits: i32::try_from(entry.used_cp.unwrap_or_else(|| {
+                if level.name.as_deref() == Some("Masterarbeit") {
+                    30
+                } else {
+                    0
+                }
+            }))
+            .unwrap(),
             name: &entry.name,
             state: State::Done,
         })
