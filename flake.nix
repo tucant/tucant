@@ -115,12 +115,14 @@
           (craneLib.fileset.commonCargoSources ./crates/tucant-dioxus)
           (craneLib.fileset.commonCargoSources ./crates/html-handler)
           (craneLib.fileset.commonCargoSources ./crates/tucant-planning)
+          ./crates/tucant-dioxus/migrations
           ./crates/tucant-dioxus/assets/bootstrap.css
           ./crates/tucant-dioxus/assets/bootstrap.bundle.min.js
           ./crates/tucant-dioxus/assets/bootstrap.patch.js
         ];
 
         client = craneLib.buildPackage (commonArgs // {
+          stdenv = p: p.emscriptenStdenv;
           doCheck = false;
           cargoArtifacts = null; # building deps only does not work with the default stub entrypoint
           src = lib.fileset.toSource {
@@ -134,11 +136,17 @@
           '';
           buildPhaseCargoCommand = ''
             export HOME=$(mktemp -d)
+            #export EMCC_DEBUG=1
+            export CC=emcc
+            export CXX=emcc
+            emcc --version
             ${dioxus-cli}/bin/dx bundle --platform web --verbose --release --out-dir $out --base-path public --features direct
           '';
           installPhaseCommand = ''
           '';
-          nativeBuildInputs = [ pkgs.wasm-bindgen-cli_0_2_100 pkgs.binaryen (pkgs.writeShellScriptBin "git"
+          checkPhaseCargoCommand = ''
+          '';
+          nativeBuildInputs = [ pkgs.which pkgs.emscripten pkgs.wasm-bindgen-cli_0_2_100 pkgs.binaryen (pkgs.writeShellScriptBin "git"
   ''
   echo ${self.rev or "dirty"}
   '') ];

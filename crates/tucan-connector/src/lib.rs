@@ -22,7 +22,7 @@ use student_result::student_result;
 use time::{OffsetDateTime, format_description::well_known::Rfc2822};
 use tokio::sync::Semaphore;
 use tucant_types::{
-    LoginResponse, RevalidationStrategy, SemesterId, Tucan, TucanError,
+    CONCURRENCY, LoginResponse, RevalidationStrategy, SemesterId, Tucan, TucanError,
     courseresults::ModuleResultsResponse,
     examresults::ExamResultsResponse,
     gradeoverview::{GradeOverviewRequest, GradeOverviewResponse},
@@ -171,7 +171,7 @@ impl TucanConnector {
         Ok(Self {
             client,
             database: Database::new().await,
-            semaphore: Arc::new(Semaphore::new(10)),
+            semaphore: Arc::new(Semaphore::new(CONCURRENCY)),
         })
     }
 
@@ -367,7 +367,7 @@ mod tests {
                     .build()
                     .unwrap();
 
-                let semaphore = Arc::new(Semaphore::new(10));
+                let semaphore = Arc::new(Semaphore::new(CONCURRENCY));
                 (client, semaphore)
             })
             .await;

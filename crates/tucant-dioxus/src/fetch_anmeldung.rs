@@ -60,14 +60,16 @@ pub fn FetchAnmeldung() -> Element {
                             blob_properties.set_type("octet/stream");
                             let bytes = Array::new();
                             bytes.push(&Uint8Array::from(&entry.1[..]));
-                            let blob = Blob::new_with_blob_sequence_and_options(&bytes, &blob_properties)
-                                .unwrap();
+                            let blob =
+                                Blob::new_with_blob_sequence_and_options(&bytes, &blob_properties)
+                                    .unwrap();
                             Url::create_object_url_with_blob(&blob).unwrap()
                         },
                         download: entry.0.clone(),
-                        {format!("Download {}", entry.0.clone())}
+                        { format!("Download {}", entry.0.clone()) }
                     }
-                    br {}
+                    br {
+                    }
                 }
             }
         },

@@ -29,14 +29,21 @@ plotters = { version = "0.3.7", default-features = false, features = ["svg_backe
 keyring = { version = "3", optional = true }
 android-keyring = { version = "0.2", optional = true }
 git-version = "0.3"
+# https://github.com/diesel-rs/diesel/discussions/4545
+diesel = { git = "https://github.com/diesel-rs/diesel.git", features = ["sqlite", "returning_clauses_for_sqlite_3_35"] }
+diesel_migrations = { git = "https://github.com/diesel-rs/diesel.git", features = ["sqlite"] }
+futures = "0.3.31"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 tokio = { features = ["macros", "rt", "rt-multi-thread"], version = "1" }
 
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+sqlite-wasm-rs = { version = "0.4", default-features = false, features = ["bundled", "relaxed-idb"] }
+
 [features]
 direct = ["web", "dep:tucan-connector", "dep:web-extensions-sys"]
 api = ["web"]
-default = []
+default = ["web"]
 web = ["dioxus/web"]
 desktop = ["dioxus/desktop", "dep:dioxus-desktop", "dep:tucan-connector", "dep:keyring"]
 mobile = ["dioxus/mobile", "dep:dioxus-desktop", "dep:tucan-connector", "dep:keyring", "dep:android-keyring"]

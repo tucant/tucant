@@ -8,6 +8,7 @@ pub mod fetch_anmeldung;
 pub mod gradeoverview;
 pub mod login_component;
 pub mod logout_component;
+pub mod models;
 pub mod module_details;
 pub mod my_courses;
 pub mod my_documents;
@@ -18,7 +19,9 @@ pub mod navbar;
 pub mod navbar_logged_in;
 pub mod navbar_logged_out;
 pub mod overview;
+pub mod planning;
 pub mod registration;
+pub mod schema;
 pub mod student_result;
 pub mod vv;
 
@@ -28,6 +31,7 @@ use std::sync::Arc;
 use crate::fetch_anmeldung::FetchAnmeldung;
 use crate::navbar::Navbar;
 use crate::overview::Overview;
+use crate::planning::Planning;
 use dioxus::prelude::*;
 use tucant_types::DynTucan;
 use tucant_types::gradeoverview::GradeOverviewRequest;
@@ -173,6 +177,8 @@ pub enum Route {
     GradeOverview { gradeoverview: GradeOverviewRequest },
     #[route("/fetch-anmeldung")]
     FetchAnmeldung {},
+    #[route("/planning")]
+    Planning {},
 }
 
 #[component]
@@ -228,24 +234,32 @@ pub fn Root() -> Element {
     }
 }
 
-pub struct RcTucanType(pub Arc<DynTucan<'static>>);
+pub struct MyRc<T: ?Sized>(pub Arc<T>);
 
-impl Clone for RcTucanType {
+impl<T: ?Sized> MyRc<T> {
+    pub fn new(value: Arc<T>) -> Self {
+        Self(value)
+    }
+}
+
+impl<T: ?Sized> Clone for MyRc<T> {
     fn clone(&self) -> Self {
         Self(self.0.clone())
     }
 }
 
-impl PartialEq for RcTucanType {
-    fn eq(&self, other: &RcTucanType) -> bool {
+impl<T: ?Sized> PartialEq for MyRc<T> {
+    fn eq(&self, other: &MyRc<T>) -> bool {
         Arc::ptr_eq(&self.0, &other.0)
     }
 }
 
-impl Deref for RcTucanType {
-    type Target = Arc<DynTucan<'static>>;
+impl<T: ?Sized> Deref for MyRc<T> {
+    type Target = Arc<T>;
 
     fn deref(&self) -> &Self::Target {
         &self.0
     }
 }
+
+pub type RcTucanType = MyRc<DynTucan<'static>>;

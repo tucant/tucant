@@ -7,17 +7,18 @@
         "editor.formatOnSave": false
     },
     "terminal.integrated.scrollback": 100000,
-    //"rust-analyzer.cargo.target": "wasm32-unknown-unknown",
+    "rust-analyzer.cargo.target": "wasm32-unknown-unknown",
+    "rust-analyzer.check.workspace": false,
     "rust-analyzer.cargo.features": [
         //"desktop",
-        "authenticated_tests"
+        //"authenticated_tests"
         //"direct"
     ],
     "rust-analyzer.check.command": "clippy",
     "rust-analyzer.rustfmt.overrideCommand": [
         "rustup",
         "run",
-        "nightly-2025-04-02",
+        "nightly-2025-09-08",
         "--",
         "rustfmt",
         "--edition",
