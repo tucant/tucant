@@ -291,14 +291,12 @@ pub fn PlanningInner(connection: MyRc<RefCell<SqliteConnection>>) -> Element {
                 onclick: load_leistungsspiegel,
                 "Leistungsspiegel laden (nach Laden der Semester)"
             }
-            ul {
-                if let Some(value) = &*future.read() {
-                    for entry in value {
-                        PlanningAnmeldung {
-                            connection: connection.clone(),
-                            anmeldung: entry.clone(),
-                            depth: 1,
-                        }
+            if let Some(value) = &*future.read() {
+                for entry in value {
+                    PlanningAnmeldung {
+                        connection: connection.clone(),
+                        anmeldung: entry.clone(),
+                        depth: 1,
                     }
                 }
             }
@@ -338,49 +336,53 @@ fn prep_planning(
         interesting,
         rsx! {
             p {
-                class: "h{depth}",
-                { depth.to_string() + ". " + &anmeldung.name }
+                class: "h3",
+                { anmeldung.name.clone() }
             }
-            if !entries.is_empty() {
-                ul {
-                    for entry in entries {
-                        li {
-                            { entry.name }
+            div {
+                class: "ms-2 ps-2",
+                style: "border-left: 1px solid #ccc;",
+                if !entries.is_empty() {
+                    ul {
+                        for entry in entries {
+                            li {
+                                { entry.name }
+                            }
                         }
                     }
                 }
-            }
-            if inner.iter().any(|v| v.0) {
-                for inner in inner {
-                    { inner.1 }
+                if inner.iter().any(|v| v.0) {
+                    for inner in inner {
+                        { inner.1 }
+                    }
                 }
-            }
-            if has_rules {
-                p {
-                    { "Summe ".to_owned() + &anmeldung.name + ":" }
-                    br {
-                    }
-                    if anmeldung.min_cp != 0 || anmeldung.max_cp.is_some() {
-                        "CP: "
-                        { anmeldung.min_cp.to_string() }
-                        {
-                            anmeldung
-                                .max_cp
-                                .map(|max_cp| " - ".to_string() + &max_cp.to_string())
-                        }
-                    }
-                    if (anmeldung.min_cp != 0 || anmeldung.max_cp.is_some())
-                        && (anmeldung.min_modules != 0 || anmeldung.max_modules.is_some()) {
+                if has_rules {
+                    p {
+                        { "Summe ".to_owned() + &anmeldung.name + ":" }
                         br {
                         }
-                    }
-                    if anmeldung.min_modules != 0 || anmeldung.max_modules.is_some() {
-                        "Module: "
-                        { anmeldung.min_modules.to_string() }
-                        {
-                            anmeldung
-                                .max_modules
-                                .map(|max_modules| " - ".to_string() + &max_modules.to_string())
+                        if anmeldung.min_cp != 0 || anmeldung.max_cp.is_some() {
+                            "CP: "
+                            { anmeldung.min_cp.to_string() }
+                            {
+                                anmeldung
+                                    .max_cp
+                                    .map(|max_cp| " - ".to_string() + &max_cp.to_string())
+                            }
+                        }
+                        if (anmeldung.min_cp != 0 || anmeldung.max_cp.is_some())
+                            && (anmeldung.min_modules != 0 || anmeldung.max_modules.is_some()) {
+                            br {
+                            }
+                        }
+                        if anmeldung.min_modules != 0 || anmeldung.max_modules.is_some() {
+                            "Module: "
+                            { anmeldung.min_modules.to_string() }
+                            {
+                                anmeldung
+                                    .max_modules
+                                    .map(|max_modules| " - ".to_string() + &max_modules.to_string())
+                            }
                         }
                     }
                 }
