@@ -382,12 +382,19 @@ pub fn PlanningInner(connection: MyRc<RefCell<SqliteConnection>>) -> Element {
     }
 }
 
+pub struct PrepPlanningReturn {
+    has_contents: bool,
+    credits: i32,
+    modules: usize,
+    element: Element,
+}
+
 fn prep_planning(
     mut future: Resource<Vec<Anmeldung>>,
     connection: MyRc<RefCell<SqliteConnection>>,
     anmeldung: Anmeldung,
     depth: i32,
-) -> (bool, i32, Element) {
+) -> PrepPlanningReturn {
     let results: Vec<Anmeldung> = QueryDsl::filter(
         anmeldungen_plan::table,
         anmeldungen_plan::parent.eq(&anmeldung.url),
@@ -402,7 +409,7 @@ fn prep_planning(
     .select(AnmeldungEntry::as_select())
     .load(&mut *connection.borrow_mut())
     .expect("Error loading anmeldungen");
-    let inner: Vec<(bool, i32, Element)> = results
+    let inner: Vec<PrepPlanningReturn> = results
         .into_iter()
         .map(|result| prep_planning(future, connection.clone(), result, depth + 1))
         .collect();
@@ -410,17 +417,23 @@ fn prep_planning(
         || anmeldung.max_cp.is_some()
         || anmeldung.min_modules != 0
         || anmeldung.max_modules.is_some();
-    let interesting = has_rules || !entries.is_empty() || inner.iter().any(|v| v.0);
+    let interesting = has_rules || !entries.is_empty() || inner.iter().any(|v| v.has_contents);
     let cp: i32 = entries
         .iter()
         .filter(|entry| entry.state == State::Done || entry.state == State::Planned)
         .map(|entry| entry.credits)
         .sum::<i32>()
-        + inner.iter().map(|inner| inner.1).sum::<i32>();
-    (
-        interesting,
-        cp,
-        rsx! {
+        + inner.iter().map(|inner| inner.credits).sum::<i32>();
+    let modules: usize = entries
+        .iter()
+        .filter(|entry| entry.state == State::Done || entry.state == State::Planned)
+        .count()
+        + inner.iter().map(|inner| inner.modules).sum::<usize>();
+    PrepPlanningReturn {
+        has_contents: interesting,
+        credits: cp,
+        modules,
+        element: rsx! {
             p {
                 class: "h3",
                 { anmeldung.name.clone() }
@@ -535,9 +548,9 @@ fn prep_planning(
                         }
                     }
                 }
-                if inner.iter().any(|v| v.0) {
+                if inner.iter().any(|v| v.has_contents) {
                     for inner in inner {
-                        { inner.2 }
+                        { inner.element }
                     }
                 }
                 if has_rules {
@@ -563,6 +576,8 @@ fn prep_planning(
                         }
                         if anmeldung.min_modules != 0 || anmeldung.max_modules.is_some() {
                             "Module: "
+                            { modules.to_string() }
+                            " / "
                             { anmeldung.min_modules.to_string() }
                             {
                                 anmeldung
@@ -574,7 +589,7 @@ fn prep_planning(
                 }
             }
         },
-    )
+    }
 }
 
 #[component]
@@ -585,5 +600,5 @@ pub fn PlanningAnmeldung(
     depth: i32,
 ) -> Element {
     let _ = future();
-    prep_planning(future, connection, anmeldung, depth).2
+    prep_planning(future, connection, anmeldung, depth).element
 }
