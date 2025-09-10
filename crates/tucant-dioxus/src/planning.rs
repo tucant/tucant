@@ -387,7 +387,7 @@ fn prep_planning(
     connection: MyRc<RefCell<SqliteConnection>>,
     anmeldung: Anmeldung,
     depth: i32,
-) -> (bool, Element) {
+) -> (bool, i32, Element) {
     let results: Vec<Anmeldung> = QueryDsl::filter(
         anmeldungen_plan::table,
         anmeldungen_plan::parent.eq(&anmeldung.url),
@@ -402,7 +402,7 @@ fn prep_planning(
     .select(AnmeldungEntry::as_select())
     .load(&mut *connection.borrow_mut())
     .expect("Error loading anmeldungen");
-    let inner: Vec<(bool, Element)> = results
+    let inner: Vec<(bool, i32, Element)> = results
         .into_iter()
         .map(|result| prep_planning(future, connection.clone(), result, depth + 1))
         .collect();
@@ -411,8 +411,15 @@ fn prep_planning(
         || anmeldung.min_modules != 0
         || anmeldung.max_modules.is_some();
     let interesting = has_rules || !entries.is_empty() || inner.iter().any(|v| v.0);
+    let cp: i32 = entries
+        .iter()
+        .filter(|entry| entry.state == State::Done || entry.state == State::Planned)
+        .map(|entry| entry.credits)
+        .sum::<i32>()
+        + inner.iter().map(|inner| inner.1).sum::<i32>();
     (
         interesting,
+        cp,
         rsx! {
             p {
                 class: "h3",
@@ -530,7 +537,7 @@ fn prep_planning(
                 }
                 if inner.iter().any(|v| v.0) {
                     for inner in inner {
-                        { inner.1 }
+                        { inner.2 }
                     }
                 }
                 if has_rules {
@@ -540,6 +547,8 @@ fn prep_planning(
                         }
                         if anmeldung.min_cp != 0 || anmeldung.max_cp.is_some() {
                             "CP: "
+                            { cp.to_string() }
+                            " / "
                             { anmeldung.min_cp.to_string() }
                             {
                                 anmeldung
@@ -576,5 +585,5 @@ pub fn PlanningAnmeldung(
     depth: i32,
 ) -> Element {
     let _ = future();
-    prep_planning(future, connection, anmeldung, depth).1
+    prep_planning(future, connection, anmeldung, depth).2
 }
