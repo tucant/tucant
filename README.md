@@ -57,6 +57,7 @@ dx serve --platform web --features api --verbose
 
 # in second tab
 cargo install --locked bacon
+cd crates/tucant-api/
 bacon tucant-api
 
 # http://localhost:8080/#/
