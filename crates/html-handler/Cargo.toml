@@ -1,9 +1,9 @@
 [package]
 name = "html-handler"
-license.workspace = true
-edition.workspace = true
-version.workspace = true
-rust-version.workspace = true
+license = "AGPL-3.0-or-later"
+edition = "2024"
+version = "0.1.2"
+rust-version = "1.85.1"
 
 [dependencies]
 html-extractor = { path = "../html-extractor" }
@@ -12,6 +12,3 @@ data-encoding = "2"
 sha3 = "0.10"
 ego-tree = "0.10"
 html5ever = "0.35.0"
-
-[lints]
-workspace = true

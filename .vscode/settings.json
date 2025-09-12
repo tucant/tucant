@@ -7,8 +7,10 @@
         "editor.formatOnSave": false
     },
     "terminal.integrated.scrollback": 100000,
+    "rust-analyzer.linkedProjects": [
+        "./crates/tucant-dioxus/Cargo.toml"
+    ],
     "rust-analyzer.cargo.target": "wasm32-unknown-unknown",
-    "rust-analyzer.check.workspace": false,
     "rust-analyzer.cargo.features": [
         //"desktop",
         //"authenticated_tests"

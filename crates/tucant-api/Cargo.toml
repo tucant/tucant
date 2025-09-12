@@ -1,8 +1,9 @@
 [package]
 name = "tucant-api"
-license.workspace = true
-edition.workspace = true
-version.workspace = true
+license = "AGPL-3.0-or-later"
+edition = "2024"
+version = "0.1.2"
+rust-version = "1.85.1"
 
 [dependencies]
 axum = { version = "0.8.1", features = ["macros"] }
@@ -17,6 +18,3 @@ axum-extra = { version = "0.10.0", features = ["cookie"]}
 serde_json = "1.0.133"
 tower-http = { version = "0.6.6", features = ["cors"] }
 tower = "0.5.2"
-
-[lints]
-workspace = true

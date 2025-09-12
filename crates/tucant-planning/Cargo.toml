@@ -1,9 +1,9 @@
 [package]
 name = "tucant-planning"
-license.workspace = true
-edition.workspace = true
-version.workspace = true
-rust-version.workspace = true
+license = "AGPL-3.0-or-later"
+edition = "2024"
+version = "0.1.2"
+rust-version = "1.85.1"
 
 [dependencies]
 tucant-types = { path = "../tucant-types" }
@@ -19,7 +19,3 @@ sqlite-wasm-rs = { version = "0.4", default-features = false, features = ["bundl
 tucan-connector = { path = "../tucan-connector" }
 dotenvy = "0.15"
 tokio = { features = ["full"], version = "1" }
-
-
-[lints]
-workspace = true
