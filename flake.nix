@@ -14,8 +14,17 @@
     };
   };
 
-  outputs = inputs@{ self, nixpkgs, crane, flake-utils, rust-overlay, ... }:
-    flake-utils.lib.eachDefaultSystem (system:
+  outputs =
+    inputs@{
+      self,
+      nixpkgs,
+      crane,
+      flake-utils,
+      rust-overlay,
+      ...
+    }:
+    flake-utils.lib.eachDefaultSystem (
+      system:
       let
         pkgs = import nixpkgs {
           inherit system;
@@ -24,15 +33,13 @@
 
         inherit (pkgs) lib;
 
-        rustToolchainFor = p: p.rust-bin.nightly.latest.minimal.override {
-          targets = [ "wasm32-unknown-unknown" ];
-          extensions = [ "rustfmt" ];
-        };
+        rustToolchainFor =
+          p:
+          p.rust-bin.nightly.latest.minimal.override {
+            targets = [ "wasm32-unknown-unknown" ];
+            extensions = [ "rustfmt" ];
+          };
         craneLib = (crane.mkLib pkgs).overrideToolchain rustToolchainFor;
-
-        commonArgs = {
-          strictDeps = true;
-        };
 
         dioxus-cli = craneLib.buildPackage {
           src = pkgs.fetchFromGitHub {
@@ -49,17 +56,19 @@
           buildInputs = [ pkgs.openssl ];
         };
 
-        nativeArgs = commonArgs // {
+        nativeArgs = {
+          strictDeps = true;
           src = lib.fileset.toSource {
             root = ./.;
             fileset = lib.fileset.unions [
               (craneLib.fileset.commonCargoSources ./crates)
-              ./Cargo.toml
-              ./Cargo.lock
-              (lib.fileset.fileFilter
-                (file: lib.any file.hasExt [ "html" "scss" ])
-                ./.
-              )
+              (lib.fileset.fileFilter (
+                file:
+                lib.any file.hasExt [
+                  "html"
+                  "scss"
+                ]
+              ) ./.)
               ./tucant-extension/bootstrap.bundle.min.js
               ./tucant-extension/bootstrap.css
             ];
@@ -67,27 +76,35 @@
           pname = "tucant-workspace-native";
         };
 
-        tests = craneLib.buildPackage (commonArgs // {
+        tests = craneLib.buildPackage {
+          cargoToml = ./crates/tucant-tests/Cargo.toml;
+          cargoLock = ./crates/tucant-tests/Cargo.lock;
+          preBuild = ''
+            cd ./crates/tucant-tests
+          '';
+          strictDeps = true;
           pname = "tucant-workspace-native-tests";
           src = lib.fileset.toSource {
             root = ./.;
             fileset = lib.fileset.unions [
-              ./Cargo.toml
-              ./Cargo.lock
               (craneLib.fileset.commonCargoSources ./crates/tucant-tests)
             ];
           };
           cargoTestExtraArgs = "--no-run";
           cargoExtraArgs = "--package=tucant-tests";
-        });
+        };
 
-        api = craneLib.buildPackage (commonArgs // {
+        api = craneLib.buildPackage {
+          cargoToml = ./crates/tucant-api/Cargo.toml;
+          cargoLock = ./crates/tucant-api/Cargo.lock;
+          preBuild = ''
+            cd ./crates/tucant-api
+          '';
+          strictDeps = true;
           pname = "tucant-workspace-native-api";
           src = lib.fileset.toSource {
             root = ./.;
             fileset = lib.fileset.unions [
-              ./Cargo.toml
-              ./Cargo.lock
               (craneLib.fileset.commonCargoSources ./crates/tucant-types)
               (craneLib.fileset.commonCargoSources ./crates/key-value-database)
               (craneLib.fileset.commonCargoSources ./crates/html-extractor)
@@ -98,16 +115,17 @@
           };
           cargoTestExtraArgs = "--no-run";
           cargoExtraArgs = "--package=tucant-api";
-        });
+        };
 
-        schema = pkgs.runCommandNoCC "schema.json" {
-          } ''
-            ${api}/bin/schema > $out
-          '';
+        schema =
+          pkgs.runCommandNoCC "schema.json"
+            {
+            }
+            ''
+              ${api}/bin/schema > $out
+            '';
 
         fileset-wasm = lib.fileset.unions [
-          ./Cargo.toml
-          ./Cargo.lock
           (craneLib.fileset.commonCargoSources ./crates/tucant-types)
           (craneLib.fileset.commonCargoSources ./crates/key-value-database)
           (craneLib.fileset.commonCargoSources ./crates/html-extractor)
@@ -121,7 +139,13 @@
           ./crates/tucant-dioxus/assets/bootstrap.patch.js
         ];
 
-        client = craneLib.buildPackage (commonArgs // {
+        client = craneLib.buildPackage {
+          cargoToml = ./crates/tucant-dioxus/Cargo.toml;
+          cargoLock = ./crates/tucant-dioxus/Cargo.lock;
+          preBuild = ''
+            cd ./crates/tucant-dioxus
+          '';
+          strictDeps = true;
           stdenv = p: p.emscriptenStdenv;
           doCheck = false;
           cargoArtifacts = null; # building deps only does not work with the default stub entrypoint
@@ -131,9 +155,6 @@
           };
           cargoExtraArgs = "--package=tucant-dioxus";
           pname = "tucant-workspace-tucant-dioxus";
-          preBuild = ''
-            cd ./crates/tucant-dioxus
-          '';
           buildPhaseCargoCommand = ''
             export HOME=$(mktemp -d)
             #export EMCC_DEBUG=1
@@ -142,16 +163,31 @@
             emcc --version
             ${dioxus-cli}/bin/dx bundle --platform web --verbose --release --out-dir $out --base-path public --features direct
           '';
-          installPhaseCommand = ''
-          '';
-          checkPhaseCargoCommand = ''
-          '';
-          nativeBuildInputs = [ pkgs.which pkgs.emscripten pkgs.wasm-bindgen-cli_0_2_100 pkgs.binaryen (pkgs.writeShellScriptBin "git"
-  ''
-  echo ${self.rev or "dirty"}
-  '') ];
+          installPhaseCommand = '''';
+          checkPhaseCargoCommand = '''';
+          nativeBuildInputs = [
+            pkgs.which
+            pkgs.emscripten
+            (pkgs.buildWasmBindgenCli rec {
+              src = pkgs.fetchCrate {
+                pname = "wasm-bindgen-cli";
+                version = "0.2.101";
+                hash = "sha256-txpbTzlrPSEktyT9kSpw4RXQoiSZHm9t3VxeRn//9JI=";
+              };
+
+              cargoDeps = pkgs.rustPlatform.fetchCargoVendor {
+                inherit src;
+                inherit (src) pname version;
+                hash = "sha256-J+F9SqTpH3T0MbvlNKVyKnMachgn8UXeoTF0Pk3Xtnc=";
+              };
+            })
+            pkgs.binaryen
+            (pkgs.writeShellScriptBin "git" ''
+              echo ${self.rev or "dirty"}
+            '')
+          ];
           doNotPostBuildInstallCargoBinaries = true;
-        });
+        };
 
         fileset-extension = lib.fileset.unions [
           ./tucant-extension/background.js
@@ -224,17 +260,30 @@
         '';
       in
       {
+        formatter = pkgs.nixfmt-tree;
         checks = {
           inherit api schema client;
 
           # todo also clippy the frontend
-          my-app-clippy = craneLib.cargoClippy (nativeArgs // {
-            cargoClippyExtraArgs = "--all-targets -- --deny warnings";
-          });
+          my-app-clippy = craneLib.cargoClippy (
+            nativeArgs
+            // {
+              cargoClippyExtraArgs = "--all-targets -- --deny warnings";
+            }
+          );
 
-          my-app-fmt = craneLib.cargoFmt (nativeArgs // {
-            src = source-with-build-instructions;
-          });
+          my-app-fmt = craneLib.cargoFmt (
+            nativeArgs
+            // {
+              cargoToml = ./crates/tucant-dioxus/Cargo.toml;
+              cargoLock = ./crates/tucant-dioxus/Cargo.lock;
+              preBuild = ''
+                cd ./crates/tucant-dioxus
+              '';
+              cargoExtraArgs = "--all";
+              src = source-with-build-instructions;
+            }
+          );
         };
 
         packages.schema = schema;
@@ -256,27 +305,26 @@
           let
             version = (lib.importJSON ./tucant-extension/manifest.json).version;
           in
-          pkgs.writeShellScriptBin "publish"
-            ''
-              set -ex
-              mkdir -p out
-              cd out
-              # seems like chromium writes into the parent folder of the pack-extension argument
-              chmod -R ug+rw tucant-extension-${version} || true
-              rm -Rf tucant-extension-${version}
-              cp -r ${extension-unpacked} tucant-extension-${version}
-              ${pkgs.chromium}/bin/chromium --no-sandbox --pack-extension=tucant-extension-${version} --pack-extension-key=$CHROMIUM_EXTENSION_SIGNING_KEY
-              chmod 644 tucant-extension-${version}.crx
+          pkgs.writeShellScriptBin "publish" ''
+            set -ex
+            mkdir -p out
+            cd out
+            # seems like chromium writes into the parent folder of the pack-extension argument
+            chmod -R ug+rw tucant-extension-${version} || true
+            rm -Rf tucant-extension-${version}
+            cp -r ${extension-unpacked} tucant-extension-${version}
+            ${pkgs.chromium}/bin/chromium --no-sandbox --pack-extension=tucant-extension-${version} --pack-extension-key=$CHROMIUM_EXTENSION_SIGNING_KEY
+            chmod 644 tucant-extension-${version}.crx
 
-              chmod -R ug+rw tucant-extension-${version}
-              rm -Rf tucant-extension-${version}
-              cp -r ${extension-unpacked} tucant-extension-${version}
-              chmod -R ug+rw tucant-extension-${version}
+            chmod -R ug+rw tucant-extension-${version}
+            rm -Rf tucant-extension-${version}
+            cp -r ${extension-unpacked} tucant-extension-${version}
+            chmod -R ug+rw tucant-extension-${version}
 
-              ${pkgs.web-ext}/bin/web-ext sign --channel unlisted --source-dir tucant-extension-${version} --upload-source-code ${source}
-              chmod 644 web-ext-artifacts/tucant-${version}.xpi
-              cp web-ext-artifacts/tucant-${version}.xpi tucant-extension-${version}.xpi
-            '';
+            ${pkgs.web-ext}/bin/web-ext sign --channel unlisted --source-dir tucant-extension-${version} --upload-source-code ${source}
+            chmod 644 web-ext-artifacts/tucant-${version}.xpi
+            cp web-ext-artifacts/tucant-${version}.xpi tucant-extension-${version}.xpi
+          '';
 
         packages.test = pkgs.writeShellApplication {
           name = "test";
@@ -328,5 +376,6 @@
             pkgs.nodejs_latest
           ];
         };
-      });
+      }
+    );
 }

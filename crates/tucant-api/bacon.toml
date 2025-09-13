@@ -1,7 +1,6 @@
-[jobs.run-long]
+[jobs.run]
 command = [
-    "cargo", "run",
-    # put launch parameters for your program behind a `--` separator
+    "cargo", "run", "--bin", "tucant-api", "--release"
 ]
 need_stdout = true
 allow_warnings = true

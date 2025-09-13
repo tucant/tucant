@@ -1,11 +1,9 @@
 [package]
 name = "tucan-connector"
-license.workspace = true
-edition.workspace = true
-version.workspace = true
-
-[lints]
-workspace = true
+license = "AGPL-3.0-or-later"
+edition = "2024"
+version = "0.1.2"
+rust-version = "1.85.1"
 
 [dependencies]
 reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "http2", "charset", "stream"] }
