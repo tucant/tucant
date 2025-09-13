@@ -551,14 +551,23 @@ fn prep_planning(
                         br {
                         }
                         if anmeldung.min_cp != 0 || anmeldung.max_cp.is_some() {
-                            "CP: "
-                            { cp.to_string() }
-                            " / "
-                            { anmeldung.min_cp.to_string() }
-                            {
-                                anmeldung
-                                    .max_cp
-                                    .map(|max_cp| " - ".to_string() + &max_cp.to_string())
+                            span {
+                                class: if anmeldung.min_cp <= cp
+                                    && anmeldung.max_cp.map(|max| cp <= max).unwrap_or(true)
+                                {
+                                    "bg-success"
+                                } else {
+                                    "bg-danger"
+                                },
+                                "CP: "
+                                { cp.to_string() }
+                                " / "
+                                { anmeldung.min_cp.to_string() }
+                                {
+                                    anmeldung
+                                        .max_cp
+                                        .map(|max_cp| " - ".to_string() + &max_cp.to_string())
+                                }
                             }
                         }
                         if (anmeldung.min_cp != 0 || anmeldung.max_cp.is_some())
@@ -567,14 +576,26 @@ fn prep_planning(
                             }
                         }
                         if anmeldung.min_modules != 0 || anmeldung.max_modules.is_some() {
-                            "Module: "
-                            { modules.to_string() }
-                            " / "
-                            { anmeldung.min_modules.to_string() }
-                            {
-                                anmeldung
-                                    .max_modules
-                                    .map(|max_modules| " - ".to_string() + &max_modules.to_string())
+                            span {
+                                class: if anmeldung.min_modules <= modules
+                                    && anmeldung
+                                        .max_modules
+                                        .map(|max| modules <= max)
+                                        .unwrap_or(true)
+                                {
+                                    "bg-success"
+                                } else {
+                                    "bg-danger"
+                                },
+                                "Module: "
+                                { modules.to_string() }
+                                " / "
+                                { anmeldung.min_modules.to_string() }
+                                {
+                                    anmeldung.max_modules.map(|max_modules| {
+                                        " - ".to_string() + &max_modules.to_string()
+                                    })
+                                }
                             }
                         }
                     }
