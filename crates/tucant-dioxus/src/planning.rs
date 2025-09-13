@@ -2,7 +2,6 @@ use std::cell::RefCell;
 use std::sync::Arc;
 
 use diesel::prelude::*;
-use diesel::query_dsl::methods::FilterDsl;
 use diesel::upsert::excluded;
 use diesel::{Connection, SqliteConnection};
 use diesel_migrations::{EmbeddedMigrations, MigrationHarness as _, embed_migrations};
@@ -216,12 +215,8 @@ pub fn PlanningInner(connection: MyRc<RefCell<SqliteConnection>>) -> Element {
     let current_session_handle = use_context::<Signal<Option<LoginResponse>>>();
     let mut future = {
         let connection_clone = connection_clone.clone();
-        let current_session_handle = current_session_handle;
-        let tucan = tucan.clone();
         use_resource(move || {
             let connection_clone = connection_clone.clone();
-            let current_session_handle = current_session_handle;
-            let tucan = tucan.clone();
             async move {
                 let results: Vec<Anmeldung> =
                     QueryDsl::filter(anmeldungen_plan::table, anmeldungen_plan::parent.is_null())
@@ -234,9 +229,8 @@ pub fn PlanningInner(connection: MyRc<RefCell<SqliteConnection>>) -> Element {
     };
     let load_leistungsspiegel = {
         let connection_clone = connection_clone.clone();
-        let current_session_handle = current_session_handle;
         let tucan = tucan.clone();
-        move |evt: Event<MouseData>| {
+        move |_event: Event<MouseData>| {
             let connection_clone = connection_clone.clone();
             let current_session_handle = current_session_handle;
             let tucan = tucan.clone();
@@ -375,7 +369,6 @@ pub fn PlanningInner(connection: MyRc<RefCell<SqliteConnection>>) -> Element {
                         future,
                         connection: connection.clone(),
                         anmeldung: entry.clone(),
-                        depth: 1,
                     }
                 }
             }
@@ -394,7 +387,6 @@ fn prep_planning(
     mut future: Resource<Vec<Anmeldung>>,
     connection: MyRc<RefCell<SqliteConnection>>,
     anmeldung: Anmeldung,
-    depth: i32,
 ) -> PrepPlanningReturn {
     let results: Vec<Anmeldung> = QueryDsl::filter(
         anmeldungen_plan::table,
@@ -412,7 +404,7 @@ fn prep_planning(
     .expect("Error loading anmeldungen");
     let inner: Vec<PrepPlanningReturn> = results
         .into_iter()
-        .map(|result| prep_planning(future, connection.clone(), result, depth + 1))
+        .map(|result| prep_planning(future, connection.clone(), result))
         .collect();
     let has_rules = anmeldung.min_cp != 0
         || anmeldung.max_cp.is_some()
@@ -598,8 +590,7 @@ pub fn PlanningAnmeldung(
     future: Resource<Vec<Anmeldung>>,
     connection: MyRc<RefCell<SqliteConnection>>,
     anmeldung: Anmeldung,
-    depth: i32,
 ) -> Element {
     let _ = future();
-    prep_planning(future, connection, anmeldung, depth).element
+    prep_planning(future, connection, anmeldung).element
 }
