@@ -384,7 +384,7 @@ pub struct PrepPlanningReturn {
 fn prep_planning(
     mut future: Resource<Vec<Anmeldung>>,
     connection: MyRc<RefCell<SqliteConnection>>,
-    anmeldung: Anmeldung,
+    anmeldung: Anmeldung, // ahh this needs to be a signal?
 ) -> PrepPlanningReturn {
     let results: Vec<Anmeldung> = QueryDsl::filter(
         anmeldungen_plan::table,
@@ -401,8 +401,8 @@ fn prep_planning(
     .load(&mut *connection.borrow_mut())
     .expect("Error loading anmeldungen");
     let inner: Vec<PrepPlanningReturn> = results
-        .into_iter()
-        .map(|result| prep_planning(future, connection.clone(), result))
+        .iter()
+        .map(|result| prep_planning(future, connection.clone(), result.clone()))
         .collect();
     let has_rules = anmeldung.min_cp != 0
         || anmeldung.max_cp.is_some()
@@ -425,6 +425,7 @@ fn prep_planning(
         .filter(|entry| entry.state == State::Done || entry.state == State::Planned)
         .count()
         + inner.iter().map(|inner| inner.modules).sum::<usize>();
+    // Wahlbereiche der individuellen Vertiefung
     PrepPlanningReturn {
         has_contents: interesting,
         credits: used_cp,
@@ -451,11 +452,14 @@ fn prep_planning(
                     table {
                         class: "table",
                         tbody {
-                            for entry in entries
+                            for (key, entry) in entries
                                 .iter()
-                                .filter(|entry| expanded() || entry.state != State::NotPlanned) {
+                                .filter(|entry| expanded() || entry.state != State::NotPlanned)
+                                .map(|entry| (format!("{}{:?}", entry.id, entry.semester), entry)) {
                                 tr {
+                                    key: "{key}",
                                     td {
+                                        "{entry.id}",
                                         { entry.id.clone() }
                                     }
                                     td {
@@ -567,8 +571,15 @@ fn prep_planning(
                     }
                 }
                 if expanded() || inner.iter().any(|v| v.has_contents) {
-                    for inner in inner.into_iter().filter(|v| expanded() || v.has_contents) {
-                        { inner.element }
+                    for (key, value) in results
+                        .iter()
+                        .zip(inner.into_iter())
+                        .filter(|(_, value)| expanded() || value.has_contents)
+                        .map(|(key, value)| (&key.url, value)) {
+                        div {
+                            key: "{key}",
+                            { value.element }
+                        }
                     }
                 }
                 if has_rules {
