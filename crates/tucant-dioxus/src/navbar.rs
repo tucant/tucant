@@ -29,7 +29,7 @@ pub fn Navbar() -> Element {
                     .await
                 {
                     Ok(response) => Ok(Some(response)),
-                    Err(error) => handle_error(current_session, error, false),
+                    Err(error) => handle_error(current_session, error, true),
                 }
             } else {
                 Ok(None)

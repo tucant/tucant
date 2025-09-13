@@ -82,7 +82,7 @@ pub fn LoginComponent() -> Element {
                 url: "https://www.tucan.tu-darmstadt.de".to_owned(),
                 domain: None,
                 path: Some("/scripts".to_owned()),
-                value: Some(response.id.to_string()),
+                value: Some("544780631865356".to_owned()),
                 expiration_date: None,
                 http_only: None,
                 secure: Some(true),
@@ -90,15 +90,30 @@ pub fn LoginComponent() -> Element {
             })
             .await;
 
-        #[cfg(any(feature = "desktop", feature = "mobile"))]
-        keyring::Entry::new("tucant", "session")
-            .unwrap()
-            .set_password(&serde_json::to_string(&response).unwrap())
-            .unwrap();
+        #[cfg(feature = "direct")]
+        web_extensions_sys::chrome()
+            .cookies()
+            .set(web_extensions_sys::SetCookieDetails {
+                name: Some("cnsc".to_owned()),
+                partition_key: None,
+                store_id: None,
+                url: "https://www.tucan.tu-darmstadt.de".to_owned(),
+                domain: None,
+                path: Some("/scripts".to_owned()),
+                value: Some("84BC747762F472B5A7507EB9F5CE2330".to_owned()),
+                expiration_date: None,
+                http_only: None,
+                secure: Some(true),
+                same_site: None,
+            })
+            .await;
 
         let window = web_sys::window().unwrap();
         let document = window.document().unwrap();
         let html_document = document.dyn_into::<web_sys::HtmlDocument>().unwrap();
+
+        // this probably is a long timeout, it seems like tucan will at some point
+        // forget that a session is a timeout
         html_document
             .set_cookie("id=544780631865356; Path=/")
             .unwrap();
