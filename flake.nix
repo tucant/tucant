@@ -275,8 +275,12 @@
           my-app-fmt = craneLib.cargoFmt (
             nativeArgs
             // {
-              pname = "test";
-              version = "0.1.0";
+              cargoToml = ./crates/tucant-dioxus/Cargo.toml;
+              cargoLock = ./crates/tucant-dioxus/Cargo.lock;
+              preBuild = ''
+                cd ./crates/tucant-dioxus
+              '';
+              cargoExtraArgs = "--all";
               src = source-with-build-instructions;
             }
           );
