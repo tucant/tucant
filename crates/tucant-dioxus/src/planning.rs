@@ -408,7 +408,8 @@ fn prep_planning(
         || anmeldung.max_cp.is_some()
         || anmeldung.min_modules != 0
         || anmeldung.max_modules.is_some();
-    let interesting = has_rules || !entries.is_empty() || inner.iter().any(|v| v.has_contents);
+    let entries_to_show = entries.iter().any(|entry| entry.state != State::NotPlanned);
+    let interesting = has_rules || entries_to_show || inner.iter().any(|v| v.has_contents);
     let cp: i32 = entries
         .iter()
         .filter(|entry| entry.state == State::Done || entry.state == State::Planned)
@@ -432,7 +433,7 @@ fn prep_planning(
             div {
                 class: "ms-2 ps-2",
                 style: "border-left: 1px solid #ccc;",
-                if !entries.is_empty() {
+                if entries_to_show {
                     table {
                         class: "table",
                         tbody {
