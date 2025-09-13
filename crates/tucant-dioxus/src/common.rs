@@ -74,6 +74,8 @@ pub fn handle_error<O: Clone + 'static>(
         TucanError::Http(ref req) if req.status() == Some(StatusCode::UNAUTHORIZED) => {
             // timeout
             // authorized vv urls from another session will repeatedly log you out here
+            // do we also get a timeout for an unauthenticated vv url when we are logged in?
+            // for debugging getting a timed out session would be useful
             if current_session_handle().is_some() {
                 current_session_handle.set(None);
             }
