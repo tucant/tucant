@@ -85,14 +85,12 @@ async fn handle_semester(
                 max_modules: None,
             })
             .collect();
-        let mut connection = connection_clone.borrow_mut();
-        let connection = &mut *connection;
         diesel::insert_into(anmeldungen_plan::table)
             .values(&inserts)
             .on_conflict(anmeldungen_plan::url)
             .do_update()
             .set(anmeldungen_plan::parent.eq(excluded(anmeldungen_plan::parent)))
-            .execute(connection)
+            .execute(&mut *connection_clone.borrow_mut())
             .expect("Error saving anmeldungen");
         let inserts: Vec<NewAnmeldungEntry> = futures::stream::iter(result.iter())
             .flat_map(|anmeldung| {
@@ -135,7 +133,7 @@ async fn handle_semester(
                 anmeldungen_entries::state.eq(excluded(anmeldungen_entries::state)),
                 (anmeldungen_entries::credits.eq(excluded(anmeldungen_entries::credits))),
             ))
-            .execute(connection)
+            .execute(&mut *connection_clone.borrow_mut())
             .expect("Error saving anmeldungen");
     }
 }
