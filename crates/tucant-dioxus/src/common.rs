@@ -66,15 +66,14 @@ pub fn use_unauthenticated_data_loader<
 }
 
 pub fn handle_error<O: Clone + 'static>(
-    mut data: Signal<Result<Option<O>, String>>,
     mut current_session_handle: Signal<Option<LoginResponse>>,
     error: TucanError,
-) {
+) -> Result<Option<O>, String> {
     log::error!("{error}");
     match error {
         TucanError::Http(ref req) if req.status() == Some(StatusCode::UNAUTHORIZED) => {
             current_session_handle.set(None);
-            data.set(Err("Unauthorized".to_owned()))
+            Err("Unauthorized".to_owned())
         }
         TucanError::Timeout => {
             #[cfg(feature = "direct")]
@@ -115,21 +114,18 @@ pub fn handle_error<O: Clone + 'static>(
 
             if current_session_handle().is_some() {
                 current_session_handle.set(None);
-            } else {
-                data.set(Err(error.to_string()));
             }
+            Err(error.to_string())
         }
         TucanError::AccessDenied => {
             if current_session_handle().is_some() {
-                data.set(Err(error.to_string()));
+                Err(error.to_string())
             } else {
                 // some vv urls are not available without authentication
-                data.set(Err("Not accessible without authentication".to_owned()));
+                Err("Not accessible without authentication".to_owned())
             }
         }
-        _ => {
-            data.set(Err(error.to_string()));
-        }
+        _ => Err(error.to_string()),
     }
 }
 
@@ -199,7 +195,7 @@ fn use_data_loader<I: Clone + PartialEq + std::fmt::Debug + 'static, O: Clone + 
                         }
                     }
                     Err(error) => {
-                        handle_error(data, current_session_handle, error);
+                        data.set(handle_error(current_session_handle, error));
                         loading.set(false);
                     }
                 }
@@ -233,7 +229,7 @@ fn use_data_loader<I: Clone + PartialEq + std::fmt::Debug + 'static, O: Clone + 
                         loading.set(false);
                     }
                     Err(error) => {
-                        handle_error(data, current_session_handle, error);
+                        data.set(handle_error(current_session_handle, error));
                         loading.set(false);
                     }
                 }
