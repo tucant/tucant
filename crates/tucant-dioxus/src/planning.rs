@@ -577,10 +577,10 @@ fn prep_planning(
                         }
                         if anmeldung.min_modules != 0 || anmeldung.max_modules.is_some() {
                             span {
-                                class: if anmeldung.min_modules <= modules
+                                class: if anmeldung.min_modules <= modules.try_into().unwrap()
                                     && anmeldung
                                         .max_modules
-                                        .map(|max| modules <= max)
+                                        .map(|max| modules <= max.try_into().unwrap())
                                         .unwrap_or(true)
                                 {
                                     "bg-success"
