@@ -432,13 +432,7 @@ fn prep_planning(
         element: rsx! {
             div {
                 class: "h3",
-                { anmeldung.name.clone() },
-                /*form {
-                    input {
-                        class: "form-control",
-                        placeholder: "Search",
-                    }
-                }*/
+                { anmeldung.name.clone() }
                 " "
                 button {
                     type: "button",
@@ -452,11 +446,14 @@ fn prep_planning(
             div {
                 class: "ms-2 ps-2",
                 style: "border-left: 1px solid #ccc;",
-                if (!entries.is_empty() && expanded()) || entries.iter().any(|entry| entry.state != State::NotPlanned) {
+                if (!entries.is_empty() && expanded())
+                    || entries.iter().any(|entry| entry.state != State::NotPlanned) {
                     table {
                         class: "table",
                         tbody {
-                            for entry in entries.iter().filter(|entry| expanded() || entry.state != State::NotPlanned) {
+                            for entry in entries
+                                .iter()
+                                .filter(|entry| expanded() || entry.state != State::NotPlanned) {
                                 tr {
                                     td {
                                         { entry.id.clone() }
@@ -475,9 +472,12 @@ fn prep_planning(
                                             class: "dropdown",
                                             button {
                                                 class: match entry.state {
-                                                    State::NotPlanned => "btn btn-secondary dropdown-toggle",
-                                                    State::Planned => "btn btn-primary dropdown-toggle",
-                                                    State::Done => "btn btn-success dropdown-toggle",
+                                                    State::NotPlanned =>
+                                                        "btn btn-secondary dropdown-toggle",
+                                                    State::Planned =>
+                                                        "btn btn-primary dropdown-toggle",
+                                                    State::Done =>
+                                                        "btn btn-success dropdown-toggle",
                                                 },
                                                 type: "button",
                                                 "data-bs-toggle": "dropdown",
