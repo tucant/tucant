@@ -4,8 +4,9 @@ use reqwest::StatusCode;
 use tucant_types::{LoginResponse, RevalidationStrategy, Tucan, TucanError};
 
 use crate::{
-    RcTucanType, Route, login_component::LoginComponent, logout_component::LogoutComponent,
-    navbar_logged_in::NavbarLoggedIn, navbar_logged_out::NavbarLoggedOut,
+    RcTucanType, Route, common::handle_error, login_component::LoginComponent,
+    logout_component::LogoutComponent, navbar_logged_in::NavbarLoggedIn,
+    navbar_logged_out::NavbarLoggedOut,
 };
 
 //use crate::{LoginComponent, LogoutComponent, RcTucanType,
@@ -29,21 +30,7 @@ pub fn Navbar() -> Element {
                 {
                     Ok(response) => Ok(Some(response)),
                     Err(error) => {
-                        // TODO pass through tucanerror from server
-                        error!("{error}");
-                        match error {
-                            TucanError::Http(ref req)
-                                if req.status() == Some(StatusCode::UNAUTHORIZED) =>
-                            {
-                                current_session.set(None);
-                                Err("Unauthorized".to_owned())
-                            }
-                            TucanError::Timeout | TucanError::AccessDenied => {
-                                current_session.set(None);
-                                Ok(None) // TODO FIXME
-                            }
-                            _ => Err(error.to_string()),
-                        }
+                        handle_error(data, current_session, error);
                     }
                 }
             } else {

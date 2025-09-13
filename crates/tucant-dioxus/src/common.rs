@@ -1,5 +1,6 @@
 use dioxus::prelude::*;
 use log::info;
+use reqwest::StatusCode;
 use tucant_types::{LoginResponse, RevalidationStrategy, TucanError};
 
 use crate::RcTucanType;
@@ -64,6 +65,74 @@ pub fn use_unauthenticated_data_loader<
     )
 }
 
+pub fn handle_error<O: Clone + 'static>(
+    mut data: Signal<Result<Option<O>, String>>,
+    mut current_session_handle: Signal<Option<LoginResponse>>,
+    error: TucanError,
+) {
+    log::error!("{error}");
+    match error {
+        TucanError::Http(ref req) if req.status() == Some(StatusCode::UNAUTHORIZED) => {
+            current_session_handle.set(None);
+            data.set(Err("Unauthorized".to_owned()))
+        }
+        TucanError::Timeout => {
+            #[cfg(feature = "direct")]
+            web_extensions_sys::chrome()
+                .cookies()
+                .set(web_extensions_sys::SetCookieDetails {
+                    name: Some("id".to_owned()),
+                    partition_key: None,
+                    store_id: None,
+                    url: "https://www.tucan.tu-darmstadt.de".to_owned(),
+                    domain: None,
+                    path: Some("/scripts".to_owned()),
+                    value: None,
+                    expiration_date: Some(0),
+                    http_only: None,
+                    secure: Some(true),
+                    same_site: None,
+                })
+                .await;
+
+            #[cfg(feature = "direct")]
+            web_extensions_sys::chrome()
+                .cookies()
+                .set(web_extensions_sys::SetCookieDetails {
+                    name: Some("cnsc".to_owned()),
+                    partition_key: None,
+                    store_id: None,
+                    url: "https://www.tucan.tu-darmstadt.de".to_owned(),
+                    domain: None,
+                    path: Some("/scripts".to_owned()),
+                    value: None,
+                    expiration_date: Some(0),
+                    http_only: None,
+                    secure: Some(true),
+                    same_site: None,
+                })
+                .await;
+
+            if current_session_handle().is_some() {
+                current_session_handle.set(None);
+            } else {
+                data.set(Err(error.to_string()));
+            }
+        }
+        TucanError::AccessDenied => {
+            if current_session_handle().is_some() {
+                data.set(Err(error.to_string()));
+            } else {
+                // some vv urls are not available without authentication
+                data.set(Err("Not accessible without authentication".to_owned()));
+            }
+        }
+        _ => {
+            data.set(Err(error.to_string()));
+        }
+    }
+}
+
 fn use_data_loader<I: Clone + PartialEq + std::fmt::Debug + 'static, O: Clone + 'static>(
     authentication_required: bool,
     handler: impl AsyncFn(
@@ -79,8 +148,6 @@ fn use_data_loader<I: Clone + PartialEq + std::fmt::Debug + 'static, O: Clone + 
     max_stale_age_seconds: i64,
     render: impl Fn(O, Callback<MouseEvent>) -> Element,
 ) -> Element {
-    use reqwest::StatusCode;
-
     let tucan: RcTucanType = use_context();
 
     let mut data = use_signal(|| Ok(None));
@@ -132,64 +199,7 @@ fn use_data_loader<I: Clone + PartialEq + std::fmt::Debug + 'static, O: Clone + 
                         }
                     }
                     Err(error) => {
-                        log::error!("{error}");
-                        match error {
-                            TucanError::Http(ref req)
-                                if req.status() == Some(StatusCode::UNAUTHORIZED) =>
-                            {
-                                current_session_handle.set(None);
-                                data.set(Err("Unauthorized".to_owned()))
-                            }
-                            TucanError::Timeout | TucanError::AccessDenied => {
-                                #[cfg(feature = "direct")]
-                                web_extensions_sys::chrome()
-                                    .cookies()
-                                    .set(web_extensions_sys::SetCookieDetails {
-                                        name: Some("id".to_owned()),
-                                        partition_key: None,
-                                        store_id: None,
-                                        url: "https://www.tucan.tu-darmstadt.de".to_owned(),
-                                        domain: None,
-                                        path: Some("/scripts".to_owned()),
-                                        value: None,
-                                        expiration_date: Some(0),
-                                        http_only: None,
-                                        secure: Some(true),
-                                        same_site: None,
-                                    })
-                                    .await;
-
-                                #[cfg(feature = "direct")]
-                                web_extensions_sys::chrome()
-                                    .cookies()
-                                    .set(web_extensions_sys::SetCookieDetails {
-                                        name: Some("cnsc".to_owned()),
-                                        partition_key: None,
-                                        store_id: None,
-                                        url: "https://www.tucan.tu-darmstadt.de".to_owned(),
-                                        domain: None,
-                                        path: Some("/scripts".to_owned()),
-                                        value: None,
-                                        expiration_date: Some(0),
-                                        http_only: None,
-                                        secure: Some(true),
-                                        same_site: None,
-                                    })
-                                    .await;
-
-                                if current_session_handle().is_some() {
-                                    current_session_handle.set(None);
-                                } else {
-                                    // some vv urls are not available without authentication
-                                    data.set(Err("Not accessible without authentication or only \
-                                                  valid in another session"
-                                        .to_owned()));
-                                }
-                            }
-                            _ => {
-                                data.set(Err(error.to_string()));
-                            }
-                        }
+                        handle_error(data, current_session_handle, error);
                         loading.set(false);
                     }
                 }
@@ -223,21 +233,7 @@ fn use_data_loader<I: Clone + PartialEq + std::fmt::Debug + 'static, O: Clone + 
                         loading.set(false);
                     }
                     Err(error) => {
-                        log::error!("{error}");
-                        match error {
-                            TucanError::Http(ref req)
-                                if req.status() == Some(StatusCode::UNAUTHORIZED) =>
-                            {
-                                current_session_handle.set(None);
-                                data.set(Err("Unauthorized".to_owned()))
-                            }
-                            TucanError::Timeout | TucanError::AccessDenied => {
-                                current_session_handle.set(None);
-                            }
-                            _ => {
-                                data.set(Err(error.to_string()));
-                            }
-                        }
+                        handle_error(data, current_session_handle, error);
                         loading.set(false);
                     }
                 }
