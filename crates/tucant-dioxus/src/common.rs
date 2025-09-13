@@ -119,7 +119,7 @@ fn handle_access_denied<O: Clone + 'static>(
     mut current_session_handle: Signal<Option<LoginResponse>>,
 ) -> Result<Option<O>, String> {
     if current_session_handle().is_some() {
-        Err("Permission denied or url is session specific".to_owned())
+        Err("Permission denied or timeout or url is session specific".to_owned())
     } else {
         // some vv urls are not available without authentication
         Err("Not accessible without authentication".to_owned())
