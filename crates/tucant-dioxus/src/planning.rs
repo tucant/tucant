@@ -418,6 +418,7 @@ fn prep_planning(
         .map(|entry| entry.credits)
         .sum::<i32>()
         + inner.iter().map(|inner| inner.credits).sum::<i32>();
+    let used_cp = std::cmp::min(cp, anmeldung.max_cp.unwrap_or(cp));
     let modules: usize = entries
         .iter()
         .filter(|entry| entry.state == State::Done || entry.state == State::Planned)
@@ -425,7 +426,7 @@ fn prep_planning(
         + inner.iter().map(|inner| inner.modules).sum::<usize>();
     PrepPlanningReturn {
         has_contents: interesting,
-        credits: cp,
+        credits: used_cp,
         modules,
         element: rsx! {
             div {
@@ -577,7 +578,11 @@ fn prep_planning(
                                 {
                                     "bg-success"
                                 } else {
-                                    "bg-danger"
+                                    if anmeldung.max_cp.map(|max| cp > max).unwrap_or(false) {
+                                        "bg-warning"
+                                    } else {
+                                        "bg-danger"
+                                    }
                                 },
                                 "CP: "
                                 { cp.to_string() }
