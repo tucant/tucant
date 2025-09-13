@@ -181,9 +181,9 @@ fn use_data_loader<I: Clone + PartialEq + std::fmt::Debug + 'static, O: Clone + 
                                     current_session_handle.set(None);
                                 } else {
                                     // some vv urls are not available without authentication
-                                    data.set(Err(
-                                        "Not accessible without authentication".to_owned()
-                                    ));
+                                    data.set(Err("Not accessible without authentication or only \
+                                                  valid in another session"
+                                        .to_owned()));
                                 }
                             }
                             _ => {
