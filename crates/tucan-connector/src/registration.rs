@@ -1,9 +1,10 @@
 use std::sync::LazyLock;
 
-use log::info;
+use log::{info, warn};
 use regex::Regex;
 use scraper::CaseSensitivity;
-use time::{Duration, OffsetDateTime};
+use time::macros::{datetime, offset};
+use time::{Duration, Month, OffsetDateTime, UtcOffset};
 use tucant_types::{
     LoginResponse, RevalidationStrategy,
     coursedetails::CourseDetailsRequest,
@@ -26,7 +27,16 @@ pub async fn anmeldung(
     revalidation_strategy: RevalidationStrategy,
     request: AnmeldungRequest,
 ) -> Result<AnmeldungResponse, TucanError> {
-    let key = format!("unparsed_anmeldung.{}", request.inner());
+    // calculate registration semester
+    let datetime = time::OffsetDateTime::now_utc();
+    let datetime = datetime.to_offset(offset!(+2));
+    let date = datetime.date();
+    let registration_sose = Month::March <= date.month() && date.month() <= Month::August;
+    let key = format!(
+        "unparsed_anmeldung.{}.{}",
+        if registration_sose { "sose" } else { "wise" },
+        request.inner()
+    );
 
     let old_content_and_date = tucan.database.get::<(String, OffsetDateTime)>(&key).await;
     if revalidation_strategy.max_age != 0 {
