@@ -11,7 +11,6 @@ use futures::StreamExt;
 use futures::stream::FuturesOrdered;
 use js_sys::Uint8Array;
 use log::info;
-use sqlite_wasm_rs::relaxed_idb_vfs::{RelaxedIdbCfg, install as install_idb_vfs};
 use tucant_planning::decompress;
 use tucant_types::registration::AnmeldungResponse;
 use tucant_types::student_result::StudentResultLevel;
@@ -32,10 +31,13 @@ use crate::{MyRc, RcTucanType};
 const MIGRATIONS: EmbeddedMigrations = embed_migrations!("migrations");
 
 async fn open_db() -> MyRc<RefCell<SqliteConnection>> {
-    // install relaxed-idb persistent vfs and set as default vfs
-    install_idb_vfs(&RelaxedIdbCfg::default(), true)
-        .await
-        .unwrap();
+    #[cfg(target_arch = "wasm32")]
+    sqlite_wasm_rs::relaxed_idb_vfs::install(
+        &sqlite_wasm_rs::relaxed_idb_vfs::RelaxedIdbCfg::default(),
+        true,
+    )
+    .await
+    .unwrap();
 
     let mut connection = SqliteConnection::establish("tucant.db").unwrap();
     connection.run_pending_migrations(MIGRATIONS).unwrap();
