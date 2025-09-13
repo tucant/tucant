@@ -426,9 +426,21 @@ fn prep_planning(
         credits: cp,
         modules,
         element: rsx! {
-            p {
+            div {
                 class: "h3",
-                { anmeldung.name.clone() }
+                { anmeldung.name.clone() },
+                /*form {
+                    input {
+                        class: "form-control",
+                        placeholder: "Search",
+                    }
+                }*/
+                " "
+                button {
+                    type: "button",
+                    class: "btn btn-secondary",
+                    "+"
+                }
             }
             div {
                 class: "ms-2 ps-2",
