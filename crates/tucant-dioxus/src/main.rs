@@ -36,7 +36,7 @@ pub async fn main() {
     panic::set_hook(Box::new(|info| {
         let mut msg = "Version: ".to_string();
         msg.push_str(git_version::git_version!());
-        msg.push_str("\n");
+        msg.push('\n');
         msg.push_str(&info.to_string());
         msg.push_str("\n\nStack:\n\n");
         let e = Error::new();

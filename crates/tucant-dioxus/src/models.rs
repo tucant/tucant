@@ -6,7 +6,6 @@ use diesel::{
     prelude::*,
     serialize::{self, IsNull, Output, ToSql},
     sql_types::Text,
-    sqlite::{Sqlite, SqliteValue},
 };
 
 #[derive(Debug, PartialEq, FromSqlRow, AsExpression, Eq, Copy, Clone, Hash)]

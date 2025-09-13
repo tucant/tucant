@@ -8,7 +8,6 @@ use diesel::{Connection, SqliteConnection};
 use diesel_migrations::{EmbeddedMigrations, MigrationHarness as _, embed_migrations};
 use dioxus::prelude::*;
 use futures::StreamExt;
-use futures::stream::FuturesOrdered;
 use js_sys::Uint8Array;
 use log::info;
 use tucant_planning::decompress;
@@ -91,7 +90,7 @@ async fn handle_semester(
         let connection = &mut *connection;
         diesel::insert_into(anmeldungen_plan::table)
             .values(&inserts)
-            .on_conflict((anmeldungen_plan::url))
+            .on_conflict(anmeldungen_plan::url)
             .do_update()
             .set(anmeldungen_plan::parent.eq(excluded(anmeldungen_plan::parent)))
             .execute(connection)
@@ -174,7 +173,7 @@ pub async fn recursive_update(
             semester: Semester::Sommersemester, // TODO FIXME
             anmeldung: &url,
             module_url: "TODO", // TODO FIXME
-            id: entry.id.as_ref().unwrap_or_else(|| &entry.name), /* TODO FIXME, use two columns
+            id: entry.id.as_ref().unwrap_or(&entry.name), /* TODO FIXME, use two columns
                                  * and both as primary key */
             credits: i32::try_from(entry.used_cp.unwrap_or_else(|| {
                 if level.name.as_deref() == Some("Masterarbeit") {
@@ -214,14 +213,14 @@ pub fn PlanningInner(connection: MyRc<RefCell<SqliteConnection>>) -> Element {
     let mut wintersemester: Signal<Option<web_sys::Element>> = use_signal(|| None);
     let connection_clone = connection.clone();
     let tucan: RcTucanType = use_context();
-    let mut current_session_handle = use_context::<Signal<Option<LoginResponse>>>();
+    let current_session_handle = use_context::<Signal<Option<LoginResponse>>>();
     let mut future = {
         let connection_clone = connection_clone.clone();
-        let current_session_handle = current_session_handle.clone();
+        let current_session_handle = current_session_handle;
         let tucan = tucan.clone();
         use_resource(move || {
             let connection_clone = connection_clone.clone();
-            let current_session_handle = current_session_handle.clone();
+            let current_session_handle = current_session_handle;
             let tucan = tucan.clone();
             async move {
                 let results: Vec<Anmeldung> =
@@ -233,13 +232,13 @@ pub fn PlanningInner(connection: MyRc<RefCell<SqliteConnection>>) -> Element {
             }
         })
     };
-    let mut load_leistungsspiegel = {
+    let load_leistungsspiegel = {
         let connection_clone = connection_clone.clone();
-        let current_session_handle = current_session_handle.clone();
+        let current_session_handle = current_session_handle;
         let tucan = tucan.clone();
         move |evt: Event<MouseData>| {
             let connection_clone = connection_clone.clone();
-            let current_session_handle = current_session_handle.clone();
+            let current_session_handle = current_session_handle;
             let tucan = tucan.clone();
             async move {
                 let current_session = current_session_handle().unwrap();
