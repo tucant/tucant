@@ -79,6 +79,9 @@
         tests = craneLib.buildPackage {
           cargoToml = ./crates/tucant-tests/Cargo.toml;
           cargoLock = ./crates/tucant-tests/Cargo.lock;
+          preBuild = ''
+            cd ./crates/tucant-tests
+          '';
           strictDeps = true;
           pname = "tucant-workspace-native-tests";
           src = lib.fileset.toSource {
@@ -94,6 +97,9 @@
         api = craneLib.buildPackage {
           cargoToml = ./crates/tucant-api/Cargo.toml;
           cargoLock = ./crates/tucant-api/Cargo.lock;
+          preBuild = ''
+            cd ./crates/tucant-api
+          '';
           strictDeps = true;
           pname = "tucant-workspace-native-api";
           src = lib.fileset.toSource {
@@ -136,6 +142,9 @@
         client = craneLib.buildPackage {
           cargoToml = ./crates/tucant-dioxus/Cargo.toml;
           cargoLock = ./crates/tucant-dioxus/Cargo.lock;
+          preBuild = ''
+            cd ./crates/tucant-dioxus
+          '';
           strictDeps = true;
           stdenv = p: p.emscriptenStdenv;
           doCheck = false;
@@ -146,9 +155,6 @@
           };
           cargoExtraArgs = "--package=tucant-dioxus";
           pname = "tucant-workspace-tucant-dioxus";
-          preBuild = ''
-            cd ./crates/tucant-dioxus
-          '';
           buildPhaseCargoCommand = ''
             export HOME=$(mktemp -d)
             #export EMCC_DEBUG=1
