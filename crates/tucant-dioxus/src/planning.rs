@@ -454,13 +454,16 @@ fn prep_planning(
                     table {
                         class: "table",
                         tbody {
-                            for entry in entries {
+                            for entry in entries.iter().filter(|entry| expanded() || entry.state != State::NotPlanned) {
                                 tr {
                                     td {
                                         { entry.id.clone() }
                                     }
                                     td {
                                         { entry.name.clone() }
+                                    }
+                                    td {
+                                        { format!("{:?}", entry.semester) }
                                     }
                                     td {
                                         { entry.credits.to_string() }
