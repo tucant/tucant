@@ -72,8 +72,12 @@ pub fn handle_error<O: Clone + 'static>(
     log::error!("{error}");
     match error {
         TucanError::Http(ref req) if req.status() == Some(StatusCode::UNAUTHORIZED) => {
-            current_session_handle.set(None);
-            Err("Unauthorized".to_owned())
+            // timeout
+            // authorized vv urls from another session will repeatedly log you out here
+            if current_session_handle().is_some() {
+                current_session_handle.set(None);
+            }
+            Err("Session timeout".to_owned())
         }
         TucanError::Timeout => {
             #[cfg(feature = "direct")]
