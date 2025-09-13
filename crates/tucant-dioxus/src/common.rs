@@ -65,7 +65,7 @@ pub fn use_unauthenticated_data_loader<
     )
 }
 
-fn handle_timeout<O: Clone + 'static>(
+async fn handle_timeout<O: Clone + 'static>(
     mut current_session_handle: Signal<Option<LoginResponse>>,
     logout: bool,
 ) -> Result<Option<O>, String> {
@@ -126,7 +126,7 @@ fn handle_access_denied<O: Clone + 'static>(
     }
 }
 
-pub fn handle_error<O: Clone + 'static>(
+pub async fn handle_error<O: Clone + 'static>(
     mut current_session_handle: Signal<Option<LoginResponse>>,
     error: TucanError,
     logout: bool,
@@ -134,9 +134,9 @@ pub fn handle_error<O: Clone + 'static>(
     log::error!("{error}");
     match error {
         TucanError::Http(ref req) if req.status() == Some(StatusCode::UNAUTHORIZED) => {
-            handle_timeout(current_session_handle, logout)
+            handle_timeout(current_session_handle, logout).await
         }
-        TucanError::Timeout => handle_timeout(current_session_handle, logout),
+        TucanError::Timeout => handle_timeout(current_session_handle, logout).await,
         TucanError::Http(ref req) if req.status() == Some(StatusCode::FORBIDDEN) => {
             handle_access_denied(current_session_handle)
         }
@@ -211,7 +211,7 @@ fn use_data_loader<I: Clone + PartialEq + std::fmt::Debug + 'static, O: Clone + 
                         }
                     }
                     Err(error) => {
-                        data.set(handle_error(current_session_handle, error, true));
+                        data.set(handle_error(current_session_handle, error, true).await);
                         loading.set(false);
                     }
                 }
@@ -245,7 +245,7 @@ fn use_data_loader<I: Clone + PartialEq + std::fmt::Debug + 'static, O: Clone + 
                         loading.set(false);
                     }
                     Err(error) => {
-                        data.set(handle_error(current_session_handle, error, true));
+                        data.set(handle_error(current_session_handle, error, true).await);
                         loading.set(false);
                     }
                 }
