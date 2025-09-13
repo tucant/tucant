@@ -116,7 +116,7 @@ async fn handle_timeout<O: Clone + 'static>(
 }
 
 fn handle_access_denied<O: Clone + 'static>(
-    mut current_session_handle: Signal<Option<LoginResponse>>,
+    current_session_handle: Signal<Option<LoginResponse>>,
 ) -> Result<Option<O>, String> {
     if current_session_handle().is_some() {
         Err("Permission denied or long timeout or url is session specific".to_owned())
@@ -127,7 +127,7 @@ fn handle_access_denied<O: Clone + 'static>(
 }
 
 pub async fn handle_error<O: Clone + 'static>(
-    mut current_session_handle: Signal<Option<LoginResponse>>,
+    current_session_handle: Signal<Option<LoginResponse>>,
     error: TucanError,
     logout: bool,
 ) -> Result<Option<O>, String> {
@@ -164,14 +164,14 @@ fn use_data_loader<I: Clone + PartialEq + std::fmt::Debug + 'static, O: Clone + 
 
     let mut data = use_signal(|| Ok(None));
     let mut loading = use_signal(|| false);
-    let mut current_session_handle = use_context::<Signal<Option<LoginResponse>>>();
+    let current_session_handle = use_context::<Signal<Option<LoginResponse>>>();
     {
         let tucan = tucan.clone();
         let _ = use_resource(move || {
             let request = request;
             let mut data = data;
             let tucan = tucan.clone();
-            let mut current_session_handle = current_session_handle.to_owned();
+            let current_session_handle = current_session_handle.to_owned();
             async move {
                 if authentication_required && current_session_handle().is_none() {
                     data.set(Err("Not logged in".to_owned()));

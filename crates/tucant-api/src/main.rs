@@ -5,6 +5,7 @@ use utoipa_swagger_ui::SwaggerUi;
 
 #[tokio::main]
 async fn main() {
+    env_logger::init();
     // our router
     let (router, api) = router().split_for_parts();
 

@@ -2,16 +2,13 @@ use std::cell::RefCell;
 use std::sync::Arc;
 
 use diesel::prelude::*;
-use diesel::query_dsl::methods::FilterDsl;
 use diesel::upsert::excluded;
 use diesel::{Connection, SqliteConnection};
 use diesel_migrations::{EmbeddedMigrations, MigrationHarness as _, embed_migrations};
 use dioxus::prelude::*;
 use futures::StreamExt;
-use futures::stream::FuturesOrdered;
 use js_sys::Uint8Array;
 use log::info;
-use sqlite_wasm_rs::relaxed_idb_vfs::{RelaxedIdbCfg, install as install_idb_vfs};
 use tucant_planning::decompress;
 use tucant_types::registration::AnmeldungResponse;
 use tucant_types::student_result::StudentResultLevel;
@@ -32,10 +29,13 @@ use crate::{MyRc, RcTucanType};
 const MIGRATIONS: EmbeddedMigrations = embed_migrations!("migrations");
 
 async fn open_db() -> MyRc<RefCell<SqliteConnection>> {
-    // install relaxed-idb persistent vfs and set as default vfs
-    install_idb_vfs(&RelaxedIdbCfg::default(), true)
-        .await
-        .unwrap();
+    #[cfg(target_arch = "wasm32")]
+    sqlite_wasm_rs::relaxed_idb_vfs::install(
+        &sqlite_wasm_rs::relaxed_idb_vfs::RelaxedIdbCfg::default(),
+        true,
+    )
+    .await
+    .unwrap();
 
     let mut connection = SqliteConnection::establish("tucant.db").unwrap();
     connection.run_pending_migrations(MIGRATIONS).unwrap();
@@ -85,14 +85,12 @@ async fn handle_semester(
                 max_modules: None,
             })
             .collect();
-        let mut connection = connection_clone.borrow_mut();
-        let connection = &mut *connection;
         diesel::insert_into(anmeldungen_plan::table)
             .values(&inserts)
-            .on_conflict((anmeldungen_plan::url))
+            .on_conflict(anmeldungen_plan::url)
             .do_update()
             .set(anmeldungen_plan::parent.eq(excluded(anmeldungen_plan::parent)))
-            .execute(connection)
+            .execute(&mut *connection_clone.borrow_mut())
             .expect("Error saving anmeldungen");
         let inserts: Vec<NewAnmeldungEntry> = futures::stream::iter(result.iter())
             .flat_map(|anmeldung| {
@@ -135,7 +133,7 @@ async fn handle_semester(
                 anmeldungen_entries::state.eq(excluded(anmeldungen_entries::state)),
                 (anmeldungen_entries::credits.eq(excluded(anmeldungen_entries::credits))),
             ))
-            .execute(connection)
+            .execute(&mut *connection_clone.borrow_mut())
             .expect("Error saving anmeldungen");
     }
 }
@@ -172,7 +170,7 @@ pub async fn recursive_update(
             semester: Semester::Sommersemester, // TODO FIXME
             anmeldung: &url,
             module_url: "TODO", // TODO FIXME
-            id: entry.id.as_ref().unwrap_or_else(|| &entry.name), /* TODO FIXME, use two columns
+            id: entry.id.as_ref().unwrap_or(&entry.name), /* TODO FIXME, use two columns
                                  * and both as primary key */
             credits: i32::try_from(entry.used_cp.unwrap_or_else(|| {
                 if level.name.as_deref() == Some("Masterarbeit") {
@@ -212,15 +210,11 @@ pub fn PlanningInner(connection: MyRc<RefCell<SqliteConnection>>) -> Element {
     let mut wintersemester: Signal<Option<web_sys::Element>> = use_signal(|| None);
     let connection_clone = connection.clone();
     let tucan: RcTucanType = use_context();
-    let mut current_session_handle = use_context::<Signal<Option<LoginResponse>>>();
+    let current_session_handle = use_context::<Signal<Option<LoginResponse>>>();
     let mut future = {
         let connection_clone = connection_clone.clone();
-        let current_session_handle = current_session_handle.clone();
-        let tucan = tucan.clone();
         use_resource(move || {
             let connection_clone = connection_clone.clone();
-            let current_session_handle = current_session_handle.clone();
-            let tucan = tucan.clone();
             async move {
                 let results: Vec<Anmeldung> =
                     QueryDsl::filter(anmeldungen_plan::table, anmeldungen_plan::parent.is_null())
@@ -231,13 +225,12 @@ pub fn PlanningInner(connection: MyRc<RefCell<SqliteConnection>>) -> Element {
             }
         })
     };
-    let mut load_leistungsspiegel = {
+    let load_leistungsspiegel = {
         let connection_clone = connection_clone.clone();
-        let current_session_handle = current_session_handle.clone();
         let tucan = tucan.clone();
-        move |evt: Event<MouseData>| {
+        move |_event: Event<MouseData>| {
             let connection_clone = connection_clone.clone();
-            let current_session_handle = current_session_handle.clone();
+            let current_session_handle = current_session_handle;
             let tucan = tucan.clone();
             async move {
                 let current_session = current_session_handle().unwrap();
@@ -364,7 +357,7 @@ pub fn PlanningInner(connection: MyRc<RefCell<SqliteConnection>>) -> Element {
             }
             button {
                 type: "button",
-                class: "btn btn-primary",
+                class: "btn btn-primary mb-3",
                 onclick: load_leistungsspiegel,
                 "Leistungsspiegel laden (nach Laden der Semester)"
             }
@@ -374,7 +367,6 @@ pub fn PlanningInner(connection: MyRc<RefCell<SqliteConnection>>) -> Element {
                         future,
                         connection: connection.clone(),
                         anmeldung: entry.clone(),
-                        depth: 1,
                     }
                 }
             }
@@ -392,8 +384,7 @@ pub struct PrepPlanningReturn {
 fn prep_planning(
     mut future: Resource<Vec<Anmeldung>>,
     connection: MyRc<RefCell<SqliteConnection>>,
-    anmeldung: Anmeldung,
-    depth: i32,
+    anmeldung: Anmeldung, // ahh this needs to be a signal?
 ) -> PrepPlanningReturn {
     let results: Vec<Anmeldung> = QueryDsl::filter(
         anmeldungen_plan::table,
@@ -410,20 +401,25 @@ fn prep_planning(
     .load(&mut *connection.borrow_mut())
     .expect("Error loading anmeldungen");
     let inner: Vec<PrepPlanningReturn> = results
-        .into_iter()
-        .map(|result| prep_planning(future, connection.clone(), result, depth + 1))
+        .iter()
+        .map(|result| prep_planning(future, connection.clone(), result.clone()))
         .collect();
     let has_rules = anmeldung.min_cp != 0
         || anmeldung.max_cp.is_some()
         || anmeldung.min_modules != 0
         || anmeldung.max_modules.is_some();
-    let interesting = has_rules || !entries.is_empty() || inner.iter().any(|v| v.has_contents);
+    let mut expanded = use_signal(|| false);
+    let interesting = expanded()
+        || has_rules
+        || entries.iter().any(|entry| entry.state != State::NotPlanned)
+        || inner.iter().any(|v| v.has_contents);
     let cp: i32 = entries
         .iter()
         .filter(|entry| entry.state == State::Done || entry.state == State::Planned)
         .map(|entry| entry.credits)
         .sum::<i32>()
         + inner.iter().map(|inner| inner.credits).sum::<i32>();
+    let used_cp = std::cmp::min(cp, anmeldung.max_cp.unwrap_or(cp));
     let modules: usize = entries
         .iter()
         .filter(|entry| entry.state == State::Done || entry.state == State::Planned)
@@ -431,27 +427,44 @@ fn prep_planning(
         + inner.iter().map(|inner| inner.modules).sum::<usize>();
     PrepPlanningReturn {
         has_contents: interesting,
-        credits: cp,
+        credits: used_cp,
         modules,
         element: rsx! {
-            p {
+            div {
                 class: "h3",
                 { anmeldung.name.clone() }
+                " "
+                button {
+                    type: "button",
+                    class: "btn btn-secondary",
+                    onclick: move |_| {
+                        expanded.toggle();
+                    },
+                    { if expanded() { "-" } else { "+" } }
+                }
             }
             div {
                 class: "ms-2 ps-2",
                 style: "border-left: 1px solid #ccc;",
-                if !entries.is_empty() {
+                if (!entries.is_empty() && expanded())
+                    || entries.iter().any(|entry| entry.state != State::NotPlanned) {
                     table {
                         class: "table",
                         tbody {
-                            for entry in entries {
+                            for (key, entry) in entries
+                                .iter()
+                                .filter(|entry| expanded() || entry.state != State::NotPlanned)
+                                .map(|entry| (format!("{}{:?}", entry.id, entry.semester), entry)) {
                                 tr {
+                                    key: "{key}",
                                     td {
                                         { entry.id.clone() }
                                     }
                                     td {
                                         { entry.name.clone() }
+                                    }
+                                    td {
+                                        { format!("{:?}", entry.semester) }
                                     }
                                     td {
                                         { entry.credits.to_string() }
@@ -460,7 +473,14 @@ fn prep_planning(
                                         div {
                                             class: "dropdown",
                                             button {
-                                                class: "btn btn-primary dropdown-toggle",
+                                                class: match entry.state {
+                                                    State::NotPlanned =>
+                                                        "btn btn-secondary dropdown-toggle",
+                                                    State::Planned =>
+                                                        "btn btn-primary dropdown-toggle",
+                                                    State::Done =>
+                                                        "btn btn-success dropdown-toggle",
+                                                },
                                                 type: "button",
                                                 "data-bs-toggle": "dropdown",
                                                 "aria-expanded": false,
@@ -548,9 +568,16 @@ fn prep_planning(
                         }
                     }
                 }
-                if inner.iter().any(|v| v.has_contents) {
-                    for inner in inner {
-                        { inner.element }
+                if expanded() || inner.iter().any(|v| v.has_contents) {
+                    for (key, value) in results
+                        .iter()
+                        .zip(inner.into_iter())
+                        .filter(|(_, value)| expanded() || value.has_contents)
+                        .map(|(key, value)| (&key.url, value)) {
+                        div {
+                            key: "{key}",
+                            { value.element }
+                        }
                     }
                 }
                 if has_rules {
@@ -559,14 +586,27 @@ fn prep_planning(
                         br {
                         }
                         if anmeldung.min_cp != 0 || anmeldung.max_cp.is_some() {
-                            "CP: "
-                            { cp.to_string() }
-                            " / "
-                            { anmeldung.min_cp.to_string() }
-                            {
-                                anmeldung
-                                    .max_cp
-                                    .map(|max_cp| " - ".to_string() + &max_cp.to_string())
+                            span {
+                                class: if anmeldung.min_cp <= cp
+                                    && anmeldung.max_cp.map(|max| cp <= max).unwrap_or(true)
+                                {
+                                    "bg-success"
+                                } else {
+                                    if anmeldung.max_cp.map(|max| cp > max).unwrap_or(false) {
+                                        "bg-warning"
+                                    } else {
+                                        "bg-danger"
+                                    }
+                                },
+                                "CP: "
+                                { cp.to_string() }
+                                " / "
+                                { anmeldung.min_cp.to_string() }
+                                {
+                                    anmeldung
+                                        .max_cp
+                                        .map(|max_cp| " - ".to_string() + &max_cp.to_string())
+                                }
                             }
                         }
                         if (anmeldung.min_cp != 0 || anmeldung.max_cp.is_some())
@@ -575,14 +615,26 @@ fn prep_planning(
                             }
                         }
                         if anmeldung.min_modules != 0 || anmeldung.max_modules.is_some() {
-                            "Module: "
-                            { modules.to_string() }
-                            " / "
-                            { anmeldung.min_modules.to_string() }
-                            {
-                                anmeldung
-                                    .max_modules
-                                    .map(|max_modules| " - ".to_string() + &max_modules.to_string())
+                            span {
+                                class: if anmeldung.min_modules <= modules.try_into().unwrap()
+                                    && anmeldung
+                                        .max_modules
+                                        .map(|max| modules <= max.try_into().unwrap())
+                                        .unwrap_or(true)
+                                {
+                                    "bg-success"
+                                } else {
+                                    "bg-danger"
+                                },
+                                "Module: "
+                                { modules.to_string() }
+                                " / "
+                                { anmeldung.min_modules.to_string() }
+                                {
+                                    anmeldung.max_modules.map(|max_modules| {
+                                        " - ".to_string() + &max_modules.to_string()
+                                    })
+                                }
                             }
                         }
                     }
@@ -597,8 +649,7 @@ pub fn PlanningAnmeldung(
     future: Resource<Vec<Anmeldung>>,
     connection: MyRc<RefCell<SqliteConnection>>,
     anmeldung: Anmeldung,
-    depth: i32,
 ) -> Element {
     let _ = future();
-    prep_planning(future, connection, anmeldung, depth).element
+    prep_planning(future, connection, anmeldung).element
 }

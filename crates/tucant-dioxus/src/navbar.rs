@@ -1,7 +1,5 @@
 use dioxus::prelude::*;
-use log::error;
-use reqwest::StatusCode;
-use tucant_types::{LoginResponse, RevalidationStrategy, Tucan, TucanError};
+use tucant_types::{LoginResponse, RevalidationStrategy, Tucan};
 
 use crate::{
     RcTucanType, Route, common::handle_error, login_component::LoginComponent,
@@ -18,7 +16,7 @@ use crate::{
 pub fn Navbar() -> Element {
     let tucan: RcTucanType = use_context();
 
-    let mut current_session = use_context::<Signal<Option<LoginResponse>>>();
+    let current_session = use_context::<Signal<Option<LoginResponse>>>();
 
     let data = use_resource(move || {
         let tucan = tucan.clone();

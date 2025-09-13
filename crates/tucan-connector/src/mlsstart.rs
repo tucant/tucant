@@ -1,5 +1,5 @@
 use log::info;
-use time::{Duration, OffsetDateTime};
+use time::{Duration, OffsetDateTime, macros::offset};
 use tucant_types::{
     LoginResponse, RevalidationStrategy,
     coursedetails::CourseDetailsRequest,
@@ -17,8 +17,10 @@ pub async fn after_login(
     login_response: &LoginResponse,
     revalidation_strategy: RevalidationStrategy,
 ) -> Result<MlsStart, TucanError> {
-    // TODO just overwrite old values if id does not match
-    let key = format!("unparsed_mlsstart.{}", login_response.id);
+    let datetime = time::OffsetDateTime::now_utc();
+    let datetime = datetime.to_offset(offset!(+2));
+    let date = datetime.date();
+    let key = format!("unparsed_mlsstart.{}.{}", date, login_response.id);
 
     let old_content_and_date = tucan.database.get::<(String, OffsetDateTime)>(&key).await;
     if revalidation_strategy.max_age != 0 {
