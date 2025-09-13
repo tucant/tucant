@@ -409,9 +409,10 @@ fn prep_planning(
         || anmeldung.min_modules != 0
         || anmeldung.max_modules.is_some();
     let mut expanded = use_signal(|| false);
-    let entries_to_show =
-        expanded() || entries.iter().any(|entry| entry.state != State::NotPlanned);
-    let interesting = has_rules || entries_to_show || inner.iter().any(|v| v.has_contents);
+    let interesting = expanded()
+        || has_rules
+        || entries.iter().any(|entry| entry.state != State::NotPlanned)
+        || inner.iter().any(|v| v.has_contents);
     let cp: i32 = entries
         .iter()
         .filter(|entry| entry.state == State::Done || entry.state == State::Planned)
@@ -451,7 +452,7 @@ fn prep_planning(
             div {
                 class: "ms-2 ps-2",
                 style: "border-left: 1px solid #ccc;",
-                if entries_to_show {
+                if (!entries.is_empty() && expanded()) || entries.iter().any(|entry| entry.state != State::NotPlanned) {
                     table {
                         class: "table",
                         tbody {
@@ -473,7 +474,11 @@ fn prep_planning(
                                         div {
                                             class: "dropdown",
                                             button {
-                                                class: "btn btn-primary dropdown-toggle",
+                                                class: match entry.state {
+                                                    State::NotPlanned => "btn btn-secondary dropdown-toggle",
+                                                    State::Planned => "btn btn-primary dropdown-toggle",
+                                                    State::Done => "btn btn-success dropdown-toggle",
+                                                },
                                                 type: "button",
                                                 "data-bs-toggle": "dropdown",
                                                 "aria-expanded": false,
@@ -562,7 +567,7 @@ fn prep_planning(
                     }
                 }
                 if expanded() || inner.iter().any(|v| v.has_contents) {
-                    for inner in inner {
+                    for inner in inner.into_iter().filter(|v| expanded() || v.has_contents) {
                         { inner.element }
                     }
                 }
