@@ -77,6 +77,8 @@
         };
 
         tests = craneLib.buildPackage {
+          cargoToml = ./crates/tucant-tests/Cargo.toml;
+          cargoLock = ./crates/tucant-tests/Cargo.lock;
           strictDeps = true;
           pname = "tucant-workspace-native-tests";
           src = lib.fileset.toSource {
@@ -90,6 +92,8 @@
         };
 
         api = craneLib.buildPackage {
+          cargoToml = ./crates/tucant-api/Cargo.toml;
+          cargoLock = ./crates/tucant-api/Cargo.lock;
           strictDeps = true;
           pname = "tucant-workspace-native-api";
           src = lib.fileset.toSource {
@@ -131,7 +135,7 @@
 
         client = craneLib.buildPackage {
           cargoToml = ./crates/tucant-dioxus/Cargo.toml;
-          cargoVendorDir = craneLib.vendorCargoDeps { cargoLock = ./crates/tucant-dioxus/Cargo.lock; };
+          cargoLock = ./crates/tucant-dioxus/Cargo.lock;
           strictDeps = true;
           stdenv = p: p.emscriptenStdenv;
           doCheck = false;
@@ -265,6 +269,8 @@
           my-app-fmt = craneLib.cargoFmt (
             nativeArgs
             // {
+              pname = "test";
+              version = "0.1.0";
               src = source-with-build-instructions;
             }
           );
