@@ -30,10 +30,6 @@
         };
         craneLib = (crane.mkLib pkgs).overrideToolchain rustToolchainFor;
 
-        commonArgs = {
-          strictDeps = true;
-        };
-
         dioxus-cli = craneLib.buildPackage {
           src = pkgs.fetchFromGitHub {
             owner = "mohe2015";
@@ -49,13 +45,12 @@
           buildInputs = [ pkgs.openssl ];
         };
 
-        nativeArgs = commonArgs // {
+        nativeArgs = {
+          strictDeps = true;
           src = lib.fileset.toSource {
             root = ./.;
             fileset = lib.fileset.unions [
               (craneLib.fileset.commonCargoSources ./crates)
-              ./Cargo.toml
-              ./Cargo.lock
               (lib.fileset.fileFilter
                 (file: lib.any file.hasExt [ "html" "scss" ])
                 ./.
@@ -67,27 +62,25 @@
           pname = "tucant-workspace-native";
         };
 
-        tests = craneLib.buildPackage (commonArgs // {
+        tests = craneLib.buildPackage {
+          strictDeps = true;
           pname = "tucant-workspace-native-tests";
           src = lib.fileset.toSource {
             root = ./.;
             fileset = lib.fileset.unions [
-              ./Cargo.toml
-              ./Cargo.lock
               (craneLib.fileset.commonCargoSources ./crates/tucant-tests)
             ];
           };
           cargoTestExtraArgs = "--no-run";
           cargoExtraArgs = "--package=tucant-tests";
-        });
+        };
 
-        api = craneLib.buildPackage (commonArgs // {
+        api = craneLib.buildPackage {
+          strictDeps = true;
           pname = "tucant-workspace-native-api";
           src = lib.fileset.toSource {
             root = ./.;
             fileset = lib.fileset.unions [
-              ./Cargo.toml
-              ./Cargo.lock
               (craneLib.fileset.commonCargoSources ./crates/tucant-types)
               (craneLib.fileset.commonCargoSources ./crates/key-value-database)
               (craneLib.fileset.commonCargoSources ./crates/html-extractor)
@@ -98,7 +91,7 @@
           };
           cargoTestExtraArgs = "--no-run";
           cargoExtraArgs = "--package=tucant-api";
-        });
+        };
 
         schema = pkgs.runCommandNoCC "schema.json" {
           } ''
@@ -106,8 +99,6 @@
           '';
 
         fileset-wasm = lib.fileset.unions [
-          ./Cargo.toml
-          ./Cargo.lock
           (craneLib.fileset.commonCargoSources ./crates/tucant-types)
           (craneLib.fileset.commonCargoSources ./crates/key-value-database)
           (craneLib.fileset.commonCargoSources ./crates/html-extractor)
@@ -121,7 +112,10 @@
           ./crates/tucant-dioxus/assets/bootstrap.patch.js
         ];
 
-        client = craneLib.buildPackage (commonArgs // {
+        client = craneLib.buildPackage {
+          cargoToml = ./crates/tucant-dioxus/Cargo.toml;
+          cargoVendorDir = craneLib.vendorCargoDeps { cargoLock = ./crates/tucant-dioxus/Cargo.lock; };
+          strictDeps = true;
           stdenv = p: p.emscriptenStdenv;
           doCheck = false;
           cargoArtifacts = null; # building deps only does not work with the default stub entrypoint
@@ -151,7 +145,7 @@
   echo ${self.rev or "dirty"}
   '') ];
           doNotPostBuildInstallCargoBinaries = true;
-        });
+        };
 
         fileset-extension = lib.fileset.unions [
           ./tucant-extension/background.js
