@@ -96,7 +96,6 @@ pub fn LoginComponent() -> Element {
             .set_password(&serde_json::to_string(&response).unwrap())
             .unwrap();
 
-        // set cookies
         let window = web_sys::window().unwrap();
         let document = window.document().unwrap();
         let html_document = document.dyn_into::<web_sys::HtmlDocument>().unwrap();
