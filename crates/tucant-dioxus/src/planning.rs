@@ -458,7 +458,6 @@ fn prep_planning(
                                 tr {
                                     key: "{key}",
                                     td {
-                                        "{entry.id}",
                                         { entry.id.clone() }
                                     }
                                     td {
