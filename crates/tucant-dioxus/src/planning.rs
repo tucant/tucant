@@ -425,7 +425,6 @@ fn prep_planning(
         .filter(|entry| entry.state == State::Done || entry.state == State::Planned)
         .count()
         + inner.iter().map(|inner| inner.modules).sum::<usize>();
-    // Wahlbereiche der individuellen Vertiefung
     PrepPlanningReturn {
         has_contents: interesting,
         credits: used_cp,
