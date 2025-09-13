@@ -357,7 +357,7 @@ pub fn PlanningInner(connection: MyRc<RefCell<SqliteConnection>>) -> Element {
             }
             button {
                 type: "button",
-                class: "btn btn-primary",
+                class: "btn btn-primary mb-3",
                 onclick: load_leistungsspiegel,
                 "Leistungsspiegel laden (nach Laden der Semester)"
             }
