@@ -408,7 +408,9 @@ fn prep_planning(
         || anmeldung.max_cp.is_some()
         || anmeldung.min_modules != 0
         || anmeldung.max_modules.is_some();
-    let entries_to_show = entries.iter().any(|entry| entry.state != State::NotPlanned);
+    let mut expanded = use_signal(|| false);
+    let entries_to_show =
+        expanded() || entries.iter().any(|entry| entry.state != State::NotPlanned);
     let interesting = has_rules || entries_to_show || inner.iter().any(|v| v.has_contents);
     let cp: i32 = entries
         .iter()
@@ -439,7 +441,10 @@ fn prep_planning(
                 button {
                     type: "button",
                     class: "btn btn-secondary",
-                    "+"
+                    onclick: move |_| {
+                        expanded.toggle();
+                    },
+                    { if expanded() { "-" } else { "+" } }
                 }
             }
             div {
@@ -552,7 +557,7 @@ fn prep_planning(
                         }
                     }
                 }
-                if inner.iter().any(|v| v.has_contents) {
+                if expanded() || inner.iter().any(|v| v.has_contents) {
                     for inner in inner {
                         { inner.element }
                     }
