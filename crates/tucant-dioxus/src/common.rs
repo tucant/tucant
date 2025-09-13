@@ -65,72 +65,82 @@ pub fn use_unauthenticated_data_loader<
     )
 }
 
+fn handle_timeout<O: Clone + 'static>(
+    mut current_session_handle: Signal<Option<LoginResponse>>,
+    logout: bool,
+) -> Result<Option<O>, String> {
+    // timeout
+    // authorized vv urls from another session will repeatedly log you out here
+    // do we also get a timeout for an unauthenticated vv url when we are logged in?
+    // for debugging getting a timed out session would be useful
+    #[cfg(feature = "direct")]
+    web_extensions_sys::chrome()
+        .cookies()
+        .set(web_extensions_sys::SetCookieDetails {
+            name: Some("id".to_owned()),
+            partition_key: None,
+            store_id: None,
+            url: "https://www.tucan.tu-darmstadt.de".to_owned(),
+            domain: None,
+            path: Some("/scripts".to_owned()),
+            value: None,
+            expiration_date: Some(0),
+            http_only: None,
+            secure: Some(true),
+            same_site: None,
+        })
+        .await;
+
+    #[cfg(feature = "direct")]
+    web_extensions_sys::chrome()
+        .cookies()
+        .set(web_extensions_sys::SetCookieDetails {
+            name: Some("cnsc".to_owned()),
+            partition_key: None,
+            store_id: None,
+            url: "https://www.tucan.tu-darmstadt.de".to_owned(),
+            domain: None,
+            path: Some("/scripts".to_owned()),
+            value: None,
+            expiration_date: Some(0),
+            http_only: None,
+            secure: Some(true),
+            same_site: None,
+        })
+        .await;
+
+    if logout && current_session_handle().is_some() {
+        current_session_handle.set(None);
+    }
+    Err("Session timeout".to_owned())
+}
+
+fn handle_access_denied<O: Clone + 'static>(
+    mut current_session_handle: Signal<Option<LoginResponse>>,
+) -> Result<Option<O>, String> {
+    if current_session_handle().is_some() {
+        Err("Permission denied or url is session specific".to_owned())
+    } else {
+        // some vv urls are not available without authentication
+        Err("Not accessible without authentication".to_owned())
+    }
+}
+
 pub fn handle_error<O: Clone + 'static>(
     mut current_session_handle: Signal<Option<LoginResponse>>,
     error: TucanError,
+    logout: bool,
 ) -> Result<Option<O>, String> {
     log::error!("{error}");
     match error {
         TucanError::Http(ref req) if req.status() == Some(StatusCode::UNAUTHORIZED) => {
-            // timeout
-            // authorized vv urls from another session will repeatedly log you out here
-            // do we also get a timeout for an unauthenticated vv url when we are logged in?
-            // for debugging getting a timed out session would be useful
-            if current_session_handle().is_some() {
-                current_session_handle.set(None);
-            }
-            Err("Session timeout".to_owned())
+            handle_timeout(current_session_handle, logout)
         }
-        TucanError::Timeout => {
-            #[cfg(feature = "direct")]
-            web_extensions_sys::chrome()
-                .cookies()
-                .set(web_extensions_sys::SetCookieDetails {
-                    name: Some("id".to_owned()),
-                    partition_key: None,
-                    store_id: None,
-                    url: "https://www.tucan.tu-darmstadt.de".to_owned(),
-                    domain: None,
-                    path: Some("/scripts".to_owned()),
-                    value: None,
-                    expiration_date: Some(0),
-                    http_only: None,
-                    secure: Some(true),
-                    same_site: None,
-                })
-                .await;
-
-            #[cfg(feature = "direct")]
-            web_extensions_sys::chrome()
-                .cookies()
-                .set(web_extensions_sys::SetCookieDetails {
-                    name: Some("cnsc".to_owned()),
-                    partition_key: None,
-                    store_id: None,
-                    url: "https://www.tucan.tu-darmstadt.de".to_owned(),
-                    domain: None,
-                    path: Some("/scripts".to_owned()),
-                    value: None,
-                    expiration_date: Some(0),
-                    http_only: None,
-                    secure: Some(true),
-                    same_site: None,
-                })
-                .await;
-
-            if current_session_handle().is_some() {
-                current_session_handle.set(None);
-            }
-            Err(error.to_string())
+        TucanError::Timeout => handle_timeout(current_session_handle, logout),
+        TucanError::Http(ref req) if req.status() == Some(StatusCode::FORBIDDEN) => {
+            handle_access_denied(current_session_handle)
         }
-        TucanError::AccessDenied => {
-            if current_session_handle().is_some() {
-                Err(error.to_string())
-            } else {
-                // some vv urls are not available without authentication
-                Err("Not accessible without authentication".to_owned())
-            }
-        }
+        TucanError::AccessDenied => handle_access_denied(current_session_handle),
         _ => Err(error.to_string()),
     }
 }
@@ -201,7 +211,7 @@ fn use_data_loader<I: Clone + PartialEq + std::fmt::Debug + 'static, O: Clone + 
                         }
                     }
                     Err(error) => {
-                        data.set(handle_error(current_session_handle, error));
+                        data.set(handle_error(current_session_handle, error, true));
                         loading.set(false);
                     }
                 }
@@ -235,7 +245,7 @@ fn use_data_loader<I: Clone + PartialEq + std::fmt::Debug + 'static, O: Clone + 
                         loading.set(false);
                     }
                     Err(error) => {
-                        data.set(handle_error(current_session_handle, error));
+                        data.set(handle_error(current_session_handle, error, true));
                         loading.set(false);
                     }
                 }
