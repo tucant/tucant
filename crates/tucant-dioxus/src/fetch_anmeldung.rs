@@ -8,15 +8,15 @@ use crate::{RcTucanType, common::use_authenticated_data_loader};
 
 #[component]
 pub fn FetchAnmeldung() -> Element {
-    let result: Signal<Vec<(String, Vec<u8>)>> = use_signal(|| Vec::new());
+    let mut result: Signal<Vec<(String, Vec<u8>)>> = use_signal(|| Vec::new());
     let tucan: RcTucanType = use_context();
     let current_session_handle = use_context::<Signal<Option<LoginResponse>>>();
     let mut loading = use_signal(|| false);
 
     let onclick = move |event| {
         let tucan = tucan.clone();
-        loading.set(true);
         async move {
+            loading.set(true);
             let anmeldung_response = tucan
                 .anmeldung(
                     current_session_handle().unwrap(),
@@ -42,6 +42,7 @@ pub fn FetchAnmeldung() -> Element {
                     compress(content.as_bytes()).await.unwrap(),
                 ));
             }
+            result.set(output);
             loading.set(false);
         }
     };
@@ -76,6 +77,8 @@ pub fn FetchAnmeldung() -> Element {
                 class: "btn btn-primary",
                 disabled: loading(),
                 "Exportieren"
+            }
+            br {
             }
             for entry in result() {
                 a {
