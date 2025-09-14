@@ -395,6 +395,40 @@ pub fn PlanningInner(connection: MyRc<RefCell<SqliteConnection>>) -> Element {
                     }
                 }
             }
+            for i in 2025..2030 {
+                h2 {
+                    "Sommersemester {i}"
+                }
+                AnmeldungenEntries {
+                    connection: connection.clone(),
+                    future,
+                    entries: QueryDsl::filter(
+                        anmeldungen_entries::table,
+                        anmeldungen_entries::semester
+                            .eq(Semester::Sommersemester)
+                            .and(anmeldungen_entries::year.eq(i)),
+                    )
+                    .select(AnmeldungEntry::as_select())
+                    .load(&mut *connection.borrow_mut())
+                    .expect("Error loading anmeldungen"),
+                }
+                h2 {
+                    "Wintersemester {i}"
+                }
+                AnmeldungenEntries {
+                    connection: connection.clone(),
+                    future,
+                    entries: QueryDsl::filter(
+                        anmeldungen_entries::table,
+                        anmeldungen_entries::semester
+                            .eq(Semester::Wintersemester)
+                            .and(anmeldungen_entries::year.eq(i)),
+                    )
+                    .select(AnmeldungEntry::as_select())
+                    .load(&mut *connection.borrow_mut())
+                    .expect("Error loading anmeldungen"),
+                }
+            }
         }
     }
 }
@@ -413,6 +447,169 @@ pub enum PlanningState {
     MaybePlanned(Option<YearAndSemester>),
     Planned(Option<YearAndSemester>),
     Done(Option<YearAndSemester>),
+}
+
+#[component]
+fn AnmeldungenEntries(
+    mut future: Resource<Vec<Anmeldung>>,
+    connection: MyRc<RefCell<SqliteConnection>>,
+    entries: Vec<AnmeldungEntry>,
+) -> Element {
+    rsx! {
+        table {
+            class: "table",
+            tbody {
+                for (key, entry) in entries
+                    .iter()
+                    .map(|entry| (format!("{}{:?}", entry.id, entry.available_semester), entry)) {
+                    tr {
+                        key: "{key}",
+                        td {
+                            { entry.id.clone() }
+                        }
+                        td {
+                            { entry.name.clone() }
+                        }
+                        td {
+                            { format!("{:?}", entry.available_semester) }
+                        }
+                        td {
+                            { entry.credits.to_string() }
+                        }
+                        td {
+                            select {
+                                class: match entry.state {
+                                    State::NotPlanned => "form-select bg-secondary",
+                                    State::Planned => "form-select bg-primary",
+                                    State::Done => "form-select bg-success",
+                                },
+                                option {
+                                    onclick: {
+                                        let connection = connection.clone();
+                                        let mut entry = entry.clone();
+                                        move |event| {
+                                            event.prevent_default();
+                                            let connection = connection.clone();
+                                            entry.state = State::NotPlanned;
+                                            diesel::update(&entry)
+                                                .set(&entry)
+                                                .execute(&mut *connection.borrow_mut())
+                                                .unwrap();
+                                            future.restart();
+                                        }
+                                    },
+                                    selected: entry.state == State::NotPlanned,
+                                    { format!("{:?}", State::NotPlanned) }
+                                }
+                                option {
+                                    onclick: {
+                                        let connection = connection.clone();
+                                        let mut entry = entry.clone();
+                                        move |event| {
+                                            event.prevent_default();
+                                            let connection = connection.clone();
+                                            entry.state = State::Planned;
+                                            diesel::update(&entry)
+                                                .set(&entry)
+                                                .execute(&mut *connection.borrow_mut())
+                                                .unwrap();
+                                            future.restart();
+                                        }
+                                    },
+                                    selected: entry.state == State::Planned,
+                                    { format!("{:?}", State::Planned) }
+                                }
+                                option {
+                                    onclick: {
+                                        let connection = connection.clone();
+                                        let mut entry = entry.clone();
+                                        move |event| {
+                                            event.prevent_default();
+                                            let connection = connection.clone();
+                                            entry.state = State::Done;
+                                            diesel::update(&entry)
+                                                .set(&entry)
+                                                .execute(&mut *connection.borrow_mut())
+                                                .unwrap();
+                                            future.restart();
+                                        }
+                                    },
+                                    selected: entry.state == State::Done,
+                                    { format!("{:?}", State::Done) }
+                                }
+                            }
+                            select {
+                                class: "form-select",
+                                style: "min-width: 15em",
+                                option {
+                                    value: "",
+                                    onclick: {
+                                        let connection = connection.clone();
+                                        let mut entry = entry.clone();
+                                        move |event| {
+                                            event.prevent_default();
+                                            let connection = connection.clone();
+                                            entry.semester = None;
+                                            entry.year = None;
+                                            diesel::update(&entry)
+                                                .set(&entry)
+                                                .execute(&mut *connection.borrow_mut())
+                                                .unwrap();
+                                            future.restart();
+                                        }
+                                    },
+                                    selected: entry.semester.is_none() && entry.year.is_none(),
+                                    "Choose semester"
+                                }
+                                for i in 2025..2030 {
+                                    option {
+                                        onclick: {
+                                            let connection = connection.clone();
+                                            let mut entry = entry.clone();
+                                            move |event| {
+                                                event.prevent_default();
+                                                let connection = connection.clone();
+                                                entry.semester = Some(Semester::Sommersemester);
+                                                entry.year = Some(i);
+                                                diesel::update(&entry)
+                                                    .set(&entry)
+                                                    .execute(&mut *connection.borrow_mut())
+                                                    .unwrap();
+                                                future.restart();
+                                            }
+                                        },
+                                        selected: entry.semester == Some(Semester::Sommersemester)
+                                            && entry.year == Some(i),
+                                        "Sommersemester {i}"
+                                    }
+                                    option {
+                                        onclick: {
+                                            let connection = connection.clone();
+                                            let mut entry = entry.clone();
+                                            move |event| {
+                                                event.prevent_default();
+                                                let connection = connection.clone();
+                                                entry.semester = Some(Semester::Wintersemester);
+                                                entry.year = Some(i);
+                                                diesel::update(&entry)
+                                                    .set(&entry)
+                                                    .execute(&mut *connection.borrow_mut())
+                                                    .unwrap();
+                                                future.restart();
+                                            }
+                                        },
+                                        selected: entry.semester == Some(Semester::Wintersemester)
+                                            && entry.year == Some(i),
+                                        "Wintersemester {i}"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 fn prep_planning(
@@ -482,170 +679,14 @@ fn prep_planning(
                 style: "border-left: 1px solid #ccc;",
                 if (!entries.is_empty() && expanded())
                     || entries.iter().any(|entry| entry.state != State::NotPlanned) {
-                    table {
-                        class: "table",
-                        tbody {
-                            for (key, entry) in entries
-                                .iter()
-                                .filter(|entry| expanded() || entry.state != State::NotPlanned)
-                                .map(|entry| (
-                                    format!("{}{:?}", entry.id, entry.available_semester),
-                                    entry
-                                )) {
-                                tr {
-                                    key: "{key}",
-                                    td {
-                                        { entry.id.clone() }
-                                    }
-                                    td {
-                                        { entry.name.clone() }
-                                    }
-                                    td {
-                                        { format!("{:?}", entry.available_semester) }
-                                    }
-                                    td {
-                                        { entry.credits.to_string() }
-                                    }
-                                    td {
-                                        select {
-                                            class: match entry.state {
-                                                State::NotPlanned => "form-select bg-secondary",
-                                                State::Planned => "form-select bg-primary",
-                                                State::Done => "form-select bg-success",
-                                            },
-                                            option {
-                                                onclick: {
-                                                    let connection = connection.clone();
-                                                    let mut entry = entry.clone();
-                                                    move |event| {
-                                                        event.prevent_default();
-                                                        let connection = connection.clone();
-                                                        entry.state = State::NotPlanned;
-                                                        diesel::update(&entry)
-                                                            .set(&entry)
-                                                            .execute(&mut *connection.borrow_mut())
-                                                            .unwrap();
-                                                        future.restart();
-                                                    }
-                                                },
-                                                selected: entry.state == State::NotPlanned,
-                                                { format!("{:?}", State::NotPlanned) }
-                                            }
-                                            option {
-                                                onclick: {
-                                                    let connection = connection.clone();
-                                                    let mut entry = entry.clone();
-                                                    move |event| {
-                                                        event.prevent_default();
-                                                        let connection = connection.clone();
-                                                        entry.state = State::Planned;
-                                                        diesel::update(&entry)
-                                                            .set(&entry)
-                                                            .execute(&mut *connection.borrow_mut())
-                                                            .unwrap();
-                                                        future.restart();
-                                                    }
-                                                },
-                                                selected: entry.state == State::Planned,
-                                                { format!("{:?}", State::Planned) }
-                                            }
-                                            option {
-                                                onclick: {
-                                                    let connection = connection.clone();
-                                                    let mut entry = entry.clone();
-                                                    move |event| {
-                                                        event.prevent_default();
-                                                        let connection = connection.clone();
-                                                        entry.state = State::Done;
-                                                        diesel::update(&entry)
-                                                            .set(&entry)
-                                                            .execute(&mut *connection.borrow_mut())
-                                                            .unwrap();
-                                                        future.restart();
-                                                    }
-                                                },
-                                                selected: entry.state == State::Done,
-                                                { format!("{:?}", State::Done) }
-                                            }
-                                        }
-                                        select {
-                                            class: "form-select",
-                                            style: "min-width: 15em",
-                                            option {
-                                                value: "",
-                                                onclick: {
-                                                    let connection = connection.clone();
-                                                    let mut entry = entry.clone();
-                                                    move |event| {
-                                                        event.prevent_default();
-                                                        let connection = connection.clone();
-                                                        entry.semester = None;
-                                                        entry.year = None;
-                                                        diesel::update(&entry)
-                                                            .set(&entry)
-                                                            .execute(&mut *connection.borrow_mut())
-                                                            .unwrap();
-                                                        future.restart();
-                                                    }
-                                                },
-                                                selected: entry.semester.is_none() && entry.year.is_none(),
-                                                "Choose semester"
-                                            }
-                                            for i in 2025..2030 {
-                                                option {
-                                                    onclick: {
-                                                        let connection = connection.clone();
-                                                        let mut entry = entry.clone();
-                                                        move |event| {
-                                                            event.prevent_default();
-                                                            let connection = connection.clone();
-                                                            entry.semester =
-                                                                Some(Semester::Sommersemester);
-                                                            entry.year = Some(i);
-                                                            diesel::update(&entry)
-                                                                .set(&entry)
-                                                                .execute(
-                                                                    &mut *connection.borrow_mut(),
-                                                                )
-                                                                .unwrap();
-                                                            future.restart();
-                                                        }
-                                                    },
-                                                    selected: entry.semester
-                                                        == Some(Semester::Sommersemester)
-                                                        && entry.year == Some(i),
-                                                    "Sommersemester {i}"
-                                                }
-                                                option {
-                                                    onclick: {
-                                                        let connection = connection.clone();
-                                                        let mut entry = entry.clone();
-                                                        move |event| {
-                                                            event.prevent_default();
-                                                            let connection = connection.clone();
-                                                            entry.semester =
-                                                                Some(Semester::Wintersemester);
-                                                            entry.year = Some(i);
-                                                            diesel::update(&entry)
-                                                                .set(&entry)
-                                                                .execute(
-                                                                    &mut *connection.borrow_mut(),
-                                                                )
-                                                                .unwrap();
-                                                            future.restart();
-                                                        }
-                                                    },
-                                                    selected: entry.semester
-                                                        == Some(Semester::Wintersemester)
-                                                        && entry.year == Some(i),
-                                                    "Wintersemester {i}"
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
+                    AnmeldungenEntries {
+                        connection,
+                        future,
+                        entries: entries
+                            .iter()
+                            .filter(|entry| expanded() || entry.state != State::NotPlanned)
+                            .cloned()
+                            .collect::<Vec<_>>(),
                     }
                 }
                 if expanded() || inner.iter().any(|v| v.has_contents) {
