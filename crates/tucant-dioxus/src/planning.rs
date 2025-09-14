@@ -323,7 +323,13 @@ pub fn PlanningInner(connection: MyRc<RefCell<SqliteConnection>>) -> Element {
                                 .unwrap();
                             for module in result.results {
                                 diesel::update(anmeldungen_entries::table)
-                                    .filter(anmeldungen_entries::id.eq(module.nr))
+                                    .filter(
+                                        anmeldungen_entries::id
+                                            .eq(module.nr)
+                                            // TODO FIXME if you can register it at multiple paths
+                                            // this will otherwise break
+                                            .and(anmeldungen_entries::state.ne(State::NotPlanned)),
+                                    )
                                     .set((
                                         anmeldungen_entries::semester.eq(
                                             if semester.name.starts_with("SoSe ") {
@@ -547,6 +553,7 @@ fn AnmeldungenEntries(
     connection: MyRc<RefCell<SqliteConnection>>,
     entries: Vec<AnmeldungEntry>,
 ) -> Element {
+    info!("{:?}", entries);
     rsx! {
         table {
             class: "table",
