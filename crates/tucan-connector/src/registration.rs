@@ -1,10 +1,10 @@
 use std::sync::LazyLock;
 
-use log::{info, warn};
+use log::info;
 use regex::Regex;
 use scraper::CaseSensitivity;
-use time::macros::{datetime, offset};
-use time::{Duration, Month, OffsetDateTime, UtcOffset};
+use time::macros::offset;
+use time::{Duration, Month, OffsetDateTime};
 use tucant_types::{
     LoginResponse, RevalidationStrategy,
     coursedetails::CourseDetailsRequest,
@@ -489,27 +489,31 @@ fn anmeldung_internal(
                                                             </td>
                                                             <td class="tbdata rw-qbf">
                                                                 let registration_button_link = if html_handler.peek().is_some() {
-                                                                    let registration_button_link = if html_handler
-                                                                        .peek()
-                                                                        .unwrap()
-                                                                        .value()
-                                                                        .as_element()
-                                                                        .unwrap()
-                                                                        .attr("class")
-                                                                        .unwrap()
-                                                                        == "img noFLoat register" {
-                                                                        <a href=registration_button_link class="img noFLoat register">
-                                                                            "Anmelden"
-                                                                        </a>
-                                                                    } => RegistrationState::NotRegistered {
-                                                                        register_link: registration_button_link
-                                                                    } else {
-                                                                        <a href=registration_button_link class="img img_arrowLeftRed noFLoat unregister">
-                                                                            "Abmelden"
-                                                                        </a>
-                                                                    } => RegistrationState::Registered {
-                                                                        unregister_link: registration_button_link
-                                                                    };
+                                                                    let registration_button_link = if html_handler.peek().unwrap().value().is_text() {
+                                                                        _anmeldung_nur_in_anderem_studiengang_möglich
+                                                                    } => RegistrationState::NotPossible else {
+                                                                        let registration_button_link = if html_handler
+                                                                            .peek()
+                                                                            .unwrap()
+                                                                            .value()
+                                                                            .as_element()
+                                                                            .unwrap()
+                                                                            .attr("class")
+                                                                            .unwrap()
+                                                                            == "img noFLoat register" {
+                                                                            <a href=registration_button_link class="img noFLoat register">
+                                                                                "Anmelden"
+                                                                            </a>
+                                                                        } => RegistrationState::NotRegistered {
+                                                                            register_link: registration_button_link
+                                                                        } else {
+                                                                            <a href=registration_button_link class="img img_arrowLeftRed noFLoat unregister">
+                                                                                "Abmelden"
+                                                                            </a>
+                                                                        } => RegistrationState::Registered {
+                                                                            unregister_link: registration_button_link
+                                                                        };
+                                                                    } => registration_button_link.either_into::<RegistrationState>();
                                                                 } => registration_button_link.either_into::<RegistrationState>() else {
                                                                 } => RegistrationState::Unknown;
                                                             </td>

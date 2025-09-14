@@ -67,9 +67,16 @@ pub struct AnmeldungEntry {
 
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub enum RegistrationState {
+    /// I think already completed
     Unknown,
-    Registered { unregister_link: String },
-    NotRegistered { register_link: String },
+    /// Only possible in other course of study
+    NotPossible,
+    Registered {
+        unregister_link: String,
+    },
+    NotRegistered {
+        register_link: String,
+    },
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
