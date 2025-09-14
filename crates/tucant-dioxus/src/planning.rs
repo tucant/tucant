@@ -96,7 +96,7 @@ async fn handle_semester(
             .flat_map(|anmeldung| {
                 futures::stream::iter(anmeldung.entries.iter()).map(async |entry| {
                     NewAnmeldungEntry {
-                        semester,
+                        available_semester: semester,
                         anmeldung: anmeldung.path.last().unwrap().1.inner(),
                         module_url: entry.module.as_ref().unwrap().url.inner(),
                         id: &entry.module.as_ref().unwrap().id,
@@ -114,6 +114,8 @@ async fn handle_semester(
                             .try_into()
                             .unwrap(),
                         state: State::NotPlanned,
+                        year: None,
+                        semester: None,
                     }
                 })
             })
@@ -167,7 +169,7 @@ pub async fn recursive_update(
         .entries
         .iter()
         .map(|entry| NewAnmeldungEntry {
-            semester: Semester::Sommersemester, // TODO FIXME
+            available_semester: Semester::Sommersemester, // TODO FIXME
             anmeldung: &url,
             module_url: "TODO", // TODO FIXME
             id: entry.id.as_ref().unwrap_or(&entry.name), /* TODO FIXME, use two columns
@@ -189,6 +191,8 @@ pub async fn recursive_update(
             } else {
                 State::Planned
             },
+            year: None,
+            semester: None,
         })
         .collect();
     diesel::insert_into(anmeldungen_entries::table)

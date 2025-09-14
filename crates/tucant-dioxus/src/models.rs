@@ -121,11 +121,13 @@ pub struct AnmeldungEntry {
 #[diesel(table_name = anmeldungen_entries)]
 #[diesel(treat_none_as_default_value = false)]
 pub struct NewAnmeldungEntry<'a> {
-    pub semester: Semester,
+    pub available_semester: Semester,
     pub anmeldung: &'a str,
     pub module_url: &'a str,
     pub id: &'a str,
     pub name: &'a str,
     pub credits: i32,
     pub state: State,
+    pub semester: Option<Semester>,
+    pub year: Option<i32>,
 }
