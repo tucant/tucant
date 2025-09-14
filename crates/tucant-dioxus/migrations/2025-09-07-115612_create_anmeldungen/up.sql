@@ -11,13 +11,16 @@ CREATE TABLE anmeldungen_plan (
 ) STRICT;
 
 CREATE TABLE anmeldungen_entries (
-    semester TEXT NOT NULL, -- s or w
+    available_semester TEXT NOT NULL, -- s or w or b
     anmeldung TEXT,
     module_url TEXT NOT NULL,
     id TEXT NOT NULL,
     name TEXT NOT NULL,
     credits INT NOT NULL,
     state TEXT NOT NULL, -- not_planned or planned or done
-    PRIMARY KEY (anmeldung, semester, id),
+    year INT,
+    semester TEXT,
+    -- TODO only make id the primary key
+    PRIMARY KEY (anmeldung, available_semester, id),
     FOREIGN KEY (anmeldung) REFERENCES anmeldungen (url)
 ) STRICT;

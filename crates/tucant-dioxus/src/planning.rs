@@ -484,7 +484,10 @@ fn prep_planning(
                             for (key, entry) in entries
                                 .iter()
                                 .filter(|entry| expanded() || entry.state != State::NotPlanned)
-                                .map(|entry| (format!("{}{:?}", entry.id, entry.semester), entry)) {
+                                .map(|entry| (
+                                    format!("{}{:?}", entry.id, entry.available_semester),
+                                    entry
+                                )) {
                                 tr {
                                     key: "{key}",
                                     td {
@@ -494,7 +497,7 @@ fn prep_planning(
                                         { entry.name.clone() }
                                     }
                                     td {
-                                        { format!("{:?}", entry.semester) }
+                                        { format!("{:?}", entry.available_semester) }
                                     }
                                     td {
                                         { entry.credits.to_string() }
@@ -563,6 +566,11 @@ fn prep_planning(
                                         }
                                         select {
                                             class: "form-select",
+                                            style: "min-width: 15em",
+                                            option {
+                                                value: "",
+                                                "Choose semester"
+                                            }
                                             for i in 2025..2030 {
                                                 option {
                                                     onclick: {
@@ -571,7 +579,9 @@ fn prep_planning(
                                                         move |event| {
                                                             event.prevent_default();
                                                             let connection = connection.clone();
-                                                            entry.state = State::Done;
+                                                            entry.semester =
+                                                                Some(Semester::Sommersemester);
+                                                            entry.year = Some(i);
                                                             diesel::update(&entry)
                                                                 .set(&entry)
                                                                 .execute(
@@ -591,7 +601,9 @@ fn prep_planning(
                                                         move |event| {
                                                             event.prevent_default();
                                                             let connection = connection.clone();
-                                                            entry.state = State::Done;
+                                                            entry.semester =
+                                                                Some(Semester::Wintersemester);
+                                                            entry.year = Some(i);
                                                             diesel::update(&entry)
                                                                 .set(&entry)
                                                                 .execute(
