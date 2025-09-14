@@ -768,7 +768,7 @@ fn prep_planning(
                                 {
                                     "bg-success"
                                 } else {
-                                    if anmeldung.max_cp.map(|max| cp > max).unwrap_or(false) {
+                                    if anmeldung.min_cp <= cp {
                                         "bg-warning"
                                     } else {
                                         "bg-danger"
@@ -778,10 +778,12 @@ fn prep_planning(
                                 { cp.to_string() }
                                 " / "
                                 { anmeldung.min_cp.to_string() }
+                                " - "
                                 {
                                     anmeldung
                                         .max_cp
-                                        .map(|max_cp| " - ".to_string() + &max_cp.to_string())
+                                        .map(|v| v.to_string())
+                                        .unwrap_or("*".to_string())
                                 }
                             }
                         }
