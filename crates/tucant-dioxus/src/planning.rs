@@ -395,38 +395,41 @@ pub fn PlanningInner(connection: MyRc<RefCell<SqliteConnection>>) -> Element {
                     }
                 }
             }
-            for i in 2025..2030 {
-                h2 {
-                    "Sommersemester {i}"
-                }
-                AnmeldungenEntries {
-                    connection: connection.clone(),
-                    future,
-                    entries: QueryDsl::filter(
-                        anmeldungen_entries::table,
-                        anmeldungen_entries::semester
-                            .eq(Semester::Sommersemester)
-                            .and(anmeldungen_entries::year.eq(i)),
-                    )
-                    .select(AnmeldungEntry::as_select())
-                    .load(&mut *connection.borrow_mut())
-                    .expect("Error loading anmeldungen"),
-                }
-                h2 {
-                    "Wintersemester {i}"
-                }
-                AnmeldungenEntries {
-                    connection: connection.clone(),
-                    future,
-                    entries: QueryDsl::filter(
-                        anmeldungen_entries::table,
-                        anmeldungen_entries::semester
-                            .eq(Semester::Wintersemester)
-                            .and(anmeldungen_entries::year.eq(i)),
-                    )
-                    .select(AnmeldungEntry::as_select())
-                    .load(&mut *connection.borrow_mut())
-                    .expect("Error loading anmeldungen"),
+            for i in 2020..2030 {
+                Fragment {
+                    key: "{i}",
+                    h2 {
+                        "Sommersemester {i}"
+                    }
+                    AnmeldungenEntries {
+                        connection: connection.clone(),
+                        future,
+                        entries: QueryDsl::filter(
+                            anmeldungen_entries::table,
+                            anmeldungen_entries::semester
+                                .eq(Semester::Sommersemester)
+                                .and(anmeldungen_entries::year.eq(i)),
+                        )
+                        .select(AnmeldungEntry::as_select())
+                        .load(&mut *connection.borrow_mut())
+                        .expect("Error loading anmeldungen"),
+                    }
+                    h2 {
+                        "Wintersemester {i}"
+                    }
+                    AnmeldungenEntries {
+                        connection: connection.clone(),
+                        future,
+                        entries: QueryDsl::filter(
+                            anmeldungen_entries::table,
+                            anmeldungen_entries::semester
+                                .eq(Semester::Wintersemester)
+                                .and(anmeldungen_entries::year.eq(i)),
+                        )
+                        .select(AnmeldungEntry::as_select())
+                        .load(&mut *connection.borrow_mut())
+                        .expect("Error loading anmeldungen"),
+                    }
                 }
             }
         }
@@ -542,6 +545,7 @@ fn AnmeldungenEntries(
                                 class: "form-select",
                                 style: "min-width: 15em",
                                 option {
+                                    key: "",
                                     value: "",
                                     onclick: {
                                         let connection = connection.clone();
@@ -561,8 +565,9 @@ fn AnmeldungenEntries(
                                     selected: entry.semester.is_none() && entry.year.is_none(),
                                     "Choose semester"
                                 }
-                                for i in 2025..2030 {
+                                for i in 2020..2030 {
                                     option {
+                                        key: "sose{i}",
                                         onclick: {
                                             let connection = connection.clone();
                                             let mut entry = entry.clone();
@@ -583,6 +588,7 @@ fn AnmeldungenEntries(
                                         "Sommersemester {i}"
                                     }
                                     option {
+                                        key: "wise{i}",
                                         onclick: {
                                             let connection = connection.clone();
                                             let mut entry = entry.clone();
