@@ -491,95 +491,106 @@ fn prep_planning(
                                         { entry.credits.to_string() }
                                     }
                                     td {
-                                        div {
-                                            class: "dropdown",
-                                            button {
-                                                class: match entry.state {
-                                                    State::NotPlanned =>
-                                                        "btn btn-secondary dropdown-toggle",
-                                                    State::Planned =>
-                                                        "btn btn-primary dropdown-toggle",
-                                                    State::Done =>
-                                                        "btn btn-success dropdown-toggle",
+                                        select {
+                                            class: match entry.state {
+                                                State::NotPlanned => "form-select bg-secondary",
+                                                State::Planned => "form-select bg-primary",
+                                                State::Done => "form-select bg-success",
+                                            },
+                                            option {
+                                                onclick: {
+                                                    let connection = connection.clone();
+                                                    let mut entry = entry.clone();
+                                                    move |event| {
+                                                        event.prevent_default();
+                                                        let connection = connection.clone();
+                                                        entry.state = State::NotPlanned;
+                                                        diesel::update(&entry)
+                                                            .set(&entry)
+                                                            .execute(&mut *connection.borrow_mut())
+                                                            .unwrap();
+                                                        future.restart();
+                                                    }
                                                 },
-                                                type: "button",
-                                                "data-bs-toggle": "dropdown",
-                                                "aria-expanded": false,
-                                                { format!("{:?}", entry.state) }
+                                                selected: entry.state == State::NotPlanned,
+                                                { format!("{:?}", State::NotPlanned) }
                                             }
-                                            ul {
-                                                class: "dropdown-menu",
-                                                li {
-                                                    a {
-                                                        class: "dropdown-item",
-                                                        href: "#",
-                                                        onclick: {
-                                                            let connection = connection.clone();
-                                                            let mut entry = entry.clone();
-                                                            move |event| {
-                                                                event.prevent_default();
-                                                                let connection = connection.clone();
-                                                                entry.state = State::NotPlanned;
-                                                                diesel::update(&entry)
-                                                                    .set(&entry)
-                                                                    .execute(
-                                                                        &mut *connection
-                                                                            .borrow_mut(),
-                                                                    )
-                                                                    .unwrap();
-                                                                future.restart();
-                                                            }
-                                                        },
-                                                        { format!("{:?}", State::NotPlanned) }
+                                            option {
+                                                onclick: {
+                                                    let connection = connection.clone();
+                                                    let mut entry = entry.clone();
+                                                    move |event| {
+                                                        event.prevent_default();
+                                                        let connection = connection.clone();
+                                                        entry.state = State::Planned;
+                                                        diesel::update(&entry)
+                                                            .set(&entry)
+                                                            .execute(&mut *connection.borrow_mut())
+                                                            .unwrap();
+                                                        future.restart();
                                                     }
+                                                },
+                                                selected: entry.state == State::Planned,
+                                                { format!("{:?}", State::Planned) }
+                                            }
+                                            option {
+                                                onclick: {
+                                                    let connection = connection.clone();
+                                                    let mut entry = entry.clone();
+                                                    move |event| {
+                                                        event.prevent_default();
+                                                        let connection = connection.clone();
+                                                        entry.state = State::Done;
+                                                        diesel::update(&entry)
+                                                            .set(&entry)
+                                                            .execute(&mut *connection.borrow_mut())
+                                                            .unwrap();
+                                                        future.restart();
+                                                    }
+                                                },
+                                                selected: entry.state == State::Done,
+                                                { format!("{:?}", State::Done) }
+                                            }
+                                            for i in 2025..2030 {
+                                                option {
+                                                    onclick: {
+                                                        let connection = connection.clone();
+                                                        let mut entry = entry.clone();
+                                                        move |event| {
+                                                            event.prevent_default();
+                                                            let connection = connection.clone();
+                                                            entry.state = State::Done;
+                                                            diesel::update(&entry)
+                                                                .set(&entry)
+                                                                .execute(
+                                                                    &mut *connection.borrow_mut(),
+                                                                )
+                                                                .unwrap();
+                                                            future.restart();
+                                                        }
+                                                    },
+                                                    selected: false,
+                                                    "Sommersemester {i}"
                                                 }
-                                                li {
-                                                    a {
-                                                        class: "dropdown-item",
-                                                        href: "#",
-                                                        onclick: {
+                                                option {
+                                                    onclick: {
+                                                        let connection = connection.clone();
+                                                        let mut entry = entry.clone();
+                                                        move |event| {
+                                                            event.prevent_default();
                                                             let connection = connection.clone();
-                                                            let mut entry = entry.clone();
-                                                            move |event| {
-                                                                event.prevent_default();
-                                                                let connection = connection.clone();
-                                                                entry.state = State::Planned;
-                                                                diesel::update(&entry)
-                                                                    .set(&entry)
-                                                                    .execute(
-                                                                        &mut *connection
-                                                                            .borrow_mut(),
-                                                                    )
-                                                                    .unwrap();
-                                                                future.restart();
-                                                            }
-                                                        },
-                                                        { format!("{:?}", State::Planned) }
-                                                    }
-                                                }
-                                                li {
-                                                    a {
-                                                        class: "dropdown-item",
-                                                        href: "#",
-                                                        onclick: {
-                                                            let connection = connection.clone();
-                                                            let mut entry = entry.clone();
-                                                            move |event| {
-                                                                event.prevent_default();
-                                                                let connection = connection.clone();
-                                                                entry.state = State::Done;
-                                                                diesel::update(&entry)
-                                                                    .set(&entry)
-                                                                    .execute(
-                                                                        &mut *connection
-                                                                            .borrow_mut(),
-                                                                    )
-                                                                    .unwrap();
-                                                                future.restart();
-                                                            }
-                                                        },
-                                                        { format!("{:?}", State::Done) }
-                                                    }
+                                                            entry.state = State::Done;
+                                                            diesel::update(&entry)
+                                                                .set(&entry)
+                                                                .execute(
+                                                                    &mut *connection.borrow_mut(),
+                                                                )
+                                                                .unwrap();
+                                                            future.restart();
+                                                        }
+                                                    },
+                                                    selected: false,
+                                                    "Wintersemester {i}"
                                                 }
                                             }
                                         }
