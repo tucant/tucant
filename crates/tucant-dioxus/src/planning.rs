@@ -211,6 +211,7 @@ pub fn PlanningInner(connection: MyRc<RefCell<SqliteConnection>>) -> Element {
     let connection_clone = connection.clone();
     let tucan: RcTucanType = use_context();
     let current_session_handle = use_context::<Signal<Option<LoginResponse>>>();
+    let mut loading = use_signal(|| false);
     let mut future = {
         let connection_clone = connection_clone.clone();
         use_resource(move || {
@@ -233,6 +234,7 @@ pub fn PlanningInner(connection: MyRc<RefCell<SqliteConnection>>) -> Element {
             let current_session_handle = current_session_handle;
             let tucan = tucan.clone();
             async move {
+                loading.set(true);
                 let current_session = current_session_handle().unwrap();
                 let student_result = tucan
                     .student_result(&current_session, RevalidationStrategy::cache(), 0)
@@ -274,6 +276,7 @@ pub fn PlanningInner(connection: MyRc<RefCell<SqliteConnection>>) -> Element {
                 recursive_update(connection_clone.clone(), the_url, student_result.level0).await;
 
                 info!("updated");
+                loading.set(false);
                 future.restart();
             }
         }
@@ -285,6 +288,7 @@ pub fn PlanningInner(connection: MyRc<RefCell<SqliteConnection>>) -> Element {
         let tucan = tucan.clone();
         evt.prevent_default();
         async move {
+            loading.set(true);
             handle_semester(
                 tucan.clone(),
                 &current_session_handle().unwrap(),
@@ -302,12 +306,27 @@ pub fn PlanningInner(connection: MyRc<RefCell<SqliteConnection>>) -> Element {
             )
             .await;
             info!("done");
+            loading.set(false);
             future.restart();
         }
     };
     rsx! {
         div {
             class: "container",
+            if loading() {
+                div {
+                    style: "z-index: 10000",
+                    class: "position-fixed top-50 start-50 translate-middle",
+                    div {
+                        class: "spinner-grow",
+                        role: "status",
+                        span {
+                            class: "visually-hidden",
+                            "Loading..."
+                        }
+                    }
+                }
+            }
             h2 {
                 class: "text-center",
                 "Semesterplanung"
@@ -350,12 +369,14 @@ pub fn PlanningInner(connection: MyRc<RefCell<SqliteConnection>>) -> Element {
                     }
                 }
                 button {
+                    disabled: loading(),
                     type: "submit",
                     class: "btn btn-primary",
                     "Planung starten"
                 }
             }
             button {
+                disabled: loading(),
                 type: "button",
                 class: "btn btn-primary mb-3",
                 onclick: load_leistungsspiegel,
