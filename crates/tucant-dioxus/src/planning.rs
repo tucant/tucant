@@ -124,7 +124,7 @@ async fn handle_semester(
             .values(&inserts)
             .on_conflict((
                 anmeldungen_entries::anmeldung,
-                anmeldungen_entries::semester,
+                anmeldungen_entries::available_semester,
                 anmeldungen_entries::id,
             ))
             .do_update()
@@ -195,7 +195,7 @@ pub async fn recursive_update(
         .values(&inserts)
         .on_conflict((
             anmeldungen_entries::anmeldung,
-            anmeldungen_entries::semester,
+            anmeldungen_entries::available_semester,
             anmeldungen_entries::id,
         ))
         .do_update()
