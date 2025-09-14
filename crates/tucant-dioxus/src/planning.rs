@@ -11,13 +11,14 @@ use js_sys::Uint8Array;
 use log::info;
 use tucant_planning::decompress;
 use tucant_types::registration::AnmeldungResponse;
-use tucant_types::student_result::StudentResultLevel;
+use tucant_types::student_result::{StudentResultLevel, StudentResultResponse};
 use tucant_types::{
     CONCURRENCY, LeistungsspiegelGrade, LoginResponse, RevalidationStrategy, Tucan as _,
 };
 use wasm_bindgen_futures::JsFuture;
 use web_sys::{FileList, HtmlInputElement};
 
+use crate::common::use_authenticated_data_loader;
 use crate::models::{Anmeldung, AnmeldungEntry, NewAnmeldung, NewAnmeldungEntry, Semester, State};
 use crate::schema::{anmeldungen_entries, anmeldungen_plan};
 use crate::{MyRc, RcTucanType};
@@ -230,61 +231,111 @@ pub fn PlanningInner(connection: MyRc<RefCell<SqliteConnection>>) -> Element {
             }
         })
     };
-    let load_leistungsspiegel = {
-        let connection_clone = connection_clone.clone();
-        let tucan = tucan.clone();
-        move |_event: Event<MouseData>| {
-            let connection_clone = connection_clone.clone();
-            let current_session_handle = current_session_handle;
-            let tucan = tucan.clone();
-            async move {
-                loading.set(true);
-                let current_session = current_session_handle().unwrap();
-                let student_result = tucan
-                    .student_result(&current_session, RevalidationStrategy::cache(), 0)
-                    .await
-                    .unwrap();
-
-                // top level anmeldung has name "M.Sc. Informatik (2023)"
-                // top level leistunggspiegel has "Informatik"
-
-                let name = &student_result
-                    .course_of_study
-                    .iter()
-                    .find(|e| e.selected)
-                    .unwrap()
-                    .name;
-                let the_url: String = diesel::update(QueryDsl::filter(
-                    anmeldungen_plan::table,
-                    anmeldungen_plan::name.eq(name),
-                ))
-                .set((
-                    anmeldungen_plan::min_cp.eq(student_result.level0.rules.min_cp as i32),
-                    anmeldungen_plan::max_cp.eq(student_result
-                        .level0
-                        .rules
-                        .max_cp
-                        .map(|v| v as i32)),
-                    anmeldungen_plan::min_modules
-                        .eq(student_result.level0.rules.min_modules as i32),
-                    anmeldungen_plan::max_modules.eq(student_result
-                        .level0
-                        .rules
-                        .max_modules
-                        .map(|v| v as i32)),
-                ))
-                .returning(anmeldungen_plan::url)
-                .get_result(&mut *connection_clone.borrow_mut())
-                .expect("Error updating anmeldungen");
-
-                recursive_update(connection_clone.clone(), the_url, student_result.level0).await;
-
-                info!("updated");
-                loading.set(false);
-                future.restart();
-            }
-        }
+    let handler = async |tucan: RcTucanType, current_session, revalidation_strategy, additional| {
+        tucan
+            .student_result(&current_session, revalidation_strategy, additional)
+            .await
     };
+    let mut course_of_study = use_signal(|| 0);
+    let mut zero = use_signal(|| 0);
+    let abc = use_authenticated_data_loader(
+        handler,
+        zero.into(),
+        14 * 24 * 60 * 60,
+        60 * 60,
+        |student_result: StudentResultResponse, reload| {
+            let load_leistungsspiegel = {
+                let connection_clone = connection_clone.clone();
+                let tucan = tucan.clone();
+                move |_event: Event<MouseData>| {
+                    let connection_clone = connection_clone.clone();
+                    let current_session_handle = current_session_handle;
+                    let tucan = tucan.clone();
+                    async move {
+                        loading.set(true);
+                        let current_session = current_session_handle().unwrap();
+                        let student_result = tucan
+                            .student_result(
+                                &current_session,
+                                RevalidationStrategy::cache(),
+                                course_of_study(),
+                            )
+                            .await
+                            .unwrap();
+
+                        // top level anmeldung has name "M.Sc. Informatik (2023)"
+                        // top level leistungsspiegel has "Informatik"
+
+                        let name = &student_result
+                            .course_of_study
+                            .iter()
+                            .find(|e| e.selected)
+                            .unwrap()
+                            .name;
+                        let the_url: String = diesel::update(QueryDsl::filter(
+                            anmeldungen_plan::table,
+                            anmeldungen_plan::name.eq(name),
+                        ))
+                        .set((
+                            anmeldungen_plan::min_cp.eq(student_result.level0.rules.min_cp as i32),
+                            anmeldungen_plan::max_cp.eq(student_result
+                                .level0
+                                .rules
+                                .max_cp
+                                .map(|v| v as i32)),
+                            anmeldungen_plan::min_modules
+                                .eq(student_result.level0.rules.min_modules as i32),
+                            anmeldungen_plan::max_modules.eq(student_result
+                                .level0
+                                .rules
+                                .max_modules
+                                .map(|v| v as i32)),
+                        ))
+                        .returning(anmeldungen_plan::url)
+                        .get_result(&mut *connection_clone.borrow_mut())
+                        .expect("Error updating anmeldungen");
+
+                        recursive_update(connection_clone.clone(), the_url, student_result.level0)
+                            .await;
+
+                        info!("updated");
+                        loading.set(false);
+                        future.restart();
+                    }
+                }
+            };
+            rsx! {
+                select {
+                    onchange: move |event: Event<FormData>| {
+                        course_of_study.set(event.value().parse().unwrap())
+                    },
+                    class: "form-select mb-1",
+                    "aria-label": "Select course of study",
+                    {
+                        student_result
+                            .course_of_study
+                            .iter()
+                            .map(|course_of_study| {
+                                rsx! {
+                                    option {
+                                        selected: course_of_study.selected,
+                                        value: course_of_study.value,
+                                        { course_of_study.name.clone() }
+                                    }
+                                }
+                            })
+                    }
+                }
+                button {
+                    disabled: loading(),
+                    type: "button",
+                    class: "btn btn-primary mb-3",
+                    onclick: load_leistungsspiegel,
+                    "Leistungsspiegel laden (nach Laden der Semester)"
+                }
+            }
+        },
+    );
     let connection_clone = connection.clone();
     let tucan = tucan.clone();
     let onsubmit = move |evt: Event<FormData>| {
@@ -379,13 +430,7 @@ pub fn PlanningInner(connection: MyRc<RefCell<SqliteConnection>>) -> Element {
                     "Planung starten"
                 }
             }
-            button {
-                disabled: loading(),
-                type: "button",
-                class: "btn btn-primary mb-3",
-                onclick: load_leistungsspiegel,
-                "Leistungsspiegel laden (nach Laden der Semester)"
-            }
+            { abc }
             if let Some(value) = future() {
                 for entry in value {
                     PlanningAnmeldung {
