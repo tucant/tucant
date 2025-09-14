@@ -254,6 +254,8 @@ pub fn PlanningInner(connection: MyRc<RefCell<SqliteConnection>>) -> Element {
                     async move {
                         loading.set(true);
                         let current_session = current_session_handle().unwrap();
+
+                        // TODO FIXME don't unwrap here
                         let student_result = tucan
                             .student_result(
                                 &current_session,
@@ -316,8 +318,10 @@ pub fn PlanningInner(connection: MyRc<RefCell<SqliteConnection>>) -> Element {
                             .course_of_study
                             .iter()
                             .map(|course_of_study| {
+                                let value = course_of_study.value;
                                 rsx! {
                                     option {
+                                        key: "{value}",
                                         selected: course_of_study.selected,
                                         value: course_of_study.value,
                                         { course_of_study.name.clone() }
