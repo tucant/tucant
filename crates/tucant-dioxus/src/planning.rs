@@ -11,13 +11,14 @@ use js_sys::Uint8Array;
 use log::info;
 use tucant_planning::decompress;
 use tucant_types::registration::AnmeldungResponse;
-use tucant_types::student_result::StudentResultLevel;
+use tucant_types::student_result::{StudentResultLevel, StudentResultResponse};
 use tucant_types::{
-    CONCURRENCY, LeistungsspiegelGrade, LoginResponse, RevalidationStrategy, Tucan as _,
+    CONCURRENCY, LeistungsspiegelGrade, LoginResponse, RevalidationStrategy, SemesterId, Tucan,
 };
 use wasm_bindgen_futures::JsFuture;
 use web_sys::{FileList, HtmlInputElement};
 
+use crate::common::use_authenticated_data_loader;
 use crate::models::{Anmeldung, AnmeldungEntry, NewAnmeldung, NewAnmeldungEntry, Semester, State};
 use crate::schema::{anmeldungen_entries, anmeldungen_plan};
 use crate::{MyRc, RcTucanType};
@@ -96,7 +97,7 @@ async fn handle_semester(
             .flat_map(|anmeldung| {
                 futures::stream::iter(anmeldung.entries.iter()).map(async |entry| {
                     NewAnmeldungEntry {
-                        semester,
+                        available_semester: semester,
                         anmeldung: anmeldung.path.last().unwrap().1.inner(),
                         module_url: entry.module.as_ref().unwrap().url.inner(),
                         id: &entry.module.as_ref().unwrap().id,
@@ -114,6 +115,8 @@ async fn handle_semester(
                             .try_into()
                             .unwrap(),
                         state: State::NotPlanned,
+                        year: None,
+                        semester: None,
                     }
                 })
             })
@@ -124,7 +127,7 @@ async fn handle_semester(
             .values(&inserts)
             .on_conflict((
                 anmeldungen_entries::anmeldung,
-                anmeldungen_entries::semester,
+                anmeldungen_entries::available_semester,
                 anmeldungen_entries::id,
             ))
             .do_update()
@@ -167,7 +170,7 @@ pub async fn recursive_update(
         .entries
         .iter()
         .map(|entry| NewAnmeldungEntry {
-            semester: Semester::Sommersemester, // TODO FIXME
+            available_semester: Semester::Sommersemester, // TODO FIXME
             anmeldung: &url,
             module_url: "TODO", // TODO FIXME
             id: entry.id.as_ref().unwrap_or(&entry.name), /* TODO FIXME, use two columns
@@ -189,17 +192,22 @@ pub async fn recursive_update(
             } else {
                 State::Planned
             },
+            year: None,
+            semester: None,
         })
         .collect();
     diesel::insert_into(anmeldungen_entries::table)
         .values(&inserts)
         .on_conflict((
             anmeldungen_entries::anmeldung,
-            anmeldungen_entries::semester,
+            anmeldungen_entries::available_semester,
             anmeldungen_entries::id,
         ))
         .do_update()
-        .set(anmeldungen_entries::state.eq(excluded(anmeldungen_entries::state)))
+        .set((
+            anmeldungen_entries::state.eq(excluded(anmeldungen_entries::state)),
+            (anmeldungen_entries::credits.eq(excluded(anmeldungen_entries::credits))),
+        ))
         .execute(&mut *connection_clone.borrow_mut())
         .expect("Error saving anmeldungen");
 }
@@ -211,6 +219,7 @@ pub fn PlanningInner(connection: MyRc<RefCell<SqliteConnection>>) -> Element {
     let connection_clone = connection.clone();
     let tucan: RcTucanType = use_context();
     let current_session_handle = use_context::<Signal<Option<LoginResponse>>>();
+    let mut loading = use_signal(|| false);
     let mut future = {
         let connection_clone = connection_clone.clone();
         use_resource(move || {
@@ -225,59 +234,158 @@ pub fn PlanningInner(connection: MyRc<RefCell<SqliteConnection>>) -> Element {
             }
         })
     };
-    let load_leistungsspiegel = {
-        let connection_clone = connection_clone.clone();
-        let tucan = tucan.clone();
-        move |_event: Event<MouseData>| {
-            let connection_clone = connection_clone.clone();
-            let current_session_handle = current_session_handle;
-            let tucan = tucan.clone();
-            async move {
-                let current_session = current_session_handle().unwrap();
-                let student_result = tucan
-                    .student_result(&current_session, RevalidationStrategy::cache(), 0)
-                    .await
-                    .unwrap();
-
-                // top level anmeldung has name "M.Sc. Informatik (2023)"
-                // top level leistunggspiegel has "Informatik"
-
-                let name = &student_result
-                    .course_of_study
-                    .iter()
-                    .find(|e| e.selected)
-                    .unwrap()
-                    .name;
-                let the_url: String = diesel::update(QueryDsl::filter(
-                    anmeldungen_plan::table,
-                    anmeldungen_plan::name.eq(name),
-                ))
-                .set((
-                    anmeldungen_plan::min_cp.eq(student_result.level0.rules.min_cp as i32),
-                    anmeldungen_plan::max_cp.eq(student_result
-                        .level0
-                        .rules
-                        .max_cp
-                        .map(|v| v as i32)),
-                    anmeldungen_plan::min_modules
-                        .eq(student_result.level0.rules.min_modules as i32),
-                    anmeldungen_plan::max_modules.eq(student_result
-                        .level0
-                        .rules
-                        .max_modules
-                        .map(|v| v as i32)),
-                ))
-                .returning(anmeldungen_plan::url)
-                .get_result(&mut *connection_clone.borrow_mut())
-                .expect("Error updating anmeldungen");
-
-                recursive_update(connection_clone.clone(), the_url, student_result.level0).await;
-
-                info!("updated");
-                future.restart();
-            }
-        }
+    let handler = async |tucan: RcTucanType, current_session, revalidation_strategy, additional| {
+        tucan
+            .student_result(&current_session, revalidation_strategy, additional)
+            .await
     };
+    let mut course_of_study = use_signal(|| 0);
+    let mut zero = use_signal(|| 0);
+    let abc = use_authenticated_data_loader(
+        handler,
+        zero.into(),
+        14 * 24 * 60 * 60,
+        60 * 60,
+        |student_result: StudentResultResponse, reload| {
+            let load_leistungsspiegel = {
+                let connection_clone = connection_clone.clone();
+                let tucan = tucan.clone();
+                move |_event: Event<MouseData>| {
+                    let connection_clone = connection_clone.clone();
+                    let current_session_handle = current_session_handle;
+                    let tucan = tucan.clone();
+                    async move {
+                        loading.set(true);
+                        let current_session = current_session_handle().unwrap();
+
+                        // TODO FIXME don't unwrap here
+                        let student_result = tucan
+                            .student_result(
+                                &current_session,
+                                RevalidationStrategy::cache(),
+                                course_of_study(),
+                            )
+                            .await
+                            .unwrap();
+
+                        // top level anmeldung has name "M.Sc. Informatik (2023)"
+                        // top level leistungsspiegel has "Informatik"
+
+                        let name = &student_result
+                            .course_of_study
+                            .iter()
+                            .find(|e| e.selected)
+                            .unwrap()
+                            .name;
+                        let the_url: String = diesel::update(QueryDsl::filter(
+                            anmeldungen_plan::table,
+                            anmeldungen_plan::name.eq(name),
+                        ))
+                        .set((
+                            anmeldungen_plan::min_cp.eq(student_result.level0.rules.min_cp as i32),
+                            anmeldungen_plan::max_cp.eq(student_result
+                                .level0
+                                .rules
+                                .max_cp
+                                .map(|v| v as i32)),
+                            anmeldungen_plan::min_modules
+                                .eq(student_result.level0.rules.min_modules as i32),
+                            anmeldungen_plan::max_modules.eq(student_result
+                                .level0
+                                .rules
+                                .max_modules
+                                .map(|v| v as i32)),
+                        ))
+                        .returning(anmeldungen_plan::url)
+                        .get_result(&mut *connection_clone.borrow_mut())
+                        .expect("Error updating anmeldungen");
+
+                        recursive_update(connection_clone.clone(), the_url, student_result.level0)
+                            .await;
+
+                        // TODO load semester from modulnoten?
+                        let semesters = tucan
+                            .course_results(
+                                &current_session,
+                                RevalidationStrategy::cache(),
+                                SemesterId::current(),
+                            )
+                            .await
+                            .unwrap();
+                        for semester in semesters.semester {
+                            let result = tucan
+                                .course_results(
+                                    &current_session,
+                                    RevalidationStrategy::cache(),
+                                    semester.value,
+                                )
+                                .await
+                                .unwrap();
+                            for module in result.results {
+                                diesel::update(anmeldungen_entries::table)
+                                    .filter(
+                                        anmeldungen_entries::id
+                                            .eq(module.nr)
+                                            // TODO FIXME if you can register it at multiple paths
+                                            // this will otherwise break
+                                            .and(anmeldungen_entries::state.ne(State::NotPlanned)),
+                                    )
+                                    .set((
+                                        anmeldungen_entries::semester.eq(
+                                            if semester.name.starts_with("SoSe ") {
+                                                Semester::Sommersemester
+                                            } else {
+                                                Semester::Wintersemester
+                                            },
+                                        ),
+                                        (anmeldungen_entries::year
+                                            .eq(semester.name[5..9].parse::<i32>().unwrap())),
+                                    ))
+                                    .execute(&mut *connection_clone.borrow_mut())
+                                    .expect("Error updating anmeldungen");
+                            }
+                        }
+
+                        info!("updated");
+                        loading.set(false);
+                        future.restart();
+                    }
+                }
+            };
+            rsx! {
+                select {
+                    onchange: move |event: Event<FormData>| {
+                        course_of_study.set(event.value().parse().unwrap())
+                    },
+                    class: "form-select mb-1",
+                    "aria-label": "Select course of study",
+                    {
+                        student_result
+                            .course_of_study
+                            .iter()
+                            .map(|course_of_study| {
+                                let value = course_of_study.value;
+                                rsx! {
+                                    option {
+                                        key: "{value}",
+                                        selected: course_of_study.selected,
+                                        value: course_of_study.value,
+                                        { course_of_study.name.clone() }
+                                    }
+                                }
+                            })
+                    }
+                }
+                button {
+                    disabled: loading(),
+                    type: "button",
+                    class: "btn btn-primary mb-3",
+                    onclick: load_leistungsspiegel,
+                    "Leistungsspiegel laden (nach Laden der Semester)"
+                }
+            }
+        },
+    );
     let connection_clone = connection.clone();
     let tucan = tucan.clone();
     let onsubmit = move |evt: Event<FormData>| {
@@ -285,6 +393,7 @@ pub fn PlanningInner(connection: MyRc<RefCell<SqliteConnection>>) -> Element {
         let tucan = tucan.clone();
         evt.prevent_default();
         async move {
+            loading.set(true);
             handle_semester(
                 tucan.clone(),
                 &current_session_handle().unwrap(),
@@ -302,12 +411,27 @@ pub fn PlanningInner(connection: MyRc<RefCell<SqliteConnection>>) -> Element {
             )
             .await;
             info!("done");
+            loading.set(false);
             future.restart();
         }
     };
     rsx! {
         div {
             class: "container",
+            if loading() {
+                div {
+                    style: "z-index: 10000",
+                    class: "position-fixed top-50 start-50 translate-middle",
+                    div {
+                        class: "spinner-grow",
+                        role: "status",
+                        span {
+                            class: "visually-hidden",
+                            "Loading..."
+                        }
+                    }
+                }
+            }
             h2 {
                 class: "text-center",
                 "Semesterplanung"
@@ -350,23 +474,56 @@ pub fn PlanningInner(connection: MyRc<RefCell<SqliteConnection>>) -> Element {
                     }
                 }
                 button {
+                    disabled: loading(),
                     type: "submit",
                     class: "btn btn-primary",
                     "Planung starten"
                 }
             }
-            button {
-                type: "button",
-                class: "btn btn-primary mb-3",
-                onclick: load_leistungsspiegel,
-                "Leistungsspiegel laden (nach Laden der Semester)"
-            }
+            { abc }
             if let Some(value) = future() {
                 for entry in value {
                     PlanningAnmeldung {
                         future,
                         connection: connection.clone(),
                         anmeldung: entry.clone(),
+                    }
+                }
+            }
+            for i in 2020..2030 {
+                Fragment {
+                    key: "{i}",
+                    h2 {
+                        "Sommersemester {i}"
+                    }
+                    AnmeldungenEntries {
+                        connection: connection.clone(),
+                        future,
+                        entries: QueryDsl::filter(
+                            anmeldungen_entries::table,
+                            anmeldungen_entries::semester
+                                .eq(Semester::Sommersemester)
+                                .and(anmeldungen_entries::year.eq(i)),
+                        )
+                        .select(AnmeldungEntry::as_select())
+                        .load(&mut *connection.borrow_mut())
+                        .expect("Error loading anmeldungen"),
+                    }
+                    h2 {
+                        "Wintersemester {i}"
+                    }
+                    AnmeldungenEntries {
+                        connection: connection.clone(),
+                        future,
+                        entries: QueryDsl::filter(
+                            anmeldungen_entries::table,
+                            anmeldungen_entries::semester
+                                .eq(Semester::Wintersemester)
+                                .and(anmeldungen_entries::year.eq(i)),
+                        )
+                        .select(AnmeldungEntry::as_select())
+                        .load(&mut *connection.borrow_mut())
+                        .expect("Error loading anmeldungen"),
                     }
                 }
             }
@@ -379,6 +536,182 @@ pub struct PrepPlanningReturn {
     credits: i32,
     modules: usize,
     element: Element,
+}
+
+pub struct YearAndSemester(pub u32, pub Semester);
+
+pub enum PlanningState {
+    NotPlanned,
+    MaybePlanned(Option<YearAndSemester>),
+    Planned(Option<YearAndSemester>),
+    Done(Option<YearAndSemester>),
+}
+
+#[component]
+fn AnmeldungenEntries(
+    mut future: Resource<Vec<Anmeldung>>,
+    connection: MyRc<RefCell<SqliteConnection>>,
+    entries: Vec<AnmeldungEntry>,
+) -> Element {
+    info!("{:?}", entries);
+    rsx! {
+        table {
+            class: "table",
+            tbody {
+                for (key, entry) in entries
+                    .iter()
+                    .map(|entry| (format!("{}{:?}", entry.id, entry.available_semester), entry)) {
+                    tr {
+                        key: "{key}",
+                        td {
+                            { entry.id.clone() }
+                        }
+                        td {
+                            { entry.name.clone() }
+                        }
+                        td {
+                            { format!("{:?}", entry.available_semester) }
+                        }
+                        td {
+                            { entry.credits.to_string() }
+                        }
+                        td {
+                            select {
+                                class: match entry.state {
+                                    State::NotPlanned => "form-select bg-secondary",
+                                    State::Planned => "form-select bg-primary",
+                                    State::Done => "form-select bg-success",
+                                },
+                                option {
+                                    onclick: {
+                                        let connection = connection.clone();
+                                        let mut entry = entry.clone();
+                                        move |event| {
+                                            event.prevent_default();
+                                            let connection = connection.clone();
+                                            entry.state = State::NotPlanned;
+                                            diesel::update(&entry)
+                                                .set(&entry)
+                                                .execute(&mut *connection.borrow_mut())
+                                                .unwrap();
+                                            future.restart();
+                                        }
+                                    },
+                                    selected: entry.state == State::NotPlanned,
+                                    { format!("{:?}", State::NotPlanned) }
+                                }
+                                option {
+                                    onclick: {
+                                        let connection = connection.clone();
+                                        let mut entry = entry.clone();
+                                        move |event| {
+                                            event.prevent_default();
+                                            let connection = connection.clone();
+                                            entry.state = State::Planned;
+                                            diesel::update(&entry)
+                                                .set(&entry)
+                                                .execute(&mut *connection.borrow_mut())
+                                                .unwrap();
+                                            future.restart();
+                                        }
+                                    },
+                                    selected: entry.state == State::Planned,
+                                    { format!("{:?}", State::Planned) }
+                                }
+                                option {
+                                    onclick: {
+                                        let connection = connection.clone();
+                                        let mut entry = entry.clone();
+                                        move |event| {
+                                            event.prevent_default();
+                                            let connection = connection.clone();
+                                            entry.state = State::Done;
+                                            diesel::update(&entry)
+                                                .set(&entry)
+                                                .execute(&mut *connection.borrow_mut())
+                                                .unwrap();
+                                            future.restart();
+                                        }
+                                    },
+                                    selected: entry.state == State::Done,
+                                    { format!("{:?}", State::Done) }
+                                }
+                            }
+                            select {
+                                class: "form-select",
+                                style: "min-width: 15em",
+                                option {
+                                    key: "",
+                                    value: "",
+                                    onclick: {
+                                        let connection = connection.clone();
+                                        let mut entry = entry.clone();
+                                        move |event| {
+                                            event.prevent_default();
+                                            let connection = connection.clone();
+                                            entry.semester = None;
+                                            entry.year = None;
+                                            diesel::update(&entry)
+                                                .set(&entry)
+                                                .execute(&mut *connection.borrow_mut())
+                                                .unwrap();
+                                            future.restart();
+                                        }
+                                    },
+                                    selected: entry.semester.is_none() && entry.year.is_none(),
+                                    "Choose semester"
+                                }
+                                for i in 2020..2030 {
+                                    option {
+                                        key: "sose{i}",
+                                        onclick: {
+                                            let connection = connection.clone();
+                                            let mut entry = entry.clone();
+                                            move |event| {
+                                                event.prevent_default();
+                                                let connection = connection.clone();
+                                                entry.semester = Some(Semester::Sommersemester);
+                                                entry.year = Some(i);
+                                                diesel::update(&entry)
+                                                    .set(&entry)
+                                                    .execute(&mut *connection.borrow_mut())
+                                                    .unwrap();
+                                                future.restart();
+                                            }
+                                        },
+                                        selected: entry.semester == Some(Semester::Sommersemester)
+                                            && entry.year == Some(i),
+                                        "Sommersemester {i}"
+                                    }
+                                    option {
+                                        key: "wise{i}",
+                                        onclick: {
+                                            let connection = connection.clone();
+                                            let mut entry = entry.clone();
+                                            move |event| {
+                                                event.prevent_default();
+                                                let connection = connection.clone();
+                                                entry.semester = Some(Semester::Wintersemester);
+                                                entry.year = Some(i);
+                                                diesel::update(&entry)
+                                                    .set(&entry)
+                                                    .execute(&mut *connection.borrow_mut())
+                                                    .unwrap();
+                                                future.restart();
+                                            }
+                                        },
+                                        selected: entry.semester == Some(Semester::Wintersemester)
+                                            && entry.year == Some(i),
+                                        "Wintersemester {i}"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 fn prep_planning(
@@ -448,124 +781,14 @@ fn prep_planning(
                 style: "border-left: 1px solid #ccc;",
                 if (!entries.is_empty() && expanded())
                     || entries.iter().any(|entry| entry.state != State::NotPlanned) {
-                    table {
-                        class: "table",
-                        tbody {
-                            for (key, entry) in entries
-                                .iter()
-                                .filter(|entry| expanded() || entry.state != State::NotPlanned)
-                                .map(|entry| (format!("{}{:?}", entry.id, entry.semester), entry)) {
-                                tr {
-                                    key: "{key}",
-                                    td {
-                                        { entry.id.clone() }
-                                    }
-                                    td {
-                                        { entry.name.clone() }
-                                    }
-                                    td {
-                                        { format!("{:?}", entry.semester) }
-                                    }
-                                    td {
-                                        { entry.credits.to_string() }
-                                    }
-                                    td {
-                                        div {
-                                            class: "dropdown",
-                                            button {
-                                                class: match entry.state {
-                                                    State::NotPlanned =>
-                                                        "btn btn-secondary dropdown-toggle",
-                                                    State::Planned =>
-                                                        "btn btn-primary dropdown-toggle",
-                                                    State::Done =>
-                                                        "btn btn-success dropdown-toggle",
-                                                },
-                                                type: "button",
-                                                "data-bs-toggle": "dropdown",
-                                                "aria-expanded": false,
-                                                { format!("{:?}", entry.state) }
-                                            }
-                                            ul {
-                                                class: "dropdown-menu",
-                                                li {
-                                                    a {
-                                                        class: "dropdown-item",
-                                                        href: "#",
-                                                        onclick: {
-                                                            let connection = connection.clone();
-                                                            let mut entry = entry.clone();
-                                                            move |event| {
-                                                                event.prevent_default();
-                                                                let connection = connection.clone();
-                                                                entry.state = State::NotPlanned;
-                                                                diesel::update(&entry)
-                                                                    .set(&entry)
-                                                                    .execute(
-                                                                        &mut *connection
-                                                                            .borrow_mut(),
-                                                                    )
-                                                                    .unwrap();
-                                                                future.restart();
-                                                            }
-                                                        },
-                                                        { format!("{:?}", State::NotPlanned) }
-                                                    }
-                                                }
-                                                li {
-                                                    a {
-                                                        class: "dropdown-item",
-                                                        href: "#",
-                                                        onclick: {
-                                                            let connection = connection.clone();
-                                                            let mut entry = entry.clone();
-                                                            move |event| {
-                                                                event.prevent_default();
-                                                                let connection = connection.clone();
-                                                                entry.state = State::Planned;
-                                                                diesel::update(&entry)
-                                                                    .set(&entry)
-                                                                    .execute(
-                                                                        &mut *connection
-                                                                            .borrow_mut(),
-                                                                    )
-                                                                    .unwrap();
-                                                                future.restart();
-                                                            }
-                                                        },
-                                                        { format!("{:?}", State::Planned) }
-                                                    }
-                                                }
-                                                li {
-                                                    a {
-                                                        class: "dropdown-item",
-                                                        href: "#",
-                                                        onclick: {
-                                                            let connection = connection.clone();
-                                                            let mut entry = entry.clone();
-                                                            move |event| {
-                                                                event.prevent_default();
-                                                                let connection = connection.clone();
-                                                                entry.state = State::Done;
-                                                                diesel::update(&entry)
-                                                                    .set(&entry)
-                                                                    .execute(
-                                                                        &mut *connection
-                                                                            .borrow_mut(),
-                                                                    )
-                                                                    .unwrap();
-                                                                future.restart();
-                                                            }
-                                                        },
-                                                        { format!("{:?}", State::Done) }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
+                    AnmeldungenEntries {
+                        connection,
+                        future,
+                        entries: entries
+                            .iter()
+                            .filter(|entry| expanded() || entry.state != State::NotPlanned)
+                            .cloned()
+                            .collect::<Vec<_>>(),
                     }
                 }
                 if expanded() || inner.iter().any(|v| v.has_contents) {
@@ -592,7 +815,7 @@ fn prep_planning(
                                 {
                                     "bg-success"
                                 } else {
-                                    if anmeldung.max_cp.map(|max| cp > max).unwrap_or(false) {
+                                    if anmeldung.min_cp <= cp {
                                         "bg-warning"
                                     } else {
                                         "bg-danger"
@@ -602,10 +825,12 @@ fn prep_planning(
                                 { cp.to_string() }
                                 " / "
                                 { anmeldung.min_cp.to_string() }
+                                " - "
                                 {
                                     anmeldung
                                         .max_cp
-                                        .map(|max_cp| " - ".to_string() + &max_cp.to_string())
+                                        .map(|v| v.to_string())
+                                        .unwrap_or("*".to_string())
                                 }
                             }
                         }

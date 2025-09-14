@@ -177,6 +177,7 @@ pub fn Registration(registration: ReadSignal<AnmeldungRequest>) -> Element {
                                                 module
                                                     .map(|module| match &module.registration_state {
                                                         RegistrationState::Unknown => rsx! {},
+                                                        RegistrationState::NotPossible => rsx! { "Nicht in diesem Studiengang möglich" },
                                                         RegistrationState::Registered { unregister_link } => {
                                                             rsx! {
                                                                 a {
@@ -230,6 +231,7 @@ pub fn Registration(registration: ReadSignal<AnmeldungRequest>) -> Element {
                                                                     {
                                                                         match &course.1.registration_button_link {
                                                                             RegistrationState::Unknown => rsx! {},
+                                                                            RegistrationState::NotPossible => rsx! { "Nicht in diesem Studiengang möglich" },
                                                                             RegistrationState::Registered { unregister_link } => {
                                                                                 rsx! {
                                                                                     a {
