@@ -13,7 +13,7 @@ use tucant_planning::decompress;
 use tucant_types::registration::AnmeldungResponse;
 use tucant_types::student_result::{StudentResultLevel, StudentResultResponse};
 use tucant_types::{
-    CONCURRENCY, LeistungsspiegelGrade, LoginResponse, RevalidationStrategy, Tucan as _,
+    CONCURRENCY, LeistungsspiegelGrade, LoginResponse, RevalidationStrategy, SemesterId, Tucan,
 };
 use wasm_bindgen_futures::JsFuture;
 use web_sys::{FileList, HtmlInputElement};
@@ -204,7 +204,10 @@ pub async fn recursive_update(
             anmeldungen_entries::id,
         ))
         .do_update()
-        .set(anmeldungen_entries::state.eq(excluded(anmeldungen_entries::state)))
+        .set((
+            anmeldungen_entries::state.eq(excluded(anmeldungen_entries::state)),
+            (anmeldungen_entries::credits.eq(excluded(anmeldungen_entries::credits))),
+        ))
         .execute(&mut *connection_clone.borrow_mut())
         .expect("Error saving anmeldungen");
 }
@@ -299,6 +302,43 @@ pub fn PlanningInner(connection: MyRc<RefCell<SqliteConnection>>) -> Element {
 
                         recursive_update(connection_clone.clone(), the_url, student_result.level0)
                             .await;
+
+                        // TODO load semester from modulnoten?
+                        let semesters = tucan
+                            .course_results(
+                                &current_session,
+                                RevalidationStrategy::cache(),
+                                SemesterId::current(),
+                            )
+                            .await
+                            .unwrap();
+                        for semester in semesters.semester {
+                            let result = tucan
+                                .course_results(
+                                    &current_session,
+                                    RevalidationStrategy::cache(),
+                                    semester.value,
+                                )
+                                .await
+                                .unwrap();
+                            for module in result.results {
+                                diesel::update(anmeldungen_entries::table)
+                                    .filter(anmeldungen_entries::id.eq(module.nr))
+                                    .set((
+                                        anmeldungen_entries::semester.eq(
+                                            if semester.name.starts_with("SoSe ") {
+                                                Semester::Sommersemester
+                                            } else {
+                                                Semester::Wintersemester
+                                            },
+                                        ),
+                                        (anmeldungen_entries::year
+                                            .eq(semester.name[5..9].parse::<i32>().unwrap())),
+                                    ))
+                                    .execute(&mut *connection_clone.borrow_mut())
+                                    .expect("Error updating anmeldungen");
+                            }
+                        }
 
                         info!("updated");
                         loading.set(false);
