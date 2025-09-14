@@ -402,6 +402,15 @@ pub struct PrepPlanningReturn {
     element: Element,
 }
 
+pub struct YearAndSemester(pub u32, pub Semester);
+
+pub enum PlanningState {
+    NotPlanned,
+    MaybePlanned(Option<YearAndSemester>),
+    Planned(Option<YearAndSemester>),
+    Done(Option<YearAndSemester>),
+}
+
 fn prep_planning(
     mut future: Resource<Vec<Anmeldung>>,
     connection: MyRc<RefCell<SqliteConnection>>,
@@ -551,6 +560,9 @@ fn prep_planning(
                                                 selected: entry.state == State::Done,
                                                 { format!("{:?}", State::Done) }
                                             }
+                                        }
+                                        select {
+                                            class: "form-select",
                                             for i in 2025..2030 {
                                                 option {
                                                     onclick: {
