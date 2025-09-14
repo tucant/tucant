@@ -573,6 +573,22 @@ fn prep_planning(
                                             style: "min-width: 15em",
                                             option {
                                                 value: "",
+                                                onclick: {
+                                                    let connection = connection.clone();
+                                                    let mut entry = entry.clone();
+                                                    move |event| {
+                                                        event.prevent_default();
+                                                        let connection = connection.clone();
+                                                        entry.semester = None;
+                                                        entry.year = None;
+                                                        diesel::update(&entry)
+                                                            .set(&entry)
+                                                            .execute(&mut *connection.borrow_mut())
+                                                            .unwrap();
+                                                        future.restart();
+                                                    }
+                                                },
+                                                selected: entry.semester.is_none() && entry.year.is_none(),
                                                 "Choose semester"
                                             }
                                             for i in 2025..2030 {
