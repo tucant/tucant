@@ -595,7 +595,9 @@ fn prep_planning(
                                                             future.restart();
                                                         }
                                                     },
-                                                    selected: false,
+                                                    selected: entry.semester
+                                                        == Some(Semester::Sommersemester)
+                                                        && entry.year == Some(i),
                                                     "Sommersemester {i}"
                                                 }
                                                 option {
@@ -617,7 +619,9 @@ fn prep_planning(
                                                             future.restart();
                                                         }
                                                     },
-                                                    selected: false,
+                                                    selected: entry.semester
+                                                        == Some(Semester::Wintersemester)
+                                                        && entry.year == Some(i),
                                                     "Wintersemester {i}"
                                                 }
                                             }
