@@ -181,14 +181,6 @@ pub fn LoginComponent() -> Element {
                 disabled: loading(),
                 "Login"
             }
-            button {
-                onclick: set_fake_session,
-                class: "ms-1 align-self-start btn btn-outline-success",
-                r#type: "click",
-                id: "timed-out-session-button",
-                disabled: loading(),
-                "Timeout"
-            }
         }
     }
 }
