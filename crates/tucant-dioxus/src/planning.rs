@@ -31,14 +31,19 @@ const MIGRATIONS: EmbeddedMigrations = embed_migrations!("migrations");
 
 async fn open_db() -> MyRc<RefCell<SqliteConnection>> {
     #[cfg(target_arch = "wasm32")]
-    sqlite_wasm_rs::relaxed_idb_vfs::install(
-        &sqlite_wasm_rs::relaxed_idb_vfs::RelaxedIdbCfg::default(),
-        true,
-    )
-    .await
-    .unwrap();
+    {
+        let util = sqlite_wasm_rs::relaxed_idb_vfs::install(
+            &sqlite_wasm_rs::relaxed_idb_vfs::RelaxedIdbCfg::default(),
+            true,
+        )
+        .await
+        .unwrap();
+
+        let resopnse = util.export_db("tucant.db").unwrap();
+    }
 
     let mut connection = SqliteConnection::establish("tucant.db").unwrap();
+
     connection.run_pending_migrations(MIGRATIONS).unwrap();
     MyRc(Arc::new(RefCell::new(connection)))
 }
