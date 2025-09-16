@@ -147,22 +147,25 @@ async fn handle_semester(
             .buffer_unordered(CONCURRENCY)
             .collect()
             .await;
-        diesel::insert_into(anmeldungen_entries::table)
-            .values(&inserts)
-            .on_conflict((
-                anmeldungen_entries::course_of_study,
-                anmeldungen_entries::anmeldung,
-                anmeldungen_entries::available_semester,
-                anmeldungen_entries::id,
-            ))
-            .do_update()
-            .set((
-                // TODO FIXME I think updating does not work
-                anmeldungen_entries::state.eq(excluded(anmeldungen_entries::state)),
-                (anmeldungen_entries::credits.eq(excluded(anmeldungen_entries::credits))),
-            ))
-            .execute(&mut *connection_clone.borrow_mut())
-            .expect("Error saving anmeldungen");
+        // prevent too many variable error, TODO maybe batching
+        for insert in inserts {
+            diesel::insert_into(anmeldungen_entries::table)
+                .values(&insert)
+                .on_conflict((
+                    anmeldungen_entries::course_of_study,
+                    anmeldungen_entries::anmeldung,
+                    anmeldungen_entries::available_semester,
+                    anmeldungen_entries::id,
+                ))
+                .do_update()
+                .set((
+                    // TODO FIXME I think updating does not work
+                    anmeldungen_entries::state.eq(excluded(anmeldungen_entries::state)),
+                    (anmeldungen_entries::credits.eq(excluded(anmeldungen_entries::credits))),
+                ))
+                .execute(&mut *connection_clone.borrow_mut())
+                .expect("Error saving anmeldungen");
+        }
     }
 }
 
