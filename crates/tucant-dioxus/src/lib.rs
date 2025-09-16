@@ -180,7 +180,7 @@ pub enum Route {
     #[route("/fetch-anmeldung")]
     FetchAnmeldung {},
     #[route("/planning")]
-    Planning {},
+    Planning { course_of_study: String },
     #[route("/export-database")]
     ExportDatabase {},
 }

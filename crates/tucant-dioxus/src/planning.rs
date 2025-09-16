@@ -21,7 +21,7 @@ use web_sys::{FileList, HtmlInputElement};
 use crate::common::use_authenticated_data_loader;
 use crate::models::{Anmeldung, AnmeldungEntry, NewAnmeldung, NewAnmeldungEntry, Semester, State};
 use crate::schema::{anmeldungen_entries, anmeldungen_plan};
-use crate::{MyRc, RcTucanType};
+use crate::{MyRc, RcTucanType, Route};
 
 // TODO at some point put opfs into a dedicated worker as that is the most
 // correct approach TODO put this into a shared worker so there are no race
@@ -38,8 +38,6 @@ async fn open_db() -> MyRc<RefCell<SqliteConnection>> {
         )
         .await
         .unwrap();
-
-        let resopnse = util.export_db("tucant.db").unwrap();
     }
 
     let mut connection = SqliteConnection::establish("tucant.db").unwrap();
@@ -49,18 +47,37 @@ async fn open_db() -> MyRc<RefCell<SqliteConnection>> {
 }
 
 #[component]
-pub fn Planning() -> Element {
-    let connection = use_resource(move || async move { open_db().await });
+pub fn Planning(course_of_study: ReadSignal<String>) -> Element {
+    let tucan: RcTucanType = use_context();
+    let current_session_handle = use_context::<Signal<Option<LoginResponse>>>();
+    let connection_student_result = use_resource(move || {
+        let value = tucan.clone();
+        async move {
+            let database = open_db().await; // TODO FIXME put into context
+            // TODO FIXME don't unwrap here
+            let student_result = value
+                .student_result(
+                    &current_session_handle().unwrap(),
+                    RevalidationStrategy::cache(),
+                    course_of_study().parse().unwrap_or(0),
+                )
+                .await
+                .unwrap();
+            (database, student_result)
+        }
+    });
     rsx! {
-        if let Some(connection) = connection() {
+        if let Some((connection, student_result)) = connection_student_result() {
             PlanningInner {
                 connection,
+                student_result,
             }
         }
     }
 }
 
 async fn handle_semester(
+    course_of_study: &str,
     tucan: RcTucanType,
     login_response: &LoginResponse,
     connection_clone: MyRc<RefCell<SqliteConnection>>,
@@ -82,6 +99,7 @@ async fn handle_semester(
         let inserts: Vec<_> = result
             .iter()
             .map(|e| NewAnmeldung {
+                course_of_study: &course_of_study,
                 url: e.path.last().unwrap().1.inner(),
                 name: &e.path.last().unwrap().0,
                 parent: e.path.len().checked_sub(2).map(|v| e.path[v].1.inner()),
@@ -102,6 +120,7 @@ async fn handle_semester(
             .flat_map(|anmeldung| {
                 futures::stream::iter(anmeldung.entries.iter()).map(async |entry| {
                     NewAnmeldungEntry {
+                        course_of_study: &course_of_study,
                         available_semester: semester,
                         anmeldung: anmeldung.path.last().unwrap().1.inner(),
                         module_url: entry.module.as_ref().unwrap().url.inner(),
@@ -147,6 +166,7 @@ async fn handle_semester(
 }
 
 pub async fn recursive_update(
+    course_of_study: &str,
     connection_clone: MyRc<RefCell<SqliteConnection>>,
     url: String,
     level: StudentResultLevel,
@@ -169,12 +189,19 @@ pub async fn recursive_update(
         .get_result(&mut *connection_clone.borrow_mut())
         .expect("Error updating anmeldungen");
         info!("updated");
-        Box::pin(recursive_update(connection_clone.clone(), child_url, child)).await;
+        Box::pin(recursive_update(
+            course_of_study,
+            connection_clone.clone(),
+            child_url,
+            child,
+        ))
+        .await;
     }
     let inserts: Vec<_> = level
         .entries
         .iter()
         .map(|entry| NewAnmeldungEntry {
+            course_of_study: &course_of_study,
             available_semester: Semester::Sommersemester, // TODO FIXME
             anmeldung: &url,
             module_url: "TODO", // TODO FIXME
@@ -218,7 +245,18 @@ pub async fn recursive_update(
 }
 
 #[component]
-pub fn PlanningInner(connection: MyRc<RefCell<SqliteConnection>>) -> Element {
+pub fn PlanningInner(
+    connection: MyRc<RefCell<SqliteConnection>>,
+    student_result: StudentResultResponse,
+) -> Element {
+    let course_of_study = student_result
+        .course_of_study
+        .iter()
+        .find(|e| e.selected)
+        .unwrap()
+        .value
+        .to_string();
+    let navigator = use_navigator();
     let mut sommersemester: Signal<Option<web_sys::Element>> = use_signal(|| None);
     let mut wintersemester: Signal<Option<web_sys::Element>> = use_signal(|| None);
     let connection_clone = connection.clone();
@@ -239,166 +277,122 @@ pub fn PlanningInner(connection: MyRc<RefCell<SqliteConnection>>) -> Element {
             }
         })
     };
-    let handler = async |tucan: RcTucanType, current_session, revalidation_strategy, additional| {
-        tucan
-            .student_result(&current_session, revalidation_strategy, additional)
-            .await
-    };
-    let mut course_of_study = use_signal(|| 0);
-    let mut zero = use_signal(|| 0);
-    let abc = use_authenticated_data_loader(
-        handler,
-        zero.into(),
-        14 * 24 * 60 * 60,
-        60 * 60,
-        |student_result: StudentResultResponse, reload| {
-            let load_leistungsspiegel = {
-                let connection_clone = connection_clone.clone();
-                let tucan = tucan.clone();
-                move |_event: Event<MouseData>| {
-                    let connection_clone = connection_clone.clone();
-                    let current_session_handle = current_session_handle;
-                    let tucan = tucan.clone();
-                    async move {
-                        loading.set(true);
-                        let current_session = current_session_handle().unwrap();
+    let load_leistungsspiegel = {
+        let connection_clone = connection_clone.clone();
+        let tucan = tucan.clone();
+        let student_result = student_result.clone();
+        let course_of_study = course_of_study.clone();
+        move |_event: Event<MouseData>| {
+            let connection_clone = connection_clone.clone();
+            let current_session_handle = current_session_handle;
+            let tucan = tucan.clone();
+            let student_result = student_result.clone();
+            let course_of_study = course_of_study.clone();
+            async move {
+                loading.set(true);
+                let current_session = current_session_handle().unwrap();
 
-                        // TODO FIXME don't unwrap here
-                        let student_result = tucan
-                            .student_result(
-                                &current_session,
-                                RevalidationStrategy::cache(),
-                                course_of_study(),
+                // top level anmeldung has name "M.Sc. Informatik (2023)"
+                // top level leistungsspiegel has "Informatik"
+
+                let name = &student_result
+                    .course_of_study
+                    .iter()
+                    .find(|e| e.selected)
+                    .unwrap()
+                    .name;
+                let the_url: String = diesel::update(QueryDsl::filter(
+                    anmeldungen_plan::table,
+                    anmeldungen_plan::name.eq(name),
+                ))
+                .set((
+                    anmeldungen_plan::min_cp.eq(student_result.level0.rules.min_cp as i32),
+                    anmeldungen_plan::max_cp.eq(student_result
+                        .level0
+                        .rules
+                        .max_cp
+                        .map(|v| v as i32)),
+                    anmeldungen_plan::min_modules
+                        .eq(student_result.level0.rules.min_modules as i32),
+                    anmeldungen_plan::max_modules.eq(student_result
+                        .level0
+                        .rules
+                        .max_modules
+                        .map(|v| v as i32)),
+                ))
+                .returning(anmeldungen_plan::url)
+                .get_result(&mut *connection_clone.borrow_mut())
+                .expect("Error updating anmeldungen");
+
+                recursive_update(
+                    &course_of_study,
+                    connection_clone.clone(),
+                    the_url,
+                    student_result.level0,
+                )
+                .await;
+
+                let semesters = tucan
+                    .course_results(
+                        &current_session,
+                        RevalidationStrategy::cache(),
+                        SemesterId::current(),
+                    )
+                    .await
+                    .unwrap();
+                for semester in semesters.semester {
+                    let result = tucan
+                        .course_results(
+                            &current_session,
+                            RevalidationStrategy::cache(),
+                            semester.value,
+                        )
+                        .await
+                        .unwrap();
+                    for module in result.results {
+                        diesel::update(anmeldungen_entries::table)
+                            .filter(
+                                anmeldungen_entries::id
+                                    .eq(module.nr)
+                                    // TODO FIXME if you can register it at multiple paths
+                                    // this will otherwise break
+                                    .and(anmeldungen_entries::state.ne(State::NotPlanned)),
                             )
-                            .await
-                            .unwrap();
-
-                        // top level anmeldung has name "M.Sc. Informatik (2023)"
-                        // top level leistungsspiegel has "Informatik"
-
-                        let name = &student_result
-                            .course_of_study
-                            .iter()
-                            .find(|e| e.selected)
-                            .unwrap()
-                            .name;
-                        let the_url: String = diesel::update(QueryDsl::filter(
-                            anmeldungen_plan::table,
-                            anmeldungen_plan::name.eq(name),
-                        ))
-                        .set((
-                            anmeldungen_plan::min_cp.eq(student_result.level0.rules.min_cp as i32),
-                            anmeldungen_plan::max_cp.eq(student_result
-                                .level0
-                                .rules
-                                .max_cp
-                                .map(|v| v as i32)),
-                            anmeldungen_plan::min_modules
-                                .eq(student_result.level0.rules.min_modules as i32),
-                            anmeldungen_plan::max_modules.eq(student_result
-                                .level0
-                                .rules
-                                .max_modules
-                                .map(|v| v as i32)),
-                        ))
-                        .returning(anmeldungen_plan::url)
-                        .get_result(&mut *connection_clone.borrow_mut())
-                        .expect("Error updating anmeldungen");
-
-                        recursive_update(connection_clone.clone(), the_url, student_result.level0)
-                            .await;
-
-                        let semesters = tucan
-                            .course_results(
-                                &current_session,
-                                RevalidationStrategy::cache(),
-                                SemesterId::current(),
-                            )
-                            .await
-                            .unwrap();
-                        for semester in semesters.semester {
-                            let result = tucan
-                                .course_results(
-                                    &current_session,
-                                    RevalidationStrategy::cache(),
-                                    semester.value,
-                                )
-                                .await
-                                .unwrap();
-                            for module in result.results {
-                                diesel::update(anmeldungen_entries::table)
-                                    .filter(
-                                        anmeldungen_entries::id
-                                            .eq(module.nr)
-                                            // TODO FIXME if you can register it at multiple paths
-                                            // this will otherwise break
-                                            .and(anmeldungen_entries::state.ne(State::NotPlanned)),
-                                    )
-                                    .set((
-                                        anmeldungen_entries::semester.eq(
-                                            if semester.name.starts_with("SoSe ") {
-                                                Semester::Sommersemester
-                                            } else {
-                                                Semester::Wintersemester
-                                            },
-                                        ),
-                                        (anmeldungen_entries::year
-                                            .eq(semester.name[5..9].parse::<i32>().unwrap())),
-                                    ))
-                                    .execute(&mut *connection_clone.borrow_mut())
-                                    .expect("Error updating anmeldungen");
-                            }
-                        }
-
-                        info!("updated");
-                        loading.set(false);
-                        future.restart();
+                            .set((
+                                anmeldungen_entries::semester.eq(
+                                    if semester.name.starts_with("SoSe ") {
+                                        Semester::Sommersemester
+                                    } else {
+                                        Semester::Wintersemester
+                                    },
+                                ),
+                                (anmeldungen_entries::year
+                                    .eq(semester.name[5..9].parse::<i32>().unwrap())),
+                            ))
+                            .execute(&mut *connection_clone.borrow_mut())
+                            .expect("Error updating anmeldungen");
                     }
                 }
-            };
-            rsx! {
-                select {
-                    onchange: move |event: Event<FormData>| {
-                        course_of_study.set(event.value().parse().unwrap())
-                    },
-                    class: "form-select mb-1",
-                    "aria-label": "Select course of study",
-                    {
-                        student_result
-                            .course_of_study
-                            .iter()
-                            .map(|course_of_study| {
-                                let value = course_of_study.value;
-                                rsx! {
-                                    option {
-                                        key: "{value}",
-                                        selected: course_of_study.selected,
-                                        value: course_of_study.value,
-                                        { course_of_study.name.clone() }
-                                    }
-                                }
-                            })
-                    }
-                }
-                button {
-                    disabled: loading(),
-                    type: "button",
-                    class: "btn btn-primary mb-3",
-                    onclick: load_leistungsspiegel,
-                    "Leistungsspiegel laden (nach Laden der Semester)"
-                }
+
+                info!("updated");
+                loading.set(false);
+                future.restart();
             }
-        },
-    );
+        }
+    };
+
     let connection_clone = connection.clone();
     let tucan = tucan.clone();
+    let course_of_study = course_of_study.clone();
     let onsubmit = move |evt: Event<FormData>| {
         let connection_clone = connection_clone.clone();
         let tucan = tucan.clone();
+        let course_of_study = course_of_study.clone();
         evt.prevent_default();
         async move {
             loading.set(true);
             handle_semester(
+                &course_of_study,
                 tucan.clone(),
                 &current_session_handle().unwrap(),
                 connection_clone.clone(),
@@ -407,6 +401,7 @@ pub fn PlanningInner(connection: MyRc<RefCell<SqliteConnection>>) -> Element {
             )
             .await;
             handle_semester(
+                &course_of_study,
                 tucan.clone(),
                 &current_session_handle().unwrap(),
                 connection_clone,
@@ -439,6 +434,31 @@ pub fn PlanningInner(connection: MyRc<RefCell<SqliteConnection>>) -> Element {
             h2 {
                 class: "text-center",
                 "Semesterplanung"
+            }
+            select {
+                onchange: move |event: Event<FormData>| {
+                    navigator.push(Route::Planning {
+                        course_of_study: event.value(),
+                    });
+                },
+                class: "form-select mb-1",
+                "aria-label": "Select course of study",
+                {
+                    student_result
+                        .course_of_study
+                        .iter()
+                        .map(|course_of_study| {
+                            let value = course_of_study.value;
+                            rsx! {
+                                option {
+                                    key: "{value}",
+                                    selected: course_of_study.selected,
+                                    value: course_of_study.value,
+                                    { course_of_study.name.clone() }
+                                }
+                            }
+                        })
+                }
             }
             form {
                 onsubmit: onsubmit,
@@ -484,7 +504,13 @@ pub fn PlanningInner(connection: MyRc<RefCell<SqliteConnection>>) -> Element {
                     "Planung starten"
                 }
             }
-            { abc }
+            button {
+                disabled: loading(),
+                type: "button",
+                class: "btn btn-primary mb-3",
+                onclick: load_leistungsspiegel,
+                "Leistungsspiegel laden (nach Laden der Semester)"
+            }
             if let Some(value) = future() {
                 for entry in value {
                     PlanningAnmeldung {

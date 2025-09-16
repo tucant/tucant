@@ -3,7 +3,7 @@ use utoipa::ToSchema;
 
 use crate::LeistungsspiegelGrade;
 
-#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema, PartialEq, Eq)]
 pub struct CourseOfStudySelection {
     pub name: String,
     pub value: u64,
@@ -72,7 +72,7 @@ pub struct StudentResultLevel {
     pub children: Vec<StudentResultLevel>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema, PartialEq, Eq)]
 pub struct StudentResultResponse {
     pub course_of_study: Vec<CourseOfStudySelection>,
     pub level0: StudentResultLevel,

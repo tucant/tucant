@@ -43,6 +43,7 @@ where
 #[diesel(table_name = anmeldungen_plan)]
 #[diesel(check_for_backend(diesel::sqlite::Sqlite))]
 pub struct Anmeldung {
+    pub course_of_study: String,
     pub url: String,
     pub name: String,
     pub parent: Option<String>,
@@ -56,6 +57,7 @@ pub struct Anmeldung {
 #[diesel(table_name = anmeldungen_plan)]
 #[diesel(treat_none_as_default_value = false)]
 pub struct NewAnmeldung<'a> {
+    pub course_of_study: &'a str,
     pub url: &'a str,
     pub name: &'a str,
     pub parent: Option<&'a str>,
@@ -106,6 +108,7 @@ where
 #[diesel(treat_none_as_default_value = false)]
 #[diesel(treat_none_as_null = true)]
 pub struct AnmeldungEntry {
+    pub course_of_study: String,
     pub available_semester: Semester,
     pub anmeldung: String,
     pub module_url: String,
@@ -121,6 +124,7 @@ pub struct AnmeldungEntry {
 #[diesel(table_name = anmeldungen_entries)]
 #[diesel(treat_none_as_default_value = false)]
 pub struct NewAnmeldungEntry<'a> {
+    pub course_of_study: &'a str,
     pub available_semester: Semester,
     pub anmeldung: &'a str,
     pub module_url: &'a str,
