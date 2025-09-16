@@ -179,7 +179,7 @@ pub enum Route {
     GradeOverview { gradeoverview: GradeOverviewRequest },
     #[route("/fetch-anmeldung")]
     FetchAnmeldung {},
-    #[route("/planning")]
+    #[route("/planning/:course_of_study")]
     Planning { course_of_study: String },
     #[route("/export-database")]
     ExportDatabase {},
