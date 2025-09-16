@@ -789,7 +789,7 @@ fn prep_planning(
     .expect("Error loading anmeldungen");
     let entries: Vec<AnmeldungEntry> = QueryDsl::filter(
         anmeldungen_entries::table,
-        anmeldungen_plan::course_of_study
+        anmeldungen_entries::course_of_study
             .eq(course_of_study)
             .and(anmeldungen_entries::anmeldung.eq(&anmeldung.url)),
     )
