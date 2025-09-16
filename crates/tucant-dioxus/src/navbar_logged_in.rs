@@ -556,6 +556,11 @@ pub fn NavbarLoggedIn(
                         "data-bs-target": "#navbarSupportedContent",
                         "data-bs-hide": "collapse", "Semesterplanung" }
                 }
+                li {
+                    Link { to: Route::ExportDatabase {}, class: "dropdown-item",
+                        "data-bs-target": "#navbarSupportedContent",
+                        "data-bs-hide": "collapse", "Datenbankexport" }
+                }
             }
         }
     }

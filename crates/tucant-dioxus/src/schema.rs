@@ -2,6 +2,7 @@
 
 diesel::table! {
     anmeldungen_entries (available_semester, anmeldung, id) {
+        course_of_study -> Text,
         available_semester -> Text,
         anmeldung -> Text,
         module_url -> Text,
@@ -15,7 +16,8 @@ diesel::table! {
 }
 
 diesel::table! {
-    anmeldungen_plan (url) {
+    anmeldungen_plan (course_of_study, url) {
+        course_of_study -> Text,
         url -> Text,
         name -> Text,
         parent -> Nullable<Text>,
@@ -26,4 +28,7 @@ diesel::table! {
     }
 }
 
-diesel::allow_tables_to_appear_in_same_query!(anmeldungen_entries, anmeldungen_plan,);
+diesel::allow_tables_to_appear_in_same_query!(
+    anmeldungen_entries,
+    anmeldungen_plan,
+);

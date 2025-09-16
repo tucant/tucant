@@ -1,5 +1,6 @@
 -- Your SQL goes here
 CREATE TABLE anmeldungen_plan (
+    course_of_study TEXT NOT NULL,
     url TEXT NOT NULL,
     name TEXT NOT NULL,
     parent TEXT REFERENCES anmeldungen (url),
@@ -7,10 +8,11 @@ CREATE TABLE anmeldungen_plan (
     max_cp INT,
     min_modules INT NOT NULL,
     max_modules INT,
-    PRIMARY KEY (url)
+    PRIMARY KEY (course_of_study, url)
 ) STRICT;
 
 CREATE TABLE anmeldungen_entries (
+    course_of_study TEXT NOT NULL,
     available_semester TEXT NOT NULL, -- s or w or b
     anmeldung TEXT,
     module_url TEXT NOT NULL,
@@ -22,5 +24,5 @@ CREATE TABLE anmeldungen_entries (
     semester TEXT,
     -- TODO only make id the primary key
     PRIMARY KEY (anmeldung, available_semester, id),
-    FOREIGN KEY (anmeldung) REFERENCES anmeldungen (url)
+    FOREIGN KEY (course_of_study, anmeldung) REFERENCES anmeldungen (course_of_study, url)
 ) STRICT;

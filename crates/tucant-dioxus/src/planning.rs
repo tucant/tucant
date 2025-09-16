@@ -308,7 +308,6 @@ pub fn PlanningInner(connection: MyRc<RefCell<SqliteConnection>>) -> Element {
                         recursive_update(connection_clone.clone(), the_url, student_result.level0)
                             .await;
 
-                        // TODO load semester from modulnoten?
                         let semesters = tucan
                             .course_results(
                                 &current_session,
