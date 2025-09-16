@@ -32,7 +32,7 @@ const MIGRATIONS: EmbeddedMigrations = embed_migrations!("migrations");
 async fn open_db() -> MyRc<RefCell<SqliteConnection>> {
     #[cfg(target_arch = "wasm32")]
     {
-        let util = sqlite_wasm_rs::relaxed_idb_vfs::install(
+        let _util = sqlite_wasm_rs::relaxed_idb_vfs::install(
             &sqlite_wasm_rs::relaxed_idb_vfs::RelaxedIdbCfg::default(),
             true,
         )
@@ -99,7 +99,7 @@ async fn handle_semester(
         let inserts: Vec<_> = result
             .iter()
             .map(|e| NewAnmeldung {
-                course_of_study: &course_of_study,
+                course_of_study,
                 url: e.path.last().unwrap().1.inner(),
                 name: &e.path.last().unwrap().0,
                 parent: e.path.len().checked_sub(2).map(|v| e.path[v].1.inner()),
@@ -111,7 +111,7 @@ async fn handle_semester(
             .collect();
         diesel::insert_into(anmeldungen_plan::table)
             .values(&inserts)
-            .on_conflict(anmeldungen_plan::url)
+            .on_conflict((anmeldungen_plan::course_of_study, anmeldungen_plan::url))
             .do_update()
             .set(anmeldungen_plan::parent.eq(excluded(anmeldungen_plan::parent)))
             .execute(&mut *connection_clone.borrow_mut())
@@ -120,7 +120,7 @@ async fn handle_semester(
             .flat_map(|anmeldung| {
                 futures::stream::iter(anmeldung.entries.iter()).map(async |entry| {
                     NewAnmeldungEntry {
-                        course_of_study: &course_of_study,
+                        course_of_study: course_of_study,
                         available_semester: semester,
                         anmeldung: anmeldung.path.last().unwrap().1.inner(),
                         module_url: entry.module.as_ref().unwrap().url.inner(),
@@ -150,6 +150,7 @@ async fn handle_semester(
         diesel::insert_into(anmeldungen_entries::table)
             .values(&inserts)
             .on_conflict((
+                anmeldungen_entries::course_of_study,
                 anmeldungen_entries::anmeldung,
                 anmeldungen_entries::available_semester,
                 anmeldungen_entries::id,
@@ -175,9 +176,11 @@ pub async fn recursive_update(
         let name = child.name.as_ref().unwrap();
         let child_url = diesel::update(QueryDsl::filter(
             anmeldungen_plan::table,
-            anmeldungen_plan::parent
-                .eq(&url)
-                .and(anmeldungen_plan::name.eq(name)),
+            anmeldungen_plan::course_of_study.eq(course_of_study).and(
+                anmeldungen_plan::parent
+                    .eq(&url)
+                    .and(anmeldungen_plan::name.eq(name)),
+            ),
         ))
         .set((
             anmeldungen_plan::min_cp.eq(child.rules.min_cp as i32),
@@ -201,7 +204,7 @@ pub async fn recursive_update(
         .entries
         .iter()
         .map(|entry| NewAnmeldungEntry {
-            course_of_study: &course_of_study,
+            course_of_study,
             available_semester: Semester::Sommersemester, // TODO FIXME
             anmeldung: &url,
             module_url: "TODO", // TODO FIXME
@@ -231,6 +234,7 @@ pub async fn recursive_update(
     diesel::insert_into(anmeldungen_entries::table)
         .values(&inserts)
         .on_conflict((
+            anmeldungen_entries::course_of_study,
             anmeldungen_entries::anmeldung,
             anmeldungen_entries::available_semester,
             anmeldungen_entries::id,
@@ -265,14 +269,20 @@ pub fn PlanningInner(
     let mut loading = use_signal(|| false);
     let mut future = {
         let connection_clone = connection_clone.clone();
+        let course_of_study = course_of_study.clone();
         use_resource(move || {
             let connection_clone = connection_clone.clone();
+            let course_of_study = course_of_study.clone();
             async move {
-                let results: Vec<Anmeldung> =
-                    QueryDsl::filter(anmeldungen_plan::table, anmeldungen_plan::parent.is_null())
-                        .select(Anmeldung::as_select())
-                        .load(&mut *connection_clone.borrow_mut())
-                        .expect("Error loading anmeldungen");
+                let results: Vec<Anmeldung> = QueryDsl::filter(
+                    anmeldungen_plan::table,
+                    anmeldungen_plan::course_of_study
+                        .eq(&course_of_study)
+                        .and(anmeldungen_plan::parent.is_null()),
+                )
+                .select(Anmeldung::as_select())
+                .load(&mut *connection_clone.borrow_mut())
+                .expect("Error loading anmeldungen");
                 results
             }
         })
@@ -303,7 +313,9 @@ pub fn PlanningInner(
                     .name;
                 let the_url: String = diesel::update(QueryDsl::filter(
                     anmeldungen_plan::table,
-                    anmeldungen_plan::name.eq(name),
+                    anmeldungen_plan::course_of_study
+                        .eq(&course_of_study)
+                        .and(anmeldungen_plan::name.eq(name)),
                 ))
                 .set((
                     anmeldungen_plan::min_cp.eq(student_result.level0.rules.min_cp as i32),
@@ -352,11 +364,15 @@ pub fn PlanningInner(
                     for module in result.results {
                         diesel::update(anmeldungen_entries::table)
                             .filter(
-                                anmeldungen_entries::id
-                                    .eq(module.nr)
-                                    // TODO FIXME if you can register it at multiple paths
-                                    // this will otherwise break
-                                    .and(anmeldungen_entries::state.ne(State::NotPlanned)),
+                                anmeldungen_entries::course_of_study
+                                    .eq(&course_of_study)
+                                    .and(
+                                        anmeldungen_entries::id
+                                            .eq(module.nr)
+                                            // TODO FIXME if you can register it at multiple paths
+                                            // this will otherwise break
+                                            .and(anmeldungen_entries::state.ne(State::NotPlanned)),
+                                    ),
                             )
                             .set((
                                 anmeldungen_entries::semester.eq(
@@ -383,37 +399,40 @@ pub fn PlanningInner(
 
     let connection_clone = connection.clone();
     let tucan = tucan.clone();
-    let course_of_study = course_of_study.clone();
-    let onsubmit = move |evt: Event<FormData>| {
-        let connection_clone = connection_clone.clone();
-        let tucan = tucan.clone();
+    let onsubmit = {
         let course_of_study = course_of_study.clone();
-        evt.prevent_default();
-        async move {
-            loading.set(true);
-            handle_semester(
-                &course_of_study,
-                tucan.clone(),
-                &current_session_handle().unwrap(),
-                connection_clone.clone(),
-                Semester::Sommersemester,
-                sommersemester,
-            )
-            .await;
-            handle_semester(
-                &course_of_study,
-                tucan.clone(),
-                &current_session_handle().unwrap(),
-                connection_clone,
-                Semester::Wintersemester,
-                wintersemester,
-            )
-            .await;
-            info!("done");
-            loading.set(false);
-            future.restart();
+        move |evt: Event<FormData>| {
+            let connection_clone = connection_clone.clone();
+            let tucan = tucan.clone();
+            let course_of_study = course_of_study.clone();
+            evt.prevent_default();
+            async move {
+                loading.set(true);
+                handle_semester(
+                    &course_of_study,
+                    tucan.clone(),
+                    &current_session_handle().unwrap(),
+                    connection_clone.clone(),
+                    Semester::Sommersemester,
+                    sommersemester,
+                )
+                .await;
+                handle_semester(
+                    &course_of_study,
+                    tucan.clone(),
+                    &current_session_handle().unwrap(),
+                    connection_clone,
+                    Semester::Wintersemester,
+                    wintersemester,
+                )
+                .await;
+                info!("done");
+                loading.set(false);
+                future.restart();
+            }
         }
     };
+
     rsx! {
         div {
             class: "container",
@@ -514,6 +533,7 @@ pub fn PlanningInner(
             if let Some(value) = future() {
                 for entry in value {
                     PlanningAnmeldung {
+                        course_of_study: course_of_study.clone(),
                         future,
                         connection: connection.clone(),
                         anmeldung: entry.clone(),
@@ -531,9 +551,13 @@ pub fn PlanningInner(
                         future,
                         entries: QueryDsl::filter(
                             anmeldungen_entries::table,
-                            anmeldungen_entries::semester
-                                .eq(Semester::Sommersemester)
-                                .and(anmeldungen_entries::year.eq(i)),
+                            anmeldungen_entries::course_of_study
+                                .eq(&course_of_study)
+                                .and(
+                                    anmeldungen_entries::semester
+                                        .eq(Semester::Sommersemester)
+                                        .and(anmeldungen_entries::year.eq(i))
+                                ),
                         )
                         .select(AnmeldungEntry::as_select())
                         .load(&mut *connection.borrow_mut())
@@ -547,9 +571,13 @@ pub fn PlanningInner(
                         future,
                         entries: QueryDsl::filter(
                             anmeldungen_entries::table,
-                            anmeldungen_entries::semester
-                                .eq(Semester::Wintersemester)
-                                .and(anmeldungen_entries::year.eq(i)),
+                            anmeldungen_entries::course_of_study
+                                .eq(&course_of_study)
+                                .and(
+                                    anmeldungen_entries::semester
+                                        .eq(Semester::Wintersemester)
+                                        .and(anmeldungen_entries::year.eq(i))
+                                ),
                         )
                         .select(AnmeldungEntry::as_select())
                         .load(&mut *connection.borrow_mut())
@@ -745,27 +773,32 @@ fn AnmeldungenEntries(
 }
 
 fn prep_planning(
+    course_of_study: &str,
     mut future: Resource<Vec<Anmeldung>>,
     connection: MyRc<RefCell<SqliteConnection>>,
     anmeldung: Anmeldung, // ahh this needs to be a signal?
 ) -> PrepPlanningReturn {
     let results: Vec<Anmeldung> = QueryDsl::filter(
         anmeldungen_plan::table,
-        anmeldungen_plan::parent.eq(&anmeldung.url),
+        anmeldungen_plan::course_of_study
+            .eq(course_of_study)
+            .and(anmeldungen_plan::parent.eq(&anmeldung.url)),
     )
     .select(Anmeldung::as_select())
     .load(&mut *connection.borrow_mut())
     .expect("Error loading anmeldungen");
     let entries: Vec<AnmeldungEntry> = QueryDsl::filter(
         anmeldungen_entries::table,
-        anmeldungen_entries::anmeldung.eq(&anmeldung.url),
+        anmeldungen_plan::course_of_study
+            .eq(course_of_study)
+            .and(anmeldungen_entries::anmeldung.eq(&anmeldung.url)),
     )
     .select(AnmeldungEntry::as_select())
     .load(&mut *connection.borrow_mut())
     .expect("Error loading anmeldungen");
     let inner: Vec<PrepPlanningReturn> = results
         .iter()
-        .map(|result| prep_planning(future, connection.clone(), result.clone()))
+        .map(|result| prep_planning(course_of_study, future, connection.clone(), result.clone()))
         .collect();
     let has_rules = anmeldung.min_cp != 0
         || anmeldung.max_cp.is_some()
@@ -901,10 +934,11 @@ fn prep_planning(
 
 #[component]
 pub fn PlanningAnmeldung(
+    course_of_study: String,
     future: Resource<Vec<Anmeldung>>,
     connection: MyRc<RefCell<SqliteConnection>>,
     anmeldung: Anmeldung,
 ) -> Element {
     let _ = future();
-    prep_planning(future, connection, anmeldung).element
+    prep_planning(&course_of_study, future, connection, anmeldung).element
 }
