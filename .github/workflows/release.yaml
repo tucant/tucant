@@ -97,7 +97,7 @@ jobs:
         cat << EOF > pages/updates.json
         {
           "addons": {
-            "tucan-plus@selfmade4u.de": {
+            "tucant@selfmade4u.de": {
               "updates": [
                 {
                   "version": "${{ steps.version.outputs.VERSION }}",

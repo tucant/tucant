@@ -53,7 +53,7 @@
     ],
     "browser_specific_settings": {
         "gecko": {
-            "id": "tucan-plus@selfmade4u.de",
+            "id": "tucant@selfmade4u.de",
             "update_url": "https://tucan-plus.github.io/tucan-plus/updates.json"
         }
     },
