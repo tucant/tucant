@@ -139,6 +139,7 @@
           ./crates/tucan-plus-dioxus/assets/bootstrap.css
           ./crates/tucan-plus-dioxus/assets/bootstrap.bundle.min.js
           ./crates/tucan-plus-dioxus/assets/bootstrap.patch.js
+          ./crates/tucan-plus-dioxus/index.html
         ];
 
         client = craneLib.buildPackage {
