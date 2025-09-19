@@ -7,6 +7,12 @@ use wasm_bindgen::prelude::*;
 
 const HASHED_ASSET_FOLDER: Asset = asset!("/assets");
 
+#[used]
+static APP_MANIFEST: Asset = asset!(
+    "/assets/manifest.json",
+    AssetOptions::builder().with_hash_suffix(false)
+);
+
 #[wasm_bindgen]
 extern "C" {
     #[wasm_bindgen(js_namespace = console)]
