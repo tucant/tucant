@@ -1,8 +1,8 @@
 use std::panic;
 
 use dioxus::prelude::*;
+use tucan_plus_dioxus::{Anonymize, Route};
 use tucan_types::LoginResponse;
-use tucant_dioxus::{Anonymize, Route};
 use wasm_bindgen::prelude::*;
 
 const BOOTSTRAP_CSS: Asset = asset!("/assets/bootstrap.css");
@@ -73,16 +73,16 @@ pub async fn main() {
         dioxus::web::Config::new().history(std::rc::Rc::new(dioxus::web::HashHistory::new(false))),
     );
 
-    let login_response = tucant_dioxus::login_response().await;
+    let login_response = tucan_plus_dioxus::login_response().await;
     let launcher = launcher.with_context(login_response);
 
     #[cfg(feature = "api")]
-    let launcher = launcher.with_context(tucant_dioxus::RcTucanType::new(
-        tucan_types::DynTucan::new_arc(tucant_dioxus::api_server::ApiServerTucan::new()),
+    let launcher = launcher.with_context(tucan_plus_dioxus::RcTucanType::new(
+        tucan_types::DynTucan::new_arc(tucan_plus_dioxus::api_server::ApiServerTucan::new()),
     ));
 
     #[cfg(any(feature = "direct", feature = "desktop", feature = "mobile"))]
-    let launcher = launcher.with_context(tucant_dioxus::RcTucanType::new(
+    let launcher = launcher.with_context(tucan_plus_dioxus::RcTucanType::new(
         tucan_types::DynTucan::new_arc(tucan_connector::TucanConnector::new().await.unwrap()),
     ));
 

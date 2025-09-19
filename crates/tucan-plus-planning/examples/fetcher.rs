@@ -2,7 +2,7 @@ use tucan_connector::TucanConnector;
 use tucan_types::TucanError;
 use tucan_types::registration::AnmeldungRequest;
 use tucan_types::{DynTucan, LoginRequest, RevalidationStrategy, Tucan};
-use tucant_planning::{compress, recursive_anmeldung};
+use tucan_plus_planning::{compress, recursive_anmeldung};
 
 fn main() -> Result<(), TucanError> {
     dotenvy::dotenv().unwrap();

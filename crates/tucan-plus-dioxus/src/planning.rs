@@ -9,12 +9,12 @@ use dioxus::prelude::*;
 use futures::StreamExt;
 use js_sys::Uint8Array;
 use log::info;
+use tucan_plus_planning::decompress;
 use tucan_types::registration::AnmeldungResponse;
 use tucan_types::student_result::{StudentResultLevel, StudentResultResponse};
 use tucan_types::{
     CONCURRENCY, LeistungsspiegelGrade, LoginResponse, RevalidationStrategy, SemesterId, Tucan,
 };
-use tucant_planning::decompress;
 use wasm_bindgen_futures::JsFuture;
 use web_sys::{FileList, HtmlInputElement};
 
@@ -40,7 +40,7 @@ async fn open_db() -> MyRc<RefCell<SqliteConnection>> {
         .unwrap();
     }
 
-    let mut connection = SqliteConnection::establish("tucant.db").unwrap();
+    let mut connection = SqliteConnection::establish("tucan-plus.db").unwrap();
 
     connection.run_pending_migrations(MIGRATIONS).unwrap();
     MyRc(Arc::new(RefCell::new(connection)))

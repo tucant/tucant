@@ -16,8 +16,9 @@ async fn export_db() -> Vec<u8> {
         .await
         .unwrap();
 
-        util.export_db("tucant.db").unwrap()
+        return util.export_db("tucan-plus.db").unwrap();
     }
+    panic!();
 }
 
 #[component]
@@ -35,7 +36,7 @@ pub fn ExportDatabase() -> Element {
                         Blob::new_with_blob_sequence_and_options(&bytes, &blob_properties).unwrap();
                     Url::create_object_url_with_blob(&blob).unwrap()
                 },
-                download: "tucant.db",
+                download: "tucan-plus.db",
                 "Download database"
             }
         }
