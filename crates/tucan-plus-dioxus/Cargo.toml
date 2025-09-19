@@ -1,5 +1,5 @@
 [package]
-name = "tucant-dioxus"
+name = "tucan-plus-dioxus"
 license = "AGPL-3.0-or-later"
 edition = "2024"
 version = "0.1.2"
@@ -10,7 +10,7 @@ rust-version = "1.85.1"
 [dependencies]
 dioxus = { git = "https://github.com/mohe2015/dioxus.git", branch = "my", default-features = false, features = ["launch", "devtools", "logger", "lib", "router" ] }
 dioxus-desktop = { git = "https://github.com/mohe2015/dioxus.git", branch = "my", default-features = false, optional = true }
-tucant-types = { path = "../tucant-types" }
+tucan-types = { path = "../tucan-types" }
 log = { version = "0.4", features = ["max_level_debug", "release_max_level_warn"] }
 reqwest = { version = "0.12.9", default-features = false, features = ["rustls-tls", "http2", "charset", "json"] }
 wasm-bindgen-futures = "0.4"
@@ -23,7 +23,7 @@ web-sys = { version = "0.3", features = ["Document", "Window", "HtmlDocument", "
 cookie = "0.18"
 web-extensions-sys = { optional = true, git = "https://github.com/mohe2015/web-extensions-sys", branch = "cookies" }
 tucan-connector = { optional = true, path = "../tucan-connector" }
-tucant-planning = { path = "../tucant-planning" }
+tucan-plus-planning = { path = "../tucan-plus-planning" }
 tracing = "0.1.41"
 plotters = { version = "0.3.7", default-features = false, features = ["svg_backend", "histogram"] }
 keyring = { version = "3", optional = true }

@@ -1,6 +1,6 @@
 use log::info;
 use time::{Duration, OffsetDateTime, macros::offset};
-use tucant_types::{
+use tucan_types::{
     LoginResponse, RevalidationStrategy,
     coursedetails::CourseDetailsRequest,
     mlsstart::{MlsStart, Nachricht, StundenplanEintrag},

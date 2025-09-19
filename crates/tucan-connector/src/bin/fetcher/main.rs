@@ -6,10 +6,10 @@ use std::sync::atomic::{AtomicU64, Ordering};
 use futures_util::stream::FuturesUnordered;
 use futures_util::{FutureExt, StreamExt};
 use tucan_connector::TucanConnector;
-use tucant_types::coursedetails::CourseDetailsRequest;
-use tucant_types::registration::{AnmeldungRequest, RegistrationState};
-use tucant_types::{LoginRequest, RevalidationStrategy, Tucan};
-use tucant_types::{LoginResponse, TucanError};
+use tucan_types::coursedetails::CourseDetailsRequest;
+use tucan_types::registration::{AnmeldungRequest, RegistrationState};
+use tucan_types::{LoginRequest, RevalidationStrategy, Tucan};
+use tucan_types::{LoginResponse, TucanError};
 
 fn main() -> Result<(), TucanError> {
     dotenvy::dotenv().unwrap();

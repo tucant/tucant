@@ -9,12 +9,12 @@ use dioxus::prelude::*;
 use futures::StreamExt;
 use js_sys::Uint8Array;
 use log::info;
-use tucant_planning::decompress;
-use tucant_types::registration::AnmeldungResponse;
-use tucant_types::student_result::{StudentResultLevel, StudentResultResponse};
-use tucant_types::{
+use tucan_types::registration::AnmeldungResponse;
+use tucan_types::student_result::{StudentResultLevel, StudentResultResponse};
+use tucan_types::{
     CONCURRENCY, LeistungsspiegelGrade, LoginResponse, RevalidationStrategy, SemesterId, Tucan,
 };
+use tucant_planning::decompress;
 use wasm_bindgen_futures::JsFuture;
 use web_sys::{FileList, HtmlInputElement};
 

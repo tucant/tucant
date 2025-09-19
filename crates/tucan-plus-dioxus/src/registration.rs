@@ -1,5 +1,5 @@
 use dioxus::prelude::*;
-use tucant_types::{
+use tucan_types::{
     Tucan,
     registration::{AnmeldungRequest, RegistrationState},
 };

@@ -1,6 +1,6 @@
 use crate::{Anonymize, RcTucanType, Route, common::use_authenticated_data_loader};
 use dioxus::prelude::*;
-use tucant_types::{
+use tucan_types::{
     Tucan,
     student_result::{StudentResultEntry, StudentResultLevel, StudentResultResponse},
 };

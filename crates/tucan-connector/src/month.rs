@@ -15,7 +15,7 @@ use log::info;
 use regex::Regex;
 use scraper::CaseSensitivity;
 use time::{Duration, OffsetDateTime};
-use tucant_types::{
+use tucan_types::{
     LoginResponse, RevalidationStrategy, TucanError, courseprep::CoursePrepRequest,
 };
 

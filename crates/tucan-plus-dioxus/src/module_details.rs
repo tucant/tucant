@@ -1,5 +1,5 @@
 use dioxus::prelude::*;
-use tucant_types::{Tucan, moduledetails::ModuleDetailsRequest};
+use tucan_types::{Tucan, moduledetails::ModuleDetailsRequest};
 
 use crate::{RcTucanType, common::use_authenticated_data_loader};
 

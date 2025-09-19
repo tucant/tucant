@@ -4,7 +4,7 @@ use crate::{
     retryable_get,
 };
 use html_handler::{Root, parse_document};
-use tucant_types::LoggedOutHead;
+use tucan_types::LoggedOutHead;
 
 pub async fn welcome(connector: &TucanConnector) -> Result<LoggedOutHead, TucanError> {
     let (content, ..) = retryable_get(

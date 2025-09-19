@@ -5,7 +5,7 @@ use regex::Regex;
 use scraper::CaseSensitivity;
 use time::macros::offset;
 use time::{Duration, Month, OffsetDateTime};
-use tucant_types::{
+use tucan_types::{
     LoginResponse, RevalidationStrategy,
     coursedetails::CourseDetailsRequest,
     moduledetails::ModuleDetailsRequest,

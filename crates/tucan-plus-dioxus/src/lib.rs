@@ -34,9 +34,9 @@ use crate::navbar::Navbar;
 use crate::overview::Overview;
 use crate::planning::Planning;
 use dioxus::prelude::*;
-use tucant_types::DynTucan;
-use tucant_types::gradeoverview::GradeOverviewRequest;
-use tucant_types::{
+use tucan_types::DynTucan;
+use tucan_types::gradeoverview::GradeOverviewRequest;
+use tucan_types::{
     SemesterId, coursedetails::CourseDetailsRequest, moduledetails::ModuleDetailsRequest,
     registration::AnmeldungRequest, vv::ActionRequest,
 };
@@ -50,12 +50,12 @@ pub struct Anonymize(pub bool);
     feature = "direct",
     feature = "api"
 )))]
-pub async fn login_response() -> Option<tucant_types::LoginResponse> {
+pub async fn login_response() -> Option<tucan_types::LoginResponse> {
     None
 }
 
 #[cfg(any(feature = "desktop", feature = "mobile"))]
-pub async fn login_response() -> Option<tucant_types::LoginResponse> {
+pub async fn login_response() -> Option<tucan_types::LoginResponse> {
     #[cfg(feature = "mobile")]
     android_keyring::set_android_keyring_credential_builder().unwrap();
 
@@ -68,7 +68,7 @@ pub async fn login_response() -> Option<tucant_types::LoginResponse> {
 }
 
 #[cfg(feature = "direct")]
-pub async fn login_response() -> Option<tucant_types::LoginResponse> {
+pub async fn login_response() -> Option<tucan_types::LoginResponse> {
     let session_id = web_extensions_sys::chrome()
         .cookies()
         .get(web_extensions_sys::CookieDetails {
@@ -91,21 +91,21 @@ pub async fn login_response() -> Option<tucant_types::LoginResponse> {
         .await?
         .value;
 
-    Some(tucant_types::LoginResponse {
+    Some(tucan_types::LoginResponse {
         id: session_id.parse().unwrap(),
         cookie_cnsc: cnsc,
     })
 }
 
 #[cfg(feature = "api")]
-pub async fn login_response() -> Option<tucant_types::LoginResponse> {
+pub async fn login_response() -> Option<tucan_types::LoginResponse> {
     use wasm_bindgen::JsCast;
     let window = web_sys::window().unwrap();
     let document = window.document().unwrap();
     let html_document = document.dyn_into::<web_sys::HtmlDocument>().unwrap();
     let cookie = html_document.cookie().unwrap();
 
-    Some(tucant_types::LoginResponse {
+    Some(tucan_types::LoginResponse {
         id: cookie::Cookie::split_parse(&cookie)
             .find_map(|cookie| {
                 let cookie = cookie.unwrap();

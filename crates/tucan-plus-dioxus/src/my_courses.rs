@@ -1,7 +1,7 @@
 use std::str::FromStr;
 
 use dioxus::prelude::*;
-use tucant_types::{SemesterId, Tucan, mycourses::MyCoursesResponse};
+use tucan_types::{SemesterId, Tucan, mycourses::MyCoursesResponse};
 
 use crate::{RcTucanType, Route, common::use_authenticated_data_loader};
 

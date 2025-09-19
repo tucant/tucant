@@ -1,8 +1,8 @@
 use tucan_connector::TucanConnector;
+use tucan_types::TucanError;
+use tucan_types::registration::AnmeldungRequest;
+use tucan_types::{DynTucan, LoginRequest, RevalidationStrategy, Tucan};
 use tucant_planning::{compress, recursive_anmeldung};
-use tucant_types::TucanError;
-use tucant_types::registration::AnmeldungRequest;
-use tucant_types::{DynTucan, LoginRequest, RevalidationStrategy, Tucan};
 
 fn main() -> Result<(), TucanError> {
     dotenvy::dotenv().unwrap();

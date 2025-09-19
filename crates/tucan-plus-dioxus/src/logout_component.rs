@@ -1,5 +1,5 @@
 use dioxus::prelude::*;
-use tucant_types::{LoginResponse, Tucan};
+use tucan_types::{LoginResponse, Tucan};
 
 use crate::RcTucanType;
 

@@ -1,7 +1,7 @@
 use futures_util::stream::FuturesOrdered;
 use futures_util::{FutureExt as _, StreamExt as _};
 use tokio::io::AsyncWriteExt as _;
-use tucant_types::{
+use tucan_types::{
     DynTucan, LoginResponse, RevalidationStrategy, Tucan as _,
     registration::{AnmeldungRequest, AnmeldungResponse},
 };

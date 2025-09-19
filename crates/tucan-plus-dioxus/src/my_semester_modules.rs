@@ -2,7 +2,7 @@ use std::{collections::HashSet, str::FromStr};
 
 use dioxus::prelude::*;
 use log::warn;
-use tucant_types::{
+use tucan_types::{
     RevalidationStrategy, SemesterId, Tucan,
     mymodules::{Module, MyModulesResponse},
 };

@@ -2,11 +2,11 @@ use itertools::Itertools;
 use log::info;
 use scraper::CaseSensitivity::CaseSensitive;
 use time::{Duration, OffsetDateTime};
-use tucant_types::moduledetails::{
+use tucan_types::moduledetails::{
     Anmeldefristen, Kurs, KursKategorie, Leistung, Pruefung, Pruefungstermin,
 };
-use tucant_types::{InstructorImage, RevalidationStrategy};
-use tucant_types::{
+use tucan_types::{InstructorImage, RevalidationStrategy};
+use tucan_types::{
     LoginResponse,
     moduledetails::{ModuleDetailsRequest, ModuleDetailsResponse},
 };

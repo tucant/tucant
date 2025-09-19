@@ -21,7 +21,7 @@ use reqwest::header;
 use student_result::student_result;
 use time::{OffsetDateTime, format_description::well_known::Rfc2822};
 use tokio::sync::Semaphore;
-use tucant_types::{
+use tucan_types::{
     CONCURRENCY, LoginResponse, RevalidationStrategy, SemesterId, Tucan, TucanError,
     courseresults::ModuleResultsResponse,
     examresults::ExamResultsResponse,
@@ -194,30 +194,30 @@ impl TucanConnector {
 impl Tucan for TucanConnector {
     async fn login(
         &self,
-        request: tucant_types::LoginRequest,
-    ) -> Result<tucant_types::LoginResponse, TucanError> {
+        request: tucan_types::LoginRequest,
+    ) -> Result<tucan_types::LoginResponse, TucanError> {
         login(&self.client, &request).await
     }
 
-    async fn welcome(&self) -> Result<tucant_types::LoggedOutHead, TucanError> {
+    async fn welcome(&self) -> Result<tucan_types::LoggedOutHead, TucanError> {
         welcome(self).await
     }
 
     async fn after_login(
         &self,
-        request: &tucant_types::LoginResponse,
+        request: &tucan_types::LoginResponse,
         revalidation_strategy: RevalidationStrategy,
     ) -> Result<MlsStart, TucanError> {
         after_login(self, request, revalidation_strategy).await
     }
 
-    async fn logout(&self, request: &tucant_types::LoginResponse) -> Result<(), TucanError> {
+    async fn logout(&self, request: &tucan_types::LoginResponse) -> Result<(), TucanError> {
         logout(self, request).await
     }
 
     async fn my_modules(
         &self,
-        request: &tucant_types::LoginResponse,
+        request: &tucan_types::LoginResponse,
         revalidation_strategy: RevalidationStrategy,
         semester: SemesterId,
     ) -> Result<MyModulesResponse, TucanError> {
@@ -226,7 +226,7 @@ impl Tucan for TucanConnector {
 
     async fn my_courses(
         &self,
-        request: &tucant_types::LoginResponse,
+        request: &tucan_types::LoginResponse,
         revalidation_strategy: RevalidationStrategy,
         semester: SemesterId,
     ) -> Result<MyCoursesResponse, TucanError> {
@@ -235,7 +235,7 @@ impl Tucan for TucanConnector {
 
     async fn my_exams(
         &self,
-        request: &tucant_types::LoginResponse,
+        request: &tucan_types::LoginResponse,
         revalidation_strategy: RevalidationStrategy,
         semester: SemesterId,
     ) -> Result<MyExamsResponse, TucanError> {
@@ -244,7 +244,7 @@ impl Tucan for TucanConnector {
 
     async fn exam_results(
         &self,
-        request: &tucant_types::LoginResponse,
+        request: &tucan_types::LoginResponse,
         revalidation_strategy: RevalidationStrategy,
         semester: SemesterId,
     ) -> Result<ExamResultsResponse, TucanError> {
@@ -253,7 +253,7 @@ impl Tucan for TucanConnector {
 
     async fn course_results(
         &self,
-        request: &tucant_types::LoginResponse,
+        request: &tucan_types::LoginResponse,
         revalidation_strategy: RevalidationStrategy,
         semester: SemesterId,
     ) -> Result<ModuleResultsResponse, TucanError> {
@@ -262,7 +262,7 @@ impl Tucan for TucanConnector {
 
     async fn my_documents(
         &self,
-        request: &tucant_types::LoginResponse,
+        request: &tucan_types::LoginResponse,
         revalidation_strategy: RevalidationStrategy,
     ) -> Result<MyDocumentsResponse, TucanError> {
         my_documents(self, request, revalidation_strategy).await
@@ -270,34 +270,34 @@ impl Tucan for TucanConnector {
 
     async fn anmeldung(
         &self,
-        login_response: tucant_types::LoginResponse,
+        login_response: tucan_types::LoginResponse,
         revalidation_strategy: RevalidationStrategy,
-        request: tucant_types::registration::AnmeldungRequest,
-    ) -> Result<tucant_types::registration::AnmeldungResponse, TucanError> {
+        request: tucan_types::registration::AnmeldungRequest,
+    ) -> Result<tucan_types::registration::AnmeldungResponse, TucanError> {
         anmeldung(self, &login_response, revalidation_strategy, request).await
     }
 
     async fn module_details(
         &self,
-        login_response: &tucant_types::LoginResponse,
+        login_response: &tucan_types::LoginResponse,
         revalidation_strategy: RevalidationStrategy,
-        request: tucant_types::moduledetails::ModuleDetailsRequest,
-    ) -> Result<tucant_types::moduledetails::ModuleDetailsResponse, TucanError> {
+        request: tucan_types::moduledetails::ModuleDetailsRequest,
+    ) -> Result<tucan_types::moduledetails::ModuleDetailsResponse, TucanError> {
         module_details(self, login_response, revalidation_strategy, request).await
     }
 
     async fn course_details(
         &self,
-        login_response: &tucant_types::LoginResponse,
+        login_response: &tucan_types::LoginResponse,
         revalidation_strategy: RevalidationStrategy,
-        request: tucant_types::coursedetails::CourseDetailsRequest,
-    ) -> Result<tucant_types::coursedetails::CourseDetailsResponse, TucanError> {
+        request: tucan_types::coursedetails::CourseDetailsRequest,
+    ) -> Result<tucan_types::coursedetails::CourseDetailsResponse, TucanError> {
         course_details(self, login_response, revalidation_strategy, request).await
     }
 
     async fn vv(
         &self,
-        login_response: Option<&tucant_types::LoginResponse>,
+        login_response: Option<&tucan_types::LoginResponse>,
         revalidation_strategy: RevalidationStrategy,
         action: ActionRequest,
     ) -> Result<Vorlesungsverzeichnis, TucanError> {
@@ -332,7 +332,7 @@ mod tests {
         runtime::Runtime,
         sync::{OnceCell, Semaphore},
     };
-    use tucant_types::{
+    use tucan_types::{
         LoginRequest, LoginResponse, RevalidationStrategy, TucanError,
         coursedetails::CourseDetailsRequest, moduledetails::ModuleDetailsRequest,
     };
@@ -365,7 +365,8 @@ mod tests {
                 let client = reqwest::Client::builder()
                     .default_headers(headers)
                     .user_agent(
-                        "https://github.com/tucant/tucant d8167c8 Moritz.Hedtke@t-online.de",
+                        "https://github.com/tucan-plus/tucan-plus \
+                         6d824ead1b932515a84995cafd92f97c40c53bc5 Moritz.Hedtke@t-online.de",
                     )
                     .build()
                     .unwrap();
@@ -597,7 +598,7 @@ mod authenticated_tests {
 #[cfg(all(test, feature = "authenticated_tests"))]
 mod authenticated_tests {
     use tokio::sync::OnceCell;
-    use tucant_types::{
+    use tucan_types::{
         LoginRequest, LoginResponse, RevalidationStrategy, SemesterId,
         registration::AnmeldungRequest,
     };

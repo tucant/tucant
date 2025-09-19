@@ -3,7 +3,7 @@ use std::sync::LazyLock;
 use html_handler::parse_document;
 use regex::Regex;
 use reqwest::header::HeaderValue;
-use tucant_types::{LoginRequest, LoginResponse};
+use tucan_types::{LoginRequest, LoginResponse};
 
 use crate::{MyClient, TucanConnector, TucanError, authenticated_retryable_get};
 

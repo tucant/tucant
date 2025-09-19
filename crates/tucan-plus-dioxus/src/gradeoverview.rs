@@ -3,7 +3,7 @@ use plotters::{
     prelude::*,
     style::text_anchor::{HPos, Pos, VPos},
 };
-use tucant_types::{
+use tucan_types::{
     Tucan,
     gradeoverview::{GradeOverviewRequest, GradeOverviewResponse},
 };

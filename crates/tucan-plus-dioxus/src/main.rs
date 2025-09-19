@@ -1,8 +1,8 @@
 use std::panic;
 
 use dioxus::prelude::*;
+use tucan_types::LoginResponse;
 use tucant_dioxus::{Anonymize, Route};
-use tucant_types::LoginResponse;
 use wasm_bindgen::prelude::*;
 
 const BOOTSTRAP_CSS: Asset = asset!("/assets/bootstrap.css");
@@ -78,12 +78,12 @@ pub async fn main() {
 
     #[cfg(feature = "api")]
     let launcher = launcher.with_context(tucant_dioxus::RcTucanType::new(
-        tucant_types::DynTucan::new_arc(tucant_dioxus::api_server::ApiServerTucan::new()),
+        tucan_types::DynTucan::new_arc(tucant_dioxus::api_server::ApiServerTucan::new()),
     ));
 
     #[cfg(any(feature = "direct", feature = "desktop", feature = "mobile"))]
     let launcher = launcher.with_context(tucant_dioxus::RcTucanType::new(
-        tucant_types::DynTucan::new_arc(tucan_connector::TucanConnector::new().await.unwrap()),
+        tucan_types::DynTucan::new_arc(tucan_connector::TucanConnector::new().await.unwrap()),
     ));
 
     let launcher = launcher.with_context(Anonymize(anonymize));

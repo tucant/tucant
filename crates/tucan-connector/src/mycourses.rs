@@ -3,7 +3,7 @@ use std::str::FromStr;
 use html_handler::{Root, parse_document};
 use scraper::CaseSensitivity;
 use time::{Duration, OffsetDateTime};
-use tucant_types::{
+use tucan_types::{
     LoginResponse, RevalidationStrategy, SemesterId, Semesterauswahl, TucanError,
     coursedetails::CourseDetailsRequest,
     mycourses::{Course, MyCoursesResponse},

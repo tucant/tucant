@@ -1,12 +1,12 @@
 use dioxus::prelude::*;
-use tucant_types::{Tucan, vv::ActionRequest};
+use tucan_types::{Tucan, vv::ActionRequest};
 
 use crate::{RcTucanType, Route, common::use_unauthenticated_data_loader};
 
 #[component]
 pub fn Vorlesungsverzeichnis(vv: ReadSignal<ActionRequest>) -> Element {
     let handler = async |tucan: RcTucanType,
-                         current_session: Option<tucant_types::LoginResponse>,
+                         current_session: Option<tucan_types::LoginResponse>,
                          revalidation_strategy,
                          additional| {
         tucan

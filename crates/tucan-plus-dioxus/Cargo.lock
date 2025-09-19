@@ -5683,14 +5683,14 @@ dependencies = [
  "time",
  "tokio",
  "tokio-util",
- "tucant-types",
+ "tucan-types",
  "utoipa",
  "wasm-bindgen-futures",
  "web-sys",
 ]
 
 [[package]]
-name = "tucant-dioxus"
+name = "tucan-plus-dioxus"
 version = "0.1.2"
 dependencies = [
  "android-keyring",
@@ -5712,8 +5712,8 @@ dependencies = [
  "tokio",
  "tracing",
  "tucan-connector",
- "tucant-planning",
- "tucant-types",
+ "tucan-plus-planning",
+ "tucan-types",
  "url",
  "wasm-bindgen",
  "wasm-bindgen-futures",
@@ -5722,7 +5722,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "tucant-planning"
+name = "tucan-plus-planning"
 version = "0.1.2"
 dependencies = [
  "async-compression",
@@ -5732,11 +5732,11 @@ dependencies = [
  "serde_json",
  "sqlite-wasm-rs",
  "tokio",
- "tucant-types",
+ "tucan-types",
 ]
 
 [[package]]
-name = "tucant-types"
+name = "tucan-types"
 version = "0.1.2"
 dependencies = [
  "axum-core",

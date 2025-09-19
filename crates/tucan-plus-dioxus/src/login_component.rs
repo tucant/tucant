@@ -1,5 +1,5 @@
 use dioxus::prelude::*;
-use tucant_types::{LoginRequest, LoginResponse, Tucan};
+use tucan_types::{LoginRequest, LoginResponse, Tucan};
 use wasm_bindgen::JsCast as _;
 
 use crate::{Anonymize, RcTucanType};

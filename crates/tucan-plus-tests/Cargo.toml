@@ -1,5 +1,5 @@
 [package]
-name = "tucant-tests"
+name = "tucan-plus-tests"
 license = "AGPL-3.0-or-later"
 edition = "2024"
 version = "0.1.2"

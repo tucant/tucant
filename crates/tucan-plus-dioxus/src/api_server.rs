@@ -1,5 +1,5 @@
 use reqwest::Client;
-use tucant_types::{
+use tucan_types::{
     LoginRequest, LoginResponse, RevalidationStrategy, SemesterId, Tucan, TucanError,
     coursedetails::{CourseDetailsRequest, CourseDetailsResponse},
     courseresults::ModuleResultsResponse,
@@ -61,7 +61,7 @@ impl Tucan for ApiServerTucan {
         _login_response: LoginResponse,
         revalidation_strategy: RevalidationStrategy,
         request: AnmeldungRequest,
-    ) -> Result<tucant_types::registration::AnmeldungResponse, TucanError> {
+    ) -> Result<tucan_types::registration::AnmeldungResponse, TucanError> {
         let mut url = Url::parse("http://127.0.0.1:8080/api/v1/registration").unwrap();
         url.path_segments_mut().unwrap().push(request.inner());
         let response = self
@@ -163,7 +163,7 @@ impl Tucan for ApiServerTucan {
 
     async fn my_modules(
         &self,
-        _request: &tucant_types::LoginResponse,
+        _request: &tucan_types::LoginResponse,
         revalidation_strategy: RevalidationStrategy,
         semester: SemesterId,
     ) -> Result<MyModulesResponse, TucanError> {
@@ -190,7 +190,7 @@ impl Tucan for ApiServerTucan {
 
     async fn my_courses(
         &self,
-        _request: &tucant_types::LoginResponse,
+        _request: &tucan_types::LoginResponse,
         revalidation_strategy: RevalidationStrategy,
         semester: SemesterId,
     ) -> Result<MyCoursesResponse, TucanError> {
@@ -217,7 +217,7 @@ impl Tucan for ApiServerTucan {
 
     async fn my_exams(
         &self,
-        _request: &tucant_types::LoginResponse,
+        _request: &tucan_types::LoginResponse,
         revalidation_strategy: RevalidationStrategy,
         semester: SemesterId,
     ) -> Result<MyExamsResponse, TucanError> {
@@ -244,7 +244,7 @@ impl Tucan for ApiServerTucan {
 
     async fn exam_results(
         &self,
-        _request: &tucant_types::LoginResponse,
+        _request: &tucan_types::LoginResponse,
         revalidation_strategy: RevalidationStrategy,
         semester: SemesterId,
     ) -> Result<ExamResultsResponse, TucanError> {
@@ -271,7 +271,7 @@ impl Tucan for ApiServerTucan {
 
     async fn course_results(
         &self,
-        _request: &tucant_types::LoginResponse,
+        _request: &tucan_types::LoginResponse,
         revalidation_strategy: RevalidationStrategy,
         semester: SemesterId,
     ) -> Result<ModuleResultsResponse, TucanError> {
@@ -298,7 +298,7 @@ impl Tucan for ApiServerTucan {
 
     async fn my_documents(
         &self,
-        _request: &tucant_types::LoginResponse,
+        _request: &tucan_types::LoginResponse,
         revalidation_strategy: RevalidationStrategy,
     ) -> Result<MyDocumentsResponse, TucanError> {
         let url = Url::parse("http://127.0.0.1:8080/api/v1/my-documents").unwrap();
@@ -368,7 +368,7 @@ impl Tucan for ApiServerTucan {
         Ok(response)
     }
 
-    async fn welcome(&self) -> Result<tucant_types::LoggedOutHead, TucanError> {
+    async fn welcome(&self) -> Result<tucan_types::LoggedOutHead, TucanError> {
         todo!()
     }
 

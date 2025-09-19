@@ -1,12 +1,12 @@
 [package]
-name = "tucant-planning"
+name = "tucan-plus-planning"
 license = "AGPL-3.0-or-later"
 edition = "2024"
 version = "0.1.2"
 rust-version = "1.85.1"
 
 [dependencies]
-tucant-types = { path = "../tucant-types" }
+tucan-types = { path = "../tucan-types" }
 futures-util = { version = "0.3", features = ["io"] }
 itertools = "0.14.0"
 serde_json = "1"

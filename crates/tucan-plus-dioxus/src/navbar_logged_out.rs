@@ -1,5 +1,5 @@
 use dioxus::prelude::*;
-use tucant_types::vv::ActionRequest;
+use tucan_types::vv::ActionRequest;
 
 use crate::Route;
 

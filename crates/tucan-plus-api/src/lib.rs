@@ -8,7 +8,7 @@ use axum::{
 };
 use axum_extra::extract::{CookieJar, cookie::Cookie};
 use tucan_connector::{TucanConnector, login::login, registration::anmeldung};
-use tucant_types::{
+use tucan_types::{
     LoginRequest, LoginResponse, RevalidationStrategy, SemesterId, TucanError,
     coursedetails::CourseDetailsRequest,
     examresults::ExamResultsResponse,
@@ -21,7 +21,7 @@ use tucant_types::{
     registration::{AnmeldungRequest, AnmeldungResponse},
     vv::{ActionRequest, Vorlesungsverzeichnis},
 };
-use tucant_types::{
+use tucan_types::{
     Tucan, coursedetails::CourseDetailsResponse, mlsstart::MlsStart,
     moduledetails::ModuleDetailsResponse,
 };

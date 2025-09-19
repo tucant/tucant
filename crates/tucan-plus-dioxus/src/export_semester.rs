@@ -1,7 +1,7 @@
 use dioxus::prelude::*;
 use js_sys::{Array, Uint8Array};
+use tucan_types::{LoginResponse, RevalidationStrategy, Tucan, registration::AnmeldungRequest};
 use tucant_planning::{compress, recursive_anmeldung};
-use tucant_types::{LoginResponse, RevalidationStrategy, Tucan, registration::AnmeldungRequest};
 use web_sys::{Blob, Url};
 
 use crate::{RcTucanType, common::use_authenticated_data_loader};

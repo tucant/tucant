@@ -9,12 +9,12 @@ use futures_util::stream::{self, FuturesUnordered};
 use futures_util::{FutureExt, Stream, StreamExt};
 use itertools::Itertools;
 use tucan_connector::TucanConnector;
-use tucant_types::coursedetails::CourseDetailsRequest;
-use tucant_types::moduledetails::ModuleDetailsResponse;
-use tucant_types::registration::{AnmeldungModule, AnmeldungRequest, RegistrationState};
-use tucant_types::student_result::{StudentResultEntry, StudentResultLevel, StudentResultState};
-use tucant_types::{LeistungsspiegelGrade, LoginRequest, RevalidationStrategy, Tucan};
-use tucant_types::{LoginResponse, TucanError};
+use tucan_types::coursedetails::CourseDetailsRequest;
+use tucan_types::moduledetails::ModuleDetailsResponse;
+use tucan_types::registration::{AnmeldungModule, AnmeldungRequest, RegistrationState};
+use tucan_types::student_result::{StudentResultEntry, StudentResultLevel, StudentResultState};
+use tucan_types::{LeistungsspiegelGrade, LoginRequest, RevalidationStrategy, Tucan};
+use tucan_types::{LoginResponse, TucanError};
 
 fn main() -> Result<(), TucanError> {
     dotenvy::dotenv().unwrap();

@@ -1,7 +1,7 @@
 use dioxus::prelude::*;
 use log::info;
 use reqwest::StatusCode;
-use tucant_types::{LoginResponse, RevalidationStrategy, TucanError};
+use tucan_types::{LoginResponse, RevalidationStrategy, TucanError};
 
 use crate::RcTucanType;
 

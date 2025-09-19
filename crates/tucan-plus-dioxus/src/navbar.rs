@@ -1,5 +1,5 @@
 use dioxus::prelude::*;
-use tucant_types::{LoginResponse, RevalidationStrategy, Tucan};
+use tucan_types::{LoginResponse, RevalidationStrategy, Tucan};
 
 use crate::{
     RcTucanType, Route, common::handle_error, login_component::LoginComponent,

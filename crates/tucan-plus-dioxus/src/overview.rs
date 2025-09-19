@@ -1,5 +1,5 @@
 use dioxus::prelude::*;
-use tucant_types::{Tucan, mlsstart::MlsStart};
+use tucan_types::{Tucan, mlsstart::MlsStart};
 
 use crate::{RcTucanType, Route, common::use_authenticated_data_loader};
 

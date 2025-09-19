@@ -1,5 +1,5 @@
 [package]
-name = "tucant-types"
+name = "tucan-types"
 license = "AGPL-3.0-or-later"
 edition = "2024"
 version = "0.1.2"
