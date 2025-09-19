@@ -71,7 +71,11 @@ pub fn Navbar() -> Element {
                 a {
                     class: "navbar-brand",
                     href: "#/",
-                    "TUCaN Plus"
+                    img {
+                        src: asset!("/assets/logo.svg"),
+                        height: 24,
+                        alt: "TUCaN Plus",
+                    }
                 }
                 button {
                     aria_controls: "navbarSupportedContent",
