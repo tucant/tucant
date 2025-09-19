@@ -5,6 +5,7 @@ use tucan_plus_dioxus::{Anonymize, Route};
 use tucan_types::LoginResponse;
 use wasm_bindgen::prelude::*;
 
+const LOGO_SVG: Asset = asset!("/assets/logo.svg");
 const BOOTSTRAP_CSS: Asset = asset!("/assets/bootstrap.css");
 const BOOTSTRAP_JS: Asset = asset!("/assets/bootstrap.bundle.min.js");
 const BOOTSTRAP_PATCH_JS: Asset = asset!("/assets/bootstrap.patch.js");
@@ -100,6 +101,12 @@ fn App() -> Element {
         document::Link {
             rel: "stylesheet",
             href: BOOTSTRAP_CSS,
+        }
+        document::Link {
+            rel: "icon",
+            href: LOGO_SVG,
+            sizes: "any",
+            type: "image/svg+xml",
         }
         Router::<Route> {
         }
