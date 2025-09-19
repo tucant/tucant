@@ -98,7 +98,7 @@ def step2_install_extension():
 def step2_5_extension_settings():
     firefox.child("Extensions", "button").click()
     sleep(1)
-    firefox.child("TUCaN't", "button").click()
+    firefox.child("TUCaN Plus", "button").click()
     firefox.child("Go to options", "button").click()
     firefox.child("Anonymize grades (for demoing).", "check box").click()
 
@@ -235,16 +235,16 @@ def step9_anmeldung_und_pruefungen():
     firefox.child("Meine Prüfungen", "link").click()
 
     # if you want you can still open in tucan
-    firefox.child("TUCaN't", "document web").click(3) # right click somewhere on page
-    firefox.child("TUCaN't", "menu").click()
+    firefox.child("TUCaN Plus", "document web").click(3) # right click somewhere on page
+    firefox.child("TUCaN Plus", "menu").click()
     firefox.child("Open page in TUCaN", "menu item").click()
     # Open page in TUCaN in new tab
 
     sleep(2)
 
     firefox.child("Technische Universität Darmstadt", "document web").click(3) # right click somewhere on page
-    firefox.child("TUCaN't", "menu").click()
-    firefox.child("Open page in TUCaN't in new tab", "menu item").click()
+    firefox.child("TUCaN Plus", "menu").click()
+    firefox.child("Open page in TUCaN Plus in new tab", "menu item").click()
 
     sleep(1)
 
@@ -280,7 +280,7 @@ Why is the registration menu so slow?
 
 If you have been asking yourself the same, we have a solution for you.
 
-We introduce TUCaN't the best extension to make TUCaN can again.
+We introduce TUCaN Plus the best extension to make TUCaN can again.
 
 It will remove questionable half a second waits in the code of TUCaN and skip unecessary navigations.
 
@@ -302,9 +302,9 @@ Then, click on download extension for Firefox.
 
 Now, confirm the installation prompts.
 
-How do I configure TUCaN't?
+How do I configure TUCaN Plus?
 
-Click on the extension icon in the top right and select TUCaN't.
+Click on the extension icon in the top right and select TUCaN Plus.
 
 Now click on Go to options.
 """), model.sr)

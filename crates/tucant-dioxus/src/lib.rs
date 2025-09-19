@@ -200,7 +200,7 @@ pub fn Root() -> Element {
         div {
             class: "container",
             h1 {
-                { "Willkommen bei TUCaN't!" }
+                { "Willkommen bei TUCaN Plus!" }
             }
             p {
                 { "Du kannst gerne die " }

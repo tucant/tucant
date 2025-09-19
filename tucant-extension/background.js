@@ -14,7 +14,7 @@ chrome.runtime.onMessage.addListener((message, sender) => {
         await chrome.notifications.create({
             type: "basic",
             iconUrl: chrome.runtime.getURL("/icon-512.png"),
-            title: "TUCaN't extension message",
+            title: "TUCaN Plus extension message",
             message: String(message),
         });
 
@@ -154,19 +154,19 @@ async function disableMobileDesign() {
 
 chrome.omnibox.onInputStarted.addListener(function () {
     chrome.omnibox.setDefaultSuggestion({
-        description: "TUCaN't"
+        description: "TUCaN Plus"
     });
 });
 
 chrome.omnibox.onInputChanged.addListener(() => {
     chrome.omnibox.setDefaultSuggestion({
-        description: "TUCaN't"
+        description: "TUCaN Plus"
     });
 
     /** @type {chrome.omnibox.SuggestResult[]} */
     let results = [{
         content: "https://www.tucan.tu-darmstadt.de",
-        description: "TUCaN't"
+        description: "TUCaN Plus"
     }]
     return results
 })

@@ -31,7 +31,10 @@ impl ApiServerTucan {
     pub fn new() -> Self {
         Self {
             client: reqwest::Client::builder()
-                .user_agent("https://github.com/tucant/tucant d8167c8 Moritz.Hedtke@t-online.de")
+                .user_agent(
+                    "https://github.com/tucan-plus/tucan-plus \
+                     6d824ead1b932515a84995cafd92f97c40c53bc5 Moritz.Hedtke@t-online.de",
+                )
                 .build()
                 .unwrap(),
         }

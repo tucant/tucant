@@ -18,7 +18,6 @@ _metadata
 result*
 *.db
 target
-tucant-tauri/gen
 .env
 node_modules
 .parcel-cache

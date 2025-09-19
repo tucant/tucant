@@ -1,4 +1,4 @@
-# tucant
+# TUCaN Plus
 
 The Campus-Management System of TU Darmstadt called TUCaN lacks quality and usability. Therefore this extension adds some quality of life improvements.
 
@@ -9,7 +9,7 @@ The Campus-Management System of TU Darmstadt called TUCaN lacks quality and usab
 
 ## Installation
 
-Go to https://tucant.github.io/tucant/ and follow the instructions.
+Go to https://tucan-plus.github.io/tucan-plus/ and follow the instructions.
 
 ## Development
 
@@ -40,7 +40,7 @@ We use a fork of rustfmt to format our custom html extractor macro.
 # install minimal profile
 rustup toolchain install nightly-2025-09-08 --component rust-src --component rustc-dev --component llvm-tools-preview
 rustup component remove --toolchain nightly-2025-09-08 rustfmt
-cargo +nightly-2025-09-08 install --force --git https://github.com/tucant/rustfmt --branch html-extractor-formatting rustfmt-nightly
+cargo +nightly-2025-09-08 install --force --git https://github.com/tucan-plus/rustfmt --branch html-extractor-formatting rustfmt-nightly
 cargo +nightly-2025-09-08 fmt
 rustup run nightly-2025-09-08 dx fmt
 
@@ -52,13 +52,13 @@ rustup toolchain install nightly-2025-09-08 --component rustfmt
 ```bash
 cargo install --git https://github.com/mohe2015/dioxus --branch my dioxus-cli
 
-cd crates/tucant-dioxus/
+cd crates/tucan-plus-dioxus/
 dx serve --platform web --features api --verbose
 
 # in second tab
 cargo install --locked bacon
-cd crates/tucant-api/
-bacon tucant-api
+cd crates/tucan-plus-api/
+bacon tucan-plus-api
 
 # http://localhost:8080/#/
 ```
@@ -66,11 +66,11 @@ bacon tucant-api
 ### Developing the extension
 
 ```
-cd crates/tucant-dioxus/
-dx bundle --platform web --out-dir ../../tucant-extension/ --base-path public --features direct --release
+cd crates/tucan-plus-dioxus/
+dx bundle --platform web --out-dir ../../tucan-plus-extension/ --base-path public --features direct --release
 ```
 
-Go to Firefox Extensions, click settings, debug addons. Then click load temporary add-on and select ./tucant-extension/manifest.json
+Go to Firefox Extensions, click settings, debug addons. Then click load temporary add-on and select ./tucan-plus-extension/manifest.json
 See https://extensionworkshop.com/documentation/develop/debugging/.
 
 ## Building extension (not for development)
@@ -78,7 +78,7 @@ See https://extensionworkshop.com/documentation/develop/debugging/.
 ```bash
 podman build --output . .
 ```
-This will produce a tucant-extension.zip in the current working directory.
+This will produce a tucan-plus-extension.zip in the current working directory.
 
 ## Packaging
 
@@ -89,7 +89,7 @@ https://developer.chrome.com/docs/extensions/how-to/distribute/host-on-linux#pac
 Open Chromium -> chrome://extensions/ -> Pack extension -> Choose folder -> Pack. Store private key in a secure place
 
 ```bash
-chromium --pack-extension=tucant-extension --pack-extension-key=/path/to/tucant-extension.pem
+chromium --pack-extension=tucan-plus-extension --pack-extension-key=/path/to/tucan-plus-extension.pem
 ```
 
 ### Firefox
@@ -107,7 +107,7 @@ This software consists of the tucan-connector component that extracts informatio
 ## API
 
 ```
-bacon tucant-api
+bacon tucan-plus-api
 ```
 http://localhost:3000/swagger-ui/
 
@@ -141,7 +141,7 @@ RUSTFLAGS="-C instrument-coverage" cargo test
 nix shell nixpkgs#llvmPackages_19.bintools-unwrapped
 llvm-profdata merge *.profraw -o default.profdata
 
-llvm-cov show -Xdemangler=/home/moritz/.cargo/bin/rustfilt /home/moritz/Documents/tucant/target/debug/deps/tucan_connector-90eac6df256ec2c3 \
+llvm-cov show -Xdemangler=/home/moritz/.cargo/bin/rustfilt /home/moritz/Documents/tucan-plus/target/debug/deps/tucan_connector-90eac6df256ec2c3 \
     -format=html \
     -output-dir=target/coverage \
     -instr-profile=default.profdata \
@@ -156,21 +156,21 @@ xdg-open target/coverage/index.html
 ```
 sudo systemctl stop firewalld.service
 adb connect 172.18.61.176:43109
-adb uninstall com.example.TucantDioxus
+adb uninstall com.example.TucanPlusDioxus
 dx serve --device --platform android --hotpatch --verbose
 
 adb logcat -c
-adb shell run-as com.example.TucantDioxus logcat
+adb shell run-as com.example.TucanPlusDioxus logcat
 
 dx bundle --platform android --device
-/home/moritz/Documents/tucant/target/dx/tucant-dioxus/debug/android/app/app/build/outputs/apk/debug/app-debug.apk
+/home/moritz/Documents/tucan-plus/target/dx/tucan-plus-dioxus/debug/android/app/app/build/outputs/apk/debug/app-debug.apk
 
 dx serve --platform android --hotpatch --verbose
 cargo run --manifest-path /home/moritz/Documents/dioxus/packages/cli/Cargo.toml serve --platform android --verbose
 # grep for RustStdoutStderr
 
 dx bundle --platform android --release
-adb install target/dx/tucant-dioxus/release/android/app/app/build/outputs/apk/release/app-release.apk
+adb install target/dx/tucan-plus-dioxus/release/android/app/app/build/outputs/apk/release/app-release.apk
 
 
 cargo run --manifest-path /home/moritz/Documents/dioxus/packages/cli/Cargo.toml build --platform android

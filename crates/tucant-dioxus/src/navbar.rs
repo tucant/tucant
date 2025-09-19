@@ -71,7 +71,7 @@ pub fn Navbar() -> Element {
                 a {
                     class: "navbar-brand",
                     href: "#/",
-                    "TUCaN't"
+                    "TUCaN Plus"
                 }
                 button {
                     aria_controls: "navbarSupportedContent",

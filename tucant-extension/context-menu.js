@@ -114,7 +114,7 @@ chrome.runtime.onInstalled.addListener(() => {
 
         chrome.contextMenus.create({
             id: "open-in-tucant",
-            title: "Open link in TUCaN't",
+            title: "Open link in TUCaN Plus",
             contexts: ["link"],
             targetUrlPatterns: ["https://www.tucan.tu-darmstadt.de/*"]
         }, () => {
@@ -123,7 +123,7 @@ chrome.runtime.onInstalled.addListener(() => {
 
         chrome.contextMenus.create({
             id: "open-in-tucant-new-tab",
-            title: "Open link in TUCaN't in new tab",
+            title: "Open link in TUCaN Plus in new tab",
             contexts: ["link"],
             targetUrlPatterns: ["https://www.tucan.tu-darmstadt.de/*"]
         }, () => {
@@ -150,7 +150,7 @@ chrome.runtime.onInstalled.addListener(() => {
 
         chrome.contextMenus.create({
             id: "open-in-tucant-page",
-            title: "Open page in TUCaN't",
+            title: "Open page in TUCaN Plus",
             contexts: ["page"],
             documentUrlPatterns: ["https://www.tucan.tu-darmstadt.de/*"]
         }, () => {
@@ -159,7 +159,7 @@ chrome.runtime.onInstalled.addListener(() => {
 
         chrome.contextMenus.create({
             id: "open-in-tucant-page-new-tab",
-            title: "Open page in TUCaN't in new tab",
+            title: "Open page in TUCaN Plus in new tab",
             contexts: ["page"],
             documentUrlPatterns: ["https://www.tucan.tu-darmstadt.de/*"]
         }, () => {

@@ -44,7 +44,7 @@ const TUCANT_TAG: &str = "tucant";
 #[openapi(
     modifiers(&SecurityAddon),
         tags(
-            (name = TUCANT_TAG, description = "TUCaN't API")
+            (name = TUCANT_TAG, description = "TUCaN Plus API")
         )
     )]
 pub struct ApiDoc;

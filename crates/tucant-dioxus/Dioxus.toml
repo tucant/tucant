@@ -1,7 +1,7 @@
 [application]
 
 [web.app]
-title = "TUCaN't"
+title = "TUCaN Plus"
 
 [[web.proxy]]
 backend = "http://127.0.0.1:3000/api/"

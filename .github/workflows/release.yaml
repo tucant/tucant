@@ -28,7 +28,7 @@ jobs:
           ssh-add /home/runner/.ssh/github_actions
     - name: Extract version
       id: version
-      run: echo "VERSION=$(jq -r .version tucant-extension/manifest.json)" >> "$GITHUB_OUTPUT"
+      run: echo "VERSION=$(jq -r .version tucan-plus-extension/manifest.json)" >> "$GITHUB_OUTPUT"
     - env:
         SSH_AUTH_SOCK: /tmp/ssh_agent.sock
       run: |
@@ -36,40 +36,40 @@ jobs:
         OUTPUT=$(echo '
         DIR=$(mktemp -d)
         cd $DIR
-        git clone --depth 1 --revision ${{ github.sha }} https://github.com/tucant/tucant
-        cd tucant
+        git clone --depth 1 --revision ${{ github.sha }} https://github.com/tucan-plus/tucan-plus
+        cd tucan-plus
         echo ${{ secrets.CHROMIUM_EXTENSION_SIGNING_KEY }} | base64 --decode > cert.pem
         # https://addons.mozilla.org/en-US/developers/addon/api/key/
         WEB_EXT_API_KEY=${{ secrets.WEB_EXT_API_KEY }} WEB_EXT_API_SECRET=${{ secrets.WEB_EXT_API_SECRET }} CHROMIUM_EXTENSION_SIGNING_KEY=$PWD/cert.pem nix --extra-experimental-features "nix-command flakes" --store unix:///nix/var/nix/daemon-socket/socket run -L .#publish
         echo $DIR
         ' | ssh -o ServerAliveInterval=30 root@selfmade4u.de 'bash')
         echo "$OUTPUT"
-        rsync -vr --include='*.crx' --include='*.xpi' --exclude="*" root@selfmade4u.de:$(echo "$OUTPUT" | tail -n1)/tucant/out/ out
+        rsync -vr --include='*.crx' --include='*.xpi' --exclude="*" root@selfmade4u.de:$(echo "$OUTPUT" | tail -n1)/tucan-plus/out/ out
         ls -lh out
     - uses: actions/upload-artifact@v4
       with:
-        name: tucant-extension-${{ steps.version.outputs.VERSION }}-crx
-        path: out/tucant-extension-${{ steps.version.outputs.VERSION }}.crx
+        name: tucan-plus-extension-${{ steps.version.outputs.VERSION }}-crx
+        path: out/tucan-plus-extension-${{ steps.version.outputs.VERSION }}.crx
     - uses: actions/upload-artifact@v4
       with:
-        name: tucant-extension-${{ steps.version.outputs.VERSION }}-xpi
-        path: out/tucant-extension-${{ steps.version.outputs.VERSION }}.xpi
+        name: tucan-plus-extension-${{ steps.version.outputs.VERSION }}-xpi
+        path: out/tucan-plus-extension-${{ steps.version.outputs.VERSION }}.xpi
     - env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        gh release create v${{ steps.version.outputs.VERSION }} out/tucant-extension-${{ steps.version.outputs.VERSION }}.xpi out/tucant-extension-${{ steps.version.outputs.VERSION }}.crx
+        gh release create v${{ steps.version.outputs.VERSION }} out/tucan-plus-extension-${{ steps.version.outputs.VERSION }}.xpi out/tucan-plus-extension-${{ steps.version.outputs.VERSION }}.crx
     - run: |
         mkdir pages
-        cp out/tucant-extension-${{ steps.version.outputs.VERSION }}.crx pages/
-        cp out/tucant-extension-${{ steps.version.outputs.VERSION }}.xpi pages/
+        cp out/tucan-plus-extension-${{ steps.version.outputs.VERSION }}.crx pages/
+        cp out/tucan-plus-extension-${{ steps.version.outputs.VERSION }}.xpi pages/
         cat << EOF > pages/README.md
-        For a description of the features see [https://github.com/tucant/tucant/blob/main/README.md](https://github.com/tucant/tucant/blob/main/README.md)
+        For a description of the features see [https://github.com/tucan-plus/tucan-plus/blob/main/README.md](https://github.com/tucan-plus/tucan-plus/blob/main/README.md)
 
         # Installation
 
         ## Firefox (with autoupdates)
 
-        1. [Download extension for Firefox](tucant-extension-${{ steps.version.outputs.VERSION }}.xpi)
+        1. [Download extension for Firefox](tucan-plus-extension-${{ steps.version.outputs.VERSION }}.xpi)
 
         On Android continue with the following steps:
         1. Go to Settings
@@ -80,7 +80,7 @@ jobs:
 
         ## Chromium (with autoupdates)
 
-        1. Right click on [Download extension for Chromium](tucant-extension-${{ steps.version.outputs.VERSION }}.crx) and select "Save link as..." to download the extension file. Doing it this way is important, simply clicking on the link to download does not work as Chromium blocks the download.
+        1. Right click on [Download extension for Chromium](tucan-plus-extension-${{ steps.version.outputs.VERSION }}.crx) and select "Save link as..." to download the extension file. Doing it this way is important, simply clicking on the link to download does not work as Chromium blocks the download.
         2. In the Chromium Menu, go to Extensions -> Manage Extensions
         3. Enable developer mode in the top right corner
         5. Uninstall the non-autoupdate version if you have installed it
@@ -90,18 +90,18 @@ jobs:
         <?xml version='1.0' encoding='UTF-8'?>
         <gupdate xmlns='http://www.google.com/update2/response' protocol='2.0'>
           <app appid='ohpjpeodokebaeilcpfejcaipbeeekkj'>
-            <updatecheck codebase='https://tucant.github.io/tucant/tucant-extension-${{ steps.version.outputs.VERSION }}.crx' version='${{ steps.version.outputs.VERSION }}' status='ok' />
+            <updatecheck codebase='https://tucan-plus.github.io/tucan-plus/tucan-plus-extension-${{ steps.version.outputs.VERSION }}.crx' version='${{ steps.version.outputs.VERSION }}' status='ok' />
           </app>
         </gupdate>
         EOF
         cat << EOF > pages/updates.json
         {
           "addons": {
-            "tucant@selfmade4u.de": {
+            "tucan-plus@selfmade4u.de": {
               "updates": [
                 {
                   "version": "${{ steps.version.outputs.VERSION }}",
-                  "update_link": "https://tucant.github.io/tucant/tucant-extension-${{ steps.version.outputs.VERSION }}.xpi"
+                  "update_link": "https://tucan-plus.github.io/tucan-plus/tucan-plus-extension-${{ steps.version.outputs.VERSION }}.xpi"
                 }
               ]
             }
