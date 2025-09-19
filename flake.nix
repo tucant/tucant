@@ -105,7 +105,7 @@
           src = lib.fileset.toSource {
             root = ./.;
             fileset = lib.fileset.unions [
-              (craneLib.fileset.commonCargoSources ./crates/tucan-plus-types)
+              (craneLib.fileset.commonCargoSources ./crates/tucan-types)
               (craneLib.fileset.commonCargoSources ./crates/key-value-database)
               (craneLib.fileset.commonCargoSources ./crates/html-extractor)
               (craneLib.fileset.commonCargoSources ./crates/tucan-connector)
@@ -126,7 +126,7 @@
             '';
 
         fileset-wasm = lib.fileset.unions [
-          (craneLib.fileset.commonCargoSources ./crates/tucan-plus-types)
+          (craneLib.fileset.commonCargoSources ./crates/tucan-types)
           (craneLib.fileset.commonCargoSources ./crates/key-value-database)
           (craneLib.fileset.commonCargoSources ./crates/html-extractor)
           (craneLib.fileset.commonCargoSources ./crates/tucan-connector)
