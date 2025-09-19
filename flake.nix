@@ -200,7 +200,6 @@
           ./tucan-plus-extension/open-in-tucan.js
           ./tucan-plus-extension/bootstrap.bundle.min.js
           ./tucan-plus-extension/bootstrap.css
-          ./tucan-plus-extension/icon.png
           ./tucan-plus-extension/manifest.json
           ./tucan-plus-extension/mobile.css
           ./tucan-plus-extension/mobile.js
@@ -213,7 +212,6 @@
           ./tucan-plus-extension/url-mappings.js
           ./tucan-plus-extension/utils.js
           ./tucan-plus-extension/rules.json
-          ./tucan-plus-extension/logo.svg
           ./tucan-plus-extension/logo.png
         ];
 
