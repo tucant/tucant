@@ -1,7 +1,8 @@
 // @generated automatically by Diesel CLI.
 
 diesel::table! {
-    anmeldungen_entries (available_semester, anmeldung, id) {
+    anmeldungen_entries (course_of_study, available_semester, anmeldung, id) {
+        course_of_study -> Text,
         available_semester -> Text,
         anmeldung -> Text,
         module_url -> Text,
@@ -15,7 +16,8 @@ diesel::table! {
 }
 
 diesel::table! {
-    anmeldungen_plan (url) {
+    anmeldungen_plan (course_of_study, url) {
+        course_of_study -> Text,
         url -> Text,
         name -> Text,
         parent -> Nullable<Text>,

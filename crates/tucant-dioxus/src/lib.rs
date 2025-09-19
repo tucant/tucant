@@ -4,7 +4,8 @@ pub mod common;
 pub mod course_details;
 pub mod course_results;
 pub mod exam_results;
-pub mod fetch_anmeldung;
+pub mod export_database;
+pub mod export_semester;
 pub mod gradeoverview;
 pub mod login_component;
 pub mod logout_component;
@@ -28,7 +29,7 @@ pub mod vv;
 use std::ops::Deref;
 use std::sync::Arc;
 
-use crate::fetch_anmeldung::FetchAnmeldung;
+use crate::export_semester::FetchAnmeldung;
 use crate::navbar::Navbar;
 use crate::overview::Overview;
 use crate::planning::Planning;
@@ -129,6 +130,7 @@ pub async fn login_response() -> Option<tucant_types::LoginResponse> {
 use crate::course_details::CourseDetails;
 use crate::course_results::CourseResults;
 use crate::exam_results::ExamResults;
+use crate::export_database::ExportDatabase;
 use crate::gradeoverview::GradeOverview;
 use crate::module_details::ModuleDetails;
 use crate::my_courses::MyCourses;
@@ -177,8 +179,10 @@ pub enum Route {
     GradeOverview { gradeoverview: GradeOverviewRequest },
     #[route("/fetch-anmeldung")]
     FetchAnmeldung {},
-    #[route("/planning")]
-    Planning {},
+    #[route("/planning/:course_of_study")]
+    Planning { course_of_study: String },
+    #[route("/export-database")]
+    ExportDatabase {},
 }
 
 #[component]
