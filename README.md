@@ -1,5 +1,7 @@
 # TUCaN Plus
 
+![TUCaN Plus logo](./crates/tucan-plus-dioxus/assets/logo.svg)
+
 The Campus-Management System of TU Darmstadt called TUCaN lacks quality and usability. Therefore this extension adds some quality of life improvements.
 
 * "Veranstaltungen -> Anmeldung" caches pages so repeatedly navigating to the same page is extremely fast and automatically descends into menus with only one entry.
@@ -197,4 +199,5 @@ also it seems like it won't show new courses etc? probably as you are only allow
 seems like your wahlbereiche will be reduced to 3 if you complete your bachelor
 
 
+inkscape -w 512 ../crates/tucan-plus-dioxus/assets/logo.svg -o logo.png
 ```
