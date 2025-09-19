@@ -1,17 +1,9 @@
 use std::panic;
 
 use dioxus::prelude::*;
-use tucan_plus_dioxus::{Anonymize, Route};
+use tucan_plus_dioxus::{Anonymize, BOOTSTRAP_JS, BOOTSTRAP_PATCH_JS, Route};
 use tucan_types::LoginResponse;
 use wasm_bindgen::prelude::*;
-
-const HASHED_ASSET_FOLDER: Asset = asset!("/assets");
-
-#[used]
-static APP_MANIFEST: Asset = asset!(
-    "/assets/manifest.json",
-    AssetOptions::builder().with_hash_suffix(false)
-);
 
 #[wasm_bindgen]
 extern "C" {
@@ -101,27 +93,13 @@ fn App() -> Element {
     let login_response = use_signal(|| login_response);
     provide_context(login_response);
     rsx! {
-        document::Link {
-            rel: "stylesheet",
-            href: "{HASHED_ASSET_FOLDER}/bootstrap.css",
-        }
-        document::Link {
-            rel: "icon",
-            href: "{HASHED_ASSET_FOLDER}/logo.svg",
-            sizes: "any",
-            type: "image/svg+xml",
-        }
-        document::Link {
-            rel: "manifest",
-            href: "{HASHED_ASSET_FOLDER}/manifest.json",
-        }
         Router::<Route> {
         }
         script {
-            src: "{HASHED_ASSET_FOLDER}/bootstrap.bundle.min.js",
+            src: BOOTSTRAP_JS,
         }
         script {
-            src: "{HASHED_ASSET_FOLDER}/bootstrap.patch.js",
+            src: BOOTSTRAP_PATCH_JS,
         }
     }
 }

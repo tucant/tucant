@@ -41,6 +41,28 @@ use tucan_types::{
     registration::AnmeldungRequest, vv::ActionRequest,
 };
 
+#[used]
+pub static BOOTSTRAP_CSS: Asset = asset!(
+    "/assets/bootstrap.css",
+    AssetOptions::builder().with_hash_suffix(false)
+);
+
+#[used]
+pub static APP_MANIFEST: Asset = asset!(
+    "/assets/manifest.json",
+    AssetOptions::builder().with_hash_suffix(false)
+);
+
+#[used]
+pub static LOGO_SVG: Asset = asset!(
+    "/assets/logo.svg",
+    AssetOptions::builder().with_hash_suffix(false)
+);
+
+pub static BOOTSTRAP_JS: Asset = asset!("/assets/bootstrap.bundle.min.js",);
+
+pub static BOOTSTRAP_PATCH_JS: Asset = asset!("/assets/bootstrap.patch.js",);
+
 #[derive(Copy, Clone)]
 pub struct Anonymize(pub bool);
 

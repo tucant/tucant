@@ -2,7 +2,7 @@ use dioxus::prelude::*;
 use tucan_types::{LoginResponse, RevalidationStrategy, Tucan};
 
 use crate::{
-    RcTucanType, Route, common::handle_error, login_component::LoginComponent,
+    LOGO_SVG, RcTucanType, Route, common::handle_error, login_component::LoginComponent,
     logout_component::LogoutComponent, navbar_logged_in::NavbarLoggedIn,
     navbar_logged_out::NavbarLoggedOut,
 };
@@ -72,7 +72,7 @@ pub fn Navbar() -> Element {
                     class: "navbar-brand",
                     href: "#/",
                     img {
-                        src: asset!("/assets/logo.svg"),
+                        src: LOGO_SVG,
                         height: 24,
                         alt: "TUCaN Plus",
                     }

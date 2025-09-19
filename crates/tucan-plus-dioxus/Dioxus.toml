@@ -22,9 +22,3 @@ key_password = "password"
 [web.watcher]
 reload_html = true
 watch_path = ["src", "public"]
-
-[web.resource]
-style = ["./assets/bootstrap.css"]
-
-[web.resource.dev]
-
