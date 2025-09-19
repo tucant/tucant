@@ -323,8 +323,8 @@
             chmod -R ug+rw tucan-plus-extension-${version}
 
             ${pkgs.web-ext}/bin/web-ext sign --channel unlisted --source-dir tucan-plus-extension-${version} --upload-source-code ${source}
-            chmod 644 web-ext-artifacts/tucan-plus-${version}.xpi
-            cp web-ext-artifacts/tucan-plus-${version}.xpi tucan-plus-extension-${version}.xpi
+            chmod 644 web-ext-artifacts/tucan_plus-${version}.xpi
+            cp web-ext-artifacts/tucan_plus-${version}.xpi tucan-plus-extension-${version}.xpi
           '';
 
         packages.test = pkgs.writeShellApplication {
