@@ -16,7 +16,7 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
             return;
         }
 
-        if (info.menuItemId === "open-in-tucan" || info.menuItemId === "open-in-tucant" || info.menuItemId === "open-in-tucan-page" || info.menuItemId === "open-in-tucant-page") {
+        if (info.menuItemId === "open-in-tucan" || info.menuItemId === "open-in-tucan-plus" || info.menuItemId === "open-in-tucan-page" || info.menuItemId === "open-in-tucan-plus-page") {
             let result = await handleOpenInTucan(id?.value, tabId, url);
             if (result !== undefined) {
                 await chrome.tabs.update(tabId, {
@@ -26,7 +26,7 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
             return;
         }
 
-        if (info.menuItemId === "open-in-tucan-new-tab" || info.menuItemId === "open-in-tucant-new-tab" || info.menuItemId === "open-in-tucan-page-new-tab" || info.menuItemId === "open-in-tucant-page-new-tab") {
+        if (info.menuItemId === "open-in-tucan-new-tab" || info.menuItemId === "open-in-tucan-plus-new-tab" || info.menuItemId === "open-in-tucan-page-new-tab" || info.menuItemId === "open-in-tucan-plus-page-new-tab") {
             let result = await handleOpenInTucan(id?.value, tabId, url);
             if (result !== undefined) {
                 let newTab = await chrome.tabs.create({
@@ -113,7 +113,7 @@ chrome.runtime.onInstalled.addListener(() => {
         })
 
         chrome.contextMenus.create({
-            id: "open-in-tucant",
+            id: "open-in-tucan-plus",
             title: "Open link in TUCaN Plus",
             contexts: ["link"],
             targetUrlPatterns: ["https://www.tucan.tu-darmstadt.de/*"]
@@ -122,7 +122,7 @@ chrome.runtime.onInstalled.addListener(() => {
         })
 
         chrome.contextMenus.create({
-            id: "open-in-tucant-new-tab",
+            id: "open-in-tucan-plus-new-tab",
             title: "Open link in TUCaN Plus in new tab",
             contexts: ["link"],
             targetUrlPatterns: ["https://www.tucan.tu-darmstadt.de/*"]
@@ -149,7 +149,7 @@ chrome.runtime.onInstalled.addListener(() => {
         })
 
         chrome.contextMenus.create({
-            id: "open-in-tucant-page",
+            id: "open-in-tucan-plus-page",
             title: "Open page in TUCaN Plus",
             contexts: ["page"],
             documentUrlPatterns: ["https://www.tucan.tu-darmstadt.de/*"]
@@ -158,7 +158,7 @@ chrome.runtime.onInstalled.addListener(() => {
         })
 
         chrome.contextMenus.create({
-            id: "open-in-tucant-page-new-tab",
+            id: "open-in-tucan-plus-page-new-tab",
             title: "Open page in TUCaN Plus in new tab",
             contexts: ["page"],
             documentUrlPatterns: ["https://www.tucan.tu-darmstadt.de/*"]

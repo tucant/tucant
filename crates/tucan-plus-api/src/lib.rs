@@ -38,13 +38,13 @@ use utoipa_axum::{router::OpenApiRouter, routes};
 
 // http://localhost:3000/api-docs/openapi.json
 
-const TUCANT_TAG: &str = "tucant";
+const TUCAN_PLUS_TAG: &str = "tucan-plus";
 
 #[derive(OpenApi)]
 #[openapi(
     modifiers(&SecurityAddon),
         tags(
-            (name = TUCANT_TAG, description = "TUCaN Plus API")
+            (name = TUCAN_PLUS_TAG, description = "TUCaN Plus API")
         )
     )]
 pub struct ApiDoc;
@@ -65,7 +65,7 @@ impl Modify for SecurityAddon {
 #[utoipa::path(
     post,
     path = "/api/v1/login",
-    tag = TUCANT_TAG,
+    tag = TUCAN_PLUS_TAG,
     request_body = LoginRequest,
     responses(
         (status = 200, description = "Login successful", body = LoginResponse),
@@ -90,7 +90,7 @@ pub async fn login_endpoint(
 #[utoipa::path(
     post,
     path = "/api/v1/logout",
-    tag = TUCANT_TAG,
+    tag = TUCAN_PLUS_TAG,
     responses(
         (status = 200, description = "Logout successful", body = ()),
         (status = 500, description = "Some TUCaN error")
@@ -136,7 +136,7 @@ where
 #[utoipa::path(
     get,
     path = "/api/v1/registration/{registration}",
-    tag = TUCANT_TAG,
+    tag = TUCAN_PLUS_TAG,
     params(("registration" = AnmeldungRequest, Path)),
     responses(
         (status = 200, description = "Successful", body = AnmeldungResponse),
@@ -169,7 +169,7 @@ pub async fn registration_endpoint(
 #[utoipa::path(
     get,
     path = "/api/v1/vv/{vv}",
-    tag = TUCANT_TAG,
+    tag = TUCAN_PLUS_TAG,
     params(("vv" = ActionRequest, Path)),
     responses(
         (status = 200, description = "Successful", body = Vorlesungsverzeichnis),
@@ -205,7 +205,7 @@ pub async fn vv_endpoint(
 #[utoipa::path(
     get,
     path = "/api/v1/module-details/{module}",
-    tag = TUCANT_TAG,
+    tag = TUCAN_PLUS_TAG,
     params(("module" = ModuleDetailsRequest, Path)),
     responses(
         (status = 200, description = "Successful", body = ModuleDetailsResponse),
@@ -238,7 +238,7 @@ pub async fn module_details_endpoint(
 #[utoipa::path(
     get,
     path = "/api/v1/course-details/{course}",
-    tag = TUCANT_TAG,
+    tag = TUCAN_PLUS_TAG,
     params(("course" = CourseDetailsRequest, Path)),
     responses(
         (status = 200, description = "Successful", body = CourseDetailsResponse),
@@ -271,7 +271,7 @@ pub async fn course_details_endpoint(
 #[utoipa::path(
     get,
     path = "/api/v1/after-login",
-    tag = TUCANT_TAG,
+    tag = TUCAN_PLUS_TAG,
     responses(
         (status = 200, description = "Successful", body = MlsStart),
         (status = 500, description = "Some TUCaN error")
@@ -298,7 +298,7 @@ pub async fn after_login_endpoint(
 #[utoipa::path(
     get,
     path = "/api/v1/my-modules/{semester}",
-    tag = TUCANT_TAG,
+    tag = TUCAN_PLUS_TAG,
     params(("semester" = SemesterId, Path)),
     responses(
         (status = 200, description = "Successful", body = MyModulesResponse),
@@ -327,7 +327,7 @@ pub async fn my_modules_endpoint(
 #[utoipa::path(
     get,
     path = "/api/v1/my-courses/{semester}",
-    tag = TUCANT_TAG,
+    tag = TUCAN_PLUS_TAG,
     params(("semester" = SemesterId, Path)),
     responses(
         (status = 200, description = "Successful", body = MyCoursesResponse),
@@ -356,7 +356,7 @@ pub async fn my_courses_endpoint(
 #[utoipa::path(
     get,
     path = "/api/v1/my-exams/{semester}",
-    tag = TUCANT_TAG,
+    tag = TUCAN_PLUS_TAG,
     params(("semester" = SemesterId, Path)),
     responses(
         (status = 200, description = "Successful", body = MyExamsResponse),
@@ -385,7 +385,7 @@ pub async fn my_exams_endpoint(
 #[utoipa::path(
     get,
     path = "/api/v1/exam-results/{semester}",
-    tag = TUCANT_TAG,
+    tag = TUCAN_PLUS_TAG,
     params(("semester" = SemesterId, Path)),
     responses(
         (status = 200, description = "Successful", body = ExamResultsResponse),
@@ -414,7 +414,7 @@ pub async fn exam_results_endpoint(
 #[utoipa::path(
     get,
     path = "/api/v1/course-results/{semester}",
-    tag = TUCANT_TAG,
+    tag = TUCAN_PLUS_TAG,
     params(("semester" = SemesterId, Path)),
     responses(
         (status = 200, description = "Successful", body = ExamResultsResponse),
@@ -443,7 +443,7 @@ pub async fn course_results_endpoint(
 #[utoipa::path(
     get,
     path = "/api/v1/my-documents",
-    tag = TUCANT_TAG,
+    tag = TUCAN_PLUS_TAG,
     responses(
         (status = 200, description = "Successful", body = MyDocumentsResponse),
         (status = 500, description = "Some TUCaN error")
@@ -470,7 +470,7 @@ pub async fn my_documents_endpoint(
 #[utoipa::path(
     get,
     path = "/api/v1/student-result/{course-of-study}",
-    tag = TUCANT_TAG,
+    tag = TUCAN_PLUS_TAG,
     params(("course-of-study" = String, Path)),
     responses(
         (status = 200, description = "Successful", body = ExamResultsResponse),
@@ -508,7 +508,7 @@ pub async fn student_result_endpoint(
 #[utoipa::path(
     get,
     path = "/api/v1/gradeoverview/{gradeoverview}",
-    tag = TUCANT_TAG,
+    tag = TUCAN_PLUS_TAG,
     params(("gradeoverview" = GradeOverviewRequest, Path)),
     responses(
         (status = 200, description = "Successful", body = GradeOverviewResponse),

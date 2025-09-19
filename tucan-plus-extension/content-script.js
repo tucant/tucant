@@ -42,7 +42,7 @@ if (document.body.classList.contains("access_denied")) {
     console.log("unknown part")
 }
 
-window.addEventListener("tucant", event => {
+window.addEventListener("tucan-plus", event => {
     asyncClosure(async () => {
         console.log(event)
         await chrome.runtime.sendMessage(/** @type {CustomEvent} */(event).detail)
@@ -51,7 +51,7 @@ window.addEventListener("tucant", event => {
 
 
 /*
-window.dispatchEvent(new CustomEvent('tucant', { detail: "open-in-tucan-page" }));
+window.dispatchEvent(new CustomEvent('tucan-plus', { detail: "open-in-tucan-page" }));
 
 let loginForm = /** @type {HTMLFormElement} (document.querySelector("#cn_loginForm"))
 

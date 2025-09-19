@@ -342,7 +342,7 @@ mod tests {
 
             session
                 .script_evaluate(EvaluateParameters::new(
-                    r#"window.dispatchEvent(new CustomEvent('tucant', { detail: "open-in-tucan-page" }));"#.to_owned(),
+                    r#"window.dispatchEvent(new CustomEvent('tucan-plus', { detail: "open-in-tucan-page" }));"#.to_owned(),
                     Target::ContextTarget(ContextTarget::new(browsing_context.clone(), None)),
                     false,
                     None,

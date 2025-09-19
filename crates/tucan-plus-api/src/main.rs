@@ -1,6 +1,6 @@
 use tower::ServiceBuilder;
 use tower_http::cors::CorsLayer;
-use tucant_api::router;
+use tucan_plus_api::router;
 use utoipa_swagger_ui::SwaggerUi;
 
 #[tokio::main]

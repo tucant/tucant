@@ -54,7 +54,7 @@ pub fn LoginComponent() -> Element {
                         .await;
 
                     #[cfg(any(feature = "desktop", feature = "mobile"))]
-                    keyring::Entry::new("tucant", "session")
+                    keyring::Entry::new("tucan-plus", "session")
                         .unwrap()
                         .set_password(&serde_json::to_string(&response).unwrap())
                         .unwrap();

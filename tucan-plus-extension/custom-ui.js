@@ -13,9 +13,9 @@ const rules = [...mappings].map((mapping, index) => {
             : RegExp.escape(curr));
     }, '^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&') + '$';
     let replacementIdx = 1;
-    const replacement = mapping.tucant.strings.reduce((acc, curr, i) => {
-        const substitution = mapping.tucant.args[i];
-        return (acc += i < mapping.tucant.args.length
+    const replacement = mapping["tucan-plus"].strings.reduce((acc, curr, i) => {
+        const substitution = mapping["tucan-plus"].args[i];
+        return (acc += i < mapping["tucan-plus"].args.length
             ? `${curr}${substitution.to ?? `\\${(replacementIdx++).toString()}`}`
             : curr);
     }, `${EXT_PAGE_INDEX_HTML}#/`);

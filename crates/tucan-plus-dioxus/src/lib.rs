@@ -59,7 +59,7 @@ pub async fn login_response() -> Option<tucan_types::LoginResponse> {
     #[cfg(feature = "mobile")]
     android_keyring::set_android_keyring_credential_builder().unwrap();
 
-    let entry = keyring::Entry::new("tucant", "session").ok()?;
+    let entry = keyring::Entry::new("tucan-plus", "session").ok()?;
     Some(serde_json::from_str(&entry.get_password().ok()?).unwrap())
     //println!("My password is '{}'", password);
     //entry.set_password("topS3cr3tP4$$w0rd").ok()?;
@@ -205,7 +205,7 @@ pub fn Root() -> Element {
             p {
                 { "Du kannst gerne die " }
                 a {
-                    href: "https://tucant.github.io/tucant/",
+                    href: "https://tucan-plus.github.io/tucan-plus/",
                     target: "_blank",
                     { "Browsererweiterung herunterladen" }
                 }
@@ -214,7 +214,7 @@ pub fn Root() -> Element {
             p {
                 { "Der Quellcode dieses Projekts ist unter der AGPL-3.0 Lizenz auf " }
                 a {
-                    href: "https://github.com/tucant/tucant/",
+                    href: "https://github.com/tucan-plus/tucan-plus/",
                     target: "_blank",
                     { "GitHub" }
                 }

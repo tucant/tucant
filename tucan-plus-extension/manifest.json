@@ -1,9 +1,9 @@
 {
     "manifest_version": 3,
     "name": "TUCaN Plus",
-    "version": "0.40.0",
+    "version": "0.41.0",
     "description": "Quality of life improvements for TUCaN",
-    "update_url": "https://tucant.github.io/tucant/updates.xml",
+    "update_url": "https://tucan-plus.github.io/tucan-plus/updates.xml",
     "declarative_net_request": {
         "rule_resources": [
             {
@@ -28,7 +28,7 @@
     "host_permissions": [
         "https://www.tucan.tu-darmstadt.de/*",
         "http://www.tucan.tu-darmstadt.de/*",
-        "https://tucant.selfmade4u.de/*"
+        "https://tucan-plus.selfmade4u.de/*"
     ],
     "content_scripts": [
         {
@@ -53,8 +53,8 @@
     ],
     "browser_specific_settings": {
         "gecko": {
-            "id": "tucant@selfmade4u.de",
-            "update_url": "https://tucant.github.io/tucant/updates.json"
+            "id": "tucan-plus@selfmade4u.de",
+            "update_url": "https://tucan-plus.github.io/tucan-plus/updates.json"
         }
     },
     "icons": {
