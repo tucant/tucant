@@ -15,9 +15,7 @@ use log::info;
 use regex::Regex;
 use scraper::CaseSensitivity;
 use time::{Duration, OffsetDateTime};
-use tucan_types::{
-    LoginResponse, RevalidationStrategy, TucanError, courseprep::CoursePrepRequest,
-};
+use tucan_types::{LoginResponse, RevalidationStrategy, TucanError, courseprep::CoursePrepRequest};
 
 /// 04.2025
 pub async fn month(

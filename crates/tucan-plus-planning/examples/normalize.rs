@@ -1,10 +1,10 @@
 use futures_util::StreamExt as _;
 use futures_util::stream::{FuturesOrdered, FuturesUnordered};
 use tucan_connector::TucanConnector;
+use tucan_plus_planning::{compress, recursive_anmeldung};
 use tucan_types::TucanError;
 use tucan_types::registration::{AnmeldungRequest, AnmeldungResponse};
 use tucan_types::{DynTucan, LoginRequest, RevalidationStrategy, Tucan};
-use tucan_plus_planning::{compress, recursive_anmeldung};
 
 fn main() -> Result<(), TucanError> {
     dotenvy::dotenv().unwrap();
