@@ -31,11 +31,11 @@ impl Database {
         #[cfg(not(target_arch = "wasm32"))]
         {
             let database = if cfg!(target_os = "android") {
-                tokio::fs::create_dir_all("/data/data/com.example.TucantDioxus/files")
+                tokio::fs::create_dir_all("/data/data/com.example.TucanPlusDioxus/files")
                     .await
                     .unwrap();
                 sqlx::SqlitePool::connect(
-                    "sqlite:///data/data/com.example.TucantDioxus/files/data.db?mode=rwc",
+                    "sqlite:///data/data/com.example.TucanPlusDioxus/files/data.db?mode=rwc",
                 )
                 .await
                 .unwrap()

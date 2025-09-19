@@ -3,7 +3,7 @@ use std::sync::LazyLock;
 use itertools::Either;
 use regex::Regex;
 use scraper::CaseSensitivity;
-use tucant_types::{
+use tucan_types::{
     LoggedInHead, LoggedOutHead, LoginResponse, TucanError, VorlesungsverzeichnisUrls,
     vv::ActionRequest,
 };

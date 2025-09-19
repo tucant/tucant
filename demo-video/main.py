@@ -73,11 +73,11 @@ def toggle_navigation():
     # on mobile
     #firefox.child("Toggle navigation", "button").click()
 
-def step1_open_tucant_installation_page():
+def step1_open_tucan_plus_installation_page():
     urlbar_input: Node = firefox.child(identifier="urlbar-input")
     urlbar_input.click()
     urlbar_input.keyCombo("<ctrl><a>")
-    urlbar_input.typeText("https://tucant.github.io/tucant/")
+    urlbar_input.typeText("https://tucan-plus.github.io/tucan-plus/")
     urlbar_input.keyCombo("<enter>")
 
 def step2_install_extension():
@@ -98,11 +98,11 @@ def step2_install_extension():
 def step2_5_extension_settings():
     firefox.child("Extensions", "button").click()
     sleep(1)
-    firefox.child("TUCaN't", "button").click()
+    firefox.child("TUCaN Plus", "button").click()
     firefox.child("Go to options", "button").click()
     firefox.child("Anonymize grades (for demoing).", "check box").click()
 
-def step3_open_tucant():
+def step3_open_tucan_plus():
     urlbar_input: Node = firefox.child(identifier="urlbar-input")
     urlbar_input.click()
     urlbar_input.keyCombo("<ctrl><a>")
@@ -222,7 +222,7 @@ def step9_anmeldung_und_pruefungen():
     sleep(0.5) # scrolling seems to have a delay
     informatik_link.click()
 
-    # seamless interop between tucant and tucan
+    # seamless interop between tucan plus and tucan
     informatik_link: Atspi.Component | Node = firefox.child("Zum Modul anmelden", "button")
     informatik_link.scroll_to(SCROLL_ANYWHERE)
     sleep(0.5) # scrolling seems to have a delay
@@ -230,21 +230,21 @@ def step9_anmeldung_und_pruefungen():
 
     sleep(2)
 
-    # seamless interop between tucan and tucant
+    # seamless interop between tucan and tucan plus
     firefox.child("Prüfungen", "link").click()
     firefox.child("Meine Prüfungen", "link").click()
 
     # if you want you can still open in tucan
-    firefox.child("TUCaN't", "document web").click(3) # right click somewhere on page
-    firefox.child("TUCaN't", "menu").click()
+    firefox.child("TUCaN Plus", "document web").click(3) # right click somewhere on page
+    firefox.child("TUCaN Plus", "menu").click()
     firefox.child("Open page in TUCaN", "menu item").click()
     # Open page in TUCaN in new tab
 
     sleep(2)
 
     firefox.child("Technische Universität Darmstadt", "document web").click(3) # right click somewhere on page
-    firefox.child("TUCaN't", "menu").click()
-    firefox.child("Open page in TUCaN't in new tab", "menu item").click()
+    firefox.child("TUCaN Plus", "menu").click()
+    firefox.child("Open page in TUCaN Plus in new tab", "menu item").click()
 
     sleep(1)
 
@@ -269,7 +269,7 @@ def step10_ergebnisse():
     firefox.child("B.Sc. Informatik (2015)", "menu item").click()
     sleep(5)
 
-ta.save("/home/moritz/Videos/tucant/1.wav", model.generate("""
+ta.save("/home/moritz/Videos/tucan-plus/1.wav", model.generate("""
 Why does TUCaN load so slowly?
 
 Why can't I share URLs with other students?
@@ -280,7 +280,7 @@ Why is the registration menu so slow?
 
 If you have been asking yourself the same, we have a solution for you.
 
-We introduce TUCaN't the best extension to make TUCaN can again.
+We introduce TUCaN Plus the best extension to make TUCaN can again.
 
 It will remove questionable half a second waits in the code of TUCaN and skip unecessary navigations.
 
@@ -296,15 +296,15 @@ But let's look at the features in detail:
 
 How do I install this cool extension?
 
-Go to https://tucant.github.io/tucant/.
+Go to https://tucan-plus.github.io/tucan-plus/.
 
 Then, click on download extension for Firefox.
 
 Now, confirm the installation prompts.
 
-How do I configure TUCaN't?
+How do I configure TUCaN Plus?
 
-Click on the extension icon in the top right and select TUCaN't.
+Click on the extension icon in the top right and select TUCaN Plus.
 
 Now click on Go to options.
 """), model.sr)
@@ -333,12 +333,12 @@ with tempfile.TemporaryDirectory() as tmpdirname:
     event_client.callback.register([on_record_state_changed])
 
     with recording("installation"):
-        step1_open_tucant_installation_page()
+        step1_open_tucan_plus_installation_page()
         step2_install_extension()
     with recording("settings"):
         step2_5_extension_settings()
     with recording("login"):
-        step3_open_tucant()
+        step3_open_tucan_plus()
         step4_login()
     with recording("aktuelles"):
         step5_aktuelles()

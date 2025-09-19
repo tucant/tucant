@@ -9,7 +9,7 @@ use log::info;
 use scraper::CaseSensitivity;
 use sha3::{Digest, Sha3_256};
 use time::{Duration, OffsetDateTime};
-use tucant_types::{
+use tucan_types::{
     InstructorImage, LoginResponse, RevalidationStrategy, TucanError,
     coursedetails::{
         CourseAnmeldefrist, CourseDetailsRequest, CourseDetailsResponse, CourseUebungsGruppe,

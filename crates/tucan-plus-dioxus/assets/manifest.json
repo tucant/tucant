@@ -1,0 +1,15 @@
+{
+    "name": "TUCaN Plus",
+    "icons": [
+        {
+            "src": "./logo.svg",
+            "type": "image/svg+xml",
+            "sizes": "512x512"
+        }
+    ],
+    "id": "tucan-plus",
+    "start_url": "/#/",
+    "display": "standalone",
+    "theme_color": "black",
+    "background_color": "white"
+}

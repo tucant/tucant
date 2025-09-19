@@ -11,7 +11,7 @@ use crate::{
 use html_handler::{Root, parse_document};
 use log::info;
 use time::{Duration, OffsetDateTime};
-use tucant_types::{
+use tucan_types::{
     LoginResponse, RevalidationStrategy, TucanError,
     courseprep::{CoursePrepRequest, CoursePrepType},
 };

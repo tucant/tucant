@@ -2,7 +2,7 @@ use std::str::FromStr;
 
 use html_handler::{Root, parse_document};
 use time::{Duration, OffsetDateTime};
-use tucant_types::{
+use tucan_types::{
     LoginResponse, ModuleGrade, RevalidationStrategy, SemesterId, Semesterauswahl, TucanError,
     courseresults::{ModuleResult, ModuleResultsResponse},
     gradeoverview::GradeOverviewRequest,

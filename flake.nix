@@ -69,52 +69,52 @@
                   "scss"
                 ]
               ) ./.)
-              ./tucant-extension/bootstrap.bundle.min.js
-              ./tucant-extension/bootstrap.css
+              ./tucan-plus-extension/bootstrap.bundle.min.js
+              ./tucan-plus-extension/bootstrap.css
             ];
           };
-          pname = "tucant-workspace-native";
+          pname = "tucan-plus-workspace-native";
         };
 
         tests = craneLib.buildPackage {
-          cargoToml = ./crates/tucant-tests/Cargo.toml;
-          cargoLock = ./crates/tucant-tests/Cargo.lock;
+          cargoToml = ./crates/tucan-plus-tests/Cargo.toml;
+          cargoLock = ./crates/tucan-plus-tests/Cargo.lock;
           preBuild = ''
-            cd ./crates/tucant-tests
+            cd ./crates/tucan-plus-tests
           '';
           strictDeps = true;
-          pname = "tucant-workspace-native-tests";
+          pname = "tucan-plus-workspace-native-tests";
           src = lib.fileset.toSource {
             root = ./.;
             fileset = lib.fileset.unions [
-              (craneLib.fileset.commonCargoSources ./crates/tucant-tests)
+              (craneLib.fileset.commonCargoSources ./crates/tucan-plus-tests)
             ];
           };
           cargoTestExtraArgs = "--no-run";
-          cargoExtraArgs = "--package=tucant-tests";
+          cargoExtraArgs = "--package=tucan-plus-tests";
         };
 
         api = craneLib.buildPackage {
-          cargoToml = ./crates/tucant-api/Cargo.toml;
-          cargoLock = ./crates/tucant-api/Cargo.lock;
+          cargoToml = ./crates/tucan-plus-api/Cargo.toml;
+          cargoLock = ./crates/tucan-plus-api/Cargo.lock;
           preBuild = ''
-            cd ./crates/tucant-api
+            cd ./crates/tucan-plus-api
           '';
           strictDeps = true;
-          pname = "tucant-workspace-native-api";
+          pname = "tucan-plus-workspace-native-api";
           src = lib.fileset.toSource {
             root = ./.;
             fileset = lib.fileset.unions [
-              (craneLib.fileset.commonCargoSources ./crates/tucant-types)
+              (craneLib.fileset.commonCargoSources ./crates/tucan-types)
               (craneLib.fileset.commonCargoSources ./crates/key-value-database)
               (craneLib.fileset.commonCargoSources ./crates/html-extractor)
               (craneLib.fileset.commonCargoSources ./crates/tucan-connector)
-              (craneLib.fileset.commonCargoSources ./crates/tucant-api)
+              (craneLib.fileset.commonCargoSources ./crates/tucan-plus-api)
               (craneLib.fileset.commonCargoSources ./crates/html-handler)
             ];
           };
           cargoTestExtraArgs = "--no-run";
-          cargoExtraArgs = "--package=tucant-api";
+          cargoExtraArgs = "--package=tucan-plus-api";
         };
 
         schema =
@@ -126,24 +126,26 @@
             '';
 
         fileset-wasm = lib.fileset.unions [
-          (craneLib.fileset.commonCargoSources ./crates/tucant-types)
+          (craneLib.fileset.commonCargoSources ./crates/tucan-types)
           (craneLib.fileset.commonCargoSources ./crates/key-value-database)
           (craneLib.fileset.commonCargoSources ./crates/html-extractor)
           (craneLib.fileset.commonCargoSources ./crates/tucan-connector)
-          (craneLib.fileset.commonCargoSources ./crates/tucant-dioxus)
+          (craneLib.fileset.commonCargoSources ./crates/tucan-plus-dioxus)
           (craneLib.fileset.commonCargoSources ./crates/html-handler)
-          (craneLib.fileset.commonCargoSources ./crates/tucant-planning)
-          ./crates/tucant-dioxus/migrations
-          ./crates/tucant-dioxus/assets/bootstrap.css
-          ./crates/tucant-dioxus/assets/bootstrap.bundle.min.js
-          ./crates/tucant-dioxus/assets/bootstrap.patch.js
+          (craneLib.fileset.commonCargoSources ./crates/tucan-plus-planning)
+          ./crates/tucan-plus-dioxus/migrations
+          ./crates/tucan-plus-dioxus/assets/logo.svg
+          ./crates/tucan-plus-dioxus/assets/manifest.json
+          ./crates/tucan-plus-dioxus/assets/bootstrap.css
+          ./crates/tucan-plus-dioxus/assets/bootstrap.bundle.min.js
+          ./crates/tucan-plus-dioxus/assets/bootstrap.patch.js
         ];
 
         client = craneLib.buildPackage {
-          cargoToml = ./crates/tucant-dioxus/Cargo.toml;
-          cargoLock = ./crates/tucant-dioxus/Cargo.lock;
+          cargoToml = ./crates/tucan-plus-dioxus/Cargo.toml;
+          cargoLock = ./crates/tucan-plus-dioxus/Cargo.lock;
           preBuild = ''
-            cd ./crates/tucant-dioxus
+            cd ./crates/tucan-plus-dioxus
           '';
           strictDeps = true;
           stdenv = p: p.emscriptenStdenv;
@@ -153,8 +155,8 @@
             root = ./.;
             fileset = fileset-wasm;
           };
-          cargoExtraArgs = "--package=tucant-dioxus";
-          pname = "tucant-workspace-tucant-dioxus";
+          cargoExtraArgs = "--package=tucan-plus-dioxus";
+          pname = "tucan-plus-workspace-tucan-plus-dioxus";
           buildPhaseCargoCommand = ''
             export HOME=$(mktemp -d)
             #export EMCC_DEBUG=1
@@ -190,36 +192,35 @@
         };
 
         fileset-extension = lib.fileset.unions [
-          ./tucant-extension/background.js
-          ./tucant-extension/fix-session-id-in-url.js
-          ./tucant-extension/context-menu.js
-          ./tucant-extension/content-script.js
-          ./tucant-extension/content-script-redirect.js
-          ./tucant-extension/open-in-tucan.js
-          ./tucant-extension/bootstrap.bundle.min.js
-          ./tucant-extension/bootstrap.css
-          ./tucant-extension/icon.png
-          ./tucant-extension/manifest.json
-          ./tucant-extension/mobile.css
-          ./tucant-extension/mobile.js
-          ./tucant-extension/options.html
-          ./tucant-extension/options.js
-          ./tucant-extension/popup.html
-          ./tucant-extension/popup.js
-          ./tucant-extension/custom-ui.js
-          ./tucant-extension/recover-tabs.js
-          ./tucant-extension/url-mappings.js
-          ./tucant-extension/utils.js
-          ./tucant-extension/rules.json
-          ./tucant-extension/screenshot.png
+          ./tucan-plus-extension/background.js
+          ./tucan-plus-extension/fix-session-id-in-url.js
+          ./tucan-plus-extension/context-menu.js
+          ./tucan-plus-extension/content-script.js
+          ./tucan-plus-extension/content-script-redirect.js
+          ./tucan-plus-extension/open-in-tucan.js
+          ./tucan-plus-extension/bootstrap.bundle.min.js
+          ./tucan-plus-extension/bootstrap.css
+          ./tucan-plus-extension/manifest.json
+          ./tucan-plus-extension/mobile.css
+          ./tucan-plus-extension/mobile.js
+          ./tucan-plus-extension/options.html
+          ./tucan-plus-extension/options.js
+          ./tucan-plus-extension/popup.html
+          ./tucan-plus-extension/popup.js
+          ./tucan-plus-extension/custom-ui.js
+          ./tucan-plus-extension/recover-tabs.js
+          ./tucan-plus-extension/url-mappings.js
+          ./tucan-plus-extension/utils.js
+          ./tucan-plus-extension/rules.json
+          ./tucan-plus-extension/logo.png
         ];
 
         extension-unpacked = pkgs.stdenv.mkDerivation {
-          pname = "tucant-extension";
-          version = (lib.importJSON ./tucant-extension/manifest.json).version;
+          pname = "tucan-plus-extension";
+          version = (lib.importJSON ./tucan-plus-extension/manifest.json).version;
 
           src = lib.fileset.toSource {
-            root = ./tucant-extension;
+            root = ./tucan-plus-extension;
             fileset = fileset-extension;
           };
 
@@ -230,7 +231,7 @@
           '';
         };
 
-        extension = pkgs.runCommand "tucant-extension.zip" { } ''
+        extension = pkgs.runCommand "tucan-plus-extension.zip" { } ''
           cd ${extension-unpacked}
           ${pkgs.zip}/bin/zip -r $out *
           ${pkgs.strip-nondeterminism}/bin/strip-nondeterminism --type zip $out
@@ -249,13 +250,13 @@
           ];
         };
 
-        source = pkgs.runCommand "tucant-extension-source.zip" { } ''
+        source = pkgs.runCommand "tucan-plus-extension-source.zip" { } ''
           cd ${source-with-build-instructions}
           ${pkgs.zip}/bin/zip -r $out *
           ${pkgs.strip-nondeterminism}/bin/strip-nondeterminism --type zip $out
         '';
 
-        source-unpacked = pkgs.runCommand "tucant-extension-source.zip" { } ''
+        source-unpacked = pkgs.runCommand "tucan-plus-extension-source.zip" { } ''
           cp -r ${source-with-build-instructions} $out
         '';
       in
@@ -275,10 +276,10 @@
           my-app-fmt = craneLib.cargoFmt (
             nativeArgs
             // {
-              cargoToml = ./crates/tucant-dioxus/Cargo.toml;
-              cargoLock = ./crates/tucant-dioxus/Cargo.lock;
+              cargoToml = ./crates/tucan-plus-dioxus/Cargo.toml;
+              cargoLock = ./crates/tucan-plus-dioxus/Cargo.lock;
               preBuild = ''
-                cd ./crates/tucant-dioxus
+                cd ./crates/tucan-plus-dioxus
               '';
               cargoExtraArgs = "--all";
               src = source-with-build-instructions;
@@ -303,27 +304,27 @@
 
         packages.publish =
           let
-            version = (lib.importJSON ./tucant-extension/manifest.json).version;
+            version = (lib.importJSON ./tucan-plus-extension/manifest.json).version;
           in
           pkgs.writeShellScriptBin "publish" ''
             set -ex
             mkdir -p out
             cd out
             # seems like chromium writes into the parent folder of the pack-extension argument
-            chmod -R ug+rw tucant-extension-${version} || true
-            rm -Rf tucant-extension-${version}
-            cp -r ${extension-unpacked} tucant-extension-${version}
-            ${pkgs.chromium}/bin/chromium --no-sandbox --pack-extension=tucant-extension-${version} --pack-extension-key=$CHROMIUM_EXTENSION_SIGNING_KEY
-            chmod 644 tucant-extension-${version}.crx
+            chmod -R ug+rw tucan-plus-extension-${version} || true
+            rm -Rf tucan-plus-extension-${version}
+            cp -r ${extension-unpacked} tucan-plus-extension-${version}
+            ${pkgs.chromium}/bin/chromium --no-sandbox --pack-extension=tucan-plus-extension-${version} --pack-extension-key=$CHROMIUM_EXTENSION_SIGNING_KEY
+            chmod 644 tucan-plus-extension-${version}.crx
 
-            chmod -R ug+rw tucant-extension-${version}
-            rm -Rf tucant-extension-${version}
-            cp -r ${extension-unpacked} tucant-extension-${version}
-            chmod -R ug+rw tucant-extension-${version}
+            chmod -R ug+rw tucan-plus-extension-${version}
+            rm -Rf tucan-plus-extension-${version}
+            cp -r ${extension-unpacked} tucan-plus-extension-${version}
+            chmod -R ug+rw tucan-plus-extension-${version}
 
-            ${pkgs.web-ext}/bin/web-ext sign --channel unlisted --source-dir tucant-extension-${version} --upload-source-code ${source}
-            chmod 644 web-ext-artifacts/tucant-${version}.xpi
-            cp web-ext-artifacts/tucant-${version}.xpi tucant-extension-${version}.xpi
+            ${pkgs.web-ext}/bin/web-ext sign --channel unlisted --source-dir tucan-plus-extension-${version} --upload-source-code ${source}
+            chmod 644 web-ext-artifacts/tucan-plus-${version}.xpi
+            cp web-ext-artifacts/tucan-plus-${version}.xpi tucan-plus-extension-${version}.xpi
           '';
 
         packages.test = pkgs.writeShellApplication {
@@ -342,7 +343,7 @@
             export EXTENSION_DIR
             cp -r ${extension-unpacked}/. "$EXTENSION_DIR"/
             chmod -R ug+rw "$EXTENSION_DIR"
-            cargo test --package tucant-tests -- --nocapture
+            cargo test --package tucan-plus-tests -- --nocapture
           '';
         };
 
@@ -355,7 +356,7 @@
             export EXTENSION_DIR
             cp -r ${extension-unpacked}/. "$EXTENSION_DIR"/
             chmod -R ug+rw "$EXTENSION_DIR"
-            cargo test --package tucant-tests -- --nocapture
+            cargo test --package tucan-plus-tests -- --nocapture
           '';
         };
 

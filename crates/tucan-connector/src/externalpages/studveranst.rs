@@ -1,4 +1,4 @@
-use tucant_types::LoginResponse;
+use tucan_types::LoginResponse;
 
 use crate::{
     TucanConnector, TucanError, authenticated_retryable_get,

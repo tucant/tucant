@@ -3,7 +3,7 @@ use std::sync::LazyLock;
 use log::info;
 use regex::Regex;
 use time::{Duration, OffsetDateTime};
-use tucant_types::{
+use tucan_types::{
     LoginResponse, RevalidationStrategy,
     gradeoverview::{GradeOverviewRequest, GradeOverviewResponse, Grades},
 };

@@ -1,6 +1,6 @@
 use html_handler::{Root, parse_document};
 use time::{Duration, OffsetDateTime};
-use tucant_types::{
+use tucan_types::{
     LoginResponse, RevalidationStrategy, TucanError,
     mydocuments::{Document, MyDocumentsResponse},
 };

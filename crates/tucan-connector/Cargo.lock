@@ -2171,14 +2171,14 @@ dependencies = [
  "time",
  "tokio",
  "tokio-util",
- "tucant-types",
+ "tucan-types",
  "utoipa",
  "wasm-bindgen-futures",
  "web-sys",
 ]
 
 [[package]]
-name = "tucant-types"
+name = "tucan-types"
 version = "0.1.2"
 dependencies = [
  "axum-core",

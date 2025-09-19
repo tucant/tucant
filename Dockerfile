@@ -7,4 +7,4 @@ COPY . /workdir
 RUN nix --extra-experimental-features nix-command --extra-experimental-features flakes build /workdir#extension
 
 FROM scratch
-COPY --from=0 /workdir/result /tucant-extension.zip
+COPY --from=0 /workdir/result /tucan-plus-extension.zip
