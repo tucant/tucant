@@ -58,7 +58,7 @@
         }
     },
     "icons": {
-        "128": "icon.png"
+        "512": "logo.png"
     },
     "background": {
         "service_worker": "background.js",
@@ -69,7 +69,7 @@
     },
     "action": {
         "default_icon": {
-            "128": "icon.png"
+            "512": "logo.png"
         },
         "default_popup": "popup.html"
     },

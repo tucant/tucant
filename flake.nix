@@ -212,7 +212,8 @@
           ./tucan-plus-extension/url-mappings.js
           ./tucan-plus-extension/utils.js
           ./tucan-plus-extension/rules.json
-          ./tucan-plus-extension/screenshot.png
+          ./tucan-plus-extension/logo.svg
+          ./tucan-plus-extension/logo.png
         ];
 
         extension-unpacked = pkgs.stdenv.mkDerivation {
