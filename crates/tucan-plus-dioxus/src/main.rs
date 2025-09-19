@@ -5,10 +5,7 @@ use tucan_plus_dioxus::{Anonymize, Route};
 use tucan_types::LoginResponse;
 use wasm_bindgen::prelude::*;
 
-const LOGO_SVG: Asset = asset!("/assets/logo.svg");
-const BOOTSTRAP_CSS: Asset = asset!("/assets/bootstrap.css");
-const BOOTSTRAP_JS: Asset = asset!("/assets/bootstrap.bundle.min.js");
-const BOOTSTRAP_PATCH_JS: Asset = asset!("/assets/bootstrap.patch.js");
+const HASHED_ASSET_FOLDER: Asset = asset!("/assets");
 
 #[wasm_bindgen]
 extern "C" {
@@ -100,21 +97,25 @@ fn App() -> Element {
     rsx! {
         document::Link {
             rel: "stylesheet",
-            href: BOOTSTRAP_CSS,
+            href: "{HASHED_ASSET_FOLDER}/bootstrap.css",
         }
         document::Link {
             rel: "icon",
-            href: LOGO_SVG,
+            href: "{HASHED_ASSET_FOLDER}/logo.svg",
             sizes: "any",
             type: "image/svg+xml",
+        }
+        document::Link {
+            rel: "manifest",
+            href: "{HASHED_ASSET_FOLDER}/manifest.json",
         }
         Router::<Route> {
         }
         script {
-            src: BOOTSTRAP_JS,
+            src: "{HASHED_ASSET_FOLDER}/bootstrap.bundle.min.js",
         }
         script {
-            src: BOOTSTRAP_PATCH_JS,
+            src: "{HASHED_ASSET_FOLDER}/bootstrap.patch.js",
         }
     }
 }
