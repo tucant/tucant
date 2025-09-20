@@ -12,6 +12,7 @@
     <body>
         <div id="main"></div>
         <script type="module">
+            // TODO call __wbg_init();
             const myWorker = new Worker(new URL("/{base_path}/assets/worker/tucan-plus-worker.js", import.meta.url), {
                 type: "module"
             });
@@ -23,6 +24,7 @@
                 console.log(`got message ${event.data}`)
             })
             myWorker.postMessage("Test");
+            console.log("sent message")
         </script>
     </body>
 </html>

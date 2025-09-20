@@ -33,5 +33,6 @@ async fn main() {
     global
         .add_event_listener_with_callback("message", closure.as_ref().unchecked_ref())
         .unwrap();
+    global.post_message(&JsValue::from_str("ready")).unwrap();
     sleep(Duration::from_secs(100000)).await;
 }
