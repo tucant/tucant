@@ -67,7 +67,7 @@ dx serve --platform web --features api --verbose
 # in second tab
 cargo install --locked bacon
 cd crates/tucan-plus-api/
-bacon tucan-plus-api
+bacon run
 
 # http://localhost:8080/#/
 ```
