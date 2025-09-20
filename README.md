@@ -65,9 +65,10 @@ cd crates/tucan-plus-dioxus/
 dx serve --platform web --features api --verbose
 
 cargo install wasm-bindgen-cli
-cargo build --no-default-features --target=wasm32-unknown-unknown
-wasm-bindgen --out-dir assets/worker target/wasm32-unknown-unknown/debug/tucan-plus-dioxus.was
 
+cd crates/tucan-plus-worker/
+cargo build --no-default-features --target=wasm32-unknown-unknown
+wasm-bindgen --out-dir ../tucan-plus-dioxus/assets/worker target/wasm32-unknown-unknown/debug/tucan-plus-worker.wasm
 
 # in second tab
 cargo install --locked bacon
