@@ -2,12 +2,21 @@
 
 ![TUCaN Plus logo](./crates/tucan-plus-dioxus/assets/logo.svg)
 
+## Features
+
 The Campus-Management System of TU Darmstadt called TUCaN lacks quality and usability. Therefore this extension adds some quality of life improvements.
 
-* "Veranstaltungen -> Anmeldung" caches pages so repeatedly navigating to the same page is extremely fast and automatically descends into menus with only one entry.
-* TUCaN sometimes chains redirects. In some known places the intermediate redirect is skipped by the extension to speed up the navigation. Furthermore, there are some pages that wait for 500 milliseconds before redirecting. These pages are also skipped at some known places.
-* The URL contains your session ID. Therefore sharing URLs with others does not work. The extension automatically changes the session ID in the url to your session ID so sharing URLs works for users of the extension.
-* An experimental mobile first design can be activated.
+### Semesterplanung
+
+![Semesterplanung](./tucan-plus-extension/semesterplanung.png)
+
+### Custom UI
+
+![Leistungsspiegel](./tucan-plus-extension/leistungsspiegel.png)
+
+### Shareable URLs
+
+TUCaN URLs are automatically fixed so you can open URLs shared by others.
 
 ## Installation
 
