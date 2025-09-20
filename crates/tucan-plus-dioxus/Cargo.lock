@@ -4766,8 +4766,7 @@ dependencies = [
 [[package]]
 name = "sqlite-wasm-rs"
 version = "0.4.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0894a1b91dc660fbf1e6ea6f287562708e01ca1a18fa4e2c6dae0df5a05199c5"
+source = "git+https://github.com/Spxg/sqlite-wasm-rs.git?branch=0.4.4#644e14394364500baad052bd5294f17576e240d5"
 dependencies = [
  "cc",
  "fragile",
@@ -4776,7 +4775,6 @@ dependencies = [
  "parking_lot",
  "thiserror 2.0.16",
  "tokio",
- "wasm-array-cp",
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
@@ -5848,16 +5846,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0562428422c63773dad2c345a1882263bbf4d65cf3f42e90921f787ef5ad58e7"
 dependencies = [
  "wit-bindgen",
-]
-
-[[package]]
-name = "wasm-array-cp"
-version = "0.1.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bb633b3e235f0ebe0a35162adc1e0293fc4b7e3f3a6fc7b5374d80464267ff84"
-dependencies = [
- "js-sys",
- "wasm-bindgen",
 ]
 
 [[package]]

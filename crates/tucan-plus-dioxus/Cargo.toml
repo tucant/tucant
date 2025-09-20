@@ -38,7 +38,10 @@ futures = "0.3.31"
 tokio = { features = ["macros", "rt", "rt-multi-thread"], version = "1" }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
-sqlite-wasm-rs = { version = "0.4", default-features = false, features = ["bundled"] }
+sqlite-wasm-rs = { git = "https://github.com/Spxg/sqlite-wasm-rs.git", branch = "0.4.4", default-features = false, features = ["bundled"] }
+
+[patch.crates-io]
+sqlite-wasm-rs = { git = "https://github.com/Spxg/sqlite-wasm-rs.git", branch = "0.4.4" }
 
 [features]
 direct = ["web", "dep:tucan-connector", "dep:web-extensions-sys"]
