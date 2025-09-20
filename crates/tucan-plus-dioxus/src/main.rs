@@ -27,6 +27,8 @@ extern "C" {
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen(main))]
 #[cfg_attr(not(target_arch = "wasm32"), tokio::main)]
 pub async fn main() {
+    // run this also in the worker and check here whether we are in a worker?
+
     // From https://github.com/rustwasm/console_error_panic_hook, licensed under MIT and Apache 2.0
     #[cfg(feature = "web")]
     panic::set_hook(Box::new(|info| {

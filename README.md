@@ -64,6 +64,11 @@ cargo install --git https://github.com/mohe2015/dioxus --branch my dioxus-cli
 cd crates/tucan-plus-dioxus/
 dx serve --platform web --features api --verbose
 
+cargo install wasm-bindgen-cli
+cargo build --target=wasm32-unknown-unknown
+wasm-bindgen --out-dir assets/worker target/wasm32-unknown-unknown/debug/tucan-plus-dioxus.was
+
+
 # in second tab
 cargo install --locked bacon
 cd crates/tucan-plus-api/

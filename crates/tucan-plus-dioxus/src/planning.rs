@@ -32,8 +32,8 @@ const MIGRATIONS: EmbeddedMigrations = embed_migrations!("migrations");
 async fn open_db() -> MyRc<RefCell<SqliteConnection>> {
     #[cfg(target_arch = "wasm32")]
     {
-        let _util = sqlite_wasm_rs::relaxed_idb_vfs::install(
-            &sqlite_wasm_rs::relaxed_idb_vfs::RelaxedIdbCfg::default(),
+        let _util = sqlite_wasm_rs::sahpool_vfs::install(
+            &sqlite_wasm_rs::sahpool_vfs::OpfsSAHPoolCfg::default(),
             true,
         )
         .await
