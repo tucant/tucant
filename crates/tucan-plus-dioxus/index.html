@@ -12,7 +12,7 @@
     <body>
         <div id="main"></div>
         <script type="module">
-            const myWorker = new Worker(new URL("/{base_path}/assets/worker/tucan-plus-dioxus.js", import.meta.url), {
+            const myWorker = new Worker(new URL("/{base_path}/assets/worker/tucan-plus-worker.js", import.meta.url), {
                 type: "module"
             });
             console.log(myWorker)
