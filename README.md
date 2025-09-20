@@ -65,7 +65,7 @@ cd crates/tucan-plus-dioxus/
 dx serve --platform web --features api --verbose
 
 cargo install wasm-bindgen-cli
-cargo build --target=wasm32-unknown-unknown
+cargo build --no-default-features --target=wasm32-unknown-unknown
 wasm-bindgen --out-dir assets/worker target/wasm32-unknown-unknown/debug/tucan-plus-dioxus.was
 
 
