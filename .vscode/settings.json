@@ -9,7 +9,8 @@
     "terminal.integrated.scrollback": 100000,
     "rust-analyzer.linkedProjects": [
         "./crates/tucan-plus-dioxus/Cargo.toml",
-        "./crates/tucan-connector/Cargo.toml"
+        "./crates/tucan-connector/Cargo.toml",
+        "./crates/tucan-plus-worker/Cargo.toml"
     ],
     "rust-analyzer.cargo.target": "wasm32-unknown-unknown",
     "rust-analyzer.cargo.features": [

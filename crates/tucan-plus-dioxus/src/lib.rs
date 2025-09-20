@@ -59,6 +59,12 @@ pub static LOGO_SVG: Asset = asset!(
     AssetOptions::builder().with_hash_suffix(false)
 );
 
+#[used]
+pub static WORKER_JS: Asset = asset!(
+    "/assets/worker",
+    AssetOptions::builder().with_hash_suffix(false)
+);
+
 pub static BOOTSTRAP_JS: Asset = asset!("/assets/bootstrap.bundle.min.js",);
 
 pub static BOOTSTRAP_PATCH_JS: Asset = asset!("/assets/bootstrap.patch.js",);

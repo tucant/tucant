@@ -1,3 +1,4 @@
+/crates/tucan-plus-dioxus/assets/worker
 *.br
 env/
 *.wav
