@@ -4,8 +4,6 @@
 
 ## Features
 
-The Campus-Management System of TU Darmstadt called TUCaN lacks quality and usability. Therefore this extension adds some quality of life improvements.
-
 ### Semesterplanung
 
 ![Semesterplanung](./tucan-plus-extension/semesterplanung.png)
