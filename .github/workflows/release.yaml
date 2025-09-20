@@ -83,7 +83,6 @@ jobs:
         1. Right click on [Download extension for Chromium](tucan-plus-extension-${{ steps.version.outputs.VERSION }}.crx) and select "Save link as..." to download the extension file. Doing it this way is important, simply clicking on the link to download does not work as Chromium blocks the download.
         2. In the Chromium Menu, go to Extensions -> Manage Extensions
         3. Enable developer mode in the top right corner
-        5. Uninstall the non-autoupdate version if you have installed it
         4. Drag and drop the downloaded file into this area
         EOF
         cat << EOF > pages/updates.xml
