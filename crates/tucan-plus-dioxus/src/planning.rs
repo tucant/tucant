@@ -17,29 +17,6 @@ use web_sys::{FileList, HtmlInputElement};
 use crate::common::use_authenticated_data_loader;
 use crate::{MyRc, RcTucanType, Route};
 
-// TODO at some point put opfs into a dedicated worker as that is the most
-// correct approach TODO put this into a shared worker so there are no race
-// conditions
-
-const MIGRATIONS: EmbeddedMigrations = embed_migrations!("migrations");
-
-async fn open_db() -> MyRc<RefCell<SqliteConnection>> {
-    #[cfg(target_arch = "wasm32")]
-    {
-        let _util = sqlite_wasm_rs::sahpool_vfs::install(
-            &sqlite_wasm_rs::sahpool_vfs::OpfsSAHPoolCfg::default(),
-            true,
-        )
-        .await
-        .unwrap();
-    }
-
-    let mut connection = SqliteConnection::establish("tucan-plus.db").unwrap();
-
-    connection.run_pending_migrations(MIGRATIONS).unwrap();
-    MyRc(Arc::new(RefCell::new(connection)))
-}
-
 #[component]
 pub fn Planning(course_of_study: ReadSignal<String>) -> Element {
     let tucan: RcTucanType = use_context();

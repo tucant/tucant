@@ -1,5 +1,7 @@
 use std::time::Duration;
 
+use diesel::{Connection as _, SqliteConnection};
+use diesel_migrations::{EmbeddedMigrations, MigrationHarness as _, embed_migrations};
 use log::info;
 use wasm_bindgen::prelude::*;
 use web_sys::MessageEvent;
@@ -19,6 +21,8 @@ pub async fn sleep(duration: Duration) {
 
     wasm_bindgen_futures::JsFuture::from(p).await.unwrap();
 }
+
+const MIGRATIONS: EmbeddedMigrations = embed_migrations!("migrations");
 
 #[wasm_bindgen(main)]
 async fn main() {
@@ -40,6 +44,10 @@ async fn main() {
     )
     .await
     .unwrap();
+
+    let mut connection = SqliteConnection::establish("tucan-plus.db").unwrap();
+
+    connection.run_pending_migrations(MIGRATIONS).unwrap();
 
     //util.export_db("tucan-plus.db").unwrap();
 
