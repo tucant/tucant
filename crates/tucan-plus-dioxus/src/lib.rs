@@ -32,6 +32,7 @@ use crate::navbar::Navbar;
 use crate::overview::Overview;
 use crate::planning::Planning;
 use dioxus::prelude::*;
+use fragile::Fragile;
 use log::info;
 use serde::Serialize;
 use serde::de::DeserializeOwned;
@@ -155,7 +156,7 @@ pub async fn wait_for_worker() -> Worker {
         .into()
 }
 
-pub async fn send_message<R: RequestResponse>(worker: &Worker, value: &R) -> R::Response {
+pub async fn send_message<R: RequestResponse>(worker: &Fragile<Worker>, value: &R) -> R::Response {
     let mut cb = |resolve: js_sys::Function, reject: js_sys::Function| {
         let mut message_closure: Option<Closure<dyn Fn(MessageEvent)>> = None;
         let error_closure: Closure<dyn Fn(_)> = {
@@ -163,6 +164,7 @@ pub async fn send_message<R: RequestResponse>(worker: &Worker, value: &R) -> R::
             Closure::new(move |event: web_sys::Event| {
                 info!("error {event:?}");
                 worker
+                    .get()
                     .remove_event_listener_with_callback(
                         "message",
                         message_closure.as_ref().unwrap().as_ref().unchecked_ref(),
@@ -178,6 +180,7 @@ pub async fn send_message<R: RequestResponse>(worker: &Worker, value: &R) -> R::
             Some(Closure::new(move |event: MessageEvent| {
                 info!("{:?}", event.data());
                 worker
+                    .get()
                     .remove_event_listener_with_callback("error", error_closure_ref.unchecked_ref())
                     .unwrap();
                 resolve.call1(&JsValue::undefined(), &event.data()).unwrap();
@@ -186,6 +189,7 @@ pub async fn send_message<R: RequestResponse>(worker: &Worker, value: &R) -> R::
         let options = AddEventListenerOptions::new();
         options.set_once(true);
         worker
+            .get()
             .add_event_listener_with_callback_and_add_event_listener_options(
                 "error",
                 error_closure_ref.unchecked_ref(),
@@ -193,6 +197,7 @@ pub async fn send_message<R: RequestResponse>(worker: &Worker, value: &R) -> R::
             )
             .unwrap();
         worker
+            .get()
             .add_event_listener_with_callback_and_add_event_listener_options(
                 "message",
                 message_closure.as_ref().unwrap().as_ref().unchecked_ref(),
@@ -206,6 +211,7 @@ pub async fn send_message<R: RequestResponse>(worker: &Worker, value: &R) -> R::
     let p = js_sys::Promise::new(&mut cb);
 
     worker
+        .get()
         .post_message(&serde_wasm_bindgen::to_value(value).unwrap())
         .unwrap();
 

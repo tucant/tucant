@@ -7,7 +7,6 @@ use futures::StreamExt;
 use js_sys::Uint8Array;
 use log::info;
 use tucan_plus_planning::decompress;
-use tucan_plus_worker::FetchAnmeldungenRequest;
 use tucan_plus_worker::models::{
     Anmeldung, AnmeldungEntry, NewAnmeldung, NewAnmeldungEntry, Semester, State,
 };
