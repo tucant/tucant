@@ -3,7 +3,7 @@ use std::time::Duration;
 use diesel::{Connection as _, SqliteConnection};
 use diesel_migrations::{EmbeddedMigrations, MigrationHarness as _, embed_migrations};
 use log::info;
-use tucan_plus_worker::{Request, RequestResponse, RequestResponseObjectSafe};
+use tucan_plus_worker::{Request, RequestResponse, RequestResponseEnum, RequestResponseObjectSafe};
 use wasm_bindgen::prelude::*;
 use web_sys::MessageEvent;
 
@@ -35,12 +35,8 @@ async fn main() {
         global.post_message(&JsValue::from_str("Response")).unwrap();
         info!("Got message");
 
-        let deserializer = serde_wasm_bindgen::Deserializer::from(event.data());
-        let a = Box::new(<dyn erased_serde::Deserializer>::erase(deserializer));
-
-        let deserialized: Box<dyn RequestResponseObjectSafe> =
-            erased_serde::deserialize(a).unwrap();
-        //serde_wasm_bindgen::from_value(event.data()).unwrap();
+        let afewe: RequestResponseEnum = serde_wasm_bindgen::from_value(event.data()).unwrap();
+        let result = afewe.execute();
     });
     global
         .add_event_listener_with_callback("message", closure.as_ref().unchecked_ref())
