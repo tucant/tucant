@@ -3,6 +3,7 @@ use std::panic;
 use dioxus::prelude::*;
 use js_sys::Function;
 use log::info;
+use serde::{Serialize, de::DeserializeOwned};
 use tucan_plus_dioxus::{Anonymize, BOOTSTRAP_JS, BOOTSTRAP_PATCH_JS, Route};
 use tucan_types::LoginResponse;
 use wasm_bindgen::prelude::*;
@@ -84,6 +85,63 @@ pub async fn wait_for_worker() -> Worker {
         .await
         .unwrap()
         .into()
+}
+
+pub async fn send_message<I: Serialize, O: DeserializeOwned>(worker: &Worker, value: &I) -> O {
+    let mut cb = |resolve: js_sys::Function, reject: js_sys::Function| {
+        let mut message_closure: Option<Closure<dyn Fn(MessageEvent)>> = None;
+        let error_closure: Closure<dyn Fn(_)> = {
+            let worker = worker.clone();
+            Closure::new(move |event: web_sys::Event| {
+                info!("error {event:?}");
+                worker
+                    .remove_event_listener_with_callback(
+                        "message",
+                        message_closure.as_ref().unwrap().as_ref().unchecked_ref(),
+                    )
+                    .unwrap();
+                reject.call0(&JsValue::undefined()).unwrap();
+            })
+        };
+        let error_closure_ref = error_closure.as_ref().clone();
+        message_closure = {
+            let worker = worker.clone();
+            let error_closure_ref = error_closure_ref.clone();
+            Some(Closure::new(move |event: MessageEvent| {
+                info!("{:?}", event.data());
+                worker
+                    .remove_event_listener_with_callback("error", error_closure_ref.unchecked_ref())
+                    .unwrap();
+                resolve.call1(&JsValue::undefined(), &event.data()).unwrap();
+            }))
+        };
+        let options = AddEventListenerOptions::new();
+        options.set_once(true);
+        worker
+            .add_event_listener_with_callback_and_add_event_listener_options(
+                "error",
+                error_closure_ref.unchecked_ref(),
+                &options,
+            )
+            .unwrap();
+        worker
+            .add_event_listener_with_callback_and_add_event_listener_options(
+                "message",
+                message_closure.as_ref().unwrap().as_ref().unchecked_ref(),
+                &options,
+            )
+            .unwrap();
+        error_closure.forget();
+        message_closure.unwrap().forget();
+    };
+
+    let p = js_sys::Promise::new(&mut cb);
+
+    worker
+        .post_message(&serde_wasm_bindgen::to_value(value).unwrap())
+        .unwrap();
+
+    serde_wasm_bindgen::from_value(wasm_bindgen_futures::JsFuture::from(p).await.unwrap()).unwrap()
 }
 
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen(main))]

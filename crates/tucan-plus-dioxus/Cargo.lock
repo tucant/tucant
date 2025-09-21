@@ -5582,6 +5582,8 @@ dependencies = [
  "log",
  "plotters",
  "reqwest",
+ "serde",
+ "serde-wasm-bindgen",
  "serde_json",
  "sqlite-wasm-rs",
  "tokio",
