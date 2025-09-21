@@ -7,6 +7,7 @@ use futures::StreamExt;
 use js_sys::Uint8Array;
 use log::info;
 use tucan_plus_planning::decompress;
+use tucan_plus_worker::FetchAnmeldungenRequest;
 use tucan_plus_worker::models::{
     Anmeldung, AnmeldungEntry, NewAnmeldung, NewAnmeldungEntry, Semester, State,
 };
@@ -242,7 +243,8 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
             async move {
                 // TODO FIXME I think based on course of study we can create an
                 // anmeldung_request and then this here is not special cased any more?
-                send_message(&worker, &course_of_study);
+                let response =
+                    send_message(&worker, &FetchAnmeldungenRequest { course_of_study }).await;
                 let results: Vec<Anmeldung> = QueryDsl::filter(
                     anmeldungen_plan::table,
                     anmeldungen_plan::course_of_study

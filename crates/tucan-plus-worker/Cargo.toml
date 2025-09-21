@@ -14,6 +14,9 @@ wasm-bindgen-futures = "0.4"
 diesel = { git = "https://github.com/diesel-rs/diesel.git", features = ["sqlite", "returning_clauses_for_sqlite_3_35"] }
 diesel_migrations = { git = "https://github.com/diesel-rs/diesel.git", features = ["sqlite"] }
 sqlite-wasm-rs = { git = "https://github.com/Spxg/sqlite-wasm-rs.git", branch = "0.4.4", default-features = false, features = ["bundled"] }
+serde-wasm-bindgen = "0.6"
+typetag = "0.2"
+serde = { version = "1", features = ["derive"] }
 
 [patch.crates-io]
 sqlite-wasm-rs = { git = "https://github.com/Spxg/sqlite-wasm-rs.git", branch = "0.4.4" }

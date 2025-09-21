@@ -35,6 +35,7 @@ use dioxus::prelude::*;
 use log::info;
 use serde::Serialize;
 use serde::de::DeserializeOwned;
+use tucan_plus_worker::RequestResponse;
 use tucan_types::DynTucan;
 use tucan_types::gradeoverview::GradeOverviewRequest;
 use tucan_types::{
@@ -154,7 +155,7 @@ pub async fn wait_for_worker() -> Worker {
         .into()
 }
 
-pub async fn send_message<I: Serialize, O: DeserializeOwned>(worker: &Worker, value: &I) -> O {
+pub async fn send_message<R: RequestResponse>(worker: &Worker, value: &R) -> R::Response {
     let mut cb = |resolve: js_sys::Function, reject: js_sys::Function| {
         let mut message_closure: Option<Closure<dyn Fn(MessageEvent)>> = None;
         let error_closure: Closure<dyn Fn(_)> = {
