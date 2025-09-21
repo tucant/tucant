@@ -58,8 +58,20 @@ pub static LOGO_SVG: Asset = asset!(
 );
 
 #[used]
-pub static WORKER_DIR: Asset = asset!(
-    "/assets/worker",
+pub static WORKER_1: Asset = asset!(
+    "/assets/worker/tucan-plus-worker_bg.js",
+    AssetOptions::builder().with_hash_suffix(false)
+);
+
+#[used]
+pub static WORKER_2: Asset = asset!(
+    "/assets/worker/tucan-plus-worker_bg.wasm",
+    AssetOptions::builder().with_hash_suffix(false)
+);
+
+#[used]
+pub static WORKER_3: Asset = asset!(
+    "/assets/worker/tucan-plus-worker.js",
     AssetOptions::builder().with_hash_suffix(false)
 );
 
