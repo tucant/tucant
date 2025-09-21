@@ -31,6 +31,13 @@ async fn main() {
 
     let global = js_sys::global().unchecked_into::<web_sys::DedicatedWorkerGlobalScope>();
 
+    let util = sqlite_wasm_rs::sahpool_vfs::install(
+        &sqlite_wasm_rs::sahpool_vfs::OpfsSAHPoolCfg::default(),
+        true,
+    )
+    .await
+    .unwrap();
+
     let mut connection = SqliteConnection::establish("tucan-plus.db").unwrap();
 
     connection.run_pending_migrations(MIGRATIONS).unwrap();
@@ -39,22 +46,16 @@ async fn main() {
 
     let closure: Closure<dyn Fn(MessageEvent)> = Closure::new(move |event: MessageEvent| {
         let global = js_sys::global().unchecked_into::<web_sys::DedicatedWorkerGlobalScope>();
-        global.post_message(&JsValue::from_str("Response")).unwrap();
-        info!("Got message");
+        info!("Got message {:?}", event.data());
 
         let afewe: RequestResponseEnum = serde_wasm_bindgen::from_value(event.data()).unwrap();
         let result = afewe.execute(&mut connection.borrow_mut());
+        info!("Got result {:?}", result);
+        global.post_message(&result).unwrap();
     });
     global
         .add_event_listener_with_callback("message", closure.as_ref().unchecked_ref())
         .unwrap();
-
-    let util = sqlite_wasm_rs::sahpool_vfs::install(
-        &sqlite_wasm_rs::sahpool_vfs::OpfsSAHPoolCfg::default(),
-        true,
-    )
-    .await
-    .unwrap();
 
     //util.export_db("tucan-plus.db").unwrap();
 
