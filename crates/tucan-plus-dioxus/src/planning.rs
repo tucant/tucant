@@ -243,18 +243,7 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
             async move {
                 // TODO FIXME I think based on course of study we can create an
                 // anmeldung_request and then this here is not special cased any more?
-                let response =
-                    send_message(&worker, &FetchAnmeldungenRequest { course_of_study }).await;
-                let results: Vec<Anmeldung> = QueryDsl::filter(
-                    anmeldungen_plan::table,
-                    anmeldungen_plan::course_of_study
-                        .eq(&course_of_study)
-                        .and(anmeldungen_plan::parent.is_null()),
-                )
-                .select(Anmeldung::as_select())
-                .load(&mut *connection_clone.borrow_mut())
-                .expect("Error loading anmeldungen");
-                results
+                send_message(&worker, &FetchAnmeldungenRequest { course_of_study }).await
             }
         })
     };

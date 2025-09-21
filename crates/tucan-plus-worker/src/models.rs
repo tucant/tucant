@@ -7,6 +7,7 @@ use diesel::{
     serialize::{self, IsNull, Output, ToSql},
     sql_types::Text,
 };
+use serde::Deserialize;
 
 #[derive(Debug, PartialEq, FromSqlRow, AsExpression, Eq, Copy, Clone, Hash)]
 #[diesel(sql_type = Text)]
@@ -39,7 +40,7 @@ where
     }
 }
 
-#[derive(Queryable, Selectable, Clone, PartialEq, Debug)]
+#[derive(Queryable, Selectable, Clone, PartialEq, Debug, Deserialize)]
 #[diesel(table_name = anmeldungen_plan)]
 #[diesel(check_for_backend(diesel::sqlite::Sqlite))]
 pub struct Anmeldung {
