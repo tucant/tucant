@@ -1,4 +1,4 @@
-use std::time::Duration;
+use std::{cell::RefCell, time::Duration};
 
 use diesel::{Connection as _, SqliteConnection};
 use diesel_migrations::{EmbeddedMigrations, MigrationHarness as _, embed_migrations};
@@ -35,13 +35,15 @@ async fn main() {
 
     connection.run_pending_migrations(MIGRATIONS).unwrap();
 
+    let connection = RefCell::new(connection);
+
     let closure: Closure<dyn Fn(MessageEvent)> = Closure::new(move |event: MessageEvent| {
         let global = js_sys::global().unchecked_into::<web_sys::DedicatedWorkerGlobalScope>();
         global.post_message(&JsValue::from_str("Response")).unwrap();
         info!("Got message");
 
         let afewe: RequestResponseEnum = serde_wasm_bindgen::from_value(event.data()).unwrap();
-        let result = afewe.execute(&mut connection);
+        let result = afewe.execute(&mut connection.borrow_mut());
     });
     global
         .add_event_listener_with_callback("message", closure.as_ref().unchecked_ref())
