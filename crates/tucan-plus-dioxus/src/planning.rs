@@ -2,6 +2,7 @@ use std::cell::RefCell;
 use std::sync::Arc;
 
 use dioxus::prelude::*;
+use fragile::Fragile;
 use futures::StreamExt;
 use js_sys::Uint8Array;
 use log::info;
@@ -12,7 +13,7 @@ use tucan_types::{
     CONCURRENCY, LeistungsspiegelGrade, LoginResponse, RevalidationStrategy, SemesterId, Tucan,
 };
 use wasm_bindgen_futures::JsFuture;
-use web_sys::{FileList, HtmlInputElement};
+use web_sys::{FileList, HtmlInputElement, Worker};
 
 use crate::common::use_authenticated_data_loader;
 use crate::{MyRc, RcTucanType, Route};
@@ -21,10 +22,9 @@ use crate::{MyRc, RcTucanType, Route};
 pub fn Planning(course_of_study: ReadSignal<String>) -> Element {
     let tucan: RcTucanType = use_context();
     let current_session_handle = use_context::<Signal<Option<LoginResponse>>>();
-    let connection_student_result = use_resource(move || {
+    let student_result = use_resource(move || {
         let value = tucan.clone();
         async move {
-            let database = open_db().await; // TODO FIXME put into context
             // TODO FIXME don't unwrap here
             let student_result = value
                 .student_result(
@@ -34,13 +34,12 @@ pub fn Planning(course_of_study: ReadSignal<String>) -> Element {
                 )
                 .await
                 .unwrap();
-            (database, student_result)
+            student_result
         }
     });
     rsx! {
-        if let Some((connection, student_result)) = connection_student_result() {
+        if let Some(student_result) = student_result() {
             PlanningInner {
-                connection,
                 student_result,
             }
         }
@@ -51,7 +50,6 @@ async fn handle_semester(
     course_of_study: &str,
     tucan: RcTucanType,
     login_response: &LoginResponse,
-    connection_clone: MyRc<RefCell<SqliteConnection>>,
     semester: Semester,
     element: Signal<Option<web_sys::Element>>,
 ) {
@@ -223,10 +221,8 @@ pub async fn recursive_update(
 }
 
 #[component]
-pub fn PlanningInner(
-    connection: MyRc<RefCell<SqliteConnection>>,
-    student_result: StudentResultResponse,
-) -> Element {
+pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
+    let worker: Fragile<Worker> = use_context();
     let course_of_study = student_result
         .course_of_study
         .iter()

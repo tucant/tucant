@@ -19,7 +19,7 @@ pub mod navbar;
 pub mod navbar_logged_in;
 pub mod navbar_logged_out;
 pub mod overview;
-//pub mod planning;
+pub mod planning;
 pub mod registration;
 pub mod student_result;
 pub mod vv;
@@ -30,7 +30,7 @@ use std::sync::Arc;
 use crate::export_semester::FetchAnmeldung;
 use crate::navbar::Navbar;
 use crate::overview::Overview;
-//use crate::planning::Planning;
+use crate::planning::Planning;
 use dioxus::prelude::*;
 use tucan_types::DynTucan;
 use tucan_types::gradeoverview::GradeOverviewRequest;
@@ -224,8 +224,8 @@ pub enum Route {
     GradeOverview { gradeoverview: GradeOverviewRequest },
     #[route("/fetch-anmeldung")]
     FetchAnmeldung {},
-    //#[route("/planning/:course_of_study")]
-    //Planning { course_of_study: String },
+    #[route("/planning/:course_of_study")]
+    Planning { course_of_study: String },
     #[route("/export-database")]
     ExportDatabase {},
 }

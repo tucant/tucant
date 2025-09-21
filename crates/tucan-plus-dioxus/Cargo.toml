@@ -33,6 +33,7 @@ futures = "0.3.31"
 serde-wasm-bindgen = "0.6"
 serde = { version = "1", features = ["derive"] }
 fragile = "2"
+tucan-plus-worker = { path = "../tucan-plus-worker" }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 tokio = { features = ["macros", "rt", "rt-multi-thread"], version = "1" }
