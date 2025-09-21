@@ -5637,6 +5637,7 @@ dependencies = [
  "console_log",
  "diesel",
  "diesel_migrations",
+ "erased-serde",
  "js-sys",
  "log",
  "serde",
