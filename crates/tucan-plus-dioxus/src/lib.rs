@@ -60,8 +60,14 @@ pub static LOGO_SVG: Asset = asset!(
 );
 
 #[used]
-pub static WORKER_JS: Asset = asset!(
+pub static WORKER_DIR: Asset = asset!(
     "/assets/worker",
+    AssetOptions::builder().with_hash_suffix(false)
+);
+
+#[used]
+pub static WORKER_JS: Asset = asset!(
+    "/assets/worker.js",
     AssetOptions::builder().with_hash_suffix(false)
 );
 
