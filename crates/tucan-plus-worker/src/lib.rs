@@ -1,19 +1,17 @@
-use diesel::prelude::*;
-use enum_dispatch::enum_dispatch;
-use serde::{Deserialize, Deserializer, Serialize, de::DeserializeOwned};
+use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use wasm_bindgen::JsValue;
 
-use crate::{models::Anmeldung, schema::anmeldungen_plan};
+use crate::models::Anmeldung;
 
 pub mod models;
 pub mod schema;
 
-pub trait RequestResponse {
-    type Response;
+pub trait RequestResponse: Serialize {
+    type Response: DeserializeOwned;
     fn execute(&self) -> Self::Response;
 }
 
-#[derive(Deserialize)]
+#[derive(Serialize, Deserialize)]
 pub struct AnmeldungenRequest {
     pub course_of_study: String,
 }

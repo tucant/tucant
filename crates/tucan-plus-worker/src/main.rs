@@ -3,7 +3,7 @@ use std::time::Duration;
 use diesel::{Connection as _, SqliteConnection};
 use diesel_migrations::{EmbeddedMigrations, MigrationHarness as _, embed_migrations};
 use log::info;
-use tucan_plus_worker::{Request, RequestResponse, RequestResponseEnum, RequestResponseObjectSafe};
+use tucan_plus_worker::RequestResponseEnum;
 use wasm_bindgen::prelude::*;
 use web_sys::MessageEvent;
 
