@@ -736,7 +736,7 @@ async fn prep_planning(
         &worker,
         &AnmeldungenRequest2 {
             course_of_study: course_of_study.to_owned(),
-            anmeldung,
+            anmeldung: anmeldung.clone(),
         },
     )
     .await;
@@ -744,14 +744,14 @@ async fn prep_planning(
         &worker,
         &Fewe {
             course_of_study: course_of_study.to_owned(),
-            anmeldung,
+            anmeldung: anmeldung.clone(),
         },
     )
     .await;
-    let inner: Vec<PrepPlanningReturn> = results
-        .iter()
-        .map(|result| prep_planning(course_of_study, future, result.clone()))
-        .collect();
+    let inner: Vec<PrepPlanningReturn> = futures::stream::iter(results.iter())
+        .then(async |result| Box::pin(prep_planning(course_of_study, future, result.clone())).await)
+        .collect()
+        .await;
     let has_rules = anmeldung.min_cp != 0
         || anmeldung.max_cp.is_some()
         || anmeldung.min_modules != 0
@@ -890,5 +890,7 @@ pub fn PlanningAnmeldung(
     anmeldung: Anmeldung,
 ) -> Element {
     let _ = future();
-    prep_planning(&course_of_study, future, anmeldung).element
+    prep_planning(&course_of_study, future, anmeldung)
+        .await
+        .element
 }
