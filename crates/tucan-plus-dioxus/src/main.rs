@@ -37,10 +37,12 @@ pub async fn wait_for_worker() {
             let worker = worker.clone();
             Closure::new(move |event: web_sys::Event| {
                 info!("error {event:?}");
-                worker.remove_event_listener_with_callback(
-                    "message",
-                    message_closure.as_ref().unwrap().as_ref().unchecked_ref(),
-                );
+                worker
+                    .remove_event_listener_with_callback(
+                        "message",
+                        message_closure.as_ref().unwrap().as_ref().unchecked_ref(),
+                    )
+                    .unwrap();
                 reject.call0(&JsValue::NULL).unwrap();
             })
         };
@@ -50,10 +52,9 @@ pub async fn wait_for_worker() {
             let error_closure_ref = error_closure_ref.clone();
             Some(Closure::new(move |event: MessageEvent| {
                 info!("{:?}", event.data());
-                worker.remove_event_listener_with_callback(
-                    "error",
-                    error_closure_ref.unchecked_ref(),
-                );
+                worker
+                    .remove_event_listener_with_callback("error", error_closure_ref.unchecked_ref())
+                    .unwrap();
                 resolve.call0(&JsValue::NULL).unwrap();
             }))
         };
