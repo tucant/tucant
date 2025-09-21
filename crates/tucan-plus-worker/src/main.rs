@@ -41,7 +41,7 @@ async fn main() {
     .await
     .unwrap();
 
-    util.export_db("tucan-plus.db").unwrap();
+    //util.export_db("tucan-plus.db").unwrap();
 
     global.post_message(&JsValue::from_str("ready")).unwrap();
     sleep(Duration::from_secs(100000)).await;
