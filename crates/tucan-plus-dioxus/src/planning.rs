@@ -7,10 +7,10 @@ use futures::StreamExt;
 use js_sys::Uint8Array;
 use log::info;
 use tucan_plus_planning::decompress;
-use tucan_plus_worker::AnmeldungenRequest;
 use tucan_plus_worker::models::{
     Anmeldung, AnmeldungEntry, NewAnmeldung, NewAnmeldungEntry, Semester, State,
 };
+use tucan_plus_worker::{AnmeldungenRequest, AnmeldungenRequest2, Fewe};
 use tucan_types::registration::AnmeldungResponse;
 use tucan_types::student_result::{StudentResultLevel, StudentResultResponse};
 use tucan_types::{
@@ -726,21 +726,28 @@ fn AnmeldungenEntries(
     }
 }
 
-fn prep_planning(
+async fn prep_planning(
     course_of_study: &str,
     mut future: Resource<Vec<Anmeldung>>,
     anmeldung: Anmeldung, // ahh this needs to be a signal?
 ) -> PrepPlanningReturn {
-    let response = send_message(&worker, &AnmeldungenRequest2 { course_of_study, anmeldung }).await
-    let entries: Vec<AnmeldungEntry> = QueryDsl::filter(
-        anmeldungen_entries::table,
-        anmeldungen_entries::course_of_study
-            .eq(course_of_study)
-            .and(anmeldungen_entries::anmeldung.eq(&anmeldung.url)),
+    let worker: Fragile<Worker> = use_context();
+    let results = send_message(
+        &worker,
+        &AnmeldungenRequest2 {
+            course_of_study: course_of_study.to_owned(),
+            anmeldung,
+        },
     )
-    .select(AnmeldungEntry::as_select())
-    .load(&mut *connection.borrow_mut())
-    .expect("Error loading anmeldungen");
+    .await;
+    let entries = send_message(
+        &worker,
+        &Fewe {
+            course_of_study: course_of_study.to_owned(),
+            anmeldung,
+        },
+    )
+    .await;
     let inner: Vec<PrepPlanningReturn> = results
         .iter()
         .map(|result| prep_planning(course_of_study, future, result.clone()))

@@ -4,7 +4,10 @@ use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use wasm_bindgen::JsValue;
 use web_sys::Worker;
 
-use crate::{models::Anmeldung, schema::anmeldungen_plan};
+use crate::{
+    models::{Anmeldung, AnmeldungEntry},
+    schema::{anmeldungen_entries, anmeldungen_plan},
+};
 
 pub mod models;
 pub mod schema;
@@ -52,6 +55,28 @@ impl RequestResponse for AnmeldungenRequest2 {
                 .and(anmeldungen_plan::parent.eq(&self.anmeldung.url)),
         )
         .select(Anmeldung::as_select())
+        .load(connection)
+        .expect("Error loading anmeldungen")
+    }
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct Fewe {
+    pub course_of_study: String,
+    pub anmeldung: Anmeldung,
+}
+
+impl RequestResponse for Fewe {
+    type Response = Vec<AnmeldungEntry>;
+
+    fn execute(&self, connection: &mut SqliteConnection) -> Self::Response {
+        QueryDsl::filter(
+            anmeldungen_entries::table,
+            anmeldungen_entries::course_of_study
+                .eq(&self.course_of_study)
+                .and(anmeldungen_entries::anmeldung.eq(&self.anmeldung.url)),
+        )
+        .select(AnmeldungEntry::as_select())
         .load(connection)
         .expect("Error loading anmeldungen")
     }

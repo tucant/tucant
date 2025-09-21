@@ -9,7 +9,9 @@ use diesel::{
 };
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, PartialEq, FromSqlRow, AsExpression, Eq, Copy, Clone, Hash)]
+#[derive(
+    Debug, PartialEq, FromSqlRow, AsExpression, Eq, Copy, Clone, Hash, Serialize, Deserialize,
+)]
 #[diesel(sql_type = Text)]
 pub enum Semester {
     Sommersemester,
@@ -68,7 +70,7 @@ pub struct NewAnmeldung<'a> {
     pub max_modules: Option<i32>,
 }
 
-#[derive(Debug, PartialEq, FromSqlRow, AsExpression, Eq, Copy, Clone)]
+#[derive(Debug, PartialEq, FromSqlRow, AsExpression, Eq, Copy, Clone, Serialize, Deserialize)]
 #[diesel(sql_type = Text)]
 pub enum State {
     NotPlanned,
@@ -102,7 +104,17 @@ where
     }
 }
 
-#[derive(Queryable, Selectable, Clone, PartialEq, Debug, AsChangeset, Identifiable)]
+#[derive(
+    Queryable,
+    Selectable,
+    Clone,
+    PartialEq,
+    Debug,
+    AsChangeset,
+    Identifiable,
+    Serialize,
+    Deserialize,
+)]
 #[diesel(table_name = anmeldungen_entries)]
 #[diesel(check_for_backend(diesel::sqlite::Sqlite))]
 #[diesel(primary_key(course_of_study, available_semester, anmeldung, id))]
