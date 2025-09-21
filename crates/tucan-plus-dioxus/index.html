@@ -11,19 +11,5 @@
     </head>
     <body>
         <div id="main"></div>
-        <script type="module">
-            const myWorker = new Worker(new URL("/{base_path}/assets/worker-helper/worker.js", import.meta.url), {
-                type: "module"
-            });
-            console.log(myWorker)
-            myWorker.addEventListener("error", error => {
-                console.log(error)
-            })
-            myWorker.addEventListener("message", event => {
-                console.log(`got message ${event.data}`)
-            })
-            myWorker.postMessage("Test");
-            console.log("sent message")
-        </script>
     </body>
 </html>

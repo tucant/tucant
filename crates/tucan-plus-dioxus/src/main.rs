@@ -1,9 +1,11 @@
 use std::panic;
 
 use dioxus::prelude::*;
+use log::info;
 use tucan_plus_dioxus::{Anonymize, BOOTSTRAP_JS, BOOTSTRAP_PATCH_JS, Route};
 use tucan_types::LoginResponse;
 use wasm_bindgen::prelude::*;
+use web_sys::{MessageEvent, Worker, WorkerOptions, WorkerType};
 
 #[wasm_bindgen]
 extern "C" {
@@ -27,7 +29,23 @@ extern "C" {
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen(main))]
 #[cfg_attr(not(target_arch = "wasm32"), tokio::main)]
 pub async fn main() {
-    // run this also in the worker and check here whether we are in a worker?
+    let options = WorkerOptions::new();
+    options.set_type(WorkerType::Module);
+    let worker = Worker::new_with_options("/assets/worker-helper/worker.js", &options).unwrap();
+    let error_closure: Closure<dyn Fn(_)> = Closure::new(move |event: web_sys::Event| {
+        info!("error {event:?}");
+    });
+    let message_closure: Closure<dyn Fn(_)> = Closure::new(move |event: MessageEvent| {
+        info!("{:?}", event.data());
+    });
+    worker
+        .add_event_listener_with_callback("error", error_closure.as_ref().unchecked_ref())
+        .unwrap();
+    worker
+        .add_event_listener_with_callback("message", message_closure.as_ref().unchecked_ref())
+        .unwrap();
+    error_closure.forget();
+    message_closure.forget();
 
     // From https://github.com/rustwasm/console_error_panic_hook, licensed under MIT and Apache 2.0
     #[cfg(feature = "web")]
