@@ -7,6 +7,7 @@ use futures::StreamExt;
 use js_sys::Uint8Array;
 use log::info;
 use tucan_plus_planning::decompress;
+use tucan_plus_worker::AnmeldungenRequest;
 use tucan_plus_worker::models::{
     Anmeldung, AnmeldungEntry, NewAnmeldung, NewAnmeldungEntry, Semester, State,
 };
@@ -237,12 +238,14 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
     let mut loading = use_signal(|| false);
     let mut future = {
         let course_of_study = course_of_study.clone();
+        let worker = worker.clone();
         use_resource(move || {
             let course_of_study = course_of_study.clone();
+            let worker = worker.clone();
             async move {
                 // TODO FIXME I think based on course of study we can create an
                 // anmeldung_request and then this here is not special cased any more?
-                send_message(&worker, &FetchAnmeldungenRequest { course_of_study }).await
+                send_message(&worker, &AnmeldungenRequest { course_of_study }).await
             }
         })
     };
