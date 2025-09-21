@@ -7,6 +7,9 @@ use futures::StreamExt;
 use js_sys::Uint8Array;
 use log::info;
 use tucan_plus_planning::decompress;
+use tucan_plus_worker::models::{
+    Anmeldung, AnmeldungEntry, NewAnmeldung, NewAnmeldungEntry, Semester,
+};
 use tucan_types::registration::AnmeldungResponse;
 use tucan_types::student_result::{StudentResultLevel, StudentResultResponse};
 use tucan_types::{
@@ -138,12 +141,7 @@ async fn handle_semester(
     }
 }
 
-pub async fn recursive_update(
-    course_of_study: &str,
-    connection_clone: MyRc<RefCell<SqliteConnection>>,
-    url: String,
-    level: StudentResultLevel,
-) {
+pub async fn recursive_update(course_of_study: &str, url: String, level: StudentResultLevel) {
     for child in level.children {
         let name = child.name.as_ref().unwrap();
         let child_url = diesel::update(QueryDsl::filter(
@@ -233,7 +231,6 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
     let navigator = use_navigator();
     let mut sommersemester: Signal<Option<web_sys::Element>> = use_signal(|| None);
     let mut wintersemester: Signal<Option<web_sys::Element>> = use_signal(|| None);
-    let connection_clone = connection.clone();
     let tucan: RcTucanType = use_context();
     let current_session_handle = use_context::<Signal<Option<LoginResponse>>>();
     let mut loading = use_signal(|| false);
@@ -258,7 +255,6 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
         })
     };
     let load_leistungsspiegel = {
-        let connection_clone = connection_clone.clone();
         let tucan = tucan.clone();
         let student_result = student_result.clone();
         let course_of_study = course_of_study.clone();
@@ -367,7 +363,6 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
         }
     };
 
-    let connection_clone = connection.clone();
     let tucan = tucan.clone();
     let onsubmit = {
         let course_of_study = course_of_study.clone();
@@ -505,7 +500,6 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
                     PlanningAnmeldung {
                         course_of_study: course_of_study.clone(),
                         future,
-                        connection: connection.clone(),
                         anmeldung: entry.clone(),
                     }
                 }
@@ -517,7 +511,6 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
                         "Sommersemester {i}"
                     }
                     AnmeldungenEntries {
-                        connection: connection.clone(),
                         future,
                         entries: QueryDsl::filter(
                             anmeldungen_entries::table,
@@ -537,7 +530,6 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
                         "Wintersemester {i}"
                     }
                     AnmeldungenEntries {
-                        connection: connection.clone(),
                         future,
                         entries: QueryDsl::filter(
                             anmeldungen_entries::table,
@@ -578,7 +570,6 @@ pub enum PlanningState {
 #[component]
 fn AnmeldungenEntries(
     mut future: Resource<Vec<Anmeldung>>,
-    connection: MyRc<RefCell<SqliteConnection>>,
     entries: Vec<AnmeldungEntry>,
 ) -> Element {
     info!("{:?}", entries);
@@ -612,7 +603,6 @@ fn AnmeldungenEntries(
                                 },
                                 option {
                                     onclick: {
-                                        let connection = connection.clone();
                                         let mut entry = entry.clone();
                                         move |event| {
                                             event.prevent_default();
@@ -630,7 +620,6 @@ fn AnmeldungenEntries(
                                 }
                                 option {
                                     onclick: {
-                                        let connection = connection.clone();
                                         let mut entry = entry.clone();
                                         move |event| {
                                             event.prevent_default();
@@ -648,7 +637,6 @@ fn AnmeldungenEntries(
                                 }
                                 option {
                                     onclick: {
-                                        let connection = connection.clone();
                                         let mut entry = entry.clone();
                                         move |event| {
                                             event.prevent_default();
@@ -672,7 +660,6 @@ fn AnmeldungenEntries(
                                     key: "",
                                     value: "",
                                     onclick: {
-                                        let connection = connection.clone();
                                         let mut entry = entry.clone();
                                         move |event| {
                                             event.prevent_default();
@@ -693,7 +680,6 @@ fn AnmeldungenEntries(
                                     option {
                                         key: "sose{i}",
                                         onclick: {
-                                            let connection = connection.clone();
                                             let mut entry = entry.clone();
                                             move |event| {
                                                 event.prevent_default();
@@ -714,7 +700,6 @@ fn AnmeldungenEntries(
                                     option {
                                         key: "wise{i}",
                                         onclick: {
-                                            let connection = connection.clone();
                                             let mut entry = entry.clone();
                                             move |event| {
                                                 event.prevent_default();
@@ -745,7 +730,6 @@ fn AnmeldungenEntries(
 fn prep_planning(
     course_of_study: &str,
     mut future: Resource<Vec<Anmeldung>>,
-    connection: MyRc<RefCell<SqliteConnection>>,
     anmeldung: Anmeldung, // ahh this needs to be a signal?
 ) -> PrepPlanningReturn {
     let results: Vec<Anmeldung> = QueryDsl::filter(
@@ -815,7 +799,6 @@ fn prep_planning(
                 if (!entries.is_empty() && expanded())
                     || entries.iter().any(|entry| entry.state != State::NotPlanned) {
                     AnmeldungenEntries {
-                        connection,
                         future,
                         entries: entries
                             .iter()
@@ -906,9 +889,8 @@ fn prep_planning(
 pub fn PlanningAnmeldung(
     course_of_study: String,
     future: Resource<Vec<Anmeldung>>,
-    connection: MyRc<RefCell<SqliteConnection>>,
     anmeldung: Anmeldung,
 ) -> Element {
     let _ = future();
-    prep_planning(&course_of_study, future, connection, anmeldung).element
+    prep_planning(&course_of_study, future, anmeldung).element
 }
