@@ -65,9 +65,10 @@ pub static WORKER_DIR: Asset = asset!(
     AssetOptions::builder().with_hash_suffix(false)
 );
 
+// avoid transforming the js by using a folder
 #[used]
 pub static WORKER_JS: Asset = asset!(
-    "/assets/worker.js",
+    "/assets/worker-helper",
     AssetOptions::builder().with_hash_suffix(false)
 );
 
