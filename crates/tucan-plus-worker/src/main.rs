@@ -30,13 +30,18 @@ async fn main() {
     console_log::init().unwrap();
 
     let global = js_sys::global().unchecked_into::<web_sys::DedicatedWorkerGlobalScope>();
+
+    let mut connection = SqliteConnection::establish("tucan-plus.db").unwrap();
+
+    connection.run_pending_migrations(MIGRATIONS).unwrap();
+
     let closure: Closure<dyn Fn(MessageEvent)> = Closure::new(move |event: MessageEvent| {
         let global = js_sys::global().unchecked_into::<web_sys::DedicatedWorkerGlobalScope>();
         global.post_message(&JsValue::from_str("Response")).unwrap();
         info!("Got message");
 
         let afewe: RequestResponseEnum = serde_wasm_bindgen::from_value(event.data()).unwrap();
-        let result = afewe.execute(connection);
+        let result = afewe.execute(&mut connection);
     });
     global
         .add_event_listener_with_callback("message", closure.as_ref().unchecked_ref())
@@ -48,10 +53,6 @@ async fn main() {
     )
     .await
     .unwrap();
-
-    let mut connection = SqliteConnection::establish("tucan-plus.db").unwrap();
-
-    connection.run_pending_migrations(MIGRATIONS).unwrap();
 
     //util.export_db("tucan-plus.db").unwrap();
 

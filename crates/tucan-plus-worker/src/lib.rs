@@ -11,7 +11,7 @@ pub mod schema;
 
 pub trait RequestResponse: Serialize {
     type Response: DeserializeOwned;
-    fn execute(&self, connection: SqliteConnection) -> Self::Response;
+    fn execute(&self, connection: &mut SqliteConnection) -> Self::Response;
 }
 
 #[derive(Serialize, Deserialize)]
@@ -22,7 +22,7 @@ pub struct AnmeldungenRequest {
 impl RequestResponse for AnmeldungenRequest {
     type Response = Vec<Anmeldung>;
 
-    fn execute(&self, mut connection: SqliteConnection) -> Self::Response {
+    fn execute(&self, connection: &mut SqliteConnection) -> Self::Response {
         QueryDsl::filter(
             anmeldungen_plan::table,
             anmeldungen_plan::course_of_study
@@ -30,7 +30,7 @@ impl RequestResponse for AnmeldungenRequest {
                 .and(anmeldungen_plan::parent.is_null()),
         )
         .select(Anmeldung::as_select())
-        .load(&mut connection)
+        .load(connection)
         .expect("Error loading anmeldungen")
     }
 }
@@ -44,7 +44,7 @@ pub struct AnmeldungenRequest2 {
 impl RequestResponse for AnmeldungenRequest2 {
     type Response = Vec<Anmeldung>;
 
-    fn execute(&self, mut connection: SqliteConnection) -> Self::Response {
+    fn execute(&self, connection: &mut SqliteConnection) -> Self::Response {
         QueryDsl::filter(
             anmeldungen_plan::table,
             anmeldungen_plan::course_of_study
@@ -52,7 +52,7 @@ impl RequestResponse for AnmeldungenRequest2 {
                 .and(anmeldungen_plan::parent.eq(&self.anmeldung.url)),
         )
         .select(Anmeldung::as_select())
-        .load(&mut connection)
+        .load(connection)
         .expect("Error loading anmeldungen")
     }
 }
@@ -63,7 +63,7 @@ pub enum RequestResponseEnum {
 }
 
 impl RequestResponseEnum {
-    pub fn execute(&self, mut connection: SqliteConnection) -> JsValue {
+    pub fn execute(&self, connection: &mut SqliteConnection) -> JsValue {
         match self {
             RequestResponseEnum::AnmeldungenRequest(anmeldungen_request) => {
                 serde_wasm_bindgen::to_value(&anmeldungen_request.execute(connection)).unwrap()
