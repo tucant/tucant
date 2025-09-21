@@ -8,7 +8,7 @@ use js_sys::Uint8Array;
 use log::info;
 use tucan_plus_planning::decompress;
 use tucan_plus_worker::models::{
-    Anmeldung, AnmeldungEntry, NewAnmeldung, NewAnmeldungEntry, Semester,
+    Anmeldung, AnmeldungEntry, NewAnmeldung, NewAnmeldungEntry, Semester, State,
 };
 use tucan_types::registration::AnmeldungResponse;
 use tucan_types::student_result::{StudentResultLevel, StudentResultResponse};
@@ -18,7 +18,6 @@ use tucan_types::{
 use wasm_bindgen_futures::JsFuture;
 use web_sys::{FileList, HtmlInputElement, Worker};
 
-use crate::common::use_authenticated_data_loader;
 use crate::{MyRc, RcTucanType, Route};
 
 #[component]
@@ -235,7 +234,6 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
     let current_session_handle = use_context::<Signal<Option<LoginResponse>>>();
     let mut loading = use_signal(|| false);
     let mut future = {
-        let connection_clone = connection_clone.clone();
         let course_of_study = course_of_study.clone();
         use_resource(move || {
             let connection_clone = connection_clone.clone();
@@ -259,7 +257,6 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
         let student_result = student_result.clone();
         let course_of_study = course_of_study.clone();
         move |_event: Event<MouseData>| {
-            let connection_clone = connection_clone.clone();
             let current_session_handle = current_session_handle;
             let tucan = tucan.clone();
             let student_result = student_result.clone();
@@ -302,13 +299,7 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
                 .get_result(&mut *connection_clone.borrow_mut())
                 .expect("Error updating anmeldungen");
 
-                recursive_update(
-                    &course_of_study,
-                    connection_clone.clone(),
-                    the_url,
-                    student_result.level0,
-                )
-                .await;
+                recursive_update(&course_of_study, the_url, student_result.level0).await;
 
                 let semesters = tucan
                     .course_results(
@@ -367,7 +358,6 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
     let onsubmit = {
         let course_of_study = course_of_study.clone();
         move |evt: Event<FormData>| {
-            let connection_clone = connection_clone.clone();
             let tucan = tucan.clone();
             let course_of_study = course_of_study.clone();
             evt.prevent_default();
@@ -377,7 +367,6 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
                     &course_of_study,
                     tucan.clone(),
                     &current_session_handle().unwrap(),
-                    connection_clone.clone(),
                     Semester::Sommersemester,
                     sommersemester,
                 )
@@ -386,7 +375,6 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
                     &course_of_study,
                     tucan.clone(),
                     &current_session_handle().unwrap(),
-                    connection_clone,
                     Semester::Wintersemester,
                     wintersemester,
                 )
@@ -605,6 +593,7 @@ fn AnmeldungenEntries(
                                     onclick: {
                                         let mut entry = entry.clone();
                                         move |event| {
+                                            /*
                                             event.prevent_default();
                                             let connection = connection.clone();
                                             entry.state = State::NotPlanned;
@@ -613,6 +602,7 @@ fn AnmeldungenEntries(
                                                 .execute(&mut *connection.borrow_mut())
                                                 .unwrap();
                                             future.restart();
+                                            */
                                         }
                                     },
                                     selected: entry.state == State::NotPlanned,
@@ -622,6 +612,7 @@ fn AnmeldungenEntries(
                                     onclick: {
                                         let mut entry = entry.clone();
                                         move |event| {
+                                            /*
                                             event.prevent_default();
                                             let connection = connection.clone();
                                             entry.state = State::Planned;
@@ -630,6 +621,7 @@ fn AnmeldungenEntries(
                                                 .execute(&mut *connection.borrow_mut())
                                                 .unwrap();
                                             future.restart();
+                                            */
                                         }
                                     },
                                     selected: entry.state == State::Planned,
@@ -639,6 +631,7 @@ fn AnmeldungenEntries(
                                     onclick: {
                                         let mut entry = entry.clone();
                                         move |event| {
+                                            /*
                                             event.prevent_default();
                                             let connection = connection.clone();
                                             entry.state = State::Done;
@@ -647,6 +640,7 @@ fn AnmeldungenEntries(
                                                 .execute(&mut *connection.borrow_mut())
                                                 .unwrap();
                                             future.restart();
+                                            */
                                         }
                                     },
                                     selected: entry.state == State::Done,
@@ -662,6 +656,7 @@ fn AnmeldungenEntries(
                                     onclick: {
                                         let mut entry = entry.clone();
                                         move |event| {
+                                            /*
                                             event.prevent_default();
                                             let connection = connection.clone();
                                             entry.semester = None;
@@ -671,6 +666,7 @@ fn AnmeldungenEntries(
                                                 .execute(&mut *connection.borrow_mut())
                                                 .unwrap();
                                             future.restart();
+                                            */
                                         }
                                     },
                                     selected: entry.semester.is_none() && entry.year.is_none(),
@@ -682,6 +678,7 @@ fn AnmeldungenEntries(
                                         onclick: {
                                             let mut entry = entry.clone();
                                             move |event| {
+                                                /*
                                                 event.prevent_default();
                                                 let connection = connection.clone();
                                                 entry.semester = Some(Semester::Sommersemester);
@@ -691,6 +688,7 @@ fn AnmeldungenEntries(
                                                     .execute(&mut *connection.borrow_mut())
                                                     .unwrap();
                                                 future.restart();
+                                                */
                                             }
                                         },
                                         selected: entry.semester == Some(Semester::Sommersemester)
@@ -702,6 +700,7 @@ fn AnmeldungenEntries(
                                         onclick: {
                                             let mut entry = entry.clone();
                                             move |event| {
+                                                /*
                                                 event.prevent_default();
                                                 let connection = connection.clone();
                                                 entry.semester = Some(Semester::Wintersemester);
@@ -711,6 +710,7 @@ fn AnmeldungenEntries(
                                                     .execute(&mut *connection.borrow_mut())
                                                     .unwrap();
                                                 future.restart();
+                                                */
                                             }
                                         },
                                         selected: entry.semester == Some(Semester::Wintersemester)
@@ -752,7 +752,7 @@ fn prep_planning(
     .expect("Error loading anmeldungen");
     let inner: Vec<PrepPlanningReturn> = results
         .iter()
-        .map(|result| prep_planning(course_of_study, future, connection.clone(), result.clone()))
+        .map(|result| prep_planning(course_of_study, future, result.clone()))
         .collect();
     let has_rules = anmeldung.min_cp != 0
         || anmeldung.max_cp.is_some()
