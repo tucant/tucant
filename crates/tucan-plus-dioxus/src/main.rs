@@ -1,4 +1,4 @@
-use std::panic;
+use std::{panic, sync::Arc};
 
 use dioxus::prelude::*;
 use js_sys::Function;
@@ -184,7 +184,10 @@ pub async fn main() {
 
     let launcher = dioxus::LaunchBuilder::new();
 
-    let worker = wait_for_worker().await;
+    let worker = fragile::Fragile::new(wait_for_worker().await);
+    //let response: String = send_message(&worker, &"test").await;
+
+    let launcher = launcher.with_context(worker);
 
     #[cfg(feature = "web")]
     let launcher = launcher.with_cfg(

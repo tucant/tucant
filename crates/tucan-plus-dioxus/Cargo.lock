@@ -2739,10 +2739,10 @@ dependencies = [
 name = "key-value-database"
 version = "0.1.2"
 dependencies = [
+ "fragile",
  "futures-util",
  "indexed-db",
  "js-sys",
- "send_wrapper",
  "serde",
  "serde-wasm-bindgen",
  "serde_json",
@@ -5575,6 +5575,7 @@ dependencies = [
  "diesel_migrations",
  "dioxus",
  "dioxus-desktop",
+ "fragile",
  "futures",
  "git-version",
  "js-sys",
