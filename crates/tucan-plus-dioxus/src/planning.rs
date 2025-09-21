@@ -18,7 +18,7 @@ use tucan_types::{
 use wasm_bindgen_futures::JsFuture;
 use web_sys::{FileList, HtmlInputElement, Worker};
 
-use crate::{MyRc, RcTucanType, Route};
+use crate::{MyRc, RcTucanType, Route, send_message};
 
 #[component]
 pub fn Planning(course_of_study: ReadSignal<String>) -> Element {
@@ -238,9 +238,11 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
     let mut future = {
         let course_of_study = course_of_study.clone();
         use_resource(move || {
-            let connection_clone = connection_clone.clone();
             let course_of_study = course_of_study.clone();
             async move {
+                // TODO FIXME I think based on course of study we can create an
+                // anmeldung_request and then this here is not special cased any more?
+                send_message(&worker, &course_of_study);
                 let results: Vec<Anmeldung> = QueryDsl::filter(
                     anmeldungen_plan::table,
                     anmeldungen_plan::course_of_study
