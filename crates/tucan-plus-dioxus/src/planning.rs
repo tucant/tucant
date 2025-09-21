@@ -731,15 +731,7 @@ fn prep_planning(
     mut future: Resource<Vec<Anmeldung>>,
     anmeldung: Anmeldung, // ahh this needs to be a signal?
 ) -> PrepPlanningReturn {
-    let results: Vec<Anmeldung> = QueryDsl::filter(
-        anmeldungen_plan::table,
-        anmeldungen_plan::course_of_study
-            .eq(course_of_study)
-            .and(anmeldungen_plan::parent.eq(&anmeldung.url)),
-    )
-    .select(Anmeldung::as_select())
-    .load(&mut *connection.borrow_mut())
-    .expect("Error loading anmeldungen");
+    let response = send_message(&worker, &AnmeldungenRequest2 { course_of_study, anmeldung }).await
     let entries: Vec<AnmeldungEntry> = QueryDsl::filter(
         anmeldungen_entries::table,
         anmeldungen_entries::course_of_study

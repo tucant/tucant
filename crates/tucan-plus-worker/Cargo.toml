@@ -6,7 +6,7 @@ edition = "2024"
 [dependencies]
 js-sys = "0.3"
 wasm-bindgen = "0.2"
-web-sys = { version = "0.3", features = ["DedicatedWorkerGlobalScope", "MessageEvent"] }
+web-sys = { version = "0.3", features = ["DedicatedWorkerGlobalScope", "MessageEvent", "Worker"] }
 console_log = { version = "1", features = ["color"] }
 log = { version = "0.4", features = ["max_level_debug", "release_max_level_warn"] }
 wasm-bindgen-futures = "0.4"
@@ -19,6 +19,7 @@ typetag = "0.2"
 serde = { version = "1", features = ["derive"] }
 erased-serde = "0.4"
 enum_dispatch = "0.3.13"
+fragile = "2"
 
 [patch.crates-io]
 sqlite-wasm-rs = { git = "https://github.com/Spxg/sqlite-wasm-rs.git", branch = "0.4.4" }

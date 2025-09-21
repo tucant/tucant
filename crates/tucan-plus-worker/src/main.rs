@@ -36,7 +36,7 @@ async fn main() {
         info!("Got message");
 
         let afewe: RequestResponseEnum = serde_wasm_bindgen::from_value(event.data()).unwrap();
-        let result = afewe.execute();
+        let result = afewe.execute(connection);
     });
     global
         .add_event_listener_with_callback("message", closure.as_ref().unchecked_ref())

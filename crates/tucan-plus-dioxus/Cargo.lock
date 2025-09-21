@@ -5651,6 +5651,7 @@ dependencies = [
  "diesel_migrations",
  "enum_dispatch",
  "erased-serde",
+ "fragile",
  "js-sys",
  "log",
  "serde",
