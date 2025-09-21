@@ -1,16 +1,11 @@
 use std::cell::RefCell;
 
 use crate::MyRc;
-use diesel::{Connection as _, SqliteConnection};
 use dioxus::prelude::*;
 use js_sys::{Array, Uint8Array};
 use web_sys::{Blob, Url};
 
 async fn export_db() -> Vec<u8> {
-    #[cfg(target_arch = "wasm32")]
-    {
-        return util.export_db("tucan-plus.db").unwrap();
-    }
     panic!();
 }
 

@@ -1,10 +1,6 @@
 use std::cell::RefCell;
 use std::sync::Arc;
 
-use diesel::prelude::*;
-use diesel::upsert::excluded;
-use diesel::{Connection, SqliteConnection};
-use diesel_migrations::{EmbeddedMigrations, MigrationHarness as _, embed_migrations};
 use dioxus::prelude::*;
 use futures::StreamExt;
 use js_sys::Uint8Array;
@@ -19,8 +15,6 @@ use wasm_bindgen_futures::JsFuture;
 use web_sys::{FileList, HtmlInputElement};
 
 use crate::common::use_authenticated_data_loader;
-use crate::models::{Anmeldung, AnmeldungEntry, NewAnmeldung, NewAnmeldungEntry, Semester, State};
-use crate::schema::{anmeldungen_entries, anmeldungen_plan};
 use crate::{MyRc, RcTucanType, Route};
 
 // TODO at some point put opfs into a dedicated worker as that is the most
