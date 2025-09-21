@@ -727,7 +727,6 @@ dependencies = [
  "ident_case",
  "proc-macro2",
  "quote",
- "strsim",
  "syn 2.0.106",
 ]
 
@@ -802,48 +801,6 @@ checksum = "bda628edc44c4bb645fbe0f758797143e4e07926f7ebf4e9bdfbd3d2ce621df3"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.106",
-]
-
-[[package]]
-name = "diesel"
-version = "2.3.1"
-source = "git+https://github.com/diesel-rs/diesel.git#7a0a490cc0c73ed513d9ac6e854ac9e36294e593"
-dependencies = [
- "diesel_derives",
- "downcast-rs 2.0.2",
- "libsqlite3-sys",
- "sqlite-wasm-rs",
- "time",
-]
-
-[[package]]
-name = "diesel_derives"
-version = "2.3.2"
-source = "git+https://github.com/diesel-rs/diesel.git#7a0a490cc0c73ed513d9ac6e854ac9e36294e593"
-dependencies = [
- "diesel_table_macro_syntax",
- "dsl_auto_type",
- "proc-macro2",
- "quote",
- "syn 2.0.106",
-]
-
-[[package]]
-name = "diesel_migrations"
-version = "2.3.0"
-source = "git+https://github.com/diesel-rs/diesel.git#7a0a490cc0c73ed513d9ac6e854ac9e36294e593"
-dependencies = [
- "diesel",
- "migrations_internals",
- "migrations_macros",
-]
-
-[[package]]
-name = "diesel_table_macro_syntax"
-version = "0.3.0"
-source = "git+https://github.com/diesel-rs/diesel.git#7a0a490cc0c73ed513d9ac6e854ac9e36294e593"
-dependencies = [
  "syn 2.0.106",
 ]
 
@@ -1425,29 +1382,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "75b325c5dbd37f80359721ad39aca5a29fb04c89279657cffdda8736d0c0b9d2"
 
 [[package]]
-name = "downcast-rs"
-version = "2.0.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "117240f60069e65410b3ae1bb213295bd828f707b5bec6596a1afc8793ce0cbc"
-
-[[package]]
 name = "dpi"
 version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d8b14ccef22fc6f5a8f4d7d768562a182c04ce9a3b3157b91390b52ddfdf1a76"
-
-[[package]]
-name = "dsl_auto_type"
-version = "0.2.0"
-source = "git+https://github.com/diesel-rs/diesel.git#7a0a490cc0c73ed513d9ac6e854ac9e36294e593"
-dependencies = [
- "darling",
- "either",
- "heck 0.5.0",
- "proc-macro2",
- "quote",
- "syn 2.0.106",
-]
 
 [[package]]
 name = "dtoa"
@@ -3081,25 +3019,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "migrations_internals"
-version = "2.3.0"
-source = "git+https://github.com/diesel-rs/diesel.git#7a0a490cc0c73ed513d9ac6e854ac9e36294e593"
-dependencies = [
- "serde",
- "toml 0.9.7",
-]
-
-[[package]]
-name = "migrations_macros"
-version = "2.3.0"
-source = "git+https://github.com/diesel-rs/diesel.git#7a0a490cc0c73ed513d9ac6e854ac9e36294e593"
-dependencies = [
- "migrations_internals",
- "proc-macro2",
- "quote",
-]
-
-[[package]]
 name = "mime"
 version = "0.3.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4483,15 +4402,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "serde_spanned"
-version = "1.0.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5417783452c2be558477e104686f7de5dae53dba813c28435e0e70f82d9b04ee"
-dependencies = [
- "serde_core",
-]
-
-[[package]]
 name = "serde_urlencoded"
 version = "0.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4764,23 +4674,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "sqlite-wasm-rs"
-version = "0.4.3"
-source = "git+https://github.com/Spxg/sqlite-wasm-rs.git?branch=0.4.4#644e14394364500baad052bd5294f17576e240d5"
-dependencies = [
- "cc",
- "fragile",
- "js-sys",
- "once_cell",
- "parking_lot",
- "thiserror 2.0.16",
- "tokio",
- "wasm-bindgen",
- "wasm-bindgen-futures",
- "web-sys",
-]
-
-[[package]]
 name = "sqlx"
 version = "0.8.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4922,12 +4815,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "strsim"
-version = "0.11.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7da8b5736845d9f2fcb837ea5d9e2628564b3b043a70948a3f0b778838c5fb4f"
-
-[[package]]
 name = "subsecond"
 version = "0.7.0-rc.0"
 source = "git+https://github.com/mohe2015/dioxus.git?branch=my#ef327ac610eddfed8a5a7598b3b54a0f75b67cd7"
@@ -5010,7 +4897,7 @@ dependencies = [
  "cfg-expr",
  "heck 0.5.0",
  "pkg-config",
- "toml 0.8.2",
+ "toml",
  "version-compare",
 ]
 
@@ -5295,22 +5182,9 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "185d8ab0dfbb35cf1399a6344d8484209c088f75f8f68230da55d48d95d43e3d"
 dependencies = [
  "serde",
- "serde_spanned 0.6.9",
+ "serde_spanned",
  "toml_datetime 0.6.3",
  "toml_edit 0.20.2",
-]
-
-[[package]]
-name = "toml"
-version = "0.9.7"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "00e5e5d9bf2475ac9d4f0d9edab68cc573dc2fd644b0dba36b0c30a92dd9eaa0"
-dependencies = [
- "serde_core",
- "serde_spanned 1.0.2",
- "toml_datetime 0.7.2",
- "toml_parser",
- "winnow 0.7.13",
 ]
 
 [[package]]
@@ -5350,7 +5224,7 @@ checksum = "396e4d48bbb2b7554c944bde63101b5ae446cff6ec4a24227428f15eb72ef338"
 dependencies = [
  "indexmap",
  "serde",
- "serde_spanned 0.6.9",
+ "serde_spanned",
  "toml_datetime 0.6.3",
  "winnow 0.5.40",
 ]
@@ -5571,8 +5445,6 @@ dependencies = [
  "android-keyring",
  "console_log",
  "cookie",
- "diesel",
- "diesel_migrations",
  "dioxus",
  "dioxus-desktop",
  "fragile",
@@ -5586,7 +5458,6 @@ dependencies = [
  "serde",
  "serde-wasm-bindgen",
  "serde_json",
- "sqlite-wasm-rs",
  "tokio",
  "tracing",
  "tucan-connector",
@@ -5608,7 +5479,6 @@ dependencies = [
  "itertools",
  "serde",
  "serde_json",
- "sqlite-wasm-rs",
  "tokio",
  "tucan-types",
 ]
@@ -5943,7 +5813,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "673a33c33048a5ade91a6b139580fa174e19fb0d23f396dca9fa15f2e1e49b35"
 dependencies = [
  "cc",
- "downcast-rs 1.2.1",
+ "downcast-rs",
  "rustix",
  "scoped-tls",
  "smallvec",

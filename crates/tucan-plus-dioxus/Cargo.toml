@@ -29,9 +29,6 @@ plotters = { version = "0.3.7", default-features = false, features = ["svg_backe
 keyring = { version = "3", optional = true }
 android-keyring = { version = "0.2", optional = true }
 git-version = "0.3"
-# https://github.com/diesel-rs/diesel/discussions/4545
-diesel = { git = "https://github.com/diesel-rs/diesel.git", features = ["sqlite", "returning_clauses_for_sqlite_3_35"] }
-diesel_migrations = { git = "https://github.com/diesel-rs/diesel.git", features = ["sqlite"] }
 futures = "0.3.31"
 serde-wasm-bindgen = "0.6"
 serde = { version = "1", features = ["derive"] }
@@ -40,11 +37,6 @@ fragile = "2"
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 tokio = { features = ["macros", "rt", "rt-multi-thread"], version = "1" }
 
-[target.'cfg(target_arch = "wasm32")'.dependencies]
-sqlite-wasm-rs = { git = "https://github.com/Spxg/sqlite-wasm-rs.git", branch = "0.4.4", default-features = false, features = ["bundled"] }
-
-[patch.crates-io]
-sqlite-wasm-rs = { git = "https://github.com/Spxg/sqlite-wasm-rs.git", branch = "0.4.4" }
 
 [features]
 direct = ["web", "dep:tucan-connector", "dep:web-extensions-sys"]
