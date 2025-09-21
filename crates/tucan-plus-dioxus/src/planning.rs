@@ -48,6 +48,7 @@ pub fn Planning(course_of_study: ReadSignal<String>) -> Element {
     }
 }
 
+/*
 async fn handle_semester(
     course_of_study: &str,
     tucan: RcTucanType,
@@ -139,7 +140,8 @@ async fn handle_semester(
         }
     }
 }
-
+*/
+/*
 pub async fn recursive_update(course_of_study: &str, url: String, level: StudentResultLevel) {
     for child in level.children {
         let name = child.name.as_ref().unwrap();
@@ -215,7 +217,7 @@ pub async fn recursive_update(course_of_study: &str, url: String, level: Student
         ))
         .execute(&mut *connection_clone.borrow_mut())
         .expect("Error saving anmeldungen");
-}
+}*/
 
 #[component]
 pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
@@ -252,6 +254,7 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
             }
         })
     };
+    /*
     let load_leistungsspiegel = {
         let tucan = tucan.clone();
         let student_result = student_result.clone();
@@ -352,12 +355,13 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
                 future.restart();
             }
         }
-    };
+    };*/
 
     let tucan = tucan.clone();
     let onsubmit = {
         let course_of_study = course_of_study.clone();
         move |evt: Event<FormData>| {
+            /*
             let tucan = tucan.clone();
             let course_of_study = course_of_study.clone();
             evt.prevent_default();
@@ -383,6 +387,7 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
                 loading.set(false);
                 future.restart();
             }
+            */
         }
     };
 
@@ -480,7 +485,6 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
                 disabled: loading(),
                 type: "button",
                 class: "btn btn-primary mb-3",
-                onclick: load_leistungsspiegel,
                 "Leistungsspiegel laden (nach Laden der Semester)"
             }
             if let Some(value) = future() {
@@ -492,51 +496,51 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
                     }
                 }
             }
-            for i in 2020..2030 {
-                Fragment {
-                    key: "{i}",
-                    h2 {
-                        "Sommersemester {i}"
-                    }
-                    AnmeldungenEntries {
-                        future,
-                        entries: QueryDsl::filter(
-                            anmeldungen_entries::table,
-                            anmeldungen_entries::course_of_study
-                                .eq(&course_of_study)
-                                .and(
-                                    anmeldungen_entries::semester
-                                        .eq(Semester::Sommersemester)
-                                        .and(anmeldungen_entries::year.eq(i))
-                                ),
-                        )
-                        .select(AnmeldungEntry::as_select())
-                        .load(&mut *connection.borrow_mut())
-                        .expect("Error loading anmeldungen"),
-                    }
-                    h2 {
-                        "Wintersemester {i}"
-                    }
-                    AnmeldungenEntries {
-                        future,
-                        entries: QueryDsl::filter(
-                            anmeldungen_entries::table,
-                            anmeldungen_entries::course_of_study
-                                .eq(&course_of_study)
-                                .and(
-                                    anmeldungen_entries::semester
-                                        .eq(Semester::Wintersemester)
-                                        .and(anmeldungen_entries::year.eq(i))
-                                ),
-                        )
-                        .select(AnmeldungEntry::as_select())
-                        .load(&mut *connection.borrow_mut())
-                        .expect("Error loading anmeldungen"),
-                    }
-                }
-            }
         }
     }
+    /* for i in 2020..2030 {
+        Fragment {
+            key: "{i}",
+            h2 {
+                "Sommersemester {i}"
+            }
+            AnmeldungenEntries {
+                future,
+                entries: QueryDsl::filter(
+                    anmeldungen_entries::table,
+                    anmeldungen_entries::course_of_study
+                        .eq(&course_of_study)
+                        .and(
+                            anmeldungen_entries::semester
+                                .eq(Semester::Sommersemester)
+                                .and(anmeldungen_entries::year.eq(i))
+                        ),
+                )
+                .select(AnmeldungEntry::as_select())
+                .load(&mut *connection.borrow_mut())
+                .expect("Error loading anmeldungen"),
+            }
+            h2 {
+                "Wintersemester {i}"
+            }
+            AnmeldungenEntries {
+                future,
+                entries: QueryDsl::filter(
+                    anmeldungen_entries::table,
+                    anmeldungen_entries::course_of_study
+                        .eq(&course_of_study)
+                        .and(
+                            anmeldungen_entries::semester
+                                .eq(Semester::Wintersemester)
+                                .and(anmeldungen_entries::year.eq(i))
+                        ),
+                )
+                .select(AnmeldungEntry::as_select())
+                .load(&mut *connection.borrow_mut())
+                .expect("Error loading anmeldungen"),
+            }
+        }
+    } */
 }
 
 pub struct PrepPlanningReturn {
