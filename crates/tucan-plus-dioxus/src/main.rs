@@ -32,36 +32,44 @@ pub async fn wait_for_worker() {
         let options = WorkerOptions::new();
         options.set_type(WorkerType::Module);
         let worker = Worker::new_with_options("/assets/worker-helper/worker.js", &options).unwrap();
-        let message_closure: Option<Closure<dyn Fn(MessageEvent)>> = None;
-        let error_closure: Closure<dyn Fn(_)> = Closure::new(move |event: web_sys::Event| {
-            info!("error {event:?}");
-            worker.remove_event_listener_with_callback(
-                "message",
-                message_closure.unwrap().as_ref().unchecked_ref(),
-            );
-            reject.call0(&JsValue::NULL).unwrap();
-        });
-        message_closure = Some(Closure::new(move |event: MessageEvent| {
-            info!("{:?}", event.data());
-            worker.remove_event_listener_with_callback(
-                "error",
-                error_closure.as_ref().unchecked_ref(),
-            );
-            resolve.call0(&JsValue::NULL).unwrap();
-        }));
+        let mut message_closure: Option<Closure<dyn Fn(MessageEvent)>> = None;
+        let error_closure: Closure<dyn Fn(_)> = {
+            let worker = worker.clone();
+            Closure::new(move |event: web_sys::Event| {
+                info!("error {event:?}");
+                worker.remove_event_listener_with_callback(
+                    "message",
+                    message_closure.as_ref().unwrap().as_ref().unchecked_ref(),
+                );
+                reject.call0(&JsValue::NULL).unwrap();
+            })
+        };
+        let error_closure_ref = error_closure.as_ref().clone();
+        message_closure = {
+            let worker = worker.clone();
+            let error_closure_ref = error_closure_ref.clone();
+            Some(Closure::new(move |event: MessageEvent| {
+                info!("{:?}", event.data());
+                worker.remove_event_listener_with_callback(
+                    "error",
+                    error_closure_ref.unchecked_ref(),
+                );
+                resolve.call0(&JsValue::NULL).unwrap();
+            }))
+        };
         let options = AddEventListenerOptions::new();
         options.set_once(true);
         worker
             .add_event_listener_with_callback_and_add_event_listener_options(
                 "error",
-                error_closure.as_ref().unchecked_ref(),
+                error_closure_ref.unchecked_ref(),
                 &options,
             )
             .unwrap();
         worker
             .add_event_listener_with_callback_and_add_event_listener_options(
                 "message",
-                message_closure.unwrap().as_ref().unchecked_ref(),
+                message_closure.as_ref().unwrap().as_ref().unchecked_ref(),
                 &options,
             )
             .unwrap();
