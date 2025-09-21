@@ -175,7 +175,7 @@
               src = pkgs.fetchCrate {
                 pname = "wasm-bindgen-cli";
                 version = "0.2.103";
-                hash = "";
+                hash = "sha256-ZMK/MpThET2b2uO+9gt9orjXbqLH5ZaoOQ9CAUU9PZY=";
               };
 
               cargoDeps = pkgs.rustPlatform.fetchCargoVendor {

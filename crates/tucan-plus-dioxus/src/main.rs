@@ -27,7 +27,7 @@ extern "C" {
 // https://github.com/tauri-apps/wry
 // https://github.com/tauri-apps/tao/blob/5ac00b57ad3f5c5c7135dde626cb90bc1ad469dc/src/platform_impl/android/ndk_glue.rs#L236
 
-pub async fn wait_for_worker() {
+pub async fn wait_for_worker() -> Worker {
     let mut cb = |resolve: js_sys::Function, reject: js_sys::Function| {
         let options = WorkerOptions::new();
         options.set_type(WorkerType::Module);
@@ -43,7 +43,7 @@ pub async fn wait_for_worker() {
                         message_closure.as_ref().unwrap().as_ref().unchecked_ref(),
                     )
                     .unwrap();
-                reject.call0(&JsValue::NULL).unwrap();
+                reject.call0(&JsValue::undefined()).unwrap();
             })
         };
         let error_closure_ref = error_closure.as_ref().clone();
@@ -55,7 +55,7 @@ pub async fn wait_for_worker() {
                 worker
                     .remove_event_listener_with_callback("error", error_closure_ref.unchecked_ref())
                     .unwrap();
-                resolve.call0(&JsValue::NULL).unwrap();
+                resolve.call1(&JsValue::undefined(), &worker).unwrap();
             }))
         };
         let options = AddEventListenerOptions::new();
@@ -80,7 +80,10 @@ pub async fn wait_for_worker() {
 
     let p = js_sys::Promise::new(&mut cb);
 
-    wasm_bindgen_futures::JsFuture::from(p).await.unwrap();
+    wasm_bindgen_futures::JsFuture::from(p)
+        .await
+        .unwrap()
+        .into()
 }
 
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen(main))]
@@ -122,6 +125,8 @@ pub async fn main() {
     };
 
     let launcher = dioxus::LaunchBuilder::new();
+
+    let worker = wait_for_worker().await;
 
     #[cfg(feature = "web")]
     let launcher = launcher.with_cfg(
