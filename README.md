@@ -74,6 +74,9 @@ cargo install --locked bacon
 cd crates/tucan-plus-api/
 bacon run
 
+import init from "./tucan-plus-worker.js";
+init();
+
 # http://localhost:8080/#/
 ```
 

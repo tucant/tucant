@@ -33,8 +33,10 @@ use fragile::Fragile;
 use log::info;
 use serde::Serialize;
 use serde::de::DeserializeOwned;
+use std::cell::RefCell;
 use std::fmt::Debug;
 use std::ops::Deref;
+use std::rc::Rc;
 use std::sync::Arc;
 use tucan_plus_worker::RequestResponse;
 use tucan_types::DynTucan;
@@ -143,23 +145,30 @@ pub async fn send_message<R: RequestResponse + Debug>(
 ) -> R::Response {
     info!("sending message from client {:?}", value);
     let mut cb = |resolve: js_sys::Function, reject: js_sys::Function| {
-        let mut message_closure: Option<Closure<dyn Fn(MessageEvent)>> = None;
+        let mut message_closure: Rc<RefCell<Option<Closure<dyn Fn(MessageEvent)>>>> =
+            Rc::new(RefCell::new(None));
         let error_closure: Closure<dyn Fn(_)> = {
             let worker = worker.clone();
+            let message_closure = message_closure.clone();
             Closure::new(move |event: web_sys::Event| {
                 info!("error at client {event:?}");
                 worker
                     .get()
                     .remove_event_listener_with_callback(
                         "message",
-                        message_closure.as_ref().unwrap().as_ref().unchecked_ref(),
+                        message_closure
+                            .borrow()
+                            .as_ref()
+                            .unwrap()
+                            .as_ref()
+                            .unchecked_ref(),
                     )
                     .unwrap();
                 reject.call0(&JsValue::undefined()).unwrap();
             })
         };
         let error_closure_ref = error_closure.as_ref().clone();
-        message_closure = {
+        *message_closure.borrow_mut() = {
             let worker = worker.clone();
             let error_closure_ref = error_closure_ref.clone();
             Some(Closure::new(move |event: MessageEvent| {
@@ -185,12 +194,16 @@ pub async fn send_message<R: RequestResponse + Debug>(
             .get()
             .add_event_listener_with_callback_and_add_event_listener_options(
                 "message",
-                message_closure.as_ref().unwrap().as_ref().unchecked_ref(),
+                message_closure
+                    .borrow()
+                    .as_ref()
+                    .unwrap()
+                    .as_ref()
+                    .unchecked_ref(),
                 &options,
             )
             .unwrap();
         error_closure.forget();
-        message_closure.unwrap().forget();
     };
 
     let p = js_sys::Promise::new(&mut cb);
