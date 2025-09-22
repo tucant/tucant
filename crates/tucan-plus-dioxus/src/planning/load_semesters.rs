@@ -1,8 +1,10 @@
-use dioxus::signals::Signal;
+use dioxus::{hooks::use_context, signals::Signal};
+use fragile::Fragile;
 use futures::StreamExt as _;
 use js_sys::Uint8Array;
 use tucan_plus_planning::decompress;
 use tucan_plus_worker::{
+    FEwefweewf, Wlewifhewefwef,
     models::{Anmeldung, AnmeldungEntry, Semester, State},
     schema::{anmeldungen_entries, anmeldungen_plan},
 };
@@ -10,9 +12,9 @@ use tucan_types::{
     CONCURRENCY, LoginResponse, RevalidationStrategy, Tucan as _, registration::AnmeldungResponse,
 };
 use wasm_bindgen_futures::JsFuture;
-use web_sys::{FileList, HtmlInputElement};
+use web_sys::{FileList, HtmlInputElement, Worker};
 
-use crate::RcTucanType;
+use crate::{RcTucanType, send_message};
 
 async fn handle_semester(
     course_of_study: &str,
@@ -22,6 +24,7 @@ async fn handle_semester(
     element: Signal<Option<web_sys::Element>>,
 ) {
     use wasm_bindgen::JsCast;
+    let worker: Fragile<Worker> = use_context();
     let element = element().unwrap();
     let b: HtmlInputElement = element.dyn_into::<HtmlInputElement>().unwrap();
     let files: FileList = b.files().unwrap();
@@ -38,7 +41,7 @@ async fn handle_semester(
             .map(|e| Anmeldung {
                 course_of_study: course_of_study.to_owned(),
                 url: e.path.last().unwrap().1.inner().to_owned(),
-                name: e.path.last().unwrap().0,
+                name: e.path.last().unwrap().0.clone(),
                 parent: e
                     .path
                     .len()
@@ -50,7 +53,7 @@ async fn handle_semester(
                 max_modules: None,
             })
             .collect();
-        // TODO
+        send_message(&worker, FEwefweewf { inserts }).await;
         let inserts: Vec<AnmeldungEntry> = futures::stream::iter(result.iter())
             .flat_map(|anmeldung| {
                 futures::stream::iter(anmeldung.entries.iter()).map(async |entry| AnmeldungEntry {
@@ -58,8 +61,8 @@ async fn handle_semester(
                     available_semester: semester,
                     anmeldung: anmeldung.path.last().unwrap().1.inner().to_owned(),
                     module_url: entry.module.as_ref().unwrap().url.inner().to_owned(),
-                    id: entry.module.as_ref().unwrap().id,
-                    name: entry.module.as_ref().unwrap().name,
+                    id: entry.module.as_ref().unwrap().id.clone(),
+                    name: entry.module.as_ref().unwrap().name.clone(),
                     credits: tucan
                         .module_details(
                             login_response,
@@ -82,22 +85,7 @@ async fn handle_semester(
             .await;
         // prevent too many variable error, TODO maybe batching
         for insert in inserts {
-            diesel::insert_into(anmeldungen_entries::table)
-                .values(&insert)
-                .on_conflict((
-                    anmeldungen_entries::course_of_study,
-                    anmeldungen_entries::anmeldung,
-                    anmeldungen_entries::available_semester,
-                    anmeldungen_entries::id,
-                ))
-                .do_update()
-                .set((
-                    // TODO FIXME I think updating does not work
-                    anmeldungen_entries::state.eq(excluded(anmeldungen_entries::state)),
-                    (anmeldungen_entries::credits.eq(excluded(anmeldungen_entries::credits))),
-                ))
-                .execute(&mut *connection_clone.borrow_mut())
-                .expect("Error saving anmeldungen");
+            send_message(&worker, Wlewifhewefwef { insert }).await;
         }
     }
 }

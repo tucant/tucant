@@ -84,7 +84,7 @@ impl RequestResponse for Fewe {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct FEwefweewf {
-    inserts: Vec<Anmeldung>,
+    pub inserts: Vec<Anmeldung>,
 }
 
 impl RequestResponse for FEwefweewf {
@@ -101,11 +101,41 @@ impl RequestResponse for FEwefweewf {
     }
 }
 
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Wlewifhewefwef {
+    pub insert: AnmeldungEntry,
+}
+
+impl RequestResponse for Wlewifhewefwef {
+    type Response = ();
+
+    fn execute(&self, connection: &mut SqliteConnection) -> Self::Response {
+        diesel::insert_into(anmeldungen_entries::table)
+            .values(&self.insert)
+            .on_conflict((
+                anmeldungen_entries::course_of_study,
+                anmeldungen_entries::anmeldung,
+                anmeldungen_entries::available_semester,
+                anmeldungen_entries::id,
+            ))
+            .do_update()
+            .set((
+                // TODO FIXME I think updating does not work
+                anmeldungen_entries::state.eq(excluded(anmeldungen_entries::state)),
+                (anmeldungen_entries::credits.eq(excluded(anmeldungen_entries::credits))),
+            ))
+            .execute(connection)
+            .expect("Error saving anmeldungen");
+    }
+}
+
 #[derive(Serialize, Deserialize, Debug, From)]
 pub enum RequestResponseEnum {
     AnmeldungenRequest(AnmeldungenRequest),
     AnmeldungenRequest2(AnmeldungenRequest2),
     Fewe(Fewe),
+    FEwefweewf(FEwefweewf),
+    Wlewifhewefwef(Wlewifhewefwef),
 }
 
 impl RequestResponseEnum {
@@ -118,6 +148,12 @@ impl RequestResponseEnum {
                 serde_wasm_bindgen::to_value(&value.execute(connection)).unwrap()
             }
             RequestResponseEnum::Fewe(value) => {
+                serde_wasm_bindgen::to_value(&value.execute(connection)).unwrap()
+            }
+            RequestResponseEnum::FEwefweewf(value) => {
+                serde_wasm_bindgen::to_value(&value.execute(connection)).unwrap()
+            }
+            RequestResponseEnum::Wlewifhewefwef(value) => {
                 serde_wasm_bindgen::to_value(&value.execute(connection)).unwrap()
             }
         }
