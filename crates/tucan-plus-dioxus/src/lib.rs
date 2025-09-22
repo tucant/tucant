@@ -24,9 +24,6 @@ pub mod registration;
 pub mod student_result;
 pub mod vv;
 
-use std::ops::Deref;
-use std::sync::Arc;
-
 use crate::export_semester::FetchAnmeldung;
 use crate::navbar::Navbar;
 use crate::overview::Overview;
@@ -36,6 +33,9 @@ use fragile::Fragile;
 use log::info;
 use serde::Serialize;
 use serde::de::DeserializeOwned;
+use std::fmt::Debug;
+use std::ops::Deref;
+use std::sync::Arc;
 use tucan_plus_worker::RequestResponse;
 use tucan_types::DynTucan;
 use tucan_types::gradeoverview::GradeOverviewRequest;
@@ -156,13 +156,17 @@ pub async fn wait_for_worker() -> Worker {
         .into()
 }
 
-pub async fn send_message<R: RequestResponse>(worker: &Fragile<Worker>, value: &R) -> R::Response {
+pub async fn send_message<R: RequestResponse + Debug>(
+    worker: &Fragile<Worker>,
+    value: &R,
+) -> R::Response {
+    info!("sending message from client {:?}", value);
     let mut cb = |resolve: js_sys::Function, reject: js_sys::Function| {
         let mut message_closure: Option<Closure<dyn Fn(MessageEvent)>> = None;
         let error_closure: Closure<dyn Fn(_)> = {
             let worker = worker.clone();
             Closure::new(move |event: web_sys::Event| {
-                info!("error {event:?}");
+                info!("error at client {event:?}");
                 worker
                     .get()
                     .remove_event_listener_with_callback(
@@ -178,7 +182,7 @@ pub async fn send_message<R: RequestResponse>(worker: &Fragile<Worker>, value: &
             let worker = worker.clone();
             let error_closure_ref = error_closure_ref.clone();
             Some(Closure::new(move |event: MessageEvent| {
-                info!("{:?}", event.data());
+                info!("received message at client {:?}", event.data());
                 worker
                     .get()
                     .remove_event_listener_with_callback("error", error_closure_ref.unchecked_ref())

@@ -11,13 +11,12 @@ use crate::{
 
 pub mod models;
 pub mod schema;
-
 pub trait RequestResponse: Serialize {
     type Response: DeserializeOwned;
     fn execute(&self, connection: &mut SqliteConnection) -> Self::Response;
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct AnmeldungenRequest {
     pub course_of_study: String,
 }
@@ -38,7 +37,7 @@ impl RequestResponse for AnmeldungenRequest {
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct AnmeldungenRequest2 {
     pub course_of_study: String,
     pub anmeldung: Anmeldung,
@@ -60,7 +59,7 @@ impl RequestResponse for AnmeldungenRequest2 {
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Fewe {
     pub course_of_study: String,
     pub anmeldung: Anmeldung,
@@ -82,7 +81,7 @@ impl RequestResponse for Fewe {
     }
 }
 
-#[derive(Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub enum RequestResponseEnum {
     AnmeldungenRequest(AnmeldungenRequest),
 }

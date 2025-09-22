@@ -45,12 +45,12 @@ async fn main() {
     let connection = RefCell::new(connection);
 
     let closure: Closure<dyn Fn(MessageEvent)> = Closure::new(move |event: MessageEvent| {
+        info!("Got message at worker {:?}", event.data());
         let global = js_sys::global().unchecked_into::<web_sys::DedicatedWorkerGlobalScope>();
-        info!("Got message {:?}", event.data());
 
         let afewe: RequestResponseEnum = serde_wasm_bindgen::from_value(event.data()).unwrap();
         let result = afewe.execute(&mut connection.borrow_mut());
-        info!("Got result {:?}", result);
+        info!("Got result at worker {:?}", result);
         global.post_message(&result).unwrap();
     });
     global
@@ -58,7 +58,7 @@ async fn main() {
         .unwrap();
 
     //util.export_db("tucan-plus.db").unwrap();
+    closure.forget();
 
     global.post_message(&JsValue::from_str("ready")).unwrap();
-    sleep(Duration::from_secs(100000)).await;
 }
