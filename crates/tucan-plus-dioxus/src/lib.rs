@@ -150,8 +150,12 @@ pub async fn send_message<R: RequestResponse + Debug>(
         let error_closure: Closure<dyn Fn(_)> = {
             let worker = worker.clone();
             let message_closure = message_closure.clone();
-            Closure::new(move |event: web_sys::Event| {
-                info!("error at client {event:?}");
+            Closure::new(move |event: web_sys::ErrorEvent| {
+                info!(
+                    "error at client {event:?} {:?} {:?}",
+                    event.message(),
+                    event.error()
+                );
                 worker
                     .get()
                     .remove_event_listener_with_callback(
