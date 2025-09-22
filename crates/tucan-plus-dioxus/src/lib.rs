@@ -101,7 +101,7 @@ pub async fn wait_for_worker() -> Worker {
     let mut cb = |resolve: js_sys::Function, reject: js_sys::Function| {
         let options = WorkerOptions::new();
         options.set_type(WorkerType::Module);
-        let worker = Worker::new_with_options("/assets/worker-helper/worker.js", &options).unwrap();
+        let worker = Worker::new_with_options(&format!("{WORKER_JS}/worker.js"), &options).unwrap();
         let mut message_closure: Option<Closure<dyn Fn(MessageEvent)>> = None;
         let error_closure: Closure<dyn Fn(_)> = {
             let worker = worker.clone();

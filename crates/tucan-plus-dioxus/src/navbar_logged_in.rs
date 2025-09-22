@@ -551,11 +551,11 @@ pub fn NavbarLoggedIn(
                         "data-bs-target": "#navbarSupportedContent",
                         "data-bs-hide": "collapse", "Semesterexport" }
                 }
-                /*li {
+                li {
                     Link { to: Route::Planning { course_of_study: "default".to_string() }, class: "dropdown-item bg-success",
                         "data-bs-target": "#navbarSupportedContent",
                         "data-bs-hide": "collapse", "Semesterplanung" }
-                }*/
+                }
                 li {
                     Link { to: Route::ExportDatabase {}, class: "dropdown-item bg-success",
                         "data-bs-target": "#navbarSupportedContent",
