@@ -1,3 +1,4 @@
+use derive_more::From;
 use diesel::prelude::*;
 use fragile::Fragile;
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
@@ -81,7 +82,7 @@ impl RequestResponse for Fewe {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, From)]
 pub enum RequestResponseEnum {
     AnmeldungenRequest(AnmeldungenRequest),
     AnmeldungenRequest2(AnmeldungenRequest2),

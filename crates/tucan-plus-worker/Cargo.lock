@@ -122,6 +122,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "derive_more"
+version = "2.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "093242cf7570c207c83073cf82f79706fe7b8317e98620a47d5be7c3d8497678"
+dependencies = [
+ "derive_more-impl",
+]
+
+[[package]]
+name = "derive_more-impl"
+version = "2.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bda628edc44c4bb645fbe0f758797143e4e07926f7ebf4e9bdfbd3d2ce621df3"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "diesel"
 version = "2.3.1"
 source = "git+https://github.com/diesel-rs/diesel.git#0a7ed8d1d6a5c5e02e622bef94feddb10440ec18"
@@ -670,6 +690,7 @@ name = "tucan-plus-worker"
 version = "0.1.0"
 dependencies = [
  "console_log",
+ "derive_more",
  "diesel",
  "diesel_migrations",
  "enum_dispatch",

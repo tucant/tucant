@@ -38,7 +38,7 @@ use std::fmt::Debug;
 use std::ops::Deref;
 use std::rc::Rc;
 use std::sync::Arc;
-use tucan_plus_worker::RequestResponse;
+use tucan_plus_worker::{RequestResponse, RequestResponseEnum};
 use tucan_types::DynTucan;
 use tucan_types::gradeoverview::GradeOverviewRequest;
 use tucan_types::{
@@ -139,7 +139,7 @@ pub async fn wait_for_worker() -> Worker {
         .into()
 }
 
-pub async fn send_message<R: RequestResponse + Debug>(
+pub async fn send_message<R: RequestResponse + Debug + Into<RequestResponseEnum>>(
     worker: &Fragile<Worker>,
     value: &R,
 ) -> R::Response {
