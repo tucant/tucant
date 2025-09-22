@@ -1,5 +1,5 @@
 use derive_more::From;
-use diesel::prelude::*;
+use diesel::{prelude::*, upsert::excluded};
 use fragile::Fragile;
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use wasm_bindgen::JsValue;
@@ -79,6 +79,25 @@ impl RequestResponse for Fewe {
         .select(AnmeldungEntry::as_select())
         .load(connection)
         .expect("Error loading anmeldungen")
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct FEwefweewf {
+    inserts: Vec<Anmeldung>,
+}
+
+impl RequestResponse for FEwefweewf {
+    type Response = ();
+
+    fn execute(&self, connection: &mut SqliteConnection) -> Self::Response {
+        diesel::insert_into(anmeldungen_plan::table)
+            .values(&self.inserts)
+            .on_conflict((anmeldungen_plan::course_of_study, anmeldungen_plan::url))
+            .do_update()
+            .set(anmeldungen_plan::parent.eq(excluded(anmeldungen_plan::parent)))
+            .execute(connection)
+            .expect("Error saving anmeldungen");
     }
 }
 

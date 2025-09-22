@@ -42,28 +42,15 @@ where
     }
 }
 
-#[derive(Queryable, Selectable, Clone, PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Insertable, Queryable, Selectable, Clone, PartialEq, Debug, Serialize, Deserialize)]
 #[diesel(table_name = anmeldungen_plan)]
 #[diesel(check_for_backend(diesel::sqlite::Sqlite))]
+#[diesel(treat_none_as_default_value = false)]
 pub struct Anmeldung {
     pub course_of_study: String,
     pub url: String,
     pub name: String,
     pub parent: Option<String>,
-    pub min_cp: i32,
-    pub max_cp: Option<i32>,
-    pub min_modules: i32,
-    pub max_modules: Option<i32>,
-}
-
-#[derive(Insertable, Debug)]
-#[diesel(table_name = anmeldungen_plan)]
-#[diesel(treat_none_as_default_value = false)]
-pub struct NewAnmeldung<'a> {
-    pub course_of_study: &'a str,
-    pub url: &'a str,
-    pub name: &'a str,
-    pub parent: Option<&'a str>,
     pub min_cp: i32,
     pub max_cp: Option<i32>,
     pub min_modules: i32,
@@ -105,6 +92,7 @@ where
 }
 
 #[derive(
+    Insertable,
     Queryable,
     Selectable,
     Clone,
@@ -127,22 +115,6 @@ pub struct AnmeldungEntry {
     pub module_url: String,
     pub id: String,
     pub name: String,
-    pub credits: i32,
-    pub state: State,
-    pub semester: Option<Semester>,
-    pub year: Option<i32>,
-}
-
-#[derive(Insertable, Debug)]
-#[diesel(table_name = anmeldungen_entries)]
-#[diesel(treat_none_as_default_value = false)]
-pub struct NewAnmeldungEntry<'a> {
-    pub course_of_study: &'a str,
-    pub available_semester: Semester,
-    pub anmeldung: &'a str,
-    pub module_url: &'a str,
-    pub id: &'a str,
-    pub name: &'a str,
     pub credits: i32,
     pub state: State,
     pub semester: Option<Semester>,

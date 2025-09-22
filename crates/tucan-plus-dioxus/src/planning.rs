@@ -9,9 +9,7 @@ use futures::StreamExt;
 use js_sys::Uint8Array;
 use log::info;
 use tucan_plus_planning::decompress;
-use tucan_plus_worker::models::{
-    Anmeldung, AnmeldungEntry, NewAnmeldung, NewAnmeldungEntry, Semester, State,
-};
+use tucan_plus_worker::models::{Anmeldung, AnmeldungEntry, Semester, State};
 use tucan_plus_worker::{AnmeldungenRequest, AnmeldungenRequest2, Fewe};
 use tucan_types::registration::AnmeldungResponse;
 use tucan_types::student_result::{StudentResultLevel, StudentResultResponse};
