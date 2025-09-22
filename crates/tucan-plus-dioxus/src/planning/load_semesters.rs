@@ -3,7 +3,7 @@ use futures::StreamExt as _;
 use js_sys::Uint8Array;
 use tucan_plus_planning::decompress;
 use tucan_plus_worker::{
-    models::{NewAnmeldung, NewAnmeldungEntry, Semester, State},
+    models::{Anmeldung, AnmeldungEntry, Semester, State},
     schema::{anmeldungen_entries, anmeldungen_plan},
 };
 use tucan_types::{
@@ -35,11 +35,15 @@ async fn handle_semester(
         result.sort_by_key(|e| e.path.len());
         let inserts: Vec<_> = result
             .iter()
-            .map(|e| NewAnmeldung {
-                course_of_study,
-                url: e.path.last().unwrap().1.inner(),
-                name: &e.path.last().unwrap().0,
-                parent: e.path.len().checked_sub(2).map(|v| e.path[v].1.inner()),
+            .map(|e| Anmeldung {
+                course_of_study: course_of_study.to_owned(),
+                url: e.path.last().unwrap().1.inner().to_owned(),
+                name: e.path.last().unwrap().0,
+                parent: e
+                    .path
+                    .len()
+                    .checked_sub(2)
+                    .map(|v| e.path[v].1.inner().to_owned()),
                 min_cp: 0,
                 max_cp: None,
                 min_modules: 0,
@@ -47,32 +51,30 @@ async fn handle_semester(
             })
             .collect();
         // TODO
-        let inserts: Vec<NewAnmeldungEntry> = futures::stream::iter(result.iter())
+        let inserts: Vec<AnmeldungEntry> = futures::stream::iter(result.iter())
             .flat_map(|anmeldung| {
-                futures::stream::iter(anmeldung.entries.iter()).map(async |entry| {
-                    NewAnmeldungEntry {
-                        course_of_study: course_of_study,
-                        available_semester: semester,
-                        anmeldung: anmeldung.path.last().unwrap().1.inner(),
-                        module_url: entry.module.as_ref().unwrap().url.inner(),
-                        id: &entry.module.as_ref().unwrap().id,
-                        name: &entry.module.as_ref().unwrap().name,
-                        credits: tucan
-                            .module_details(
-                                login_response,
-                                RevalidationStrategy::cache(),
-                                entry.module.as_ref().unwrap().url.clone(),
-                            )
-                            .await
-                            .unwrap()
-                            .credits
-                            .unwrap_or_default()
-                            .try_into()
-                            .unwrap(),
-                        state: State::NotPlanned,
-                        year: None,
-                        semester: None,
-                    }
+                futures::stream::iter(anmeldung.entries.iter()).map(async |entry| AnmeldungEntry {
+                    course_of_study: course_of_study.to_owned(),
+                    available_semester: semester,
+                    anmeldung: anmeldung.path.last().unwrap().1.inner().to_owned(),
+                    module_url: entry.module.as_ref().unwrap().url.inner().to_owned(),
+                    id: entry.module.as_ref().unwrap().id,
+                    name: entry.module.as_ref().unwrap().name,
+                    credits: tucan
+                        .module_details(
+                            login_response,
+                            RevalidationStrategy::cache(),
+                            entry.module.as_ref().unwrap().url.clone(),
+                        )
+                        .await
+                        .unwrap()
+                        .credits
+                        .unwrap_or_default()
+                        .try_into()
+                        .unwrap(),
+                    state: State::NotPlanned,
+                    year: None,
+                    semester: None,
                 })
             })
             .buffer_unordered(CONCURRENCY)
