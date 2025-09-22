@@ -16,7 +16,7 @@ use web_sys::{FileList, HtmlInputElement, Worker};
 
 use crate::{RcTucanType, send_message};
 
-async fn handle_semester(
+pub async fn handle_semester(
     course_of_study: &str,
     tucan: RcTucanType,
     login_response: &LoginResponse,

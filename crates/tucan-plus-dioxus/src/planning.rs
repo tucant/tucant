@@ -19,6 +19,7 @@ use tucan_types::{
 use wasm_bindgen_futures::JsFuture;
 use web_sys::{FileList, HtmlInputElement, Worker};
 
+use crate::planning::load_semesters::handle_semester;
 use crate::{MyRc, RcTucanType, Route, send_message};
 
 #[component]
@@ -275,7 +276,6 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
     let onsubmit = {
         let course_of_study = course_of_study.clone();
         move |evt: Event<FormData>| {
-            /*
             let tucan = tucan.clone();
             let course_of_study = course_of_study.clone();
             evt.prevent_default();
@@ -301,7 +301,6 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
                 loading.set(false);
                 future.restart();
             }
-            */
         }
     };
 
