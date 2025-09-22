@@ -245,7 +245,13 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
             async move {
                 // TODO FIXME I think based on course of study we can create an
                 // anmeldung_request and then this here is not special cased any more?
-                send_message(&worker, &AnmeldungenRequest { course_of_study }).await
+                let result = send_message(&worker, &AnmeldungenRequest { course_of_study }).await;
+                futures::stream::iter(result.into_iter())
+                    .then(async |anmeldung| {
+                        prep_planning(&course_of_study, anmeldung).await.element
+                    })
+                    .collect::<Vec<Element>>()
+                    .await
             }
         })
     };
@@ -484,11 +490,7 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
             }
             if let Some(value) = future() {
                 for entry in value {
-                    PlanningAnmeldung {
-                        course_of_study: course_of_study.clone(),
-                        future,
-                        anmeldung: entry.clone(),
-                    }
+                    { entry }
                 }
             }
         }
@@ -555,10 +557,7 @@ pub enum PlanningState {
 }
 
 #[component]
-fn AnmeldungenEntries(
-    mut future: Resource<Vec<Anmeldung>>,
-    entries: Vec<AnmeldungEntry>,
-) -> Element {
+fn AnmeldungenEntries(entries: Vec<AnmeldungEntry>) -> Element {
     info!("{:?}", entries);
     rsx! {
         table {
@@ -728,7 +727,6 @@ fn AnmeldungenEntries(
 
 async fn prep_planning(
     course_of_study: &str,
-    mut future: Resource<Vec<Anmeldung>>,
     anmeldung: Anmeldung, // ahh this needs to be a signal?
 ) -> PrepPlanningReturn {
     let worker: Fragile<Worker> = use_context();
@@ -749,7 +747,7 @@ async fn prep_planning(
     )
     .await;
     let inner: Vec<PrepPlanningReturn> = futures::stream::iter(results.iter())
-        .then(async |result| Box::pin(prep_planning(course_of_study, future, result.clone())).await)
+        .then(async |result| Box::pin(prep_planning(course_of_study, result.clone())).await)
         .collect()
         .await;
     let has_rules = anmeldung.min_cp != 0
@@ -797,7 +795,6 @@ async fn prep_planning(
                 if (!entries.is_empty() && expanded())
                     || entries.iter().any(|entry| entry.state != State::NotPlanned) {
                     AnmeldungenEntries {
-                        future,
                         entries: entries
                             .iter()
                             .filter(|entry| expanded() || entry.state != State::NotPlanned)
@@ -881,16 +878,4 @@ async fn prep_planning(
             }
         },
     }
-}
-
-#[component]
-pub fn PlanningAnmeldung(
-    course_of_study: String,
-    future: Resource<Vec<Anmeldung>>,
-    anmeldung: Anmeldung,
-) -> Element {
-    let _ = future();
-    prep_planning(&course_of_study, future, anmeldung)
-        .await
-        .element
 }
