@@ -66,27 +66,8 @@ pub static LOGO_SVG: Asset = asset!(
 );
 
 #[used]
-pub static WORKER_1: Asset = asset!(
-    "/assets/worker/tucan-plus-worker_bg.js",
-    AssetOptions::builder().with_hash_suffix(false)
-);
-
-#[used]
-pub static WORKER_2: Asset = asset!(
-    "/assets/worker/tucan-plus-worker_bg.wasm",
-    AssetOptions::builder().with_hash_suffix(false)
-);
-
-#[used]
 pub static WORKER_3: Asset = asset!(
-    "/assets/worker/tucan-plus-worker.js",
-    AssetOptions::builder().with_hash_suffix(false)
-);
-
-// avoid transforming the js by using a folder
-#[used]
-pub static WORKER_JS: Asset = asset!(
-    "/assets/worker-helper",
+    "/assets/worker/",
     AssetOptions::builder().with_hash_suffix(false)
 );
 
@@ -101,7 +82,7 @@ pub async fn wait_for_worker() -> Worker {
     let mut cb = |resolve: js_sys::Function, reject: js_sys::Function| {
         let options = WorkerOptions::new();
         options.set_type(WorkerType::Module);
-        let worker = Worker::new_with_options(&format!("{WORKER_JS}/worker.js"), &options).unwrap();
+        let worker = Worker::new_with_options(&format!("{WORKER_3}/worker.js"), &options).unwrap();
         let mut message_closure: Option<Closure<dyn Fn(MessageEvent)>> = None;
         let error_closure: Closure<dyn Fn(_)> = {
             let worker = worker.clone();
