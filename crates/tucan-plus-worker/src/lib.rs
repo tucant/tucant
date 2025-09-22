@@ -84,13 +84,21 @@ impl RequestResponse for Fewe {
 #[derive(Serialize, Deserialize, Debug)]
 pub enum RequestResponseEnum {
     AnmeldungenRequest(AnmeldungenRequest),
+    AnmeldungenRequest2(AnmeldungenRequest2),
+    Fewe(Fewe),
 }
 
 impl RequestResponseEnum {
     pub fn execute(&self, connection: &mut SqliteConnection) -> JsValue {
         match self {
-            RequestResponseEnum::AnmeldungenRequest(anmeldungen_request) => {
-                serde_wasm_bindgen::to_value(&anmeldungen_request.execute(connection)).unwrap()
+            RequestResponseEnum::AnmeldungenRequest(value) => {
+                serde_wasm_bindgen::to_value(&value.execute(connection)).unwrap()
+            }
+            RequestResponseEnum::AnmeldungenRequest2(value) => {
+                serde_wasm_bindgen::to_value(&value.execute(connection)).unwrap()
+            }
+            RequestResponseEnum::Fewe(value) => {
+                serde_wasm_bindgen::to_value(&value.execute(connection)).unwrap()
             }
         }
     }
