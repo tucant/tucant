@@ -74,12 +74,12 @@ async fn main() {
     let connection = RefCell::new(connection);
 
     let closure: Closure<dyn Fn(MessageEvent)> = Closure::new(move |event: MessageEvent| {
-        info!("Got message at worker {:?}", event.data());
+        //info!("Got message at worker {:?}", event.data());
         let global = js_sys::global().unchecked_into::<web_sys::DedicatedWorkerGlobalScope>();
 
         let afewe: RequestResponseEnum = serde_wasm_bindgen::from_value(event.data()).unwrap();
         let result = afewe.execute(&mut connection.borrow_mut());
-        info!("Got result at worker {:?}", result);
+        //info!("Got result at worker {:?}", result);
         global.post_message(&result).unwrap();
     });
     global

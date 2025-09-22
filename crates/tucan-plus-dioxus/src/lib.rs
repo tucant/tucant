@@ -146,7 +146,7 @@ pub async fn send_message<R: RequestResponse + Debug>(
 where
     RequestResponseEnum: std::convert::From<R>,
 {
-    info!("sending message from client {:?}", value);
+    //info!("sending message from client {:?}", value);
     let mut cb = |resolve: js_sys::Function, reject: js_sys::Function| {
         let mut message_closure: Rc<RefCell<Option<Closure<dyn Fn(MessageEvent)>>>> =
             Rc::new(RefCell::new(None));
@@ -179,7 +179,7 @@ where
             let worker = worker.clone();
             let error_closure_ref = error_closure_ref.clone();
             Some(Closure::new(move |event: MessageEvent| {
-                info!("received message at client {:?}", event.data());
+                //info!("received message at client {:?}", event.data());
                 worker
                     .get()
                     .remove_event_listener_with_callback("error", error_closure_ref.unchecked_ref())
