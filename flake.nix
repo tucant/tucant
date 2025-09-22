@@ -133,7 +133,6 @@
           (craneLib.fileset.commonCargoSources ./crates/tucan-plus-dioxus)
           (craneLib.fileset.commonCargoSources ./crates/html-handler)
           (craneLib.fileset.commonCargoSources ./crates/tucan-plus-planning)
-          ./crates/tucan-plus-dioxus/migrations
           ./crates/tucan-plus-dioxus/assets/logo.svg
           ./crates/tucan-plus-dioxus/assets/manifest.json
           ./crates/tucan-plus-dioxus/assets/bootstrap.css
