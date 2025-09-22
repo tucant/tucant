@@ -245,7 +245,13 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
             async move {
                 // TODO FIXME I think based on course of study we can create an
                 // anmeldung_request and then this here is not special cased any more?
-                let result = send_message(&worker, &AnmeldungenRequest { course_of_study }).await;
+                let result = send_message(
+                    &worker,
+                    &AnmeldungenRequest {
+                        course_of_study: course_of_study.clone(),
+                    },
+                )
+                .await;
                 futures::stream::iter(result.into_iter())
                     .then(async |anmeldung| {
                         prep_planning(&course_of_study, anmeldung).await.element

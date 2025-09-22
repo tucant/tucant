@@ -4,7 +4,7 @@ use dioxus::prelude::*;
 use js_sys::Function;
 use log::info;
 use serde::{Serialize, de::DeserializeOwned};
-use tucan_plus_dioxus::{Anonymize, BOOTSTRAP_JS, BOOTSTRAP_PATCH_JS, Route};
+use tucan_plus_dioxus::{Anonymize, BOOTSTRAP_JS, BOOTSTRAP_PATCH_JS, Route, wait_for_worker};
 use tucan_types::LoginResponse;
 use wasm_bindgen::prelude::*;
 use web_sys::{AddEventListenerOptions, MessageEvent, Worker, WorkerOptions, WorkerType};
