@@ -247,7 +247,7 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
                 // anmeldung_request and then this here is not special cased any more?
                 let result = send_message(
                     &worker,
-                    &AnmeldungenRequest {
+                    AnmeldungenRequest {
                         course_of_study: course_of_study.clone(),
                     },
                 )
@@ -738,7 +738,7 @@ async fn prep_planning(
     let worker: Fragile<Worker> = use_context();
     let results = send_message(
         &worker,
-        &AnmeldungenRequest2 {
+        AnmeldungenRequest2 {
             course_of_study: course_of_study.to_owned(),
             anmeldung: anmeldung.clone(),
         },
@@ -746,7 +746,7 @@ async fn prep_planning(
     .await;
     let entries = send_message(
         &worker,
-        &Fewe {
+        Fewe {
             course_of_study: course_of_study.to_owned(),
             anmeldung: anmeldung.clone(),
         },

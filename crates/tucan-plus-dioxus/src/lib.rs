@@ -139,10 +139,13 @@ pub async fn wait_for_worker() -> Worker {
         .into()
 }
 
-pub async fn send_message<R: RequestResponse + Debug + Into<RequestResponseEnum>>(
+pub async fn send_message<R: RequestResponse + Debug>(
     worker: &Fragile<Worker>,
-    value: &R,
-) -> R::Response {
+    value: R,
+) -> R::Response
+where
+    RequestResponseEnum: std::convert::From<R>,
+{
     info!("sending message from client {:?}", value);
     let mut cb = |resolve: js_sys::Function, reject: js_sys::Function| {
         let mut message_closure: Rc<RefCell<Option<Closure<dyn Fn(MessageEvent)>>>> =
@@ -214,7 +217,7 @@ pub async fn send_message<R: RequestResponse + Debug + Into<RequestResponseEnum>
 
     worker
         .get()
-        .post_message(&serde_wasm_bindgen::to_value(value).unwrap())
+        .post_message(&serde_wasm_bindgen::to_value(&RequestResponseEnum::from(value)).unwrap())
         .unwrap();
 
     serde_wasm_bindgen::from_value(wasm_bindgen_futures::JsFuture::from(p).await.unwrap()).unwrap()
