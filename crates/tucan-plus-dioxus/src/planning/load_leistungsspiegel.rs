@@ -123,7 +123,7 @@ pub async fn load_leistungsspiegel(
             .course_results(
                 &current_session,
                 RevalidationStrategy::cache(),
-                semester.value,
+                semester.value.clone(),
             )
             .await
             .unwrap();
