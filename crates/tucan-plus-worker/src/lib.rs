@@ -275,6 +275,7 @@ pub enum RequestResponseEnum {
     ChildUrl(ChildUrl),
     UpdateModule(UpdateModule),
     SetStateAndCredits(SetStateAndCredits),
+    SetCpAndModuleCount(SetCpAndModuleCount),
 }
 
 impl RequestResponseEnum {
@@ -302,6 +303,9 @@ impl RequestResponseEnum {
                 serde_wasm_bindgen::to_value(&value.execute(connection)).unwrap()
             }
             RequestResponseEnum::SetStateAndCredits(value) => {
+                serde_wasm_bindgen::to_value(&value.execute(connection)).unwrap()
+            }
+            RequestResponseEnum::SetCpAndModuleCount(value) => {
                 serde_wasm_bindgen::to_value(&value.execute(connection)).unwrap()
             }
         }

@@ -46,7 +46,7 @@ pub async fn recursive_update(
         .map(|entry| AnmeldungEntry {
             course_of_study: course_of_study.to_owned(),
             available_semester: Semester::Sommersemester, // TODO FIXME
-            anmeldung: url,
+            anmeldung: url.clone(),
             module_url: "TODO".to_owned(), // TODO FIXME
             id: entry.id.as_ref().unwrap_or(&entry.name).to_owned(), /* TODO FIXME, use two columns
                                             * and both as primary key */
@@ -58,7 +58,7 @@ pub async fn recursive_update(
                 }
             }))
             .unwrap(),
-            name: entry.name,
+            name: entry.name.clone(),
             state: if matches!(
                 entry.grade,
                 LeistungsspiegelGrade::Grade(_) | LeistungsspiegelGrade::BestandenOhneNote
@@ -85,7 +85,7 @@ pub async fn load_leistungsspiegel(
     // top level anmeldung has name "M.Sc. Informatik (2023)"
     // top level leistungsspiegel has "Informatik"
 
-    let name = &student_result
+    let name = student_result
         .course_of_study
         .iter()
         .find(|e| e.selected)
@@ -95,14 +95,20 @@ pub async fn load_leistungsspiegel(
     let the_url = send_message(
         &worker,
         SetCpAndModuleCount {
-            course_of_study,
+            course_of_study: course_of_study.clone(),
             name,
-            student_result,
+            student_result: student_result.clone(),
         },
     )
     .await;
 
-    recursive_update(worker, &course_of_study, the_url, student_result.level0).await;
+    recursive_update(
+        worker.clone(),
+        &course_of_study,
+        the_url,
+        student_result.level0,
+    )
+    .await;
 
     let semesters = tucan
         .course_results(
@@ -125,8 +131,8 @@ pub async fn load_leistungsspiegel(
             send_message(
                 &worker,
                 UpdateModule {
-                    course_of_study,
-                    semester,
+                    course_of_study: course_of_study.clone(),
+                    semester: semester.clone(),
                     module,
                 },
             )
