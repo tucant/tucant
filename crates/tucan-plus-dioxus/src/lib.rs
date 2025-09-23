@@ -92,8 +92,12 @@ pub async fn wait_for_worker() -> Worker {
         let error_closure: Closure<dyn Fn(_)> = {
             let worker = worker.clone();
             let message_closure = message_closure.clone();
-            Closure::new(move |event: web_sys::Event| {
-                info!("error {event:?}");
+            Closure::new(move |event: web_sys::ErrorEvent| {
+                info!(
+                    "error at client {event:?} {:?} {:?}",
+                    event.message(),
+                    event.error()
+                );
                 worker
                     .remove_event_listener_with_callback(
                         "message",
@@ -113,7 +117,7 @@ pub async fn wait_for_worker() -> Worker {
             let worker = worker.clone();
             let error_closure_ref = error_closure_ref.clone();
             Some(Closure::new(move |event: MessageEvent| {
-                info!("{:?}", event.data());
+                //info!("received message at client {:?}", event.data());
                 worker
                     .remove_event_listener_with_callback("error", error_closure_ref.unchecked_ref())
                     .unwrap();
