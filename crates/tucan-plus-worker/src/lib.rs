@@ -6,10 +6,12 @@ use wasm_bindgen::JsValue;
 use web_sys::Worker;
 
 use crate::{
-    models::{Anmeldung, AnmeldungEntry},
+    models::{Anmeldung, AnmeldungEntry, Semester, State},
     schema::{anmeldungen_entries, anmeldungen_plan},
 };
-use tucan_types::student_result::StudentResultLevel;
+use tucan_types::{
+    Semesterauswahl, courseresults::ModuleResult, student_result::StudentResultLevel,
+};
 
 pub mod models;
 pub mod schema;
@@ -161,6 +163,42 @@ impl RequestResponse for ChildUrl {
         .returning(anmeldungen_plan::url)
         .get_result(connection)
         .expect("Error updating anmeldungen")
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct UpdateModule {
+    pub course_of_study: String,
+    pub semester: Semesterauswahl,
+    pub module: ModuleResult,
+}
+
+impl RequestResponse for UpdateModule {
+    type Response = ();
+
+    fn execute(&self, connection: &mut SqliteConnection) -> Self::Response {
+        diesel::update(anmeldungen_entries::table)
+            .filter(
+                anmeldungen_entries::course_of_study
+                    .eq(&self.course_of_study)
+                    .and(
+                        anmeldungen_entries::id
+                            .eq(&self.module.nr)
+                            // TODO FIXME if you can register it at multiple paths
+                            // this will otherwise break
+                            .and(anmeldungen_entries::state.ne(State::NotPlanned)),
+                    ),
+            )
+            .set((
+                anmeldungen_entries::semester.eq(if self.semester.name.starts_with("SoSe ") {
+                    Semester::Sommersemester
+                } else {
+                    Semester::Wintersemester
+                }),
+                (anmeldungen_entries::year.eq(self.semester.name[5..9].parse::<i32>().unwrap())),
+            ))
+            .execute(connection)
+            .expect("Error updating anmeldungen");
     }
 }
 

@@ -2,7 +2,7 @@ use dioxus::{hooks::use_context, html::MouseData};
 use fragile::Fragile;
 use log::info;
 use tucan_plus_worker::{
-    ChildUrl,
+    ChildUrl, UpdateModule,
     models::{AnmeldungEntry, Semester, State},
 };
 use tucan_types::{
@@ -115,7 +115,7 @@ pub async fn load_leistungsspiegel(
     .get_result(&mut *connection_clone.borrow_mut())
     .expect("Error updating anmeldungen");
 
-    recursive_update(&course_of_study, the_url, student_result.level0).await;
+    recursive_update(worker, &course_of_study, the_url, student_result.level0).await;
 
     let semesters = tucan
         .course_results(
@@ -135,28 +135,7 @@ pub async fn load_leistungsspiegel(
             .await
             .unwrap();
         for module in result.results {
-            diesel::update(anmeldungen_entries::table)
-                .filter(
-                    anmeldungen_entries::course_of_study
-                        .eq(&course_of_study)
-                        .and(
-                            anmeldungen_entries::id
-                                .eq(module.nr)
-                                // TODO FIXME if you can register it at multiple paths
-                                // this will otherwise break
-                                .and(anmeldungen_entries::state.ne(State::NotPlanned)),
-                        ),
-                )
-                .set((
-                    anmeldungen_entries::semester.eq(if semester.name.starts_with("SoSe ") {
-                        Semester::Sommersemester
-                    } else {
-                        Semester::Wintersemester
-                    }),
-                    (anmeldungen_entries::year.eq(semester.name[5..9].parse::<i32>().unwrap())),
-                ))
-                .execute(&mut *connection_clone.borrow_mut())
-                .expect("Error updating anmeldungen");
+            send_message(&worker, UpdateModule {}).await;
         }
     }
 }
