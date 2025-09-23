@@ -5,45 +5,25 @@ use tucan_types::{
     LeistungsspiegelGrade, RevalidationStrategy, SemesterId, student_result::StudentResultLevel,
 };
 
+use crate::send_message;
+
 pub async fn recursive_update(course_of_study: &str, url: String, level: StudentResultLevel) {
     for child in level.children {
         let name = child.name.as_ref().unwrap();
-        let child_url = diesel::update(QueryDsl::filter(
-            anmeldungen_plan::table,
-            anmeldungen_plan::course_of_study.eq(course_of_study).and(
-                anmeldungen_plan::parent
-                    .eq(&url)
-                    .and(anmeldungen_plan::name.eq(name)),
-            ),
-        ))
-        .set((
-            anmeldungen_plan::min_cp.eq(child.rules.min_cp as i32),
-            anmeldungen_plan::max_cp.eq(child.rules.max_cp.map(|v| v as i32)),
-            anmeldungen_plan::min_modules.eq(child.rules.min_modules as i32),
-            anmeldungen_plan::max_modules.eq(child.rules.max_modules.map(|v| v as i32)),
-        ))
-        .returning(anmeldungen_plan::url)
-        .get_result(&mut *connection_clone.borrow_mut())
-        .expect("Error updating anmeldungen");
+        send_message(worker, ChildUrl {}).await;
         info!("updated");
-        Box::pin(recursive_update(
-            course_of_study,
-            connection_clone.clone(),
-            child_url,
-            child,
-        ))
-        .await;
+        Box::pin(recursive_update(course_of_study, child_url, child)).await;
     }
     let inserts: Vec<_> = level
         .entries
         .iter()
         .map(|entry| AnmeldungEntry {
-            course_of_study,
+            course_of_study: course_of_study.to_owned(),
             available_semester: Semester::Sommersemester, // TODO FIXME
-            anmeldung: &url,
-            module_url: "TODO", // TODO FIXME
-            id: entry.id.as_ref().unwrap_or(&entry.name), /* TODO FIXME, use two columns
-                                 * and both as primary key */
+            anmeldung: url,
+            module_url: "TODO".to_owned(), // TODO FIXME
+            id: entry.id.as_ref().unwrap_or(&entry.name).to_owned(), /* TODO FIXME, use two columns
+                                            * and both as primary key */
             credits: i32::try_from(entry.used_cp.unwrap_or_else(|| {
                 if level.name.as_deref() == Some("Masterarbeit") {
                     30
@@ -52,7 +32,7 @@ pub async fn recursive_update(course_of_study: &str, url: String, level: Student
                 }
             }))
             .unwrap(),
-            name: &entry.name,
+            name: entry.name,
             state: if matches!(
                 entry.grade,
                 LeistungsspiegelGrade::Grade(_) | LeistungsspiegelGrade::BestandenOhneNote
