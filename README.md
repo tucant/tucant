@@ -70,9 +70,7 @@ cargo install --git https://github.com/mohe2015/wasm-bindgen.git --branch wip wa
 cd crates/tucan-plus-worker/
 cargo build --no-default-features --target=wasm32-unknown-unknown && wasm-bindgen --target web --out-dir ../tucan-plus-dioxus/assets/worker target/wasm32-unknown-unknown/debug/tucan-plus-worker.wasm
 
-dx serve --target wasm32-unknown-unknown --hotpatch
-
-CARGO_CFG_TARGET_FEATURE="" dx serve --wasm --hot-patch
+dx serve --wasm --bundle web # --hot-patch this lets everything explode with "env" imports and sqlite import stuff broken
 
 # in second tab
 cargo install --locked bacon
