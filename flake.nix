@@ -133,13 +133,14 @@
           (craneLib.fileset.commonCargoSources ./crates/tucan-plus-dioxus)
           (craneLib.fileset.commonCargoSources ./crates/html-handler)
           (craneLib.fileset.commonCargoSources ./crates/tucan-plus-planning)
-          (craneLib.fileset.commonCargoSources ./crates/tucan-plus-worker) # TODO separate
           ./crates/tucan-plus-dioxus/assets/logo.svg
           ./crates/tucan-plus-dioxus/assets/manifest.json
           ./crates/tucan-plus-dioxus/assets/bootstrap.css
           ./crates/tucan-plus-dioxus/assets/bootstrap.bundle.min.js
           ./crates/tucan-plus-dioxus/assets/bootstrap.patch.js
           ./crates/tucan-plus-dioxus/index.html
+          (craneLib.fileset.commonCargoSources ./crates/tucan-plus-worker) # TODO separate
+          ./crates/tucan-plus-worker/migrations # TODO separate
         ];
 
         wasm-bindgen = (pkgs.buildWasmBindgenCli rec {
@@ -178,7 +179,7 @@
             export CC=emcc
             export CXX=emcc
             emcc --version
-            ${dioxus-cli}/bin/dx bundle --platform web --verbose --release --out-dir $out --base-path public --features direct
+            ${dioxus-cli}/bin/dx bundle --wasm --bundle web --verbose --release --out-dir $out
           '';
           installPhaseCommand = '''';
           checkPhaseCargoCommand = '''';
@@ -216,6 +217,11 @@
             export CC=emcc
             export CXX=emcc
             emcc --version
+            mkdir -p assets/worker/wasm
+            cp -r ${worker}/public/assets/tucan-plus-worker-*.js assets/worker/wasm/tucan-plus-worker.js
+            cp -r ${worker}/public/assets/tucan-plus-worker_bg-*.wasm assets/
+            cat assets/worker/wasm/tucan-plus-worker.js
+            ls -R assets/worker/wasm
             ${dioxus-cli}/bin/dx bundle --platform web --verbose --release --out-dir $out --base-path public --features direct
           '';
           installPhaseCommand = '''';
