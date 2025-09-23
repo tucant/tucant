@@ -64,10 +64,12 @@ cargo install --git https://github.com/mohe2015/dioxus --branch my dioxus-cli
 cd crates/tucan-plus-dioxus/
 dx serve --platform web --features api --verbose
 
-cargo install wasm-bindgen-cli
+cargo install wasm-bindgen-cli@0.2.101
 
 cd crates/tucan-plus-worker/
 cargo build --no-default-features --target=wasm32-unknown-unknown && wasm-bindgen --target web --out-dir ../tucan-plus-dioxus/assets/worker target/wasm32-unknown-unknown/debug/tucan-plus-worker.wasm
+
+dx serve --target wasm32-unknown-unknown --hotpatch
 
 # in second tab
 cargo install --locked bacon

@@ -42,7 +42,7 @@ extern "C" {
 }
 
 #[wasm_bindgen(main)]
-async fn main() {
+pub async fn main() {
     // From https://github.com/rustwasm/console_error_panic_hook, licensed under MIT and Apache 2.0
     std::panic::set_hook(Box::new(|info| {
         let mut msg = "Worker ".to_string();
