@@ -133,6 +133,7 @@
           (craneLib.fileset.commonCargoSources ./crates/tucan-plus-dioxus)
           (craneLib.fileset.commonCargoSources ./crates/html-handler)
           (craneLib.fileset.commonCargoSources ./crates/tucan-plus-planning)
+          (craneLib.fileset.commonCargoSources ./crates/tucan-plus-worker) # TODO separate
           ./crates/tucan-plus-dioxus/assets/logo.svg
           ./crates/tucan-plus-dioxus/assets/manifest.json
           ./crates/tucan-plus-dioxus/assets/bootstrap.css
@@ -140,6 +141,58 @@
           ./crates/tucan-plus-dioxus/assets/bootstrap.patch.js
           ./crates/tucan-plus-dioxus/index.html
         ];
+
+        wasm-bindgen = (pkgs.buildWasmBindgenCli rec {
+          src = pkgs.fetchCrate {
+            pname = "wasm-bindgen-cli";
+            version = "0.2.101";
+            hash = "sha256-txpbTzlrPSEktyT9kSpw4RXQoiSZHm9t3VxeRn//9JI=";
+          };
+
+          cargoDeps = pkgs.rustPlatform.fetchCargoVendor {
+            inherit src;
+            inherit (src) pname version;
+            hash = "sha256-J+F9SqTpH3T0MbvlNKVyKnMachgn8UXeoTF0Pk3Xtnc=";
+          };
+        });
+
+        worker = craneLib.buildPackage {
+          cargoToml = ./crates/tucan-plus-worker/Cargo.toml;
+          cargoLock = ./crates/tucan-plus-worker/Cargo.lock;
+          preBuild = ''
+            cd ./crates/tucan-plus-worker
+          '';
+          strictDeps = true;
+          stdenv = p: p.emscriptenStdenv;
+          doCheck = false;
+          cargoArtifacts = null; # building deps only does not work with the default stub entrypoint
+          src = lib.fileset.toSource {
+            root = ./.;
+            fileset = fileset-wasm;
+          };
+          cargoExtraArgs = "--package=tucan-plus-worker";
+          pname = "tucan-plus-workspace-tucan-plus-worker";
+          buildPhaseCargoCommand = ''
+            export HOME=$(mktemp -d)
+            #export EMCC_DEBUG=1
+            export CC=emcc
+            export CXX=emcc
+            emcc --version
+            ${dioxus-cli}/bin/dx bundle --platform web --verbose --release --out-dir $out --base-path public --features direct
+          '';
+          installPhaseCommand = '''';
+          checkPhaseCargoCommand = '''';
+          nativeBuildInputs = [
+            pkgs.which
+            pkgs.emscripten
+            wasm-bindgen
+            pkgs.binaryen
+            (pkgs.writeShellScriptBin "git" ''
+              echo ${self.rev or "dirty"}
+            '')
+          ];
+          doNotPostBuildInstallCargoBinaries = true;
+        };
 
         client = craneLib.buildPackage {
           cargoToml = ./crates/tucan-plus-dioxus/Cargo.toml;
@@ -170,19 +223,7 @@
           nativeBuildInputs = [
             pkgs.which
             pkgs.emscripten
-            (pkgs.buildWasmBindgenCli rec {
-              src = pkgs.fetchCrate {
-                pname = "wasm-bindgen-cli";
-                version = "0.2.103";
-                hash = "sha256-ZMK/MpThET2b2uO+9gt9orjXbqLH5ZaoOQ9CAUU9PZY=";
-              };
-
-              cargoDeps = pkgs.rustPlatform.fetchCargoVendor {
-                inherit src;
-                inherit (src) pname version;
-                hash = "sha256-J+F9SqTpH3T0MbvlNKVyKnMachgn8UXeoTF0Pk3Xtnc=";
-              };
-            })
+            wasm-bindgen
             pkgs.binaryen
             (pkgs.writeShellScriptBin "git" ''
               echo ${self.rev or "dirty"}
