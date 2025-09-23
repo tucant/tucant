@@ -18,7 +18,7 @@ serde_json = "1"
 url = "2"
 console_log = { version = "1", features = ["color"] }
 js-sys = "0.3"
-wasm-bindgen = { git = "https://github.com/mohe2015/wasm-bindgen.git", branch = "wip" }
+wasm-bindgen = { version = "=0.2.101" }
 web-sys = { version = "0.3", features = ["Document", "Window", "HtmlDocument", "NodeList", "HtmlSelectElement", "Blob", "Url", "BlobPropertyBag", "Worker", "WorkerOptions", "WorkerType", "AddEventListenerOptions", "EventTarget", "ErrorEvent"] }
 cookie = "0.18"
 web-extensions-sys = { optional = true, git = "https://github.com/mohe2015/web-extensions-sys", branch = "cookies" }
