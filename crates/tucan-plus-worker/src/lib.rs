@@ -139,17 +139,17 @@ pub struct ChildUrl {
 }
 
 impl RequestResponse for ChildUrl {
-    type Response = ();
+    type Response = String;
 
     fn execute(&self, connection: &mut SqliteConnection) -> Self::Response {
-        let child_url = diesel::update(QueryDsl::filter(
+        diesel::update(QueryDsl::filter(
             anmeldungen_plan::table,
             anmeldungen_plan::course_of_study
-                .eq(self.course_of_study)
+                .eq(&self.course_of_study)
                 .and(
                     anmeldungen_plan::parent
-                        .eq(self.url)
-                        .and(anmeldungen_plan::name.eq(self.name)),
+                        .eq(&self.url)
+                        .and(anmeldungen_plan::name.eq(&self.name)),
                 ),
         ))
         .set((
@@ -160,7 +160,7 @@ impl RequestResponse for ChildUrl {
         ))
         .returning(anmeldungen_plan::url)
         .get_result(connection)
-        .expect("Error updating anmeldungen");
+        .expect("Error updating anmeldungen")
     }
 }
 
