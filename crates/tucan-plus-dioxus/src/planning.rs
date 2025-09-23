@@ -106,7 +106,8 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
                 loading.set(true);
 
                 let current_session = current_session_handle().unwrap();
-                load_leistungsspiegel(current_session, tucan, student_result, course_of_study);
+                load_leistungsspiegel(current_session, tucan, student_result, course_of_study)
+                    .await;
 
                 info!("updated");
                 loading.set(false);
@@ -238,6 +239,7 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
                 }
             }
             button {
+                onclick: load_leistungsspiegel,
                 disabled: loading(),
                 type: "button",
                 class: "btn btn-primary mb-3",
