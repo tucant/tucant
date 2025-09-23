@@ -132,10 +132,10 @@ impl RequestResponse for Wlewifhewefwef {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct ChildUrl {
-    course_of_study: String,
-    url: String,
-    name: String,
-    child: StudentResultLevel,
+    pub course_of_study: String,
+    pub url: String,
+    pub name: String,
+    pub child: StudentResultLevel,
 }
 
 impl RequestResponse for ChildUrl {
@@ -171,6 +171,7 @@ pub enum RequestResponseEnum {
     Fewe(Fewe),
     FEwefweewf(FEwefweewf),
     Wlewifhewefwef(Wlewifhewefwef),
+    ChildUrl(ChildUrl),
 }
 
 impl RequestResponseEnum {
@@ -189,6 +190,9 @@ impl RequestResponseEnum {
                 serde_wasm_bindgen::to_value(&value.execute(connection)).unwrap()
             }
             RequestResponseEnum::Wlewifhewefwef(value) => {
+                serde_wasm_bindgen::to_value(&value.execute(connection)).unwrap()
+            }
+            RequestResponseEnum::ChildUrl(value) => {
                 serde_wasm_bindgen::to_value(&value.execute(connection)).unwrap()
             }
         }

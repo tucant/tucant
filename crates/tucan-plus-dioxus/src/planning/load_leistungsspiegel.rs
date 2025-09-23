@@ -1,18 +1,38 @@
-use dioxus::html::MouseData;
+use dioxus::{hooks::use_context, html::MouseData};
+use fragile::Fragile;
 use log::info;
-use tucan_plus_worker::models::{AnmeldungEntry, Semester, State};
-use tucan_types::{
-    LeistungsspiegelGrade, RevalidationStrategy, SemesterId, student_result::StudentResultLevel,
+use tucan_plus_worker::{
+    ChildUrl,
+    models::{AnmeldungEntry, Semester, State},
 };
+use tucan_types::{
+    LeistungsspiegelGrade, LoginResponse, RevalidationStrategy, SemesterId, Tucan as _,
+    student_result::{StudentResultLevel, StudentResultResponse},
+};
+use web_sys::Worker;
 
-use crate::send_message;
+use crate::{RcTucanType, send_message, student_result::StudentResult};
 
-pub async fn recursive_update(course_of_study: &str, url: String, level: StudentResultLevel) {
+pub async fn recursive_update(
+    worker: Fragile<Worker>,
+    course_of_study: &str,
+    url: String,
+    level: StudentResultLevel,
+) {
     for child in level.children {
         let name = child.name.as_ref().unwrap();
-        send_message(worker, ChildUrl {}).await;
+        let child_url = send_message(
+            &worker,
+            ChildUrl {
+                course_of_study: course_of_study.to_string(),
+                url: url.clone(),
+                name: name.clone(),
+                child,
+            },
+        )
+        .await;
         info!("updated");
-        Box::pin(recursive_update(course_of_study, child_url, child)).await;
+        Box::pin(recursive_update(worker, course_of_study, child_url, child)).await;
     }
     let inserts: Vec<_> = level
         .entries
@@ -62,8 +82,13 @@ pub async fn recursive_update(course_of_study: &str, url: String, level: Student
         .expect("Error saving anmeldungen");
 }
 
-pub async fn load_leistungsspiegel() {
-    let current_session = current_session_handle().unwrap();
+pub async fn load_leistungsspiegel(
+    current_session: LoginResponse,
+    tucan: RcTucanType,
+    student_result: StudentResultResponse,
+    course_of_study: String,
+) {
+    let worker: Fragile<Worker> = use_context();
 
     // top level anmeldung has name "M.Sc. Informatik (2023)"
     // top level leistungsspiegel has "Informatik"

@@ -105,7 +105,8 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
             async move {
                 loading.set(true);
 
-                load_leistungsspiegel();
+                let current_session = current_session_handle().unwrap();
+                load_leistungsspiegel(current_session, tucan, student_result, course_of_study);
 
                 info!("updated");
                 loading.set(false);
