@@ -1,3 +1,4 @@
+pub mod load_leistungsspiegel;
 pub mod load_semesters;
 
 use std::cell::RefCell;
@@ -19,6 +20,7 @@ use tucan_types::{
 use wasm_bindgen_futures::JsFuture;
 use web_sys::{FileList, HtmlInputElement, Worker};
 
+use crate::planning::load_leistungsspiegel::load_leistungsspiegel;
 use crate::planning::load_semesters::handle_semester;
 use crate::{MyRc, RcTucanType, Route, send_message};
 
@@ -49,84 +51,6 @@ pub fn Planning(course_of_study: ReadSignal<String>) -> Element {
         }
     }
 }
-
-/*
-pub async fn recursive_update(course_of_study: &str, url: String, level: StudentResultLevel) {
-    for child in level.children {
-        let name = child.name.as_ref().unwrap();
-        let child_url = diesel::update(QueryDsl::filter(
-            anmeldungen_plan::table,
-            anmeldungen_plan::course_of_study.eq(course_of_study).and(
-                anmeldungen_plan::parent
-                    .eq(&url)
-                    .and(anmeldungen_plan::name.eq(name)),
-            ),
-        ))
-        .set((
-            anmeldungen_plan::min_cp.eq(child.rules.min_cp as i32),
-            anmeldungen_plan::max_cp.eq(child.rules.max_cp.map(|v| v as i32)),
-            anmeldungen_plan::min_modules.eq(child.rules.min_modules as i32),
-            anmeldungen_plan::max_modules.eq(child.rules.max_modules.map(|v| v as i32)),
-        ))
-        .returning(anmeldungen_plan::url)
-        .get_result(&mut *connection_clone.borrow_mut())
-        .expect("Error updating anmeldungen");
-        info!("updated");
-        Box::pin(recursive_update(
-            course_of_study,
-            connection_clone.clone(),
-            child_url,
-            child,
-        ))
-        .await;
-    }
-    let inserts: Vec<_> = level
-        .entries
-        .iter()
-        .map(|entry| NewAnmeldungEntry {
-            course_of_study,
-            available_semester: Semester::Sommersemester, // TODO FIXME
-            anmeldung: &url,
-            module_url: "TODO", // TODO FIXME
-            id: entry.id.as_ref().unwrap_or(&entry.name), /* TODO FIXME, use two columns
-                                 * and both as primary key */
-            credits: i32::try_from(entry.used_cp.unwrap_or_else(|| {
-                if level.name.as_deref() == Some("Masterarbeit") {
-                    30
-                } else {
-                    0
-                }
-            }))
-            .unwrap(),
-            name: &entry.name,
-            state: if matches!(
-                entry.grade,
-                LeistungsspiegelGrade::Grade(_) | LeistungsspiegelGrade::BestandenOhneNote
-            ) {
-                State::Done
-            } else {
-                State::Planned
-            },
-            year: None,
-            semester: None,
-        })
-        .collect();
-    diesel::insert_into(anmeldungen_entries::table)
-        .values(&inserts)
-        .on_conflict((
-            anmeldungen_entries::course_of_study,
-            anmeldungen_entries::anmeldung,
-            anmeldungen_entries::available_semester,
-            anmeldungen_entries::id,
-        ))
-        .do_update()
-        .set((
-            anmeldungen_entries::state.eq(excluded(anmeldungen_entries::state)),
-            (anmeldungen_entries::credits.eq(excluded(anmeldungen_entries::credits))),
-        ))
-        .execute(&mut *connection_clone.borrow_mut())
-        .expect("Error saving anmeldungen");
-}*/
 
 #[component]
 pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
@@ -169,108 +93,26 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
             }
         })
     };
-    /*
     let load_leistungsspiegel = {
         let tucan = tucan.clone();
         let student_result = student_result.clone();
         let course_of_study = course_of_study.clone();
-        move |_event: Event<MouseData>| {
+        move |_event: dioxus::prelude::Event<MouseData>| {
             let current_session_handle = current_session_handle;
             let tucan = tucan.clone();
             let student_result = student_result.clone();
             let course_of_study = course_of_study.clone();
             async move {
                 loading.set(true);
-                let current_session = current_session_handle().unwrap();
 
-                // top level anmeldung has name "M.Sc. Informatik (2023)"
-                // top level leistungsspiegel has "Informatik"
-
-                let name = &student_result
-                    .course_of_study
-                    .iter()
-                    .find(|e| e.selected)
-                    .unwrap()
-                    .name;
-                let the_url: String = diesel::update(QueryDsl::filter(
-                    anmeldungen_plan::table,
-                    anmeldungen_plan::course_of_study
-                        .eq(&course_of_study)
-                        .and(anmeldungen_plan::name.eq(name)),
-                ))
-                .set((
-                    anmeldungen_plan::min_cp.eq(student_result.level0.rules.min_cp as i32),
-                    anmeldungen_plan::max_cp.eq(student_result
-                        .level0
-                        .rules
-                        .max_cp
-                        .map(|v| v as i32)),
-                    anmeldungen_plan::min_modules
-                        .eq(student_result.level0.rules.min_modules as i32),
-                    anmeldungen_plan::max_modules.eq(student_result
-                        .level0
-                        .rules
-                        .max_modules
-                        .map(|v| v as i32)),
-                ))
-                .returning(anmeldungen_plan::url)
-                .get_result(&mut *connection_clone.borrow_mut())
-                .expect("Error updating anmeldungen");
-
-                recursive_update(&course_of_study, the_url, student_result.level0).await;
-
-                let semesters = tucan
-                    .course_results(
-                        &current_session,
-                        RevalidationStrategy::cache(),
-                        SemesterId::current(),
-                    )
-                    .await
-                    .unwrap();
-                for semester in semesters.semester {
-                    let result = tucan
-                        .course_results(
-                            &current_session,
-                            RevalidationStrategy::cache(),
-                            semester.value,
-                        )
-                        .await
-                        .unwrap();
-                    for module in result.results {
-                        diesel::update(anmeldungen_entries::table)
-                            .filter(
-                                anmeldungen_entries::course_of_study
-                                    .eq(&course_of_study)
-                                    .and(
-                                        anmeldungen_entries::id
-                                            .eq(module.nr)
-                                            // TODO FIXME if you can register it at multiple paths
-                                            // this will otherwise break
-                                            .and(anmeldungen_entries::state.ne(State::NotPlanned)),
-                                    ),
-                            )
-                            .set((
-                                anmeldungen_entries::semester.eq(
-                                    if semester.name.starts_with("SoSe ") {
-                                        Semester::Sommersemester
-                                    } else {
-                                        Semester::Wintersemester
-                                    },
-                                ),
-                                (anmeldungen_entries::year
-                                    .eq(semester.name[5..9].parse::<i32>().unwrap())),
-                            ))
-                            .execute(&mut *connection_clone.borrow_mut())
-                            .expect("Error updating anmeldungen");
-                    }
-                }
+                load_leistungsspiegel();
 
                 info!("updated");
                 loading.set(false);
                 future.restart();
             }
         }
-    };*/
+    };
 
     let tucan = tucan.clone();
     let onsubmit = {
