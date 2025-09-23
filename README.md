@@ -65,10 +65,9 @@ cd crates/tucan-plus-dioxus/
 dx serve --platform web --features api --verbose
 
 cargo install wasm-bindgen-cli@0.2.101
-cargo install --git https://github.com/mohe2015/wasm-bindgen.git --branch wip wasm-bindgen-cli
 
-cp -r ../tucan-plus-worker/target/dx/tucan-plus-worker/debug/web/public/wasm/. assets/worker/
-dx serve --wasm --bundle web --base-path worker # --hot-patch this lets everything explode with "env" imports and sqlite import stuff broken
+dx serve --wasm --bundle web --base-path /assets/worker # --hot-patch this lets everything explode with "env" imports and sqlite import stuff broken
+cp -r ../tucan-plus-worker/target/dx/tucan-plus-worker/debug/web/public/. assets/worker/
 
 # in second tab
 cargo install --locked bacon

@@ -85,7 +85,7 @@ pub async fn wait_for_worker() -> Worker {
         let options = WorkerOptions::new();
         options.set_type(WorkerType::Module);
         let worker =
-            Worker::new_with_options(&format!("{WORKER_3}/tucan-plus-worker.js"), &options)
+            Worker::new_with_options(&format!("{WORKER_3}/wasm/tucan-plus-worker.js"), &options)
                 .unwrap();
         let message_closure: Rc<RefCell<Option<Closure<dyn Fn(MessageEvent)>>>> =
             Rc::new(RefCell::new(None));
