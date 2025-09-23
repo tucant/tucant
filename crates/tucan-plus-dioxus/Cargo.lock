@@ -4798,7 +4798,7 @@ dependencies = [
 [[package]]
 name = "sqlite-wasm-rs"
 version = "0.4.3"
-source = "git+https://github.com/Spxg/sqlite-wasm-rs.git?branch=0.4.4#644e14394364500baad052bd5294f17576e240d5"
+source = "git+https://github.com/Spxg/sqlite-wasm-rs.git#ad19f85afb16497231ede985da1cfb5abea25689"
 dependencies = [
  "cc",
  "fragile",
@@ -5936,8 +5936,7 @@ dependencies = [
 [[package]]
 name = "wasm-bindgen"
 version = "0.2.103"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ab10a69fbd0a177f5f649ad4d8d3305499c42bab9aef2f7ff592d0ec8f833819"
+source = "git+https://github.com/mohe2015/wasm-bindgen.git?branch=wip#fb865c262f1eb9cc4b4c31abfcca089e01733671"
 dependencies = [
  "cfg-if",
  "once_cell",
@@ -5949,8 +5948,7 @@ dependencies = [
 [[package]]
 name = "wasm-bindgen-backend"
 version = "0.2.103"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0bb702423545a6007bbc368fde243ba47ca275e549c8a28617f56f6ba53b1d1c"
+source = "git+https://github.com/mohe2015/wasm-bindgen.git?branch=wip#fb865c262f1eb9cc4b4c31abfcca089e01733671"
 dependencies = [
  "bumpalo",
  "log",
@@ -5976,8 +5974,7 @@ dependencies = [
 [[package]]
 name = "wasm-bindgen-macro"
 version = "0.2.103"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fc65f4f411d91494355917b605e1480033152658d71f722a90647f56a70c88a0"
+source = "git+https://github.com/mohe2015/wasm-bindgen.git?branch=wip#fb865c262f1eb9cc4b4c31abfcca089e01733671"
 dependencies = [
  "quote",
  "wasm-bindgen-macro-support",
@@ -5986,8 +5983,7 @@ dependencies = [
 [[package]]
 name = "wasm-bindgen-macro-support"
 version = "0.2.103"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ffc003a991398a8ee604a401e194b6b3a39677b3173d6e74495eb51b82e99a32"
+source = "git+https://github.com/mohe2015/wasm-bindgen.git?branch=wip#fb865c262f1eb9cc4b4c31abfcca089e01733671"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -5999,8 +5995,7 @@ dependencies = [
 [[package]]
 name = "wasm-bindgen-shared"
 version = "0.2.103"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "293c37f4efa430ca14db3721dfbe48d8c33308096bd44d80ebaa775ab71ba1cf"
+source = "git+https://github.com/mohe2015/wasm-bindgen.git?branch=wip#fb865c262f1eb9cc4b4c31abfcca089e01733671"
 dependencies = [
  "unicode-ident",
 ]

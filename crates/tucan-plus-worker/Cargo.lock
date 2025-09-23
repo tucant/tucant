@@ -762,9 +762,9 @@ checksum = "4a5f13b858c8d314ee3e8f639011f7ccefe71f97f96e50151fb991f267928e2c"
 
 [[package]]
 name = "js-sys"
-version = "0.3.78"
+version = "0.3.80"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0c0b063578492ceec17683ef2f8c5e89121fbd0b172cbc280635ab7567db2738"
+checksum = "852f13bec5eba4ba9afbeb93fd7c13fe56147f055939ae21c43a29a0ecb2702e"
 dependencies = [
  "once_cell",
  "wasm-bindgen",
@@ -1332,7 +1332,7 @@ dependencies = [
 [[package]]
 name = "sqlite-wasm-rs"
 version = "0.4.3"
-source = "git+https://github.com/Spxg/sqlite-wasm-rs.git?branch=0.4.4#3ae0a56984b55a1cf096e4f381e79141cb7a68a9"
+source = "git+https://github.com/Spxg/sqlite-wasm-rs.git#ad19f85afb16497231ede985da1cfb5abea25689"
 dependencies = [
  "cc",
  "fragile",
@@ -1341,7 +1341,6 @@ dependencies = [
  "parking_lot",
  "thiserror",
  "tokio",
- "wasm-array-cp",
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
@@ -1773,20 +1772,9 @@ dependencies = [
 ]
 
 [[package]]
-name = "wasm-array-cp"
-version = "0.1.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bb633b3e235f0ebe0a35162adc1e0293fc4b7e3f3a6fc7b5374d80464267ff84"
-dependencies = [
- "js-sys",
- "wasm-bindgen",
-]
-
-[[package]]
 name = "wasm-bindgen"
-version = "0.2.101"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7e14915cadd45b529bb8d1f343c4ed0ac1de926144b746e2710f9cd05df6603b"
+version = "0.2.103"
+source = "git+https://github.com/mohe2015/wasm-bindgen.git?branch=wip#fb865c262f1eb9cc4b4c31abfcca089e01733671"
 dependencies = [
  "cfg-if",
  "once_cell",
@@ -1797,9 +1785,8 @@ dependencies = [
 
 [[package]]
 name = "wasm-bindgen-backend"
-version = "0.2.101"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e28d1ba982ca7923fd01448d5c30c6864d0a14109560296a162f80f305fb93bb"
+version = "0.2.103"
+source = "git+https://github.com/mohe2015/wasm-bindgen.git?branch=wip#fb865c262f1eb9cc4b4c31abfcca089e01733671"
 dependencies = [
  "bumpalo",
  "log",
@@ -1811,9 +1798,9 @@ dependencies = [
 
 [[package]]
 name = "wasm-bindgen-futures"
-version = "0.4.51"
+version = "0.4.53"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0ca85039a9b469b38336411d6d6ced91f3fc87109a2a27b0c197663f5144dffe"
+checksum = "a0b221ff421256839509adbb55998214a70d829d3a28c69b4a6672e9d2a42f67"
 dependencies = [
  "cfg-if",
  "js-sys",
@@ -1824,9 +1811,8 @@ dependencies = [
 
 [[package]]
 name = "wasm-bindgen-macro"
-version = "0.2.101"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7c3d463ae3eff775b0c45df9da45d68837702ac35af998361e2c84e7c5ec1b0d"
+version = "0.2.103"
+source = "git+https://github.com/mohe2015/wasm-bindgen.git?branch=wip#fb865c262f1eb9cc4b4c31abfcca089e01733671"
 dependencies = [
  "quote",
  "wasm-bindgen-macro-support",
@@ -1834,9 +1820,8 @@ dependencies = [
 
 [[package]]
 name = "wasm-bindgen-macro-support"
-version = "0.2.101"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7bb4ce89b08211f923caf51d527662b75bdc9c9c7aab40f86dcb9fb85ac552aa"
+version = "0.2.103"
+source = "git+https://github.com/mohe2015/wasm-bindgen.git?branch=wip#fb865c262f1eb9cc4b4c31abfcca089e01733671"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1847,9 +1832,8 @@ dependencies = [
 
 [[package]]
 name = "wasm-bindgen-shared"
-version = "0.2.101"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f143854a3b13752c6950862c906306adb27c7e839f7414cec8fea35beab624c1"
+version = "0.2.103"
+source = "git+https://github.com/mohe2015/wasm-bindgen.git?branch=wip#fb865c262f1eb9cc4b4c31abfcca089e01733671"
 dependencies = [
  "unicode-ident",
 ]
@@ -1869,9 +1853,9 @@ dependencies = [
 
 [[package]]
 name = "web-sys"
-version = "0.3.78"
+version = "0.3.80"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "77e4b637749ff0d92b8fad63aa1f7cff3cbe125fd49c175cd6345e7272638b12"
+checksum = "fbe734895e869dc429d78c4b433f8d17d95f8d05317440b4fad5ab2d33e596dc"
 dependencies = [
  "js-sys",
  "wasm-bindgen",
