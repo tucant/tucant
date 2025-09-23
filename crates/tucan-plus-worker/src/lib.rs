@@ -9,6 +9,7 @@ use crate::{
     models::{Anmeldung, AnmeldungEntry},
     schema::{anmeldungen_entries, anmeldungen_plan},
 };
+use tucan_types::student_result::StudentResultLevel;
 
 pub mod models;
 pub mod schema;
@@ -130,25 +131,32 @@ impl RequestResponse for Wlewifhewefwef {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct ChildUrl {}
+pub struct ChildUrl {
+    course_of_study: String,
+    url: String,
+    name: String,
+    child: StudentResultLevel,
+}
 
 impl RequestResponse for ChildUrl {
-    type Response = String;
+    type Response = ();
 
     fn execute(&self, connection: &mut SqliteConnection) -> Self::Response {
         let child_url = diesel::update(QueryDsl::filter(
             anmeldungen_plan::table,
-            anmeldungen_plan::course_of_study.eq(course_of_study).and(
-                anmeldungen_plan::parent
-                    .eq(&url)
-                    .and(anmeldungen_plan::name.eq(name)),
-            ),
+            anmeldungen_plan::course_of_study
+                .eq(self.course_of_study)
+                .and(
+                    anmeldungen_plan::parent
+                        .eq(self.url)
+                        .and(anmeldungen_plan::name.eq(self.name)),
+                ),
         ))
         .set((
-            anmeldungen_plan::min_cp.eq(child.rules.min_cp as i32),
-            anmeldungen_plan::max_cp.eq(child.rules.max_cp.map(|v| v as i32)),
-            anmeldungen_plan::min_modules.eq(child.rules.min_modules as i32),
-            anmeldungen_plan::max_modules.eq(child.rules.max_modules.map(|v| v as i32)),
+            anmeldungen_plan::min_cp.eq(self.child.rules.min_cp as i32),
+            anmeldungen_plan::max_cp.eq(self.child.rules.max_cp.map(|v| v as i32)),
+            anmeldungen_plan::min_modules.eq(self.child.rules.min_modules as i32),
+            anmeldungen_plan::max_modules.eq(self.child.rules.max_modules.map(|v| v as i32)),
         ))
         .returning(anmeldungen_plan::url)
         .get_result(connection)

@@ -21,6 +21,7 @@ erased-serde = "0.4"
 enum_dispatch = "0.3.13"
 fragile = "2"
 derive_more = { version = "2.0.1", features = ["from"] }
+tucan-types = { path = "../tucan-types" }
 
 [patch.crates-io]
 sqlite-wasm-rs = { git = "https://github.com/Spxg/sqlite-wasm-rs.git", branch = "0.4.4" }

@@ -5658,6 +5658,7 @@ dependencies = [
  "serde",
  "serde-wasm-bindgen",
  "sqlite-wasm-rs",
+ "tucan-types",
  "typetag",
  "wasm-bindgen",
  "wasm-bindgen-futures",
