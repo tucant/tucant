@@ -2,7 +2,7 @@ use dioxus::{hooks::use_context, html::MouseData};
 use fragile::Fragile;
 use log::info;
 use tucan_plus_worker::{
-    ChildUrl, UpdateModule,
+    ChildUrl, SetCpAndModuleCount, SetStateAndCredits, UpdateModule,
     models::{AnmeldungEntry, Semester, State},
 };
 use tucan_types::{
@@ -27,12 +27,18 @@ pub async fn recursive_update(
                 course_of_study: course_of_study.to_string(),
                 url: url.clone(),
                 name: name.clone(),
-                child,
+                child: child.clone(),
             },
         )
         .await;
         info!("updated");
-        Box::pin(recursive_update(worker, course_of_study, child_url, child)).await;
+        Box::pin(recursive_update(
+            worker.clone(),
+            course_of_study,
+            child_url,
+            child,
+        ))
+        .await;
     }
     let inserts: Vec<_> = level
         .entries
@@ -65,21 +71,7 @@ pub async fn recursive_update(
             semester: None,
         })
         .collect();
-    diesel::insert_into(anmeldungen_entries::table)
-        .values(&inserts)
-        .on_conflict((
-            anmeldungen_entries::course_of_study,
-            anmeldungen_entries::anmeldung,
-            anmeldungen_entries::available_semester,
-            anmeldungen_entries::id,
-        ))
-        .do_update()
-        .set((
-            anmeldungen_entries::state.eq(excluded(anmeldungen_entries::state)),
-            (anmeldungen_entries::credits.eq(excluded(anmeldungen_entries::credits))),
-        ))
-        .execute(&mut *connection_clone.borrow_mut())
-        .expect("Error saving anmeldungen");
+    send_message(&worker, SetStateAndCredits { inserts }).await;
 }
 
 pub async fn load_leistungsspiegel(
@@ -98,22 +90,17 @@ pub async fn load_leistungsspiegel(
         .iter()
         .find(|e| e.selected)
         .unwrap()
-        .name;
-    let the_url: String = diesel::update(QueryDsl::filter(
-        anmeldungen_plan::table,
-        anmeldungen_plan::course_of_study
-            .eq(&course_of_study)
-            .and(anmeldungen_plan::name.eq(name)),
-    ))
-    .set((
-        anmeldungen_plan::min_cp.eq(student_result.level0.rules.min_cp as i32),
-        anmeldungen_plan::max_cp.eq(student_result.level0.rules.max_cp.map(|v| v as i32)),
-        anmeldungen_plan::min_modules.eq(student_result.level0.rules.min_modules as i32),
-        anmeldungen_plan::max_modules.eq(student_result.level0.rules.max_modules.map(|v| v as i32)),
-    ))
-    .returning(anmeldungen_plan::url)
-    .get_result(&mut *connection_clone.borrow_mut())
-    .expect("Error updating anmeldungen");
+        .name
+        .to_owned();
+    let the_url = send_message(
+        &worker,
+        SetCpAndModuleCount {
+            course_of_study,
+            name,
+            student_result,
+        },
+    )
+    .await;
 
     recursive_update(worker, &course_of_study, the_url, student_result.level0).await;
 
@@ -135,7 +122,15 @@ pub async fn load_leistungsspiegel(
             .await
             .unwrap();
         for module in result.results {
-            send_message(&worker, UpdateModule {}).await;
+            send_message(
+                &worker,
+                UpdateModule {
+                    course_of_study,
+                    semester,
+                    module,
+                },
+            )
+            .await;
         }
     }
 }

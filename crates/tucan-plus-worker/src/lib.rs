@@ -3,14 +3,16 @@ use diesel::{prelude::*, upsert::excluded};
 use fragile::Fragile;
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use wasm_bindgen::JsValue;
-use web_sys::Worker;
+use web_sys::{Request, Worker};
 
 use crate::{
     models::{Anmeldung, AnmeldungEntry, Semester, State},
     schema::{anmeldungen_entries, anmeldungen_plan},
 };
 use tucan_types::{
-    Semesterauswahl, courseresults::ModuleResult, student_result::StudentResultLevel,
+    Semesterauswahl,
+    courseresults::ModuleResult,
+    student_result::{StudentResultLevel, StudentResultResponse},
 };
 
 pub mod models;
@@ -202,6 +204,67 @@ impl RequestResponse for UpdateModule {
     }
 }
 
+#[derive(Serialize, Deserialize, Debug)]
+pub struct SetStateAndCredits {
+    pub inserts: Vec<AnmeldungEntry>,
+}
+
+impl RequestResponse for SetStateAndCredits {
+    type Response = ();
+
+    fn execute(&self, connection: &mut SqliteConnection) -> Self::Response {
+        diesel::insert_into(anmeldungen_entries::table)
+            .values(&self.inserts)
+            .on_conflict((
+                anmeldungen_entries::course_of_study,
+                anmeldungen_entries::anmeldung,
+                anmeldungen_entries::available_semester,
+                anmeldungen_entries::id,
+            ))
+            .do_update()
+            .set((
+                anmeldungen_entries::state.eq(excluded(anmeldungen_entries::state)),
+                (anmeldungen_entries::credits.eq(excluded(anmeldungen_entries::credits))),
+            ))
+            .execute(connection)
+            .expect("Error saving anmeldungen");
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct SetCpAndModuleCount {
+    pub course_of_study: String,
+    pub name: String,
+    pub student_result: StudentResultResponse,
+}
+
+impl RequestResponse for SetCpAndModuleCount {
+    type Response = String;
+
+    fn execute(&self, connection: &mut SqliteConnection) -> Self::Response {
+        diesel::update(QueryDsl::filter(
+            anmeldungen_plan::table,
+            anmeldungen_plan::course_of_study
+                .eq(&self.course_of_study)
+                .and(anmeldungen_plan::name.eq(&self.name)),
+        ))
+        .set((
+            anmeldungen_plan::min_cp.eq(self.student_result.level0.rules.min_cp as i32),
+            anmeldungen_plan::max_cp.eq(self.student_result.level0.rules.max_cp.map(|v| v as i32)),
+            anmeldungen_plan::min_modules.eq(self.student_result.level0.rules.min_modules as i32),
+            anmeldungen_plan::max_modules.eq(self
+                .student_result
+                .level0
+                .rules
+                .max_modules
+                .map(|v| v as i32)),
+        ))
+        .returning(anmeldungen_plan::url)
+        .get_result(connection)
+        .expect("Error updating anmeldungen")
+    }
+}
+
 #[derive(Serialize, Deserialize, Debug, From)]
 pub enum RequestResponseEnum {
     AnmeldungenRequest(AnmeldungenRequest),
@@ -210,6 +273,8 @@ pub enum RequestResponseEnum {
     FEwefweewf(FEwefweewf),
     Wlewifhewefwef(Wlewifhewefwef),
     ChildUrl(ChildUrl),
+    UpdateModule(UpdateModule),
+    SetStateAndCredits(SetStateAndCredits),
 }
 
 impl RequestResponseEnum {
@@ -231,6 +296,12 @@ impl RequestResponseEnum {
                 serde_wasm_bindgen::to_value(&value.execute(connection)).unwrap()
             }
             RequestResponseEnum::ChildUrl(value) => {
+                serde_wasm_bindgen::to_value(&value.execute(connection)).unwrap()
+            }
+            RequestResponseEnum::UpdateModule(value) => {
+                serde_wasm_bindgen::to_value(&value.execute(connection)).unwrap()
+            }
+            RequestResponseEnum::SetStateAndCredits(value) => {
                 serde_wasm_bindgen::to_value(&value.execute(connection)).unwrap()
             }
         }
