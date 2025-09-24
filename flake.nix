@@ -220,15 +220,23 @@
             ls -R ${worker}/public/assets/
             mkdir -p assets/
             cp ${worker}/public/assets/tucan-plus-worker-*.js assets/
-            cp ${worker}/public/assets/tucan-plus-worker_bg-*.wasm assets/
-            export WORKER_JS_PATH_ARRAY=(assets/tucan-plus-worker-*.js)
+            cp ${worker}/public/assets/tucan-plus-worker_bg-*.wasm assets/tucan-plus-worker_bg.wasm
+            sha256sum ${worker}/public/assets/tucan-plus-worker_bg-*.wasm
+            export WORKER_JS_PATH_ARRAY=(assets/tucan-plus-worker*.js)
             export WORKER_JS_PATH=''${WORKER_JS_PATH_ARRAY[0]}
-            export WORKER_WASM_PATH_ARRAY=(assets/tucan-plus-worker_bg-*.wasm)
+            export WORKER_WASM_PATH_ARRAY=(assets/tucan-plus-worker_bg.wasm)
             export WORKER_WASM_PATH=''${WORKER_WASM_PATH_ARRAY[0]}
+            echo "$WORKER_WASM_PATH"
             ${dioxus-cli}/bin/dx bundle --platform web --verbose --release --out-dir $out --base-path public --features direct
           '';
-          installPhaseCommand = '''';
-          checkPhaseCargoCommand = '''';
+          installPhaseCommand = ''
+            pwd
+            ls -la
+            sha256sum assets/*
+            sha256sum $out/public/assets/*
+          '';
+          checkPhaseCargoCommand = ''
+          '';
           nativeBuildInputs = [
             pkgs.which
             pkgs.emscripten
