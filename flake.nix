@@ -217,11 +217,12 @@
             export CC=emcc
             export CXX=emcc
             emcc --version
+            ls -R ${worker}/public/assets/
             mkdir -p assets/worker/wasm
-            cp -r ${worker}/public/assets/tucan-plus-worker-*.js assets/worker/wasm/tucan-plus-worker.js
-            cp -r ${worker}/public/assets/tucan-plus-worker_bg-*.wasm assets/
-            cat assets/worker/wasm/tucan-plus-worker.js
-            ls -R assets/worker/wasm
+            cp ${worker}/public/assets/tucan-plus-worker-*.js assets/
+            cp ${worker}/public/assets/tucan-plus-worker_bg-*.wasm assets/
+            export WORKER_JS_PATH=assets/tucan-plus-worker-*.js
+            export WORKER_WASM_PATH=assets/tucan-plus-worker_bg-*.wasm
             ${dioxus-cli}/bin/dx bundle --platform web --verbose --release --out-dir $out --base-path public --features direct
           '';
           installPhaseCommand = '''';

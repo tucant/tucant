@@ -68,10 +68,10 @@ pub static LOGO_SVG: Asset = asset!(
 );
 
 #[used]
-pub static WORKER_3: Asset = asset!(
-    "/assets/worker",
-    AssetOptions::builder().with_hash_suffix(false)
-);
+pub static WORKER_JS: Asset = asset!(env!("WORKER_JS_PATH"));
+
+#[used]
+pub static WORKER_WASM: Asset = asset!(env!("WORKER_WASM_PATH"));
 
 pub static BOOTSTRAP_JS: Asset = asset!("/assets/bootstrap.bundle.min.js",);
 
@@ -80,13 +80,12 @@ pub static BOOTSTRAP_PATCH_JS: Asset = asset!("/assets/bootstrap.patch.js",);
 #[derive(Copy, Clone)]
 pub struct Anonymize(pub bool);
 
+// assume the content url is only dependent on content
 pub async fn wait_for_worker() -> Worker {
     let mut cb = |resolve: js_sys::Function, reject: js_sys::Function| {
         let options = WorkerOptions::new();
         options.set_type(WorkerType::Module);
-        let worker =
-            Worker::new_with_options(&format!("{WORKER_3}/wasm/tucan-plus-worker.js"), &options)
-                .unwrap();
+        let worker = Worker::new_with_options(&WORKER_JS.to_string(), &options).unwrap();
         let message_closure: Rc<RefCell<Option<Closure<dyn Fn(MessageEvent)>>>> =
             Rc::new(RefCell::new(None));
         let error_closure: Closure<dyn Fn(_)> = {
