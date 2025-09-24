@@ -179,7 +179,7 @@
             export CC=emcc
             export CXX=emcc
             emcc --version
-            ${dioxus-cli}/bin/dx bundle --wasm --bundle web --verbose --release --out-dir $out
+            ${dioxus-cli}/bin/dx bundle --wasm --bundle web --verbose --release --out-dir $out --base-path public
           '';
           installPhaseCommand = '''';
           checkPhaseCargoCommand = '''';
