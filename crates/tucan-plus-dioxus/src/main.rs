@@ -1,9 +1,13 @@
-use std::panic;
+use std::{panic, sync::Arc};
 
 use dioxus::prelude::*;
-use tucan_plus_dioxus::{Anonymize, BOOTSTRAP_JS, BOOTSTRAP_PATCH_JS, Route};
+use js_sys::Function;
+use log::info;
+use serde::{Serialize, de::DeserializeOwned};
+use tucan_plus_dioxus::{Anonymize, BOOTSTRAP_JS, BOOTSTRAP_PATCH_JS, Route, wait_for_worker};
 use tucan_types::LoginResponse;
 use wasm_bindgen::prelude::*;
+use web_sys::{AddEventListenerOptions, MessageEvent, Worker, WorkerOptions, WorkerType};
 
 #[wasm_bindgen]
 extern "C" {
@@ -63,6 +67,11 @@ pub async fn main() {
     };
 
     let launcher = dioxus::LaunchBuilder::new();
+
+    let worker = fragile::Fragile::new(wait_for_worker().await);
+    //let response: String = send_message(&worker, &"test").await;
+
+    let launcher = launcher.with_context(worker);
 
     #[cfg(feature = "web")]
     let launcher = launcher.with_cfg(

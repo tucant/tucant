@@ -1,23 +1,11 @@
 use std::cell::RefCell;
 
 use crate::MyRc;
-use diesel::{Connection as _, SqliteConnection};
 use dioxus::prelude::*;
 use js_sys::{Array, Uint8Array};
 use web_sys::{Blob, Url};
 
 async fn export_db() -> Vec<u8> {
-    #[cfg(target_arch = "wasm32")]
-    {
-        let util = sqlite_wasm_rs::relaxed_idb_vfs::install(
-            &sqlite_wasm_rs::relaxed_idb_vfs::RelaxedIdbCfg::default(),
-            true,
-        )
-        .await
-        .unwrap();
-
-        return util.export_db("tucan-plus.db").unwrap();
-    }
     panic!();
 }
 

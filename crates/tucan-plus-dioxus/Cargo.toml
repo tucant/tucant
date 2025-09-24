@@ -3,7 +3,7 @@ name = "tucan-plus-dioxus"
 license = "AGPL-3.0-or-later"
 edition = "2024"
 version = "0.1.2"
-rust-version = "1.85.1"
+rust-version = "1.86"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -18,8 +18,8 @@ serde_json = "1"
 url = "2"
 console_log = { version = "1", features = ["color"] }
 js-sys = "0.3"
-wasm-bindgen = "0.2"
-web-sys = { version = "0.3", features = ["Document", "Window", "HtmlDocument", "NodeList", "HtmlSelectElement", "Blob", "Url", "BlobPropertyBag"] }
+wasm-bindgen = { version = "=0.2.101" }
+web-sys = { version = "0.3", features = ["Document", "Window", "HtmlDocument", "NodeList", "HtmlSelectElement", "Blob", "Url", "BlobPropertyBag", "Worker", "WorkerOptions", "WorkerType", "AddEventListenerOptions", "EventTarget", "ErrorEvent"] }
 cookie = "0.18"
 web-extensions-sys = { optional = true, git = "https://github.com/mohe2015/web-extensions-sys", branch = "cookies" }
 tucan-connector = { optional = true, path = "../tucan-connector" }
@@ -29,16 +29,18 @@ plotters = { version = "0.3.7", default-features = false, features = ["svg_backe
 keyring = { version = "3", optional = true }
 android-keyring = { version = "0.2", optional = true }
 git-version = "0.3"
-# https://github.com/diesel-rs/diesel/discussions/4545
-diesel = { git = "https://github.com/diesel-rs/diesel.git", features = ["sqlite", "returning_clauses_for_sqlite_3_35"] }
-diesel_migrations = { git = "https://github.com/diesel-rs/diesel.git", features = ["sqlite"] }
 futures = "0.3.31"
+serde-wasm-bindgen = "0.6"
+serde = { version = "1", features = ["derive"] }
+fragile = "2"
+tucan-plus-worker = { path = "../tucan-plus-worker" }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 tokio = { features = ["macros", "rt", "rt-multi-thread"], version = "1" }
 
-[target.'cfg(target_arch = "wasm32")'.dependencies]
-sqlite-wasm-rs = { version = "0.4", default-features = false, features = ["bundled", "relaxed-idb"] }
+[patch.crates-io]
+sqlite-wasm-rs = { git = "https://github.com/Spxg/sqlite-wasm-rs.git" }
+wasm-bindgen = { git = "https://github.com/mohe2015/wasm-bindgen.git", branch = "wip" }
 
 [features]
 direct = ["web", "dep:tucan-connector", "dep:web-extensions-sys"]

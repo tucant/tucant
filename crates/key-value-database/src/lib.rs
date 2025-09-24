@@ -1,7 +1,7 @@
 #[cfg_attr(not(target_arch = "wasm32"), derive(Clone))]
 pub struct Database {
     #[cfg(target_arch = "wasm32")]
-    database: send_wrapper::SendWrapper<indexed_db::Database<std::io::Error>>,
+    database: fragile::Fragile<indexed_db::Database<std::io::Error>>,
     #[cfg(not(target_arch = "wasm32"))]
     database: sqlx::Pool<sqlx::Sqlite>,
 }
@@ -25,7 +25,7 @@ impl Database {
                 .unwrap();
 
             Self {
-                database: send_wrapper::SendWrapper::new(database),
+                database: fragile::Fragile::new(database),
             }
         }
         #[cfg(not(target_arch = "wasm32"))]
@@ -89,6 +89,7 @@ impl Database {
             let key = js_sys::wasm_bindgen::JsValue::from(key);
             let result = self
                 .database
+                .get()
                 .transaction(&["store"])
                 .run(|t| async move {
                     let store = t.object_store("store")?;
@@ -122,6 +123,7 @@ impl Database {
             let key = js_sys::wasm_bindgen::JsValue::from(key);
             let value = serde_wasm_bindgen::to_value(&value).unwrap();
             self.database
+                .get()
                 .transaction(&["store"])
                 .rw()
                 .run(|t| async move {
@@ -151,6 +153,7 @@ impl Database {
         {
             use futures_util::StreamExt;
             self.database
+                .get()
                 .transaction(&["store"])
                 .rw()
                 .run(|t| async move {

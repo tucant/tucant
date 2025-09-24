@@ -64,6 +64,11 @@ cargo install --git https://github.com/mohe2015/dioxus --branch my dioxus-cli
 cd crates/tucan-plus-dioxus/
 dx serve --platform web --features api --verbose
 
+cargo install wasm-bindgen-cli@0.2.101
+
+dx serve --wasm --bundle web --base-path /assets/worker # --hot-patch this lets everything explode with "env" imports and sqlite import stuff broken
+cp -r ../tucan-plus-worker/target/dx/tucan-plus-worker/debug/web/public/. assets/worker/
+
 # in second tab
 cargo install --locked bacon
 cd crates/tucan-plus-api/

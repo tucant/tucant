@@ -9,7 +9,6 @@ pub mod export_semester;
 pub mod gradeoverview;
 pub mod login_component;
 pub mod logout_component;
-pub mod models;
 pub mod module_details;
 pub mod my_courses;
 pub mod my_documents;
@@ -22,24 +21,33 @@ pub mod navbar_logged_out;
 pub mod overview;
 pub mod planning;
 pub mod registration;
-pub mod schema;
 pub mod student_result;
 pub mod vv;
-
-use std::ops::Deref;
-use std::sync::Arc;
 
 use crate::export_semester::FetchAnmeldung;
 use crate::navbar::Navbar;
 use crate::overview::Overview;
 use crate::planning::Planning;
 use dioxus::prelude::*;
+use fragile::Fragile;
+use log::info;
+use serde::Serialize;
+use serde::de::DeserializeOwned;
+use std::cell::RefCell;
+use std::fmt::Debug;
+use std::ops::Deref;
+use std::rc::Rc;
+use std::sync::Arc;
+use tucan_plus_worker::{RequestResponse, RequestResponseEnum};
 use tucan_types::DynTucan;
 use tucan_types::gradeoverview::GradeOverviewRequest;
 use tucan_types::{
     SemesterId, coursedetails::CourseDetailsRequest, moduledetails::ModuleDetailsRequest,
     registration::AnmeldungRequest, vv::ActionRequest,
 };
+use wasm_bindgen::prelude::Closure;
+use wasm_bindgen::{JsCast as _, JsValue};
+use web_sys::{AddEventListenerOptions, MessageEvent, Worker, WorkerOptions, WorkerType};
 
 #[used]
 pub static BOOTSTRAP_CSS: Asset = asset!(
@@ -59,12 +67,185 @@ pub static LOGO_SVG: Asset = asset!(
     AssetOptions::builder().with_hash_suffix(false)
 );
 
+// unfortunately the asset! macro produces a different hash as the build output
+#[used]
+pub static WORKER_JS: Asset = asset!(
+    env!("WORKER_JS_PATH"),
+    AssetOptions::builder().with_hash_suffix(false)
+);
+
+// unfortunately the asset! macro produces a different hash as the build output
+#[used]
+pub static WORKER_WASM: Asset = asset!(
+    env!("WORKER_WASM_PATH"),
+    AssetOptions::builder().with_hash_suffix(false)
+);
+
 pub static BOOTSTRAP_JS: Asset = asset!("/assets/bootstrap.bundle.min.js",);
 
 pub static BOOTSTRAP_PATCH_JS: Asset = asset!("/assets/bootstrap.patch.js",);
 
 #[derive(Copy, Clone)]
 pub struct Anonymize(pub bool);
+
+// assume the content url is only dependent on content
+pub async fn wait_for_worker() -> Worker {
+    let mut cb = |resolve: js_sys::Function, reject: js_sys::Function| {
+        let options = WorkerOptions::new();
+        options.set_type(WorkerType::Module);
+        let worker = Worker::new_with_options(&WORKER_JS.to_string(), &options).unwrap();
+        let message_closure: Rc<RefCell<Option<Closure<dyn Fn(MessageEvent)>>>> =
+            Rc::new(RefCell::new(None));
+        let error_closure: Closure<dyn Fn(_)> = {
+            let worker = worker.clone();
+            let message_closure = message_closure.clone();
+            Closure::new(move |event: web_sys::ErrorEvent| {
+                info!(
+                    "error at client {event:?} {:?} {:?}",
+                    event.message(),
+                    event.error()
+                );
+                worker
+                    .remove_event_listener_with_callback(
+                        "message",
+                        message_closure
+                            .borrow()
+                            .as_ref()
+                            .unwrap()
+                            .as_ref()
+                            .unchecked_ref(),
+                    )
+                    .unwrap();
+                reject.call0(&JsValue::undefined()).unwrap();
+            })
+        };
+        let error_closure_ref = error_closure.as_ref().clone();
+        *message_closure.borrow_mut() = {
+            let worker = worker.clone();
+            let error_closure_ref = error_closure_ref.clone();
+            Some(Closure::new(move |event: MessageEvent| {
+                //info!("received message at client {:?}", event.data());
+                worker
+                    .remove_event_listener_with_callback("error", error_closure_ref.unchecked_ref())
+                    .unwrap();
+                resolve.call1(&JsValue::undefined(), &worker).unwrap();
+            }))
+        };
+        let options = AddEventListenerOptions::new();
+        options.set_once(true);
+        worker
+            .add_event_listener_with_callback_and_add_event_listener_options(
+                "error",
+                error_closure_ref.unchecked_ref(),
+                &options,
+            )
+            .unwrap();
+        worker
+            .add_event_listener_with_callback_and_add_event_listener_options(
+                "message",
+                message_closure
+                    .borrow()
+                    .as_ref()
+                    .unwrap()
+                    .as_ref()
+                    .unchecked_ref(),
+                &options,
+            )
+            .unwrap();
+        error_closure.forget();
+    };
+
+    let p = js_sys::Promise::new(&mut cb);
+
+    wasm_bindgen_futures::JsFuture::from(p)
+        .await
+        .unwrap()
+        .into()
+}
+
+pub async fn send_message<R: RequestResponse + Debug>(
+    worker: &Fragile<Worker>,
+    value: R,
+) -> R::Response
+where
+    RequestResponseEnum: std::convert::From<R>,
+{
+    //info!("sending message from client {:?}", value);
+    let mut cb = |resolve: js_sys::Function, reject: js_sys::Function| {
+        let message_closure: Rc<RefCell<Option<Closure<dyn Fn(MessageEvent)>>>> =
+            Rc::new(RefCell::new(None));
+        let error_closure: Closure<dyn Fn(_)> = {
+            let worker = worker.clone();
+            let message_closure = message_closure.clone();
+            Closure::new(move |event: web_sys::ErrorEvent| {
+                info!(
+                    "error at client {event:?} {:?} {:?}",
+                    event.message(),
+                    event.error()
+                );
+                worker
+                    .get()
+                    .remove_event_listener_with_callback(
+                        "message",
+                        message_closure
+                            .borrow()
+                            .as_ref()
+                            .unwrap()
+                            .as_ref()
+                            .unchecked_ref(),
+                    )
+                    .unwrap();
+                reject.call0(&JsValue::undefined()).unwrap();
+            })
+        };
+        let error_closure_ref = error_closure.as_ref().clone();
+        *message_closure.borrow_mut() = {
+            let worker = worker.clone();
+            let error_closure_ref = error_closure_ref.clone();
+            Some(Closure::new(move |event: MessageEvent| {
+                //info!("received message at client {:?}", event.data());
+                worker
+                    .get()
+                    .remove_event_listener_with_callback("error", error_closure_ref.unchecked_ref())
+                    .unwrap();
+                resolve.call1(&JsValue::undefined(), &event.data()).unwrap();
+            }))
+        };
+        let options = AddEventListenerOptions::new();
+        options.set_once(true);
+        worker
+            .get()
+            .add_event_listener_with_callback_and_add_event_listener_options(
+                "error",
+                error_closure_ref.unchecked_ref(),
+                &options,
+            )
+            .unwrap();
+        worker
+            .get()
+            .add_event_listener_with_callback_and_add_event_listener_options(
+                "message",
+                message_closure
+                    .borrow()
+                    .as_ref()
+                    .unwrap()
+                    .as_ref()
+                    .unchecked_ref(),
+                &options,
+            )
+            .unwrap();
+        error_closure.forget();
+    };
+
+    let p = js_sys::Promise::new(&mut cb);
+
+    worker
+        .get()
+        .post_message(&serde_wasm_bindgen::to_value(&RequestResponseEnum::from(value)).unwrap())
+        .unwrap();
+
+    serde_wasm_bindgen::from_value(wasm_bindgen_futures::JsFuture::from(p).await.unwrap()).unwrap()
+}
 
 #[cfg(not(any(
     feature = "desktop",

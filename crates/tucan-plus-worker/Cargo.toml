@@ -1,0 +1,24 @@
+[package]
+name = "tucan-plus-worker"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+js-sys = "0.3"
+wasm-bindgen = { version = "=0.2.101" } # https://github.com/wasm-bindgen/wasm-bindgen/issues/4654
+web-sys = { version = "0.3", features = ["DedicatedWorkerGlobalScope", "MessageEvent", "Worker"] }
+console_log = { version = "1", features = ["color"] }
+log = { version = "0.4", features = ["max_level_debug", "release_max_level_warn"] }
+wasm-bindgen-futures = "0.4"
+# https://github.com/diesel-rs/diesel/discussions/4545
+diesel = { git = "https://github.com/diesel-rs/diesel.git", features = ["sqlite", "returning_clauses_for_sqlite_3_35"] }
+diesel_migrations = { git = "https://github.com/diesel-rs/diesel.git", features = ["sqlite"] }
+sqlite-wasm-rs = { version = "0.4", default-features = false, features = ["bundled"] }
+serde-wasm-bindgen = "0.6"
+typetag = "0.2"
+serde = { version = "1", features = ["derive"] }
+erased-serde = "0.4"
+enum_dispatch = "0.3.13"
+fragile = "2"
+derive_more = { version = "2.0.1", features = ["from"] }
+tucan-types = { path = "../tucan-types" }
