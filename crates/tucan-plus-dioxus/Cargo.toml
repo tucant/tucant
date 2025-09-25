@@ -8,7 +8,7 @@ rust-version = "1.86"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-dioxus = { git = "https://github.com/mohe2015/dioxus.git", branch = "my", default-features = false, features = ["launch", "devtools", "logger", "lib", "router" ] }
+dioxus = { path = "../../../dioxus/packages/dioxus", default-features = false, features = ["launch", "devtools", "logger", "lib", "router" ] }
 dioxus-desktop = { git = "https://github.com/mohe2015/dioxus.git", branch = "my", default-features = false, optional = true }
 tucan-types = { path = "../tucan-types" }
 log = { version = "0.4", features = ["max_level_debug", "release_max_level_warn"] }

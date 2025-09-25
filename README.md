@@ -66,6 +66,8 @@ export WORKER_JS_PATH=/assets/wasm/tucan-plus-worker.js
 export WORKER_WASM_PATH=/assets/wasm/tucan-plus-worker_bg.wasm
 dx serve --platform web --features api --verbose
 
+cargo run --manifest-path ~/Documents/dioxus/packages/cli/Cargo.toml serve --platform web --features api --verbose
+
 cargo install wasm-bindgen-cli@0.2.101
 
 cd crates/tucan-plus-worker/
