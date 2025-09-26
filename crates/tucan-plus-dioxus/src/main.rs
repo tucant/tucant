@@ -89,6 +89,12 @@ pub async fn main() {
             .with_custom_index(include_str!("../index.html").replace("{base_path}", ".")),
     );
 
+    #[cfg(feature = "mobile")]
+    let launcher = launcher.with_cfg(
+        dioxus::mobile::Config::new()
+            .with_custom_index(include_str!("../index.html").replace("{base_path}", ".")),
+    );
+
     let login_response = tucan_plus_dioxus::login_response().await;
     let launcher = launcher.with_context(login_response);
 

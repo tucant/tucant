@@ -60,13 +60,13 @@ checksum = "683d7910e743518b0e34f1186f92494becacb047c7b6bf616c96772180fef923"
 
 [[package]]
 name = "android-native-keyring-store"
-version = "0.4.0"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0703110a012529cf7a018714adc8b99b47cae6ab95371f0f7b9a2243b6328bb3"
+checksum = "0491abd7f08a01d6da351d7356e9afe93bd58c48a803826fca2602619aba63d4"
 dependencies = [
  "base64",
  "jni",
- "keyring-core 0.6.0",
+ "keyring-core",
  "ndk-context",
  "thiserror 2.0.16",
  "tracing",
@@ -837,7 +837,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fcb2d399b165f8b7461970c922283f73f7176bd4cce022119cf37b612c710957"
 dependencies = [
  "dbus-secret-service",
- "keyring-core 0.5.0",
+ "keyring-core",
 ]
 
 [[package]]
@@ -2908,15 +2908,6 @@ name = "keyring-core"
 version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4334ce6f52997b27cdf93ff93e9b7dc585ddcb377006154fb2f6a695c40c53d6"
-dependencies = [
- "log",
-]
-
-[[package]]
-name = "keyring-core"
-version = "0.6.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "95c88c9f6a100174c2303fe51bb24749978951cb1c6d9c817349d0beb8f3ab24"
 dependencies = [
  "log",
 ]
@@ -5802,7 +5793,7 @@ dependencies = [
  "futures",
  "git-version",
  "js-sys",
- "keyring-core 0.5.0",
+ "keyring-core",
  "log",
  "plotters",
  "reqwest",
@@ -5851,6 +5842,7 @@ dependencies = [
  "serde",
  "serde-wasm-bindgen",
  "sqlite-wasm-rs",
+ "tokio",
  "tucan-types",
  "typetag",
  "wasm-bindgen",

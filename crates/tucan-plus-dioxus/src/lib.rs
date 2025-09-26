@@ -278,7 +278,9 @@ pub async fn login_response() -> Option<tucan_types::LoginResponse> {
 #[cfg(any(feature = "desktop", feature = "mobile"))]
 pub async fn login_response() -> Option<tucan_types::LoginResponse> {
     #[cfg(feature = "mobile")]
-    android_keyring::set_android_keyring_credential_builder().unwrap();
+    keyring_core::set_default_store(
+        android_native_keyring_store::AndroidStore::from_ndk_context().unwrap(),
+    );
 
     #[cfg(feature = "desktop")]
     keyring_core::set_default_store(dbus_secret_service_keyring_store::Store::new().unwrap());

@@ -65,7 +65,7 @@ pub async fn main() {
     .await
     .unwrap();
 
-    let mut connection = SqliteConnection::establish("tucan-plus.db").unwrap();
+    let mut connection = SqliteConnection::establish("sqlite://tucan-plus.db?mode=rwc").unwrap();
 
     connection.run_pending_migrations(MIGRATIONS).unwrap();
 

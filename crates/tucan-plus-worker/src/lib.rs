@@ -328,7 +328,16 @@ impl MyDatabase {
     pub async fn wait_for_worker() -> Self {
         use diesel_migrations::MigrationHarness as _;
 
-        let mut connection = SqliteConnection::establish("tucan-plus.db").unwrap();
+        let url = if cfg!(target_os = "android") {
+            tokio::fs::create_dir_all("/data/data/com.example.TucanPlusDioxus/files")
+                .await
+                .unwrap();
+
+            "sqlite:///data/data/com.example.TucanPlusDioxus/files/data.db?mode=rwc"
+        } else {
+            "sqlite://tucan-plus.db?mode=rwc"
+        };
+        let mut connection = SqliteConnection::establish(url).unwrap();
 
         connection.run_pending_migrations(MIGRATIONS).unwrap();
 
