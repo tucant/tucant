@@ -179,7 +179,7 @@
           buildPhaseCargoCommand = ''
             export CC=emcc
             export CXX=emcc
-            CARGO_TARGET_DIR=target ${dioxus-cli}/bin/dx bundle --wasm --bundle web --verbose --release --out-dir $out --base-path public
+            CARGO_TARGET_DIR=target ${dioxus-cli}/bin/dx bundle --wasm --bundle web --release --out-dir $out --base-path public
           '';
           installPhaseCommand = '''';
           checkPhaseCargoCommand = '''';
@@ -254,7 +254,7 @@
             export WORKER_JS_PATH="/''${WORKER_JS_PATH_ARRAY[0]}"
             export WORKER_WASM_PATH_ARRAY=(assets/tucan-plus-worker_bg-*.wasm)
             export WORKER_WASM_PATH="/''${WORKER_WASM_PATH_ARRAY[0]}"
-            CARGO_TARGET_DIR=target ${dioxus-cli}/bin/dx bundle --platform web --verbose --release --out-dir $out --base-path public --features direct
+            CARGO_TARGET_DIR=target ${dioxus-cli}/bin/dx bundle --platform web --release --out-dir $out --base-path public --features direct
           '';
           installPhaseCommand = ''
           '';
