@@ -201,15 +201,8 @@
 
         worker = craneLib.buildPackage (worker-args // {
           cargoArtifacts = craneLib.buildDepsOnly (worker-args // {
-            crateName = "test";
-            src = craneLib.mkDummySrc {
-              pname = worker-args.pname;
+            dummySrc = craneLib.mkDummySrc {
               src = ./crates/tucan-plus-worker;
-              extraDummyScript = ''
-                exit 1
-                cp ${worker-args.cargoLock} $out/crates/tucan-plus-worker/Cargo.lock
-                ls -R $out
-              '';
             };
           });
         });
