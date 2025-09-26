@@ -21,7 +21,6 @@ use wasm_bindgen_futures::JsFuture;
 use web_sys::{FileList, HtmlInputElement, Worker};
 
 use crate::planning::load_leistungsspiegel::load_leistungsspiegel;
-use crate::planning::load_semesters::handle_semester;
 use crate::{MyRc, RcTucanType, Route, send_message};
 
 #[component]
@@ -125,7 +124,7 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
             evt.prevent_default();
             async move {
                 loading.set(true);
-                handle_semester(
+                /*handle_semester(
                     &course_of_study,
                     tucan.clone(),
                     &current_session_handle().unwrap(),
@@ -140,7 +139,7 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
                     Semester::Wintersemester,
                     wintersemester,
                 )
-                .await;
+                .await;*/
                 info!("done");
                 loading.set(false);
                 future.restart();

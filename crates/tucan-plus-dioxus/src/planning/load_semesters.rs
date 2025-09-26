@@ -15,7 +15,7 @@ use wasm_bindgen_futures::JsFuture;
 use web_sys::{FileList, HtmlInputElement, Worker};
 
 use crate::{RcTucanType, send_message};
-
+/*
 pub async fn handle_semester(
     course_of_study: &str,
     tucan: RcTucanType,
@@ -92,3 +92,4 @@ pub async fn handle_semester(
         }
     }
 }
+*/
