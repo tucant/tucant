@@ -125,8 +125,13 @@
               ${api}/bin/schema > $out
             '';
 
-        fileset-wasm = lib.fileset.unions [
+        fileset-worker = lib.fileset.unions [
+          (craneLib.fileset.commonCargoSources ./crates/tucan-plus-worker)
           (craneLib.fileset.commonCargoSources ./crates/tucan-types)
+          ./crates/tucan-plus-worker/migrations
+        ];
+
+        fileset-wasm = lib.fileset.unions [
           (craneLib.fileset.commonCargoSources ./crates/key-value-database)
           (craneLib.fileset.commonCargoSources ./crates/html-extractor)
           (craneLib.fileset.commonCargoSources ./crates/tucan-connector)
@@ -139,8 +144,7 @@
           ./crates/tucan-plus-dioxus/assets/bootstrap.bundle.min.js
           ./crates/tucan-plus-dioxus/assets/bootstrap.patch.js
           ./crates/tucan-plus-dioxus/index.html
-          (craneLib.fileset.commonCargoSources ./crates/tucan-plus-worker) # TODO separate
-          ./crates/tucan-plus-worker/migrations # TODO separate
+          fileset-worker
         ];
 
         wasm-bindgen = (pkgs.buildWasmBindgenCli rec {
@@ -157,7 +161,7 @@
           };
         });
 
-        worker = craneLib.buildPackage {
+        worker-args = {
           cargoToml = ./crates/tucan-plus-worker/Cargo.toml;
           cargoLock = ./crates/tucan-plus-worker/Cargo.lock;
           preBuild = ''
@@ -166,11 +170,6 @@
           strictDeps = true;
           stdenv = p: p.emscriptenStdenv;
           doCheck = false;
-          cargoArtifacts = null; # building deps only does not work with the default stub entrypoint
-          src = lib.fileset.toSource {
-            root = ./.;
-            fileset = fileset-wasm;
-          };
           cargoExtraArgs = "--package=tucan-plus-worker";
           pname = "tucan-plus-workspace-tucan-plus-worker";
           buildPhaseCargoCommand = ''
@@ -179,7 +178,7 @@
             export CC=emcc
             export CXX=emcc
             emcc --version
-            # TODO call plain cargo before and use as cache so upgrading dioxus doesn't have to recompile (probably hard to pass correct flags?). probably too hard, use old dioxus?
+            ls -R
             ${dioxus-cli}/bin/dx bundle --wasm --bundle web --verbose --release --out-dir $out --base-path public
           '';
           installPhaseCommand = '''';
@@ -194,7 +193,26 @@
             '')
           ];
           doNotPostBuildInstallCargoBinaries = true;
+          src = lib.fileset.toSource {
+            root = ./.;
+            fileset = fileset-worker;
+          };
         };
+
+        worker = craneLib.buildPackage (worker-args // {
+          cargoArtifacts = craneLib.buildDepsOnly (worker-args // {
+            crateName = "test";
+            src = craneLib.mkDummySrc {
+              pname = worker-args.pname;
+              src = ./crates/tucan-plus-worker;
+              extraDummyScript = ''
+                exit 1
+                cp ${worker-args.cargoLock} $out/crates/tucan-plus-worker/Cargo.lock
+                ls -R $out
+              '';
+            };
+          });
+        });
 
         client = craneLib.buildPackage {
           cargoToml = ./crates/tucan-plus-dioxus/Cargo.toml;
