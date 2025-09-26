@@ -1,4 +1,4 @@
-use dioxus::{hooks::use_context, signals::Signal};
+use dioxus::{prelude::*, web::WebEventExt};
 use fragile::Fragile;
 use futures::StreamExt as _;
 use js_sys::Uint8Array;
@@ -21,12 +21,15 @@ pub async fn handle_semester(
     tucan: RcTucanType,
     login_response: &LoginResponse,
     semester: Semester,
-    element: Signal<Option<web_sys::Element>>,
+    element: Signal<Option<Event<MountedData>>>,
 ) {
     use wasm_bindgen::JsCast;
     let worker: Fragile<Worker> = use_context();
     let element = element().unwrap();
-    let b: HtmlInputElement = element.dyn_into::<HtmlInputElement>().unwrap();
+    let b: HtmlInputElement = element
+        .as_web_event()
+        .dyn_into::<HtmlInputElement>()
+        .unwrap();
     let files: FileList = b.files().unwrap();
     for i in 0..files.length() {
         let file = files.get(i).unwrap();

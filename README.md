@@ -72,6 +72,7 @@ cargo install wasm-bindgen-cli@0.2.101
 
 cd crates/tucan-plus-worker/
 dx serve --wasm --bundle web --base-path assets # --hot-patch this lets everything explode with "env" imports and sqlite import stuff broken
+cd ../tucan-plus-dioxus
 cp -r ../tucan-plus-worker/target/dx/tucan-plus-worker/debug/web/public/wasm/. assets/wasm/
 
 # in second tab

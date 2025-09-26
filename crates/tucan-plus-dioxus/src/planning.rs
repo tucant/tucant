@@ -63,8 +63,8 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
         .value
         .to_string();
     let navigator = use_navigator();
-    let mut sommersemester: Signal<Option<web_sys::Element>> = use_signal(|| None);
-    let mut wintersemester: Signal<Option<web_sys::Element>> = use_signal(|| None);
+    let mut sommersemester: Signal<Option<Event<MountedData>>> = use_signal(|| None);
+    let mut wintersemester: Signal<Option<Event<MountedData>>> = use_signal(|| None);
     let tucan: RcTucanType = use_context();
     let current_session_handle = use_context::<Signal<Option<LoginResponse>>>();
     let mut loading = use_signal(|| false);
@@ -208,10 +208,7 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
                         type: "file",
                         class: "form-control",
                         id: "sommersemester-file",
-                        onmounted: move |element| {
-                            use dioxus::web::WebEventExt;
-                            sommersemester.set(Some(element.as_web_event()))
-                        },
+                        onmounted: move |element| { sommersemester.set(Some(element)) },
                     }
                 }
                 div {
@@ -225,10 +222,7 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
                         type: "file",
                         class: "form-control",
                         id: "wintersemester-file",
-                        onmounted: move |element| {
-                            use dioxus::web::WebEventExt;
-                            wintersemester.set(Some(element.as_web_event()))
-                        },
+                        onmounted: move |element| { wintersemester.set(Some(element)) },
                     }
                 }
                 button {
