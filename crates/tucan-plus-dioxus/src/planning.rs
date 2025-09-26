@@ -23,7 +23,7 @@ use web_sys::{FileList, HtmlInputElement, Worker};
 
 use crate::planning::load_leistungsspiegel::load_leistungsspiegel;
 use crate::planning::load_semesters::handle_semester;
-use crate::{MyRc, RcTucanType, Route, send_message};
+use crate::{MyDatabase, MyRc, RcTucanType, Route};
 
 #[component]
 pub fn Planning(course_of_study: ReadSignal<String>) -> Element {
@@ -78,13 +78,11 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
             async move {
                 // TODO FIXME I think based on course of study we can create an
                 // anmeldung_request and then this here is not special cased any more?
-                let result = send_message(
-                    &worker,
-                    AnmeldungenRequest {
+                let result = worker
+                    .send_message(AnmeldungenRequest {
                         course_of_study: course_of_study.clone(),
-                    },
-                )
-                .await;
+                    })
+                    .await;
                 futures::stream::iter(result.into_iter())
                     .then(async |anmeldung| {
                         prep_planning(&course_of_study, anmeldung).await.element
@@ -485,23 +483,19 @@ async fn prep_planning(
     course_of_study: &str,
     anmeldung: Anmeldung, // ahh this needs to be a signal?
 ) -> PrepPlanningReturn {
-    let worker: Fragile<Worker> = use_context();
-    let results = send_message(
-        &worker,
-        AnmeldungenRequest2 {
+    let worker: MyDatabase = use_context();
+    let results = worker
+        .send_message(AnmeldungenRequest2 {
             course_of_study: course_of_study.to_owned(),
             anmeldung: anmeldung.clone(),
-        },
-    )
-    .await;
-    let entries = send_message(
-        &worker,
-        Fewe {
+        })
+        .await;
+    let entries = worker
+        .send_message(Fewe {
             course_of_study: course_of_study.to_owned(),
             anmeldung: anmeldung.clone(),
-        },
-    )
-    .await;
+        })
+        .await;
     let inner: Vec<PrepPlanningReturn> = futures::stream::iter(results.iter())
         .then(async |result| Box::pin(prep_planning(course_of_study, result.clone())).await)
         .collect()
