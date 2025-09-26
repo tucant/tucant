@@ -179,7 +179,6 @@
           buildPhaseCargoCommand = ''
             export CC=emcc
             export CXX=emcc
-            ls -R
             CARGO_TARGET_DIR=target ${dioxus-cli}/bin/dx bundle --wasm --bundle web --verbose --release --out-dir $out --base-path public
           '';
           installPhaseCommand = '''';
