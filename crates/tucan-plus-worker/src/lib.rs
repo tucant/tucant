@@ -1,9 +1,7 @@
 use derive_more::From;
 use diesel::{prelude::*, upsert::excluded};
-use fragile::Fragile;
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use wasm_bindgen::JsValue;
-use web_sys::{Request, Worker};
 
 use crate::{
     models::{Anmeldung, AnmeldungEntry, Semester, State},

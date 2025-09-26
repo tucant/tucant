@@ -4,6 +4,7 @@ pub mod load_semesters;
 use std::cell::RefCell;
 use std::sync::Arc;
 
+use dioxus::html::FileEngine;
 use dioxus::prelude::*;
 use fragile::Fragile;
 use futures::StreamExt;
@@ -63,8 +64,8 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
         .value
         .to_string();
     let navigator = use_navigator();
-    let mut sommersemester: Signal<Option<web_sys::Element>> = use_signal(|| None);
-    let mut wintersemester: Signal<Option<web_sys::Element>> = use_signal(|| None);
+    let mut sommersemester: Signal<Option<Arc<dyn FileEngine>>> = use_signal(|| None);
+    let mut wintersemester: Signal<Option<Arc<dyn FileEngine>>> = use_signal(|| None);
     let tucan: RcTucanType = use_context();
     let current_session_handle = use_context::<Signal<Option<LoginResponse>>>();
     let mut loading = use_signal(|| false);
@@ -208,9 +209,8 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
                         type: "file",
                         class: "form-control",
                         id: "sommersemester-file",
-                        onmounted: move |element| {
-                            use dioxus::web::WebEventExt;
-                            sommersemester.set(Some(element.as_web_event()))
+                        onchange: move |event| {
+                            sommersemester.set(event.files());
                         },
                     }
                 }
@@ -225,9 +225,8 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
                         type: "file",
                         class: "form-control",
                         id: "wintersemester-file",
-                        onmounted: move |element| {
-                            use dioxus::web::WebEventExt;
-                            wintersemester.set(Some(element.as_web_event()))
+                        onchange: move |event| {
+                            wintersemester.set(event.files());
                         },
                     }
                 }

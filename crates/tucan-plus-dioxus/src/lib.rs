@@ -68,6 +68,7 @@ pub static LOGO_SVG: Asset = asset!(
 );
 
 // unfortunately the asset! macro produces a different hash as the build output
+#[cfg(target_arch = "wasm32")]
 #[used]
 pub static WORKER_JS: Asset = asset!(
     env!("WORKER_JS_PATH"),
@@ -75,6 +76,7 @@ pub static WORKER_JS: Asset = asset!(
 );
 
 // unfortunately the asset! macro produces a different hash as the build output
+#[cfg(target_arch = "wasm32")]
 #[used]
 pub static WORKER_WASM: Asset = asset!(
     env!("WORKER_WASM_PATH"),
