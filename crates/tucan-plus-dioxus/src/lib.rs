@@ -263,7 +263,7 @@ impl MyDatabase {
 }
 
 #[cfg(not(target_arch = "wasm32"))]
-use tucan_plus_worker::MyDatabase;
+pub use tucan_plus_worker::MyDatabase;
 
 #[cfg(not(any(
     feature = "desktop",
