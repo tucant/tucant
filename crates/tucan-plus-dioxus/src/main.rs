@@ -78,6 +78,14 @@ pub async fn main() {
         dioxus::web::Config::new().history(std::rc::Rc::new(dioxus::web::HashHistory::new(false))),
     );
 
+    // TODO FIXME also use this for web and here we should have access to the asset
+    // paths?
+    #[cfg(feature = "desktop")]
+    let launcher = launcher.with_cfg(
+        dioxus::desktop::Config::new()
+            .with_custom_index(include_str!("../index.html").replace("{base_path}", ".")),
+    );
+
     let login_response = tucan_plus_dioxus::login_response().await;
     let launcher = launcher.with_context(login_response);
 
