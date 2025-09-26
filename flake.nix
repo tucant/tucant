@@ -162,6 +162,7 @@
         });
 
         worker-args = {
+          CARGO_TARGET_DIR = "./crates/tucan-plus-worker/target";
           cargoToml = ./crates/tucan-plus-worker/Cargo.toml;
           cargoLock = ./crates/tucan-plus-worker/Cargo.lock;
           preBuild = ''
@@ -173,12 +174,10 @@
           cargoExtraArgs = "--package=tucan-plus-worker";
           pname = "tucan-plus-workspace-tucan-plus-worker";
           buildPhaseCargoCommand = ''
-            export HOME=$(mktemp -d)
-            #export EMCC_DEBUG=1
             export CC=emcc
             export CXX=emcc
-            emcc --version
             ls -R
+            unset CARGO_TARGET_DIR
             ${dioxus-cli}/bin/dx bundle --wasm --bundle web --verbose --release --out-dir $out --base-path public
           '';
           installPhaseCommand = '''';
@@ -201,6 +200,7 @@
 
         worker = craneLib.buildPackage (worker-args // {
           cargoArtifacts = craneLib.buildDepsOnly (worker-args // {
+            # probably this doesnt copy some dioxus stuff?
             dummySrc = craneLib.mkDummySrc {
               src = worker-args.src;
               extraDummyScript = ''

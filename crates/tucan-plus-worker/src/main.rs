@@ -7,6 +7,8 @@ use tucan_plus_worker::{MIGRATIONS, RequestResponseEnum};
 use wasm_bindgen::prelude::*;
 use web_sys::MessageEvent;
 
+// af
+
 pub async fn sleep(duration: Duration) {
     let mut cb = |resolve: js_sys::Function, _reject: js_sys::Function| {
         let global = js_sys::global().unchecked_into::<web_sys::DedicatedWorkerGlobalScope>();
