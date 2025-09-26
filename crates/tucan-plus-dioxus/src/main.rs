@@ -4,9 +4,7 @@ use dioxus::prelude::*;
 use js_sys::Function;
 use log::info;
 use serde::{Serialize, de::DeserializeOwned};
-use tucan_plus_dioxus::{
-    Anonymize, BOOTSTRAP_JS, BOOTSTRAP_PATCH_JS, Route, WORKER_WASM, wait_for_worker,
-};
+use tucan_plus_dioxus::{Anonymize, BOOTSTRAP_JS, BOOTSTRAP_PATCH_JS, Route, wait_for_worker};
 use tucan_types::LoginResponse;
 use wasm_bindgen::prelude::*;
 use web_sys::{AddEventListenerOptions, MessageEvent, Worker, WorkerOptions, WorkerType};
@@ -50,9 +48,6 @@ pub async fn main() {
     }));
     #[cfg(feature = "web")]
     console_log::init().unwrap();
-
-    info!("{}", WORKER_WASM);
-    info!("{:?}", WORKER_WASM);
 
     let anonymize = {
         #[cfg(feature = "direct")]

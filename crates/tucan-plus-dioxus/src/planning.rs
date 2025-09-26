@@ -21,6 +21,7 @@ use wasm_bindgen_futures::JsFuture;
 use web_sys::{FileList, HtmlInputElement, Worker};
 
 use crate::planning::load_leistungsspiegel::load_leistungsspiegel;
+use crate::planning::load_semesters::handle_semester;
 use crate::{MyRc, RcTucanType, Route, send_message};
 
 #[component]
@@ -62,8 +63,8 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
         .value
         .to_string();
     let navigator = use_navigator();
-    let mut sommersemester: Signal<Option<Event<MountedData>>> = use_signal(|| None);
-    let mut wintersemester: Signal<Option<Event<MountedData>>> = use_signal(|| None);
+    let mut sommersemester: Signal<Option<web_sys::Element>> = use_signal(|| None);
+    let mut wintersemester: Signal<Option<web_sys::Element>> = use_signal(|| None);
     let tucan: RcTucanType = use_context();
     let current_session_handle = use_context::<Signal<Option<LoginResponse>>>();
     let mut loading = use_signal(|| false);
@@ -124,7 +125,7 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
             evt.prevent_default();
             async move {
                 loading.set(true);
-                /*handle_semester(
+                handle_semester(
                     &course_of_study,
                     tucan.clone(),
                     &current_session_handle().unwrap(),
@@ -139,7 +140,7 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
                     Semester::Wintersemester,
                     wintersemester,
                 )
-                .await;*/
+                .await;
                 info!("done");
                 loading.set(false);
                 future.restart();
@@ -207,7 +208,10 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
                         type: "file",
                         class: "form-control",
                         id: "sommersemester-file",
-                        onmounted: move |element| { sommersemester.set(Some(element)) },
+                        onmounted: move |element| {
+                            use dioxus::web::WebEventExt;
+                            sommersemester.set(Some(element.as_web_event()))
+                        },
                     }
                 }
                 div {
@@ -221,7 +225,10 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
                         type: "file",
                         class: "form-control",
                         id: "wintersemester-file",
-                        onmounted: move |element| { wintersemester.set(Some(element)) },
+                        onmounted: move |element| {
+                            use dioxus::web::WebEventExt;
+                            wintersemester.set(Some(element.as_web_event()))
+                        },
                     }
                 }
                 button {
