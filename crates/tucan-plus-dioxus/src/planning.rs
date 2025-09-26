@@ -55,7 +55,7 @@ pub fn Planning(course_of_study: ReadSignal<String>) -> Element {
 
 #[component]
 pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
-    let worker: Fragile<Worker> = use_context();
+    let worker: MyDatabase = use_context();
     let course_of_study = student_result
         .course_of_study
         .iter()

@@ -263,11 +263,7 @@ impl MyDatabase {
 }
 
 #[cfg(not(target_arch = "wasm32"))]
-#[derive(Clone)]
-pub struct MyDatabase();
-
-#[cfg(not(target_arch = "wasm32"))]
-impl MyDatabase {}
+use tucan_plus_worker::MyDatabase;
 
 #[cfg(not(any(
     feature = "desktop",
