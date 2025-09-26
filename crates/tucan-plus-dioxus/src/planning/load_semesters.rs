@@ -1,4 +1,4 @@
-use dioxus::{prelude::*, web::WebEventExt};
+use dioxus::prelude::*;
 use fragile::Fragile;
 use futures::StreamExt as _;
 use js_sys::Uint8Array;
