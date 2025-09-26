@@ -168,6 +168,9 @@
           preBuild = ''
             cd ./crates/tucan-plus-worker
           '';
+          postBuild = ''
+            cd ../..
+          '';
           strictDeps = true;
           stdenv = p: p.emscriptenStdenv;
           doCheck = false;
@@ -177,8 +180,7 @@
             export CC=emcc
             export CXX=emcc
             ls -R
-            unset CARGO_TARGET_DIR
-            ${dioxus-cli}/bin/dx bundle --wasm --bundle web --verbose --release --out-dir $out --base-path public
+            CARGO_TARGET_DIR=target ${dioxus-cli}/bin/dx bundle --wasm --bundle web --verbose --release --out-dir $out --base-path public
           '';
           installPhaseCommand = '''';
           checkPhaseCargoCommand = '''';
