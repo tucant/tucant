@@ -201,7 +201,6 @@
 
         worker = craneLib.buildPackage (worker-args // {
           cargoArtifacts = craneLib.buildDepsOnly (worker-args // {
-            # probably this doesnt copy some dioxus stuff?
             dummySrc = craneLib.mkDummySrc {
               src = worker-args.src;
               extraDummyScript = ''
@@ -233,7 +232,6 @@
           strictDeps = true;
           stdenv = p: p.emscriptenStdenv;
           doCheck = false;
-          cargoArtifacts = null; # building deps only does not work with the default stub entrypoint
           src = lib.fileset.toSource {
             root = ./.;
             fileset = fileset-wasm;
@@ -241,12 +239,8 @@
           cargoExtraArgs = "--package=tucan-plus-dioxus";
           pname = "tucan-plus-workspace-tucan-plus-dioxus";
           buildPhaseCargoCommand = ''
-            export HOME=$(mktemp -d)
-            #export EMCC_DEBUG=1
             export CC=emcc
             export CXX=emcc
-            emcc --version
-            ls -R ${worker}/public/assets/
             mkdir -p assets/
             cp ${worker}/public/assets/tucan-plus-worker-*.js assets/
             cp ${worker}/public/assets/tucan-plus-worker_bg-*.wasm assets/
@@ -274,7 +268,11 @@
 
         client = craneLib.buildPackage (client-args // {
           cargoArtifacts = craneLib.buildDepsOnly (client-args // {
-            # probably this doesnt copy some dioxus stuff?
+            buildPhaseCargoCommand = ''
+              export CC=emcc
+              export CXX=emcc
+              CARGO_TARGET_DIR=target ${dioxus-cli}/bin/dx bundle --platform web --release --out-dir $out --base-path public --features direct
+            '';
             dummySrc = craneLib.mkDummySrc {
               src = client-args.src;
               extraDummyScript = ''
