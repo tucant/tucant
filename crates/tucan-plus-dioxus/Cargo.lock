@@ -6950,13 +6950,3 @@ dependencies = [
  "syn 2.0.106",
  "winnow 0.7.13",
 ]
-
-[[patch.unused]]
-name = "sqlite-wasm-rs"
-version = "0.4.4"
-source = "git+https://github.com/Spxg/sqlite-wasm-rs.git#f68191b3e189860aa5aa04185a9be4ee0094f4c3"
-
-[[patch.unused]]
-name = "wasm-bindgen"
-version = "0.2.103"
-source = "git+https://github.com/mohe2015/wasm-bindgen.git?branch=wip#23715514afe6002dc66d7ead8fb21f92e5146f25"

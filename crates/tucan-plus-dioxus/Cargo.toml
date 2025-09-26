@@ -38,10 +38,6 @@ tucan-plus-worker = { path = "../tucan-plus-worker" }
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 tokio = { features = ["macros", "rt", "rt-multi-thread"], version = "1" }
 
-[patch.crates-io]
-sqlite-wasm-rs = { git = "https://github.com/Spxg/sqlite-wasm-rs.git" }
-wasm-bindgen = { git = "https://github.com/mohe2015/wasm-bindgen.git", branch = "wip" }
-
 [features]
 direct = ["web", "dep:tucan-connector", "dep:web-extensions-sys"]
 api = ["web"]
