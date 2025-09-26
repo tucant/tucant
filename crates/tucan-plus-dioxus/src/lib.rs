@@ -280,7 +280,10 @@ pub async fn login_response() -> Option<tucan_types::LoginResponse> {
     #[cfg(feature = "mobile")]
     android_keyring::set_android_keyring_credential_builder().unwrap();
 
-    let entry = keyring::Entry::new("tucan-plus", "session").ok()?;
+    #[cfg(feature = "desktop")]
+    keyring_core::set_default_store(dbus_secret_service_keyring_store::Store::new().unwrap());
+
+    let entry = keyring_core::Entry::new("tucan-plus", "session").ok()?;
     Some(serde_json::from_str(&entry.get_password().ok()?).unwrap())
     //println!("My password is '{}'", password);
     //entry.set_password("topS3cr3tP4$$w0rd").ok()?;

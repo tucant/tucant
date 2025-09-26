@@ -4,6 +4,7 @@ use dioxus::prelude::*;
 use js_sys::Function;
 use log::info;
 use serde::{Serialize, de::DeserializeOwned};
+use tracing::Level;
 use tucan_plus_dioxus::{Anonymize, BOOTSTRAP_JS, BOOTSTRAP_PATCH_JS, MyDatabase, Route};
 use tucan_types::LoginResponse;
 use wasm_bindgen::prelude::*;
@@ -48,6 +49,8 @@ pub async fn main() {
     }));
     #[cfg(feature = "web")]
     console_log::init().unwrap();
+
+    dioxus::logger::init(Level::INFO).expect("logger failed to init");
 
     let anonymize = {
         #[cfg(feature = "direct")]
