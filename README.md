@@ -62,12 +62,18 @@ rustup toolchain install nightly-2025-09-08 --component rustfmt
 cargo install --git https://github.com/mohe2015/dioxus --branch my dioxus-cli
 
 cd crates/tucan-plus-dioxus/
+export WORKER_JS_PATH=/assets/wasm/tucan-plus-worker.js
+export WORKER_WASM_PATH=/assets/wasm/tucan-plus-worker_bg.wasm
 dx serve --platform web --features api --verbose
+
+cargo run --manifest-path ~/Documents/dioxus/packages/cli/Cargo.toml serve --platform web --features api --verbose
 
 cargo install wasm-bindgen-cli@0.2.101
 
-dx serve --wasm --bundle web --base-path /assets/worker # --hot-patch this lets everything explode with "env" imports and sqlite import stuff broken
-cp -r ../tucan-plus-worker/target/dx/tucan-plus-worker/debug/web/public/. assets/worker/
+cd crates/tucan-plus-worker/
+dx serve --wasm --bundle web --base-path assets # --hot-patch this lets everything explode with "env" imports and sqlite import stuff broken
+cd ../tucan-plus-dioxus
+cp -r ../tucan-plus-worker/target/dx/tucan-plus-worker/debug/web/public/wasm/. assets/wasm/
 
 # in second tab
 cargo install --locked bacon

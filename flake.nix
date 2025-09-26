@@ -45,8 +45,8 @@
           src = pkgs.fetchFromGitHub {
             owner = "mohe2015";
             repo = "dioxus";
-            rev = "0262d345f193d84dab38f5020f3908c52c22d31f";
-            hash = "sha256-QXzeded7PBwpo2oqReFl54jRkbBgmaT7jZ6b6YIqlZU=";
+            rev = "a5fe26413e90221fcdea4e3e90b46dc7865e5a34";
+            hash = "sha256-IzdggwkOr//TF8lJo43KUEobQ8Wu6bJbHxQV3j3RmQw=";
           };
           doCheck = false;
           strictDeps = true;
@@ -222,9 +222,9 @@
             cp ${worker}/public/assets/tucan-plus-worker-*.js assets/
             cp ${worker}/public/assets/tucan-plus-worker_bg-*.wasm assets/
             export WORKER_JS_PATH_ARRAY=(assets/tucan-plus-worker-*.js)
-            export WORKER_JS_PATH=''${WORKER_JS_PATH_ARRAY[0]}
+            export WORKER_JS_PATH="/''${WORKER_JS_PATH_ARRAY[0]}"
             export WORKER_WASM_PATH_ARRAY=(assets/tucan-plus-worker_bg-*.wasm)
-            export WORKER_WASM_PATH=''${WORKER_WASM_PATH_ARRAY[0]}
+            export WORKER_WASM_PATH="/''${WORKER_WASM_PATH_ARRAY[0]}"
             ${dioxus-cli}/bin/dx bundle --platform web --verbose --release --out-dir $out --base-path public --features direct
           '';
           installPhaseCommand = ''
