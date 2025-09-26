@@ -220,11 +220,15 @@
           });
         });
 
-        client = craneLib.buildPackage {
+        client-args = {
+          CARGO_TARGET_DIR = "./crates/tucan-plus-dioxus/target";
           cargoToml = ./crates/tucan-plus-dioxus/Cargo.toml;
           cargoLock = ./crates/tucan-plus-dioxus/Cargo.lock;
           preBuild = ''
             cd ./crates/tucan-plus-dioxus
+          '';
+          postBuild = ''
+            cd ../..
           '';
           strictDeps = true;
           stdenv = p: p.emscriptenStdenv;
@@ -250,8 +254,7 @@
             export WORKER_JS_PATH="/''${WORKER_JS_PATH_ARRAY[0]}"
             export WORKER_WASM_PATH_ARRAY=(assets/tucan-plus-worker_bg-*.wasm)
             export WORKER_WASM_PATH="/''${WORKER_WASM_PATH_ARRAY[0]}"
-            # TODO call plain cargo before and use as cache so upgrading dioxus doesn't have to recompile (probably hard to pass correct flags?)
-            ${dioxus-cli}/bin/dx bundle --platform web --verbose --release --out-dir $out --base-path public --features direct
+            CARGO_TARGET_DIR=target ${dioxus-cli}/bin/dx bundle --platform web --verbose --release --out-dir $out --base-path public --features direct
           '';
           installPhaseCommand = ''
           '';
@@ -268,6 +271,27 @@
           ];
           doNotPostBuildInstallCargoBinaries = true;
         };
+
+        client = craneLib.buildPackage (client-args // {
+          cargoArtifacts = craneLib.buildDepsOnly (client-args // {
+            # probably this doesnt copy some dioxus stuff?
+            dummySrc = craneLib.mkDummySrc {
+              src = client-args.src;
+              extraDummyScript = ''
+                cp ${client-args.cargoLock} $out/crates/tucan-plus-dioxus/Cargo.lock
+                rm $out/crates/tucan-plus-dioxus/src/main.rs
+                cp ${pkgs.writeText "main.rs" ''
+                  use wasm_bindgen::prelude::*;
+
+                  #[wasm_bindgen(main)]
+                  pub async fn main() {
+
+                  }
+                ''} $out/crates/tucan-plus-dioxus/src/main.rs
+              '';
+            };
+          });
+        });
 
         fileset-extension = lib.fileset.unions [
           ./tucan-plus-extension/background.js
