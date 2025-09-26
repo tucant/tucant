@@ -12,9 +12,9 @@
         "./crates/tucan-connector/Cargo.toml",
         "./crates/tucan-plus-worker/Cargo.toml"
     ],
-    "rust-analyzer.cargo.target": "wasm32-unknown-unknown",
+    //"rust-analyzer.cargo.target": "wasm32-unknown-unknown",
     "rust-analyzer.cargo.features": [
-        //"desktop",
+        "desktop",
         //"authenticated_tests"
         //"direct"
     ],

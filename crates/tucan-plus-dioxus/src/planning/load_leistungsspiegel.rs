@@ -11,26 +11,24 @@ use tucan_types::{
 };
 use web_sys::Worker;
 
-use crate::{RcTucanType, send_message, student_result::StudentResult};
+use crate::{MyDatabase, RcTucanType, student_result::StudentResult};
 
 pub async fn recursive_update(
-    worker: Fragile<Worker>,
+    worker: MyDatabase,
     course_of_study: &str,
     url: String,
     level: StudentResultLevel,
 ) {
     for child in level.children {
         let name = child.name.as_ref().unwrap();
-        let child_url = send_message(
-            &worker,
-            ChildUrl {
+        let child_url = worker
+            .send_message(ChildUrl {
                 course_of_study: course_of_study.to_string(),
                 url: url.clone(),
                 name: name.clone(),
                 child: child.clone(),
-            },
-        )
-        .await;
+            })
+            .await;
         info!("updated");
         Box::pin(recursive_update(
             worker.clone(),
@@ -71,7 +69,7 @@ pub async fn recursive_update(
             semester: None,
         })
         .collect();
-    send_message(&worker, SetStateAndCredits { inserts }).await;
+    worker.send_message(SetStateAndCredits { inserts }).await;
 }
 
 pub async fn load_leistungsspiegel(
@@ -80,7 +78,7 @@ pub async fn load_leistungsspiegel(
     student_result: StudentResultResponse,
     course_of_study: String,
 ) {
-    let worker: Fragile<Worker> = use_context();
+    let worker: MyDatabase = use_context();
 
     // top level anmeldung has name "M.Sc. Informatik (2023)"
     // top level leistungsspiegel has "Informatik"
@@ -92,15 +90,13 @@ pub async fn load_leistungsspiegel(
         .unwrap()
         .name
         .to_owned();
-    let the_url = send_message(
-        &worker,
-        SetCpAndModuleCount {
+    let the_url = worker
+        .send_message(SetCpAndModuleCount {
             course_of_study: course_of_study.clone(),
             name,
             student_result: student_result.clone(),
-        },
-    )
-    .await;
+        })
+        .await;
 
     recursive_update(
         worker.clone(),
@@ -128,15 +124,13 @@ pub async fn load_leistungsspiegel(
             .await
             .unwrap();
         for module in result.results {
-            send_message(
-                &worker,
-                UpdateModule {
+            worker
+                .send_message(UpdateModule {
                     course_of_study: course_of_study.clone(),
                     semester: semester.clone(),
                     module,
-                },
-            )
-            .await;
+                })
+                .await;
         }
     }
 }

@@ -26,8 +26,9 @@ tucan-connector = { optional = true, path = "../tucan-connector" }
 tucan-plus-planning = { path = "../tucan-plus-planning" }
 tracing = "0.1.41"
 plotters = { version = "0.3.7", default-features = false, features = ["svg_backend", "histogram"] }
-keyring = { version = "3", optional = true }
-android-keyring = { version = "0.2", optional = true }
+keyring-core = { version = "0.5", optional = true }
+android-native-keyring-store = { version = "0.3", optional = true }
+dbus-secret-service-keyring-store = { version = "0.2", features = ["crypto-rust"], optional = true }
 git-version = "0.3"
 futures = "0.3.31"
 serde-wasm-bindgen = "0.6"
@@ -43,5 +44,5 @@ direct = ["web", "dep:tucan-connector", "dep:web-extensions-sys"]
 api = ["web"]
 default = ["web"]
 web = ["dioxus/web"]
-desktop = ["dioxus/desktop", "dep:dioxus-desktop", "dep:tucan-connector", "dep:keyring"]
-mobile = ["dioxus/mobile", "dep:dioxus-desktop", "dep:tucan-connector", "dep:keyring", "dep:android-keyring"]
+desktop = ["dioxus/desktop", "dep:dioxus-desktop", "dep:tucan-connector", "dep:keyring-core", "dep:dbus-secret-service-keyring-store"]
+mobile = ["dioxus/mobile", "dep:dioxus-desktop", "dep:tucan-connector", "dep:keyring-core", "dep:android-native-keyring-store"]

@@ -1,9 +1,13 @@
+#[cfg(not(target_arch = "wasm32"))]
+use std::{cell::RefCell, rc::Rc};
+
 use derive_more::From;
 use diesel::{prelude::*, upsert::excluded};
+use diesel_migrations::{EmbeddedMigrations, embed_migrations};
+#[cfg(not(target_arch = "wasm32"))]
 use fragile::Fragile;
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use wasm_bindgen::JsValue;
-use web_sys::{Request, Worker};
 
 use crate::{
     models::{Anmeldung, AnmeldungEntry, Semester, State},
@@ -17,6 +21,9 @@ use tucan_types::{
 
 pub mod models;
 pub mod schema;
+
+pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!("migrations");
+
 pub trait RequestResponse: Serialize {
     type Response: DeserializeOwned;
     fn execute(&self, connection: &mut SqliteConnection) -> Self::Response;
@@ -309,5 +316,38 @@ impl RequestResponseEnum {
                 serde_wasm_bindgen::to_value(&value.execute(connection)).unwrap()
             }
         }
+    }
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+#[derive(Clone)]
+pub struct MyDatabase(Fragile<Rc<RefCell<SqliteConnection>>>);
+
+#[cfg(not(target_arch = "wasm32"))]
+impl MyDatabase {
+    pub async fn wait_for_worker() -> Self {
+        use diesel_migrations::MigrationHarness as _;
+
+        let url = if cfg!(target_os = "android") {
+            tokio::fs::create_dir_all("/data/data/com.example.TucanPlusDioxus/files")
+                .await
+                .unwrap();
+
+            "sqlite:///data/data/com.example.TucanPlusDioxus/files/data.db?mode=rwc"
+        } else {
+            "sqlite://tucan-plus.db?mode=rwc"
+        };
+        let mut connection = SqliteConnection::establish(url).unwrap();
+
+        connection.run_pending_migrations(MIGRATIONS).unwrap();
+
+        Self(Fragile::new(Rc::new(RefCell::new(connection))))
+    }
+
+    pub async fn send_message<R: RequestResponse + std::fmt::Debug>(&self, value: R) -> R::Response
+    where
+        RequestResponseEnum: std::convert::From<R>,
+    {
+        value.execute(&mut self.0.get().borrow_mut())
     }
 }

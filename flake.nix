@@ -45,8 +45,8 @@
           src = pkgs.fetchFromGitHub {
             owner = "mohe2015";
             repo = "dioxus";
-            rev = "a5fe26413e90221fcdea4e3e90b46dc7865e5a34";
-            hash = "sha256-IzdggwkOr//TF8lJo43KUEobQ8Wu6bJbHxQV3j3RmQw=";
+            rev = "4e2b36831e2fef577fbc1ad10d82c79cf331afdb";
+            hash = "sha256-fPKIOTkZee5bpTBdwSxWTNM4S3gL87rySQnD806aVNA=";
           };
           doCheck = false;
           strictDeps = true;
@@ -179,6 +179,7 @@
             export CC=emcc
             export CXX=emcc
             emcc --version
+            # TODO call plain cargo before and use as cache so upgrading dioxus doesn't have to recompile (probably hard to pass correct flags?). probably too hard, use old dioxus?
             ${dioxus-cli}/bin/dx bundle --wasm --bundle web --verbose --release --out-dir $out --base-path public
           '';
           installPhaseCommand = '''';
@@ -225,6 +226,7 @@
             export WORKER_JS_PATH="/''${WORKER_JS_PATH_ARRAY[0]}"
             export WORKER_WASM_PATH_ARRAY=(assets/tucan-plus-worker_bg-*.wasm)
             export WORKER_WASM_PATH="/''${WORKER_WASM_PATH_ARRAY[0]}"
+            # TODO call plain cargo before and use as cache so upgrading dioxus doesn't have to recompile (probably hard to pass correct flags?)
             ${dioxus-cli}/bin/dx bundle --platform web --verbose --release --out-dir $out --base-path public --features direct
           '';
           installPhaseCommand = ''

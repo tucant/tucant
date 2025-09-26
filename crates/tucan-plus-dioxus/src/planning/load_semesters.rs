@@ -1,4 +1,6 @@
-use dioxus::{hooks::use_context, signals::Signal};
+use std::sync::Arc;
+
+use dioxus::{hooks::use_context, html::FileEngine, signals::Signal};
 use fragile::Fragile;
 use futures::StreamExt as _;
 use js_sys::Uint8Array;
@@ -14,25 +16,21 @@ use tucan_types::{
 use wasm_bindgen_futures::JsFuture;
 use web_sys::{FileList, HtmlInputElement, Worker};
 
-use crate::{RcTucanType, send_message};
+use crate::{MyDatabase, RcTucanType};
 
 pub async fn handle_semester(
     course_of_study: &str,
     tucan: RcTucanType,
     login_response: &LoginResponse,
     semester: Semester,
-    element: Signal<Option<web_sys::Element>>,
+    element: Signal<Option<Arc<dyn FileEngine>>>,
 ) {
-    use wasm_bindgen::JsCast;
-    let worker: Fragile<Worker> = use_context();
+    let worker: MyDatabase = use_context();
     let element = element().unwrap();
-    let b: HtmlInputElement = element.dyn_into::<HtmlInputElement>().unwrap();
-    let files: FileList = b.files().unwrap();
-    for i in 0..files.length() {
-        let file = files.get(i).unwrap();
-        let array_buffer = JsFuture::from(file.array_buffer()).await.unwrap();
-        let array = Uint8Array::new(&array_buffer);
-        let decompressed = decompress(&array.to_vec()).await.unwrap();
+    let file_names = element.files();
+    for file_name in file_names {
+        let file = element.read_file(&file_name).await.unwrap();
+        let decompressed = decompress(&file).await.unwrap();
         let mut result: Vec<AnmeldungResponse> =
             serde_json::from_reader(decompressed.as_slice()).unwrap();
         result.sort_by_key(|e| e.path.len());
@@ -53,7 +51,7 @@ pub async fn handle_semester(
                 max_modules: None,
             })
             .collect();
-        send_message(&worker, FEwefweewf { inserts }).await;
+        worker.send_message(FEwefweewf { inserts }).await;
         let inserts: Vec<AnmeldungEntry> = futures::stream::iter(result.iter())
             .flat_map(|anmeldung| {
                 futures::stream::iter(anmeldung.entries.iter()).map(async |entry| AnmeldungEntry {
@@ -85,7 +83,7 @@ pub async fn handle_semester(
             .await;
         // prevent too many variable error, TODO maybe batching
         for insert in inserts {
-            send_message(&worker, Wlewifhewefwef { insert }).await;
+            worker.send_message(Wlewifhewefwef { insert }).await;
         }
     }
 }

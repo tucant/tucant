@@ -4,7 +4,8 @@ use dioxus::prelude::*;
 use js_sys::Function;
 use log::info;
 use serde::{Serialize, de::DeserializeOwned};
-use tucan_plus_dioxus::{Anonymize, BOOTSTRAP_JS, BOOTSTRAP_PATCH_JS, Route, wait_for_worker};
+use tracing::Level;
+use tucan_plus_dioxus::{Anonymize, BOOTSTRAP_JS, BOOTSTRAP_PATCH_JS, MyDatabase, Route};
 use tucan_types::LoginResponse;
 use wasm_bindgen::prelude::*;
 use web_sys::{AddEventListenerOptions, MessageEvent, Worker, WorkerOptions, WorkerType};
@@ -49,6 +50,8 @@ pub async fn main() {
     #[cfg(feature = "web")]
     console_log::init().unwrap();
 
+    dioxus::logger::init(Level::INFO).expect("logger failed to init");
+
     let anonymize = {
         #[cfg(feature = "direct")]
         {
@@ -68,7 +71,7 @@ pub async fn main() {
 
     let launcher = dioxus::LaunchBuilder::new();
 
-    let worker = fragile::Fragile::new(wait_for_worker().await);
+    let worker = MyDatabase::wait_for_worker().await;
     //let response: String = send_message(&worker, &"test").await;
 
     let launcher = launcher.with_context(worker);
@@ -76,6 +79,20 @@ pub async fn main() {
     #[cfg(feature = "web")]
     let launcher = launcher.with_cfg(
         dioxus::web::Config::new().history(std::rc::Rc::new(dioxus::web::HashHistory::new(false))),
+    );
+
+    // TODO FIXME also use this for web and here we should have access to the asset
+    // paths?
+    #[cfg(feature = "desktop")]
+    let launcher = launcher.with_cfg(
+        dioxus::desktop::Config::new()
+            .with_custom_index(include_str!("../index.html").replace("{base_path}", ".")),
+    );
+
+    #[cfg(feature = "mobile")]
+    let launcher = launcher.with_cfg(
+        dioxus::mobile::Config::new()
+            .with_custom_index(include_str!("../index.html").replace("{base_path}", ".")),
     );
 
     let login_response = tucan_plus_dioxus::login_response().await;

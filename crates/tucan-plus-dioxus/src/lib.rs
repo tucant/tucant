@@ -47,7 +47,7 @@ use tucan_types::{
 };
 use wasm_bindgen::prelude::Closure;
 use wasm_bindgen::{JsCast as _, JsValue};
-use web_sys::{AddEventListenerOptions, MessageEvent, Worker, WorkerOptions, WorkerType};
+use web_sys::{AddEventListenerOptions, MessageEvent, WorkerOptions, WorkerType};
 
 #[used]
 pub static BOOTSTRAP_CSS: Asset = asset!(
@@ -68,6 +68,7 @@ pub static LOGO_SVG: Asset = asset!(
 );
 
 // unfortunately the asset! macro produces a different hash as the build output
+#[cfg(target_arch = "wasm32")]
 #[used]
 pub static WORKER_JS: Asset = asset!(
     env!("WORKER_JS_PATH"),
@@ -75,6 +76,7 @@ pub static WORKER_JS: Asset = asset!(
 );
 
 // unfortunately the asset! macro produces a different hash as the build output
+#[cfg(target_arch = "wasm32")]
 #[used]
 pub static WORKER_WASM: Asset = asset!(
     env!("WORKER_WASM_PATH"),
@@ -88,164 +90,180 @@ pub static BOOTSTRAP_PATCH_JS: Asset = asset!("/assets/bootstrap.patch.js",);
 #[derive(Copy, Clone)]
 pub struct Anonymize(pub bool);
 
-// assume the content url is only dependent on content
-pub async fn wait_for_worker() -> Worker {
-    let mut cb = |resolve: js_sys::Function, reject: js_sys::Function| {
-        let options = WorkerOptions::new();
-        options.set_type(WorkerType::Module);
-        let worker = Worker::new_with_options(&WORKER_JS.to_string(), &options).unwrap();
-        let message_closure: Rc<RefCell<Option<Closure<dyn Fn(MessageEvent)>>>> =
-            Rc::new(RefCell::new(None));
-        let error_closure: Closure<dyn Fn(_)> = {
-            let worker = worker.clone();
-            let message_closure = message_closure.clone();
-            Closure::new(move |event: web_sys::ErrorEvent| {
-                info!(
-                    "error at client {event:?} {:?} {:?}",
-                    event.message(),
-                    event.error()
-                );
-                worker
-                    .remove_event_listener_with_callback(
-                        "message",
-                        message_closure
-                            .borrow()
-                            .as_ref()
-                            .unwrap()
-                            .as_ref()
-                            .unchecked_ref(),
-                    )
-                    .unwrap();
-                reject.call0(&JsValue::undefined()).unwrap();
-            })
-        };
-        let error_closure_ref = error_closure.as_ref().clone();
-        *message_closure.borrow_mut() = {
-            let worker = worker.clone();
-            let error_closure_ref = error_closure_ref.clone();
-            Some(Closure::new(move |event: MessageEvent| {
-                //info!("received message at client {:?}", event.data());
-                worker
-                    .remove_event_listener_with_callback("error", error_closure_ref.unchecked_ref())
-                    .unwrap();
-                resolve.call1(&JsValue::undefined(), &worker).unwrap();
-            }))
-        };
-        let options = AddEventListenerOptions::new();
-        options.set_once(true);
-        worker
-            .add_event_listener_with_callback_and_add_event_listener_options(
-                "error",
-                error_closure_ref.unchecked_ref(),
-                &options,
-            )
-            .unwrap();
-        worker
-            .add_event_listener_with_callback_and_add_event_listener_options(
-                "message",
-                message_closure
-                    .borrow()
-                    .as_ref()
-                    .unwrap()
-                    .as_ref()
-                    .unchecked_ref(),
-                &options,
-            )
-            .unwrap();
-        error_closure.forget();
-    };
+#[cfg(target_arch = "wasm32")]
+#[derive(Clone)]
+pub struct MyDatabase(Fragile<web_sys::Worker>);
 
-    let p = js_sys::Promise::new(&mut cb);
+#[cfg(target_arch = "wasm32")]
+impl MyDatabase {
+    pub async fn wait_for_worker() -> Self {
+        let mut cb = |resolve: js_sys::Function, reject: js_sys::Function| {
+            let options = WorkerOptions::new();
+            options.set_type(WorkerType::Module);
+            let worker =
+                web_sys::Worker::new_with_options(&WORKER_JS.to_string(), &options).unwrap();
+            let message_closure: Rc<RefCell<Option<Closure<dyn Fn(MessageEvent)>>>> =
+                Rc::new(RefCell::new(None));
+            let error_closure: Closure<dyn Fn(_)> = {
+                let worker = worker.clone();
+                let message_closure = message_closure.clone();
+                Closure::new(move |event: web_sys::ErrorEvent| {
+                    info!(
+                        "error at client {event:?} {:?} {:?}",
+                        event.message(),
+                        event.error()
+                    );
+                    worker
+                        .remove_event_listener_with_callback(
+                            "message",
+                            message_closure
+                                .borrow()
+                                .as_ref()
+                                .unwrap()
+                                .as_ref()
+                                .unchecked_ref(),
+                        )
+                        .unwrap();
+                    reject.call0(&JsValue::undefined()).unwrap();
+                })
+            };
+            let error_closure_ref = error_closure.as_ref().clone();
+            *message_closure.borrow_mut() = {
+                let worker = worker.clone();
+                let error_closure_ref = error_closure_ref.clone();
+                Some(Closure::new(move |event: MessageEvent| {
+                    //info!("received message at client {:?}", event.data());
+                    worker
+                        .remove_event_listener_with_callback(
+                            "error",
+                            error_closure_ref.unchecked_ref(),
+                        )
+                        .unwrap();
+                    resolve.call1(&JsValue::undefined(), &worker).unwrap();
+                }))
+            };
+            let options = AddEventListenerOptions::new();
+            options.set_once(true);
+            worker
+                .add_event_listener_with_callback_and_add_event_listener_options(
+                    "error",
+                    error_closure_ref.unchecked_ref(),
+                    &options,
+                )
+                .unwrap();
+            worker
+                .add_event_listener_with_callback_and_add_event_listener_options(
+                    "message",
+                    message_closure
+                        .borrow()
+                        .as_ref()
+                        .unwrap()
+                        .as_ref()
+                        .unchecked_ref(),
+                    &options,
+                )
+                .unwrap();
+            error_closure.forget();
+        };
 
-    wasm_bindgen_futures::JsFuture::from(p)
-        .await
-        .unwrap()
-        .into()
+        let p = js_sys::Promise::new(&mut cb);
+
+        Self(fragile::Fragile::new(
+            wasm_bindgen_futures::JsFuture::from(p)
+                .await
+                .unwrap()
+                .into(),
+        ))
+    }
+
+    pub async fn send_message<R: RequestResponse + Debug>(&self, value: R) -> R::Response
+    where
+        RequestResponseEnum: std::convert::From<R>,
+    {
+        //info!("sending message from client {:?}", value);
+        let mut cb = |resolve: js_sys::Function, reject: js_sys::Function| {
+            let message_closure: Rc<RefCell<Option<Closure<dyn Fn(MessageEvent)>>>> =
+                Rc::new(RefCell::new(None));
+            let error_closure: Closure<dyn Fn(_)> = {
+                let worker = self.0.clone();
+                let message_closure = message_closure.clone();
+                Closure::new(move |event: web_sys::ErrorEvent| {
+                    info!(
+                        "error at client {event:?} {:?} {:?}",
+                        event.message(),
+                        event.error()
+                    );
+                    worker
+                        .get()
+                        .remove_event_listener_with_callback(
+                            "message",
+                            message_closure
+                                .borrow()
+                                .as_ref()
+                                .unwrap()
+                                .as_ref()
+                                .unchecked_ref(),
+                        )
+                        .unwrap();
+                    reject.call0(&JsValue::undefined()).unwrap();
+                })
+            };
+            let error_closure_ref = error_closure.as_ref().clone();
+            *message_closure.borrow_mut() = {
+                let worker = self.0.clone();
+                let error_closure_ref = error_closure_ref.clone();
+                Some(Closure::new(move |event: MessageEvent| {
+                    //info!("received message at client {:?}", event.data());
+                    worker
+                        .get()
+                        .remove_event_listener_with_callback(
+                            "error",
+                            error_closure_ref.unchecked_ref(),
+                        )
+                        .unwrap();
+                    resolve.call1(&JsValue::undefined(), &event.data()).unwrap();
+                }))
+            };
+            let options = AddEventListenerOptions::new();
+            options.set_once(true);
+            self.0
+                .get()
+                .add_event_listener_with_callback_and_add_event_listener_options(
+                    "error",
+                    error_closure_ref.unchecked_ref(),
+                    &options,
+                )
+                .unwrap();
+            self.0
+                .get()
+                .add_event_listener_with_callback_and_add_event_listener_options(
+                    "message",
+                    message_closure
+                        .borrow()
+                        .as_ref()
+                        .unwrap()
+                        .as_ref()
+                        .unchecked_ref(),
+                    &options,
+                )
+                .unwrap();
+            error_closure.forget();
+        };
+
+        let p = js_sys::Promise::new(&mut cb);
+
+        self.0
+            .get()
+            .post_message(&serde_wasm_bindgen::to_value(&RequestResponseEnum::from(value)).unwrap())
+            .unwrap();
+
+        serde_wasm_bindgen::from_value(wasm_bindgen_futures::JsFuture::from(p).await.unwrap())
+            .unwrap()
+    }
 }
 
-pub async fn send_message<R: RequestResponse + Debug>(
-    worker: &Fragile<Worker>,
-    value: R,
-) -> R::Response
-where
-    RequestResponseEnum: std::convert::From<R>,
-{
-    //info!("sending message from client {:?}", value);
-    let mut cb = |resolve: js_sys::Function, reject: js_sys::Function| {
-        let message_closure: Rc<RefCell<Option<Closure<dyn Fn(MessageEvent)>>>> =
-            Rc::new(RefCell::new(None));
-        let error_closure: Closure<dyn Fn(_)> = {
-            let worker = worker.clone();
-            let message_closure = message_closure.clone();
-            Closure::new(move |event: web_sys::ErrorEvent| {
-                info!(
-                    "error at client {event:?} {:?} {:?}",
-                    event.message(),
-                    event.error()
-                );
-                worker
-                    .get()
-                    .remove_event_listener_with_callback(
-                        "message",
-                        message_closure
-                            .borrow()
-                            .as_ref()
-                            .unwrap()
-                            .as_ref()
-                            .unchecked_ref(),
-                    )
-                    .unwrap();
-                reject.call0(&JsValue::undefined()).unwrap();
-            })
-        };
-        let error_closure_ref = error_closure.as_ref().clone();
-        *message_closure.borrow_mut() = {
-            let worker = worker.clone();
-            let error_closure_ref = error_closure_ref.clone();
-            Some(Closure::new(move |event: MessageEvent| {
-                //info!("received message at client {:?}", event.data());
-                worker
-                    .get()
-                    .remove_event_listener_with_callback("error", error_closure_ref.unchecked_ref())
-                    .unwrap();
-                resolve.call1(&JsValue::undefined(), &event.data()).unwrap();
-            }))
-        };
-        let options = AddEventListenerOptions::new();
-        options.set_once(true);
-        worker
-            .get()
-            .add_event_listener_with_callback_and_add_event_listener_options(
-                "error",
-                error_closure_ref.unchecked_ref(),
-                &options,
-            )
-            .unwrap();
-        worker
-            .get()
-            .add_event_listener_with_callback_and_add_event_listener_options(
-                "message",
-                message_closure
-                    .borrow()
-                    .as_ref()
-                    .unwrap()
-                    .as_ref()
-                    .unchecked_ref(),
-                &options,
-            )
-            .unwrap();
-        error_closure.forget();
-    };
-
-    let p = js_sys::Promise::new(&mut cb);
-
-    worker
-        .get()
-        .post_message(&serde_wasm_bindgen::to_value(&RequestResponseEnum::from(value)).unwrap())
-        .unwrap();
-
-    serde_wasm_bindgen::from_value(wasm_bindgen_futures::JsFuture::from(p).await.unwrap()).unwrap()
-}
+#[cfg(not(target_arch = "wasm32"))]
+pub use tucan_plus_worker::MyDatabase;
 
 #[cfg(not(any(
     feature = "desktop",
@@ -260,9 +278,14 @@ pub async fn login_response() -> Option<tucan_types::LoginResponse> {
 #[cfg(any(feature = "desktop", feature = "mobile"))]
 pub async fn login_response() -> Option<tucan_types::LoginResponse> {
     #[cfg(feature = "mobile")]
-    android_keyring::set_android_keyring_credential_builder().unwrap();
+    keyring_core::set_default_store(
+        android_native_keyring_store::AndroidStore::from_ndk_context().unwrap(),
+    );
 
-    let entry = keyring::Entry::new("tucan-plus", "session").ok()?;
+    #[cfg(feature = "desktop")]
+    keyring_core::set_default_store(dbus_secret_service_keyring_store::Store::new().unwrap());
+
+    let entry = keyring_core::Entry::new("tucan-plus", "session").ok()?;
     Some(serde_json::from_str(&entry.get_password().ok()?).unwrap())
     //println!("My password is '{}'", password);
     //entry.set_password("topS3cr3tP4$$w0rd").ok()?;

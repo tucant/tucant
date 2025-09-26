@@ -6,6 +6,7 @@ use crate::{Anonymize, RcTucanType};
 
 #[component]
 pub fn LoginComponent() -> Element {
+    tracing::error!("login component");
     let tucan: RcTucanType = use_context();
 
     let mut username = use_signal(|| "".to_string());
@@ -54,10 +55,12 @@ pub fn LoginComponent() -> Element {
                         .await;
 
                     #[cfg(any(feature = "desktop", feature = "mobile"))]
-                    keyring::Entry::new("tucan-plus", "session")
+                    keyring_core::Entry::new("tucan-plus", "session")
                         .unwrap()
                         .set_password(&serde_json::to_string(&response).unwrap())
                         .unwrap();
+                    #[cfg(any(feature = "desktop", feature = "mobile"))]
+                    tracing::error!("saving password to keyring");
 
                     current_session.set(Some(response.clone()));
                     error_message.set(None);
