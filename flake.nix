@@ -203,9 +203,17 @@
           cargoArtifacts = craneLib.buildDepsOnly (worker-args // {
             dummySrc = craneLib.mkDummySrc {
               src = worker-args.src;
-              cargoLock = worker-args.cargoLock;
               extraDummyScript = ''
-                mv $out/Cargo.lock $out/crates/tucan-plus-worker/
+                cp ${worker-args.cargoLock} $out/crates/tucan-plus-worker/Cargo.lock
+                rm $out/crates/tucan-plus-worker/src/main.rs
+                cp ${pkgs.writeText "main.rs" ''
+                  use wasm_bindgen::prelude::*;
+
+                  #[wasm_bindgen(main)]
+                  pub async fn main() {
+
+                  }
+                ''} $out/crates/tucan-plus-worker/src/main.rs
               '';
             };
           });
