@@ -2,7 +2,7 @@
   description = "Build a cargo project";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
 
     crane.url = "github:ipetkov/crane";
 
@@ -404,17 +404,21 @@
 
                 environment.systemPackages = [
                   pkgs.firefox
-                  pkgs.gobject-introspection
-                  pkgs.gtk3
-                  (pkgs.python3.withPackages (ps: with ps; [ dogtail ]))
-                  (pkgs.writeShellScriptBin "run-test" ''
+                  (pkgs.writeShellApplication {
+                    name = "run-test";
+                    runtimeInputs = [
+                      pkgs.gobject-introspection
+                      pkgs.gtk3
+                      (pkgs.python3.withPackages (ps: with ps; [ dogtail ]))
+                    ];
+                    text = ''
                     gsettings set org.gnome.desktop.interface toolkit-accessibility true
                     firefox &
                     python - <<EOF
                     from dogtail.tree import root
                     print(list(map(lambda x: x.name, root.applications())))
                     EOF
-                  '')
+                  ''})
                 ];
 
                 programs.dconf.profiles.test.databases = [
