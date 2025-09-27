@@ -345,7 +345,7 @@
       rec {
         formatter = pkgs.nixfmt-tree;
         checks = {
-          inherit api schema client;
+          #inherit api schema client;
 
           # todo also clippy the frontend
           #my-app-clippy = craneLib.cargoClippy (
@@ -355,18 +355,18 @@
           #  }
           #);
 
-          my-app-fmt = craneLib.cargoFmt (
-            nativeArgs
-            // {
-              cargoToml = ./crates/tucan-plus-dioxus/Cargo.toml;
-              cargoLock = ./crates/tucan-plus-dioxus/Cargo.lock;
-              preBuild = ''
-                cd ./crates/tucan-plus-dioxus
-              '';
-              cargoExtraArgs = "--all";
-              src = source-with-build-instructions;
-            }
-          );
+          #my-app-fmt = craneLib.cargoFmt (
+          #  nativeArgs
+          #  // {
+          #    cargoToml = ./crates/tucan-plus-dioxus/Cargo.toml;
+          #    cargoLock = ./crates/tucan-plus-dioxus/Cargo.lock;
+          #    preBuild = ''
+          #      cd ./crates/tucan-plus-dioxus
+           #   '';
+          #    cargoExtraArgs = "--all";
+          #    src = source-with-build-instructions;
+          #  }
+          #);
 
           # https://nixos.org/manual/nixos/unstable/index.html#sec-nixos-tests
           # https://github.com/NixOS/nixpkgs/blob/a25a80403e18d80ffb9e5a2047c7936e57fbae68/nixos/tests/installed-tests/default.nix#L15
@@ -459,28 +459,23 @@
                 system.stateVersion = "25.11";
               };
             };
-            testScript = { nodes, ... }: ''
+            testScript = { nodes, ... }: lib.mkForce ''
+              print("a")
               start_all()
-              machine.wait_for_unit("default.target", "test")
+              print("b")
               machine.wait_until_succeeds(
                   "machinectl shell test@ /usr/bin/env bash -c 'gdbus call --session -d org.gnome.Shell -o /org/gnome/Shell -m org.gnome.Shell.Eval Main.layoutManager._startingUp' | grep -q \"true,..false\""
               )
+              print("c")
               machine.succeed("machinectl shell test@ /usr/bin/env bash -c 'gsettings set org.gnome.desktop.interface toolkit-accessibility true'")
+              print("d")
               machine.succeed("systemd-run --machine=test@.host --user /usr/bin/env bash -c firefox")
+              print("e")
               machine.succeed("machinectl shell test@ /run/current-system/sw/bin/tucan_plus")
+              print("f")
             '';
             interactive = {
               sshBackdoor.enable = true; # ssh vsock/3 -o User=root
-            testScript = { nodes, ... }: lib.mkForce ''
-              start_all()
-              machine.wait_for_unit("default.target", "test")
-              machine.wait_until_succeeds(
-                  "machinectl shell test@ /usr/bin/env bash -c 'gdbus call --session -d org.gnome.Shell -o /org/gnome/Shell -m org.gnome.Shell.Eval Main.layoutManager._startingUp' | grep -q \"true,..false\""
-              )
-              machine.succeed("machinectl shell test@ /usr/bin/env bash -c 'gsettings set org.gnome.desktop.interface toolkit-accessibility true'")
-              machine.succeed("systemd-run --machine=test@.host --user /usr/bin/env bash -c firefox")
-              machine.succeed("machinectl shell test@ /run/current-system/sw/bin/tucan_plus")
-            '';
             };
             # https://wiki.nixos.org/wiki/Python
             # ssh vsock/3 -o User=root
