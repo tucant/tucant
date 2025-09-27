@@ -467,7 +467,7 @@
               )
               machine.succeed("machinectl shell test@ /usr/bin/env bash -c 'gsettings set org.gnome.desktop.interface toolkit-accessibility true'")
               machine.succeed("machinectl shell test@ /usr/bin/env bash -c 'firefox'")
-              machine.succeed("machinectl shell test@ /run/current-system/sw/bin/run-test")
+              machine.succeed("machinectl shell test@ /run/current-system/sw/bin/tucan_plus")
             '';
             interactive = {
               sshBackdoor.enable = true; # ssh vsock/3 -o User=root
@@ -479,7 +479,7 @@
               )
               machine.succeed("machinectl shell test@ /usr/bin/env bash -c 'gsettings set org.gnome.desktop.interface toolkit-accessibility true'")
               machine.succeed("machinectl shell test@ /usr/bin/env bash -c 'firefox'")
-              machine.succeed("machinectl shell test@ /run/current-system/sw/bin/run-test")
+              machine.succeed("machinectl shell test@ /run/current-system/sw/bin/tucan_plus")
             '';
             };
             # https://wiki.nixos.org/wiki/Python
