@@ -381,13 +381,12 @@
 
                 services.gnome.at-spi2-core.enable = true;
 
-                services.xserver.xkb.layout = "de";
+                services.xkb.layout = "de";
 
                 boot.kernelPackages = pkgs.linuxPackages_latest;
 
-                services.xserver.enable = true;
-                services.xserver.displayManager.gdm.enable = true;
-                services.xserver.desktopManager.gnome.enable = true;
+                services.displayManager.gdm.enable = true;
+                services.desktopManager.gnome.enable = true;
 
                 #services.gnome.core-apps.enable = false;
                 #services.gnome.core-developer-tools.enable = false;
@@ -404,6 +403,7 @@
 
                 environment.systemPackages = [
                   pkgs.firefox
+                  # TODO https://nixos.org/manual/nixpkgs/unstable/#ssec-gnome-common-issues-double-wrapped
                   (pkgs.writeShellApplication {
                     name = "run-test";
                     runtimeInputs = [
@@ -418,7 +418,8 @@
                     from dogtail.tree import root
                     print(list(map(lambda x: x.name, root.applications())))
                     EOF
-                  ''})
+                    '';
+                  })
                 ];
 
                 programs.dconf.profiles.test.databases = [
