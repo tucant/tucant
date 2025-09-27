@@ -381,7 +381,7 @@
 
                 services.gnome.at-spi2-core.enable = true;
 
-                services.xserver.layout = "de";
+                services.xserver.xkb.layout = "de";
 
                 boot.kernelPackages = pkgs.linuxPackages_latest;
 
@@ -402,7 +402,20 @@
                   uid = 1000;
                 };
 
-                environment.systemPackages = [ pkgs.firefox ];
+                environment.systemPackages = [
+                  pkgs.firefox
+                  pkgs.gobject-introspection
+                  pkgs.gtk3
+                  (pkgs.python3.withPackages (ps: with ps; [ dogtail ]))
+                  (pkgs.writeShellScriptBin "run-test" ''
+                    gsettings set org.gnome.desktop.interface toolkit-accessibility true
+                    firefox &
+                    python - <<EOF
+                    from dogtail.tree import root
+                    print(list(map(lambda x: x.name, root.applications())))
+                    EOF
+                  '')
+                ];
 
                 programs.dconf.profiles.test.databases = [
                   {
@@ -420,13 +433,18 @@
             testScript = { nodes, ... }: ''
               start_all()
               machine.wait_for_unit("default.target", "test")
+              # machine.wait_until_succeeds
+              machine.succeed(
+                  "machinectl shell test@ /usr/bin/env bash -c 'gdbus call --session -d org.gnome.Shell -o /org/gnome/Shell -m org.gnome.Shell.Eval Main.layoutManager._startingUp' | grep -q 'true,..false'"
+              )
+              machine.succeed("machinectl shell test@ run-test")
             '';
             interactive = {
               sshBackdoor.enable = true; # ssh vsock/3 -o User=root
               testScript = { nodes, ... }: lib.mkForce ''
                 start_all()
                 machine.wait_for_unit("default.target", "test")
-                machine.succeed("systemd-run --machine=test@.host --user /usr/bin/env bash firefox")
+                machine.succeed("machinectl shell test@ run-test")
               '';
             };
             # https://wiki.nixos.org/wiki/Python
