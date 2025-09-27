@@ -368,12 +368,14 @@
             }
           );
 
-          # https://github.com/NixOS/nixpkgs/blob/master/nixos/tests/gnome.nix
           # https://nixos.org/manual/nixos/unstable/index.html#sec-nixos-tests
+          # https://github.com/NixOS/nixpkgs/blob/a25a80403e18d80ffb9e5a2047c7936e57fbae68/nixos/tests/installed-tests/default.nix#L15
+          # https://github.com/NixOS/nixpkgs/blob/a25a80403e18d80ffb9e5a2047c7936e57fbae68/nixos/tests/installed-tests/gnome-photos.nix#L10
           # nix run -L .#checks.x86_64-linux.extension-test.driverInteractive
           # test_script()
           extension-test = pkgs.testers.runNixOSTest {
             name = "extension-test";
+            extraPythonPackages = p: [ p.dogtail ];
             nodes = {
               machine = {pkgs, ...}: {
                 services.displayManager.gdm.enable = true;
