@@ -371,6 +371,7 @@
           # https://github.com/NixOS/nixpkgs/blob/master/nixos/tests/gnome.nix
           # https://nixos.org/manual/nixos/unstable/index.html#sec-nixos-tests
           # nix run -L .#checks.x86_64-linux.extension-test.driverInteractive
+          # test_script()
           extension-test = pkgs.testers.runNixOSTest {
             name = "extension-test";
             nodes = {
@@ -383,20 +384,29 @@
                 services.gnome.games.enable = false;
                 environment.gnome.excludePackages = with pkgs; [ gnome-tour gnome-user-docs ];
 
-                services.xserver.displayManager.autoLogin.enable = true;
-                services.xserver.displayManager.autoLogin.user = "test";
+                services.displayManager.autoLogin.enable = true;
+                services.displayManager.autoLogin.user = "test";
 
                 users.users.test = {
                   isNormalUser = true;
                 };
-                
+
+                environment.systemPackages = [ pkgs.firefox ];
+
                 system.stateVersion = "25.11";
               };
             };
             testScript = ''
               start_all()
-
+              machine.wait_for_unit("default.target", "test")
             '';
+            interactive = {
+              testScript = lib.mkForce ''
+                start_all()
+                machine.wait_for_unit("default.target", "test")
+                machine.succeed("firefox")
+              '';
+            };
           };
         };
 
