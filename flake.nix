@@ -434,6 +434,9 @@
             # machinectl shell test@
             # gsettings set org.gnome.desktop.interface toolkit-accessibility true
             # nix-shell -I nixpkgs=channel:nixos-unstable -p gobject-introspection gtk3 'python3.withPackages (ps: with ps; [ dogtail ])' --run "python -c \"from dogtail.tree import root, Node\""
+            # nix-shell -I nixpkgs=channel:nixos-unstable -p gobject-introspection gtk3 'python3.withPackages (ps: with ps; [ dogtail ])' --run python
+            # from dogtail.tree import root
+            # list(map(lambda x: x.name, root.applications()))
             # machine.shell_interact()
           };
         };
