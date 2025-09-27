@@ -395,6 +395,16 @@
 
                 environment.systemPackages = [ pkgs.firefox ];
 
+                programs.dconf.profiles.test.databases = [
+                  {
+                    settings = {
+                      "org/gnome/desktop/interface" = {
+                        toolkit-accessibility = true;
+                      };
+                    };
+                  }
+                ];
+
                 system.stateVersion = "25.11";
               };
             };
@@ -403,7 +413,7 @@
               machine.wait_for_unit("default.target", "test")
             '';
             interactive = {
-              sshBackdoor.enable = true; # ssh vsock/3 -o User=root
+              #sshBackdoor.enable = true; # ssh vsock/3 -o User=root
               testScript = { nodes, ... }: lib.mkForce ''
                 start_all()
                 machine.wait_for_unit("default.target", "test")
@@ -411,6 +421,7 @@
               '';
             };
             # https://wiki.nixos.org/wiki/Python
+            # ssh vsock/3 -o User=root
             # nix-shell -p gobject-introspection gtk3 'python3.withPackages (ps: with ps; [ dogtail ])' --run "python -c \"from dogtail.tree import root, Node\""
             
           };
