@@ -375,7 +375,6 @@
           # test_script()
           extension-test = pkgs.testers.runNixOSTest {
             name = "extension-test";
-            extraPythonPackages = p: [ p.dogtail ];
             nodes = {
               machine = {pkgs, ...}: {
                 services.displayManager.gdm.enable = true;
