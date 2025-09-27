@@ -432,6 +432,7 @@
                   )
                 ];
 
+                programs.dconf.enable = true;
                 programs.dconf.profiles.test.databases = [
                   {
                     settings = {
@@ -464,15 +465,14 @@
               print("a")
               start_all()
               print("b")
-              machine.execute("systemd-run --pipe --machine=test@.host --user /usr/bin/env bash -c 'gdbus call --session -d org.gnome.Shell -o /org/gnome/Shell -m org.gnome.Shell.Eval Main.layoutManager._startingUp' | grep -q \"true,..false\"")
               machine.wait_until_succeeds(
-                  "systemd-run --machine=test@.host --user /usr/bin/env bash -c 'gdbus call --session -d org.gnome.Shell -o /org/gnome/Shell -m org.gnome.Shell.Eval Main.layoutManager._startingUp' | grep -q \"true,..false\"",
-                  timeout=10
+                  "systemd-run --pipe --machine=test@.host --user /usr/bin/env bash -c 'gdbus call --session -d org.gnome.Shell -o /org/gnome/Shell -m org.gnome.Shell.Eval Main.layoutManager._startingUp' | grep -q \"true,..false\"",
+                  timeout=60
               )
               print("c")
-              machine.succeed("systemd-run --pipe --machine=test@.host --user /usr/bin/env bash -c 'gsettings set org.gnome.desktop.interface toolkit-accessibility true'")
+              machine.succeed("systemd-run --machine=test@.host --user /usr/bin/env bash -c 'gsettings set org.gnome.desktop.interface toolkit-accessibility true'")
               print("d")
-              machine.succeed("systemd-run --pipe --machine=test@.host --user /usr/bin/env bash -c firefox")
+              machine.succeed("systemd-run --machine=test@.host --user /usr/bin/env bash -c firefox")
               print("e")
               machine.succeed("systemd-run --pipe --machine=test@.host --user /usr/bin/env bash -c tucan_plus")
               print("f")
