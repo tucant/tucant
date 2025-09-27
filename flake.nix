@@ -379,6 +379,8 @@
               machine = {pkgs, ...}: {
                 virtualisation.memorySize = 8192;
 
+                services.gnome.at-spi2-core.enable = true;
+
                 services.xserver.layout = "de";
 
                 boot.kernelPackages = pkgs.linuxPackages_latest;
@@ -420,7 +422,7 @@
               machine.wait_for_unit("default.target", "test")
             '';
             interactive = {
-              #sshBackdoor.enable = true; # ssh vsock/3 -o User=root
+              sshBackdoor.enable = true; # ssh vsock/3 -o User=root
               testScript = { nodes, ... }: lib.mkForce ''
                 start_all()
                 machine.wait_for_unit("default.target", "test")
@@ -429,8 +431,9 @@
             };
             # https://wiki.nixos.org/wiki/Python
             # ssh vsock/3 -o User=root
-            # nix-shell -p gobject-introspection gtk3 'python3.withPackages (ps: with ps; [ dogtail ])' --run "python -c \"from dogtail.tree import root, Node\""
-            #  machine.shell_interact()
+            # gsettings set org.gnome.desktop.interface toolkit-accessibility true
+            # nix-shell -I nixpkgs=channel:nixos-unstable -p gobject-introspection gtk3 'python3.withPackages (ps: with ps; [ dogtail ])' --run "python -c \"from dogtail.tree import root, Node\""
+            # machine.shell_interact()
           };
         };
 
