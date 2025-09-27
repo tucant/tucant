@@ -379,16 +379,17 @@
                 services.displayManager.gdm.enable = true;
                 services.desktopManager.gnome.enable = true;
 
-                services.gnome.core-apps.enable = false;
-                services.gnome.core-developer-tools.enable = false;
-                services.gnome.games.enable = false;
-                environment.gnome.excludePackages = with pkgs; [ gnome-tour gnome-user-docs ];
+                #services.gnome.core-apps.enable = false;
+                #services.gnome.core-developer-tools.enable = false;
+                #services.gnome.games.enable = false;
+                environment.gnome.excludePackages = with pkgs; [ gnome-tour ]; # gnome-user-docs
 
                 services.displayManager.autoLogin.enable = true;
                 services.displayManager.autoLogin.user = "test";
 
                 users.users.test = {
                   isNormalUser = true;
+                  uid = 1000;
                 };
 
                 environment.systemPackages = [ pkgs.firefox ];
@@ -396,15 +397,16 @@
                 system.stateVersion = "25.11";
               };
             };
-            testScript = ''
+            testScript = { nodes, ... }: ''
               start_all()
               machine.wait_for_unit("default.target", "test")
             '';
             interactive = {
-              testScript = lib.mkForce ''
+              sshBackdoor.enable = true; # ssh vsock/3 -o User=root
+              testScript = { nodes, ... }: lib.mkForce ''
                 start_all()
                 machine.wait_for_unit("default.target", "test")
-                machine.succeed("firefox")
+                machine.succeed("systemd-run --machine=test@.host --user /usr/bin/env bash firefox")
               '';
             };
           };
