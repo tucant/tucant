@@ -410,6 +410,9 @@
                 machine.succeed("systemd-run --machine=test@.host --user /usr/bin/env bash firefox")
               '';
             };
+            # https://wiki.nixos.org/wiki/Python
+            # nix-shell -p gobject-introspection gtk3 'python3.withPackages (ps: with ps; [ dogtail ])' --run "python -c \"from dogtail.tree import root, Node\""
+            
           };
         };
 
