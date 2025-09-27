@@ -466,7 +466,7 @@
                   "machinectl shell test@ /usr/bin/env bash -c 'gdbus call --session -d org.gnome.Shell -o /org/gnome/Shell -m org.gnome.Shell.Eval Main.layoutManager._startingUp' | grep -q \"true,..false\""
               )
               machine.succeed("machinectl shell test@ /usr/bin/env bash -c 'gsettings set org.gnome.desktop.interface toolkit-accessibility true'")
-              machine.succeed("machinectl shell test@ /usr/bin/env bash -c 'firefox'")
+              machine.succeed("systemd-run --machine=test@.host --user /usr/bin/env bash -c firefox")
               machine.succeed("machinectl shell test@ /run/current-system/sw/bin/tucan_plus")
             '';
             interactive = {
@@ -478,7 +478,7 @@
                   "machinectl shell test@ /usr/bin/env bash -c 'gdbus call --session -d org.gnome.Shell -o /org/gnome/Shell -m org.gnome.Shell.Eval Main.layoutManager._startingUp' | grep -q \"true,..false\""
               )
               machine.succeed("machinectl shell test@ /usr/bin/env bash -c 'gsettings set org.gnome.desktop.interface toolkit-accessibility true'")
-              machine.succeed("machinectl shell test@ /usr/bin/env bash -c 'firefox'")
+              machine.succeed("systemd-run --machine=test@.host --user /usr/bin/env bash -c firefox")
               machine.succeed("machinectl shell test@ /run/current-system/sw/bin/tucan_plus")
             '';
             };
