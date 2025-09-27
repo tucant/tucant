@@ -427,25 +427,42 @@
                   }
                 ];
 
+                systemd.user.services = {
+                  "org.gnome.Shell@wayland" = {
+                    serviceConfig = {
+                      ExecStart = [
+                        # Clear the list before overriding it.
+                        ""
+                        # Eval API is now internal so Shell needs to run in unsafe mode.
+                        # TODO: improve test driver so that it supports openqa-like manipulation
+                        # that would allow us to drop this mess.
+                        "${pkgs.gnome-shell}/bin/gnome-shell --unsafe-mode"
+                      ];
+                    };
+                  };
+                };
+
                 system.stateVersion = "25.11";
               };
             };
             testScript = { nodes, ... }: ''
               start_all()
               machine.wait_for_unit("default.target", "test")
-              # machine.wait_until_succeeds
-              machine.succeed(
-                  "machinectl shell test@ /usr/bin/env bash -c 'gdbus call --session -d org.gnome.Shell -o /org/gnome/Shell -m org.gnome.Shell.Eval Main.layoutManager._startingUp' | grep -q 'true,..false'"
+              machine.wait_until_succeeds(
+                  "machinectl shell test@ /usr/bin/env bash -c 'gdbus call --session -d org.gnome.Shell -o /org/gnome/Shell -m org.gnome.Shell.Eval Main.layoutManager._startingUp' | grep -q \"true,..false\""
               )
-              machine.succeed("machinectl shell test@ run-test")
+              machine.succeed("machinectl shell test@ /run/current-system/sw/bin/run-test")
             '';
             interactive = {
               sshBackdoor.enable = true; # ssh vsock/3 -o User=root
-              testScript = { nodes, ... }: lib.mkForce ''
-                start_all()
-                machine.wait_for_unit("default.target", "test")
-                machine.succeed("machinectl shell test@ run-test")
-              '';
+            testScript = { nodes, ... }: lib.mkForce ''
+              start_all()
+              machine.wait_for_unit("default.target", "test")
+              machine.wait_until_succeeds(
+                  "machinectl shell test@ /usr/bin/env bash -c 'gdbus call --session -d org.gnome.Shell -o /org/gnome/Shell -m org.gnome.Shell.Eval Main.layoutManager._startingUp' | grep -q \"true,..false\""
+              )
+              machine.succeed("machinectl shell test@ /run/current-system/sw/bin/run-test")
+            '';
             };
             # https://wiki.nixos.org/wiki/Python
             # ssh vsock/3 -o User=root
