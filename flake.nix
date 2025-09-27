@@ -381,7 +381,7 @@
 
                 services.gnome.at-spi2-core.enable = true;
 
-                services.xkb.layout = "de";
+                services.xserver.xkb.layout = "de";
 
                 boot.kernelPackages = pkgs.linuxPackages_latest;
 
