@@ -431,6 +431,7 @@
             };
             # https://wiki.nixos.org/wiki/Python
             # ssh vsock/3 -o User=root
+            # machinectl shell test@
             # gsettings set org.gnome.desktop.interface toolkit-accessibility true
             # nix-shell -I nixpkgs=channel:nixos-unstable -p gobject-introspection gtk3 'python3.withPackages (ps: with ps; [ dogtail ])' --run "python -c \"from dogtail.tree import root, Node\""
             # machine.shell_interact()
