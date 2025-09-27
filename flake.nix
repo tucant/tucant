@@ -408,13 +408,17 @@
                       pname = "run-test";
                       version = "3.32.2";
                       pyproject = true;
+                      build-system = with pkgs.python3Packages; [ setuptools ];
+
+                      dependencies = with pkgs.python3Packages; [
+                        dogtail
+                      ];
 
                       src = ./demo-video;
 
                       nativeBuildInputs = [
                         pkgs.wrapGAppsHook3
                         pkgs.gobject-introspection
-                        (pkgs.python3.withPackages (ps: with ps; [ dogtail ]))
                       ];
 
                       dontWrapGApps = true;
