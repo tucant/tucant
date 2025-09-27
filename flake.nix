@@ -2,7 +2,7 @@
   description = "Build a cargo project";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
 
     crane.url = "github:ipetkov/crane";
 
@@ -377,8 +377,13 @@
             name = "extension-test";
             nodes = {
               machine = {pkgs, ...}: {
-                services.displayManager.gdm.enable = true;
-                services.desktopManager.gnome.enable = true;
+                virtualisation.memorySize = 8192;
+
+                boot.kernelPackages = pkgs.linuxPackages_latest;
+
+                services.xserver.enable = true;
+                services.xserver.displayManager.gdm.enable = true;
+                services.xserver.desktopManager.gnome.enable = true;
 
                 #services.gnome.core-apps.enable = false;
                 #services.gnome.core-developer-tools.enable = false;
@@ -423,7 +428,7 @@
             # https://wiki.nixos.org/wiki/Python
             # ssh vsock/3 -o User=root
             # nix-shell -p gobject-introspection gtk3 'python3.withPackages (ps: with ps; [ dogtail ])' --run "python -c \"from dogtail.tree import root, Node\""
-            
+            #  machine.shell_interact()
           };
         };
 
