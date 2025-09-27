@@ -379,6 +379,8 @@
               machine = {pkgs, ...}: {
                 virtualisation.memorySize = 8192;
 
+                services.xserver.layout = "de";
+
                 boot.kernelPackages = pkgs.linuxPackages_latest;
 
                 services.xserver.enable = true;
