@@ -378,6 +378,11 @@
             name = "extension-test";
             nodes = {
               machine = {pkgs, ...}: {
+                virtualisation = {
+                  sharedDirectories = {
+                    projects = {source="/home/moritz/Documents/tucan-plus/demo-video/"; target="/home/test/tucan_plus";};
+                  };
+                };
                 virtualisation.memorySize = 8192;
 
                 services.gnome.at-spi2-core.enable = true;
@@ -483,12 +488,7 @@
             # https://wiki.nixos.org/wiki/Python
             # ssh vsock/3 -o User=root
             # machinectl shell test@
-            # gsettings set org.gnome.desktop.interface toolkit-accessibility true
-            # nix-shell -I nixpkgs=channel:nixos-unstable -p gobject-introspection gtk3 'python3.withPackages (ps: with ps; [ dogtail ])' --run "python -c \"from dogtail.tree import root, Node\""
-            # nix-shell -I nixpkgs=channel:nixos-unstable -p gobject-introspection gtk3 'python3.withPackages (ps: with ps; [ dogtail ])' --run python
-            # from dogtail.tree import root
-            # list(map(lambda x: x.name, root.applications()))
-            # machine.shell_interact()
+            # nix-shell -I nixpkgs=channel:nixos-unstable -p gobject-introspection gtk3 'python3.withPackages (ps: with ps; [ dogtail ])' --run python /home/test/tucan_plus/tucan_plus.py
           };
         };
 

@@ -1,4 +1,9 @@
-from dogtail.tree import root
+from dogtail.tree import root, Node
 
 def tucan_plus_cli():
-    print(list(map(lambda x: x.name, root.applications())))
+    firefox: Node = root.application("Firefox")
+    urlbar_input: Node = firefox.child(identifier="urlbar-input")
+    urlbar_input.click()
+    urlbar_input.keyCombo("<ctrl><a>")
+    urlbar_input.typeText("https://tucan-plus.github.io/tucan-plus/")
+    urlbar_input.keyCombo("<enter>")
