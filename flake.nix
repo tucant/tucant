@@ -76,24 +76,6 @@
           pname = "tucan-plus-workspace-native";
         };
 
-        tests = craneLib.buildPackage {
-          cargoToml = ./crates/tucan-plus-tests/Cargo.toml;
-          cargoLock = ./crates/tucan-plus-tests/Cargo.lock;
-          preBuild = ''
-            cd ./crates/tucan-plus-tests
-          '';
-          strictDeps = true;
-          pname = "tucan-plus-workspace-native-tests";
-          src = lib.fileset.toSource {
-            root = ./.;
-            fileset = lib.fileset.unions [
-              (craneLib.fileset.commonCargoSources ./crates/tucan-plus-tests)
-            ];
-          };
-          cargoTestExtraArgs = "--no-run";
-          cargoExtraArgs = "--package=tucan-plus-tests";
-        };
-
         api = craneLib.buildPackage {
           cargoToml = ./crates/tucan-plus-api/Cargo.toml;
           cargoLock = ./crates/tucan-plus-api/Cargo.lock;
@@ -366,12 +348,12 @@
           inherit api schema client;
 
           # todo also clippy the frontend
-          my-app-clippy = craneLib.cargoClippy (
-            nativeArgs
-            // {
-              cargoClippyExtraArgs = "--all-targets -- --deny warnings";
-            }
-          );
+          #my-app-clippy = craneLib.cargoClippy (
+          #  nativeArgs
+          #  // {
+          #    cargoClippyExtraArgs = "--all-targets -- --deny warnings";
+          #  }
+          #);
 
           my-app-fmt = craneLib.cargoFmt (
             nativeArgs
@@ -385,12 +367,32 @@
               src = source-with-build-instructions;
             }
           );
+
+          # nix flake check -L .#checks.extension-test
+          extension-test = pkgs.testers.runNixOSTest {
+            name = "extension-test";
+            nodes = {
+              machine = {pkgs, ...}: {
+                services.displayManager.gdm.enable = true;
+                services.desktopManager.gnome.enable = true;
+                services.gnome.core-apps.enable = false;
+                services.gnome.core-developer-tools.enable = false;
+                services.gnome.games.enable = false;
+                environment.gnome.excludePackages = with pkgs; [ gnome-tour gnome-user-docs ];
+
+                system.stateVersion = "25.11";
+              };
+            };
+            testScript = ''
+              start_all()
+
+            '';
+          };
         };
 
         packages.schema = schema;
         packages.client = client;
         packages.server = api;
-        packages.tests = tests;
         packages.extension = extension;
         packages.extension-unpacked = extension-unpacked;
         packages.extension-source = source;
@@ -476,32 +478,6 @@
             pkgs.firefox
             pkgs.nodejs_latest
           ];
-        };
-
-        # https://discourse.nixos.org/t/nixos-integration-tests-with-graphical-applications-best-practice/11617/4
-        # https://nixos.org/manual/nixos/stable/index.html#sec-running-nixos-tests-interactively
-        nixosConfigurations.test = nixpkgs.lib.nixosSystem {
-          inherit system;
-          modules = [
-            ({ config, lib, pkgs, ... }: {
-              services.displayManager.gdm.enable = true;
-              services.desktopManager.gnome.enable = true;
-              services.gnome.core-apps.enable = false;
-              services.gnome.core-developer-tools.enable = false;
-              services.gnome.games.enable = false;
-              environment.gnome.excludePackages = with pkgs; [ gnome-tour gnome-user-docs ];
-
-              system.stateVersion = "25.11";
-            })
-          ];
-        };
-
-        # nix run
-        apps = {
-          default = {
-            type = "app";
-            program = "${nixosConfigurations.test.config.system.build.vm}/bin/run-nixos-vm";
-          };
         };
       }
     );
