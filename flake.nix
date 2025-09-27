@@ -404,22 +404,27 @@
                 environment.systemPackages = [
                   pkgs.firefox
                   # TODO https://nixos.org/manual/nixpkgs/unstable/#ssec-gnome-common-issues-double-wrapped
-                  (pkgs.writeShellApplication {
-                    name = "run-test";
-                    runtimeInputs = [
-                      pkgs.gobject-introspection
-                      pkgs.gtk3
-                      (pkgs.python3.withPackages (ps: with ps; [ dogtail ]))
-                    ];
-                    text = ''
-                    gsettings set org.gnome.desktop.interface toolkit-accessibility true
-                    firefox &
-                    python - <<EOF
-                    from dogtail.tree import root
-                    print(list(map(lambda x: x.name, root.applications())))
-                    EOF
-                    '';
-                  })
+                  (pkgs.python3.pkgs.buildPythonApplication {
+                      pname = "run-test";
+                      version = "3.32.2";
+                      pyproject = true;
+
+                      src = ./demo-video;
+
+                      nativeBuildInputs = [
+                        pkgs.wrapGAppsHook3
+                        pkgs.gobject-introspection
+                        (pkgs.python3.withPackages (ps: with ps; [ dogtail ]))
+                      ];
+
+                      dontWrapGApps = true;
+
+                      # Arguments to be passed to `makeWrapper`, only used by buildPython*
+                      preFixup = ''
+                        makeWrapperArgs+=("''${gappsWrapperArgs[@]}")
+                      '';
+                    }
+                  )
                 ];
 
                 programs.dconf.profiles.test.databases = [
@@ -456,6 +461,8 @@
               machine.wait_until_succeeds(
                   "machinectl shell test@ /usr/bin/env bash -c 'gdbus call --session -d org.gnome.Shell -o /org/gnome/Shell -m org.gnome.Shell.Eval Main.layoutManager._startingUp' | grep -q \"true,..false\""
               )
+              machine.succeed("machinectl shell test@ /usr/bin/env bash -c 'gsettings set org.gnome.desktop.interface toolkit-accessibility true'")
+              machine.succeed("machinectl shell test@ /usr/bin/env bash -c 'firefox'")
               machine.succeed("machinectl shell test@ /run/current-system/sw/bin/run-test")
             '';
             interactive = {
@@ -466,6 +473,8 @@
               machine.wait_until_succeeds(
                   "machinectl shell test@ /usr/bin/env bash -c 'gdbus call --session -d org.gnome.Shell -o /org/gnome/Shell -m org.gnome.Shell.Eval Main.layoutManager._startingUp' | grep -q \"true,..false\""
               )
+              machine.succeed("machinectl shell test@ /usr/bin/env bash -c 'gsettings set org.gnome.desktop.interface toolkit-accessibility true'")
+              machine.succeed("machinectl shell test@ /usr/bin/env bash -c 'firefox'")
               machine.succeed("machinectl shell test@ /run/current-system/sw/bin/run-test")
             '';
             };
