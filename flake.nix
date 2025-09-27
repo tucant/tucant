@@ -360,7 +360,7 @@
           cp -r ${source-with-build-instructions} $out
         '';
       in
-      {
+      rec {
         formatter = pkgs.nixfmt-tree;
         checks = {
           inherit api schema client;
@@ -476,6 +476,32 @@
             pkgs.firefox
             pkgs.nodejs_latest
           ];
+        };
+
+        # https://discourse.nixos.org/t/nixos-integration-tests-with-graphical-applications-best-practice/11617/4
+        # https://nixos.org/manual/nixos/stable/index.html#sec-running-nixos-tests-interactively
+        nixosConfigurations.test = nixpkgs.lib.nixosSystem {
+          inherit system;
+          modules = [
+            ({ config, lib, pkgs, ... }: {
+              services.displayManager.gdm.enable = true;
+              services.desktopManager.gnome.enable = true;
+              services.gnome.core-apps.enable = false;
+              services.gnome.core-developer-tools.enable = false;
+              services.gnome.games.enable = false;
+              environment.gnome.excludePackages = with pkgs; [ gnome-tour gnome-user-docs ];
+
+              system.stateVersion = "25.11";
+            })
+          ];
+        };
+
+        # nix run
+        apps = {
+          default = {
+            type = "app";
+            program = "${nixosConfigurations.test.config.system.build.vm}/bin/run-nixos-vm";
+          };
         };
       }
     );
