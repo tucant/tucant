@@ -368,18 +368,28 @@
             }
           );
 
-          # nix flake check -L .#checks.extension-test
+          # https://github.com/NixOS/nixpkgs/blob/master/nixos/tests/gnome.nix
+          # https://nixos.org/manual/nixos/unstable/index.html#sec-nixos-tests
+          # nix run -L .#checks.x86_64-linux.extension-test.driverInteractive
           extension-test = pkgs.testers.runNixOSTest {
             name = "extension-test";
             nodes = {
               machine = {pkgs, ...}: {
                 services.displayManager.gdm.enable = true;
                 services.desktopManager.gnome.enable = true;
+
                 services.gnome.core-apps.enable = false;
                 services.gnome.core-developer-tools.enable = false;
                 services.gnome.games.enable = false;
                 environment.gnome.excludePackages = with pkgs; [ gnome-tour gnome-user-docs ];
 
+                services.xserver.displayManager.autoLogin.enable = true;
+                services.xserver.displayManager.autoLogin.user = "test";
+
+                users.users.test = {
+                  isNormalUser = true;
+                };
+                
                 system.stateVersion = "25.11";
               };
             };

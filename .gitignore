@@ -1,3 +1,4 @@
+.nixos-test-history
 nixos.qcow2
 /crates/tucan-plus-dioxus/assets/worker
 *.br
