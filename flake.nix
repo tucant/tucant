@@ -373,6 +373,7 @@
           # https://github.com/NixOS/nixpkgs/blob/a25a80403e18d80ffb9e5a2047c7936e57fbae68/nixos/tests/installed-tests/gnome-photos.nix#L10
           # nix run -L .#checks.x86_64-linux.extension-test.driverInteractive
           # test_script()
+          # nix flake check -L
           extension-test = pkgs.testers.runNixOSTest {
             name = "extension-test";
             nodes = {
@@ -463,15 +464,17 @@
               print("a")
               start_all()
               print("b")
+              machine.execute("systemd-run --pipe --machine=test@.host --user /usr/bin/env bash -c 'gdbus call --session -d org.gnome.Shell -o /org/gnome/Shell -m org.gnome.Shell.Eval Main.layoutManager._startingUp' | grep -q \"true,..false\"")
               machine.wait_until_succeeds(
-                  "machinectl shell test@ /usr/bin/env bash -c 'gdbus call --session -d org.gnome.Shell -o /org/gnome/Shell -m org.gnome.Shell.Eval Main.layoutManager._startingUp' | grep -q \"true,..false\""
+                  "systemd-run --machine=test@.host --user /usr/bin/env bash -c 'gdbus call --session -d org.gnome.Shell -o /org/gnome/Shell -m org.gnome.Shell.Eval Main.layoutManager._startingUp' | grep -q \"true,..false\"",
+                  timeout=10
               )
               print("c")
-              machine.succeed("machinectl shell test@ /usr/bin/env bash -c 'gsettings set org.gnome.desktop.interface toolkit-accessibility true'")
+              machine.succeed("systemd-run --pipe --machine=test@.host --user /usr/bin/env bash -c 'gsettings set org.gnome.desktop.interface toolkit-accessibility true'")
               print("d")
-              machine.succeed("systemd-run --machine=test@.host --user /usr/bin/env bash -c firefox")
+              machine.succeed("systemd-run --pipe --machine=test@.host --user /usr/bin/env bash -c firefox")
               print("e")
-              machine.succeed("machinectl shell test@ /run/current-system/sw/bin/tucan_plus")
+              machine.succeed("systemd-run --pipe --machine=test@.host --user /usr/bin/env bash -c tucan_plus")
               print("f")
             '';
             interactive = {
