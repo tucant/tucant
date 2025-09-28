@@ -435,6 +435,10 @@
                       '';
                     }
                   )
+                  (pkgs.writeShellScriptBin "ponytail"
+                  ''
+                    ${pkgs.gnome-ponytail-daemon}/libexec/gnome-ponytail-daemon
+                  '')
                 ];
 
                 programs.dconf.enable = true;
@@ -479,8 +483,10 @@
               print("d")
               machine.succeed("systemd-run --machine=test@.host --user /usr/bin/env bash -c firefox")
               print("e")
-              machine.succeed("systemd-run --pipe --machine=test@.host --user /usr/bin/env bash -c tucan_plus")
+              machine.succeed("systemd-run --machine=test@.host --user /usr/bin/env bash -c ponytail")
               print("f")
+              machine.succeed("systemd-run --pipe --machine=test@.host --user /usr/bin/env bash -c tucan_plus")
+              print("g")
             '';
             interactive = {
               sshBackdoor.enable = true; # ssh vsock/3 -o User=root
