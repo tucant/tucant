@@ -28,8 +28,6 @@ extern "C" {
     #[wasm_bindgen(js_namespace = console)]
     fn error(msg: String);
 
-    fn alert(s: &str);
-
     type Error;
 
     #[wasm_bindgen(constructor)]
@@ -52,7 +50,6 @@ pub async fn main() {
         msg.push_str(&stack);
         msg.push_str("\n\n");
         error(msg.clone());
-        alert(msg.as_str());
     }));
     console_log::init().unwrap();
 
