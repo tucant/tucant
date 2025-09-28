@@ -10,3 +10,5 @@ def tucan_plus_cli():
 
 if __name__ == "__main__":
     tucan_plus_cli()
+
+# nix shell --impure --expr '(import ./. {}).python3.withPackages (ps: with ps; [ dogtail ])'
