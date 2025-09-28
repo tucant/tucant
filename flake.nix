@@ -571,20 +571,14 @@
         };
 
         devShells.default = pkgs.mkShell {
-
-          shellHook = ''
-            export LD_LIBRARY_PATH="${pkgs.zlib}/lib''${LD_LIBRARY_PATH:+:}''${LD_LIBRARY_PATH}"
-          '';
-
+          buildInputs = [
+            pkgs.openssl
+            pkgs.openssl.dev
+          ];
           packages = [
             pkgs.bashInteractive
-            pkgs.diffoscope
-            pkgs.bacon
-            pkgs.geckodriver
-            pkgs.chromedriver
-            pkgs.chromium
-            pkgs.firefox
-            pkgs.nodejs_latest
+            pkgs.pkg-config
+            pkgs.clang_21
           ];
         };
       }
