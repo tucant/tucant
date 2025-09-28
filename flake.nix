@@ -572,14 +572,10 @@
 
         devShells.default = pkgs.mkShellNoCC {
           shellHook = ''
-            export CC_wasm32_unknown_emscripten=emcc
-            export CXX_wasm32_unknown_emscripten=emcc
             export PATH=~/.cargo/bin/:$PATH
           '';
-
           buildInputs = [
             pkgs.openssl
-            pkgs.openssl.dev
           ];
           packages = [
             pkgs.bashInteractive
