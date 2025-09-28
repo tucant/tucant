@@ -570,10 +570,11 @@
           '';
         };
 
-        devShells.default = pkgs.mkShell.override {stdenv = pkgs.emscriptenStdenv;} {
+        devShells.default = pkgs.mkShellNoCC {
           shellHook = ''
-            export CC=emcc
-            export CXX=emcc
+            export CC_wasm32_unknown_emscripten=emcc
+            export CXX_wasm32_unknown_emscripten=emcc
+            export PATH=~/.cargo/bin/:$PATH
           '';
 
           buildInputs = [
@@ -584,6 +585,7 @@
             pkgs.bashInteractive
             pkgs.pkg-config
             pkgs.emscripten
+            pkgs.clang_21
           ];
         };
       }
