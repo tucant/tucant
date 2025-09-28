@@ -581,7 +581,7 @@
             pkgs.bashInteractive
             pkgs.pkg-config
             pkgs.emscripten
-            pkgs.clang_21
+            (pkgs.clang_21.overrideAttrs { setupHooks = []; })
           ];
         };
       }
