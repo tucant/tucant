@@ -570,7 +570,12 @@
           '';
         };
 
-        devShells.default = pkgs.mkShell {
+        devShells.default = pkgs.mkShell.override {stdenv = pkgs.emscriptenStdenv;} {
+          shellHook = ''
+            export CC=emcc
+            export CXX=emcc
+          '';
+
           buildInputs = [
             pkgs.openssl
             pkgs.openssl.dev
@@ -578,7 +583,7 @@
           packages = [
             pkgs.bashInteractive
             pkgs.pkg-config
-            pkgs.clang_21
+            pkgs.emscripten
           ];
         };
       }
