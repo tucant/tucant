@@ -2,7 +2,7 @@ use std::{cell::RefCell, time::Duration};
 
 use log::info;
 use wasm_bindgen::prelude::*;
-use web_sys::MessageEvent;
+use web_sys::ExtendableMessageEvent;
 
 #[wasm_bindgen]
 extern "C" {
@@ -34,23 +34,19 @@ pub async fn main() {
     }));
     console_log::init().unwrap();
 
-    log::error!("service worker");
+    log::warn!("service worker");
 
-    let global = js_sys::global().unchecked_into::<web_sys::DedicatedWorkerGlobalScope>();
+    let global = js_sys::global().unchecked_into::<web_sys::ServiceWorkerGlobalScope>();
     
-    let closure: Closure<dyn Fn(MessageEvent)> = Closure::new(move |event: MessageEvent| {
+    let closure: Closure<dyn Fn(ExtendableMessageEvent)> = Closure::new(move |event: ExtendableMessageEvent| {
         //info!("Got message at worker {:?}", event.data());
-        let global = js_sys::global().unchecked_into::<web_sys::DedicatedWorkerGlobalScope>();
+        let global = js_sys::global().unchecked_into::<web_sys::ServiceWorkerGlobalScope>();
 
         let afewe: () = serde_wasm_bindgen::from_value(event.data()).unwrap();
-        //info!("Got result at worker {:?}", result);
-        global.post_message(&"hi".into()).unwrap();
     });
     global
         .add_event_listener_with_callback("message", closure.as_ref().unchecked_ref())
         .unwrap();
 
     closure.forget();
-
-    global.post_message(&JsValue::from_str("ready")).unwrap();
 }
