@@ -79,6 +79,13 @@ cargo install --locked bacon
 cd crates/tucan-plus-api/
 bacon run
 
+
+
+cd crates/tucan-plus-service-worker/
+dx serve --wasm --bundle web --base-path assets # --hot-patch this lets everything explode with "env" imports and sqlite import stuff broken
+cp -r ./target/dx/tucan-plus-service-worker/debug/web/public/wasm/. ../tucan-plus-dioxus/assets/wasm/
+
+
 # http://localhost:8080/#/
 ```
 

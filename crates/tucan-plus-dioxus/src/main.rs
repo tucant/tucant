@@ -69,6 +69,8 @@ pub async fn main() {
         false
     };
 
+    web_sys::window().unwrap().navigator().service_worker().register("/sw.js");
+
     let launcher = dioxus::LaunchBuilder::new();
 
     let worker = MyDatabase::wait_for_worker().await;
