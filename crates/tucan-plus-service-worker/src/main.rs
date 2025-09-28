@@ -22,7 +22,7 @@ extern "C" {
 pub async fn main() {
     // From https://github.com/rustwasm/console_error_panic_hook, licensed under MIT and Apache 2.0
     std::panic::set_hook(Box::new(|info| {
-        let mut msg = "Worker ".to_string();
+        let mut msg = "Service Worker ".to_string();
         msg.push('\n');
         msg.push_str(&info.to_string());
         msg.push_str("\n\nStack:\n\n");

@@ -64,6 +64,8 @@ cargo install --git https://github.com/mohe2015/dioxus --branch my dioxus-cli
 cd crates/tucan-plus-dioxus/
 export WORKER_JS_PATH=/assets/wasm/tucan-plus-worker.js
 export WORKER_WASM_PATH=/assets/wasm/tucan-plus-worker_bg.wasm
+export SERVICE_WORKER_JS_PATH=/assets/wasm/tucan-plus-service-worker.js
+export SERVICE_WORKER_WASM_PATH=/assets/wasm/tucan-plus-service-worker_bg.wasm
 dx serve --platform web --features api --verbose
 
 cargo run --manifest-path ~/Documents/dioxus/packages/cli/Cargo.toml serve --platform web --features api --verbose
@@ -82,7 +84,7 @@ bacon run
 
 
 cd crates/tucan-plus-service-worker/
-dx serve --wasm --bundle web --base-path assets # --hot-patch this lets everything explode with "env" imports and sqlite import stuff broken
+dx serve --wasm --bundle web --base-path assets
 cp -r ./target/dx/tucan-plus-service-worker/debug/web/public/wasm/. ../tucan-plus-dioxus/assets/wasm/
 
 
