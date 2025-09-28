@@ -34,6 +34,8 @@ pub async fn main() {
     }));
     console_log::init().unwrap();
 
+    log::error!("service worker");
+
     let global = js_sys::global().unchecked_into::<web_sys::DedicatedWorkerGlobalScope>();
     
     let closure: Closure<dyn Fn(MessageEvent)> = Closure::new(move |event: MessageEvent| {

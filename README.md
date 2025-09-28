@@ -82,14 +82,12 @@ cd crates/tucan-plus-api/
 bacon run
 
 
-
+# Service Workers in Firefox can't be ES Modules https://bugzilla.mozilla.org/show_bug.cgi?id=1360870
 cd crates/tucan-plus-service-worker/
 cargo build --target wasm32-unknown-unknown
-# Service Workers in Firefox can't be ES Modules https://bugzilla.mozilla.org/show_bug.cgi?id=1360870
 wasm-bindgen target/wasm32-unknown-unknown/debug/tucan-plus-service-worker.wasm --target no-modules --out-dir ./target/dx/tucan-plus-service-worker/debug/web/public/wasm/ --no-typescript
-
+echo 'await wasm_bindgen("/assets/wasm/tucan-plus-service-worker_bg.wasm")' >> ./target/dx/tucan-plus-service-worker/debug/web/public/wasm/tucan-plus-service-worker.js
 cp -r ./target/dx/tucan-plus-service-worker/debug/web/public/wasm/. ../tucan-plus-dioxus/assets/wasm/
-
 
 # http://localhost:8080/#/
 ```
