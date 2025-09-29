@@ -27,7 +27,13 @@ extern "C" {
 }
 
 fn ensure_host() {
-    let a = web_sys::window().unwrap().navigator().locks();
+    let lock_manager = web_sys::window().unwrap().navigator().locks();
+    let error_closure: Closure<dyn Fn(_)> = {
+        Closure::new(move |event: web_sys::ErrorEvent| {
+            
+        })
+    };
+    lock_manager.request_with_callback("dedicated-worker-lock", error_closure.as_ref().unchecked_ref());
 }
 
 // https://github.com/tauri-apps/wry
