@@ -130,6 +130,7 @@
           ./crates/tucan-plus-dioxus/assets/bootstrap.bundle.min.js
           ./crates/tucan-plus-dioxus/assets/bootstrap.patch.js
           ./crates/tucan-plus-dioxus/index.html
+          ./crates/tucan-plus/dioxus/.cargo/config.toml
           fileset-worker
         ];
 

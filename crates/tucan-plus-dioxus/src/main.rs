@@ -26,6 +26,10 @@ extern "C" {
     fn stack(error: &Error) -> String;
 }
 
+fn ensure_host() {
+    let a = web_sys::window().unwrap().navigator().locks();
+}
+
 // https://github.com/tauri-apps/wry
 // https://github.com/tauri-apps/tao/blob/5ac00b57ad3f5c5c7135dde626cb90bc1ad469dc/src/platform_impl/android/ndk_glue.rs#L236
 
@@ -69,7 +73,8 @@ pub async fn main() {
         false
     };
 
-    web_sys::window().unwrap().navigator().service_worker().register(&SERVICE_WORKER_JS.to_string());
+    // Does not work in Firefox extensions
+    // web_sys::window().unwrap().navigator().service_worker().register(&SERVICE_WORKER_JS.to_string());
 
     let launcher = dioxus::LaunchBuilder::new();
 
