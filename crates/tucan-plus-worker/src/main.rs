@@ -5,7 +5,7 @@ use diesel_migrations::{EmbeddedMigrations, MigrationHarness as _, embed_migrati
 use log::info;
 use tucan_plus_worker::{MIGRATIONS, RequestResponseEnum};
 use wasm_bindgen::prelude::*;
-use web_sys::MessageEvent;
+use web_sys::{BroadcastChannel, MessageEvent};
 
 pub async fn sleep(duration: Duration) {
     let mut cb = |resolve: js_sys::Function, _reject: js_sys::Function| {
@@ -68,6 +68,8 @@ pub async fn main() {
 
     let connection = RefCell::new(connection);
 
+    let broadcast_channel = BroadcastChannel::new("global").unwrap();
+
     let closure: Closure<dyn Fn(MessageEvent)> = Closure::new(move |event: MessageEvent| {
         //info!("Got message at worker {:?}", event.data());
         let global = js_sys::global().unchecked_into::<web_sys::DedicatedWorkerGlobalScope>();
@@ -77,7 +79,7 @@ pub async fn main() {
         //info!("Got result at worker {:?}", result);
         global.post_message(&result).unwrap();
     });
-    global
+    broadcast_channel
         .add_event_listener_with_callback("message", closure.as_ref().unchecked_ref())
         .unwrap();
 

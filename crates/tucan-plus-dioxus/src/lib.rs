@@ -105,7 +105,6 @@ pub struct Anonymize(pub bool);
 #[derive(Clone)]
 pub struct MyDatabase {
     broadcast_channel: BroadcastChannel,
-    worker: Option<Fragile<web_sys::Worker>>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -116,41 +115,6 @@ pub struct MessageWithId {
 
 #[cfg(target_arch = "wasm32")]
 impl MyDatabase {
-    // https://github.com/rust-lang/rust/issues/20671
-    async fn send_message_internal<R: RequestResponse + Debug>(&self, message: R) -> R::Response
-        where tucan_plus_worker::RequestResponseEnum: std::convert::From<R> {
-        use rand::{Rng, distr::{Alphanumeric, SampleString as _}};
-
-        let id = Alphanumeric.sample_string(&mut rand::rng(), 16);
-
-        let temporary_broadcast_channel = BroadcastChannel::new(&id).unwrap();
-
-        let mut cb = |resolve: js_sys::Function, reject: js_sys::Function| {
-            let temporary_message_closure: Closure<dyn Fn(_)> = {
-                Closure::new(move |event: web_sys::MessageEvent| {
-                    resolve.call0(&JsValue::undefined()).unwrap();
-                })
-            };
-            temporary_broadcast_channel.add_event_listener_with_callback("message", temporary_message_closure.as_ref().unchecked_ref());
-        };
-
-        let promise = js_sys::Promise::new(&mut cb);
-
-        let value = serde_wasm_bindgen::to_value(&MessageWithId {
-            id: id.clone(),
-            message: RequestResponseEnum::from(message)
-        }).unwrap();
-        // worker in local 
-        if let Some(worker) = &self.worker {
-            worker.get().post_message(&value);
-        } else {
-            self.broadcast_channel.post_message(&value);
-        }
-
-        serde_wasm_bindgen::from_value(wasm_bindgen_futures::JsFuture::from(promise).await.unwrap())
-            .unwrap()
-    }
-
     pub async fn wait_for_worker() -> Self {
         use js_sys::Promise;
 
@@ -232,90 +196,40 @@ impl MyDatabase {
         };
         let promise = lock_manager.request_with_callback("dedicated-worker-lock", lock_closure.as_ref().unchecked_ref());
 
-        Self
+        let broadcast_channel = BroadcastChannel::new("global").unwrap();
+
+        Self {
+            broadcast_channel,
+        }
     }
 
-    pub async fn send_message<R: RequestResponse + Debug>(&self, value: R) -> R::Response
-        where tucan_plus_worker::RequestResponseEnum: std::convert::From<R>
-    {
-        //info!("sending message from client {:?}", value);
+    async fn send_message<R: RequestResponse + Debug>(&self, message: R) -> R::Response
+        where tucan_plus_worker::RequestResponseEnum: std::convert::From<R> {
+        use rand::{distr::{Alphanumeric, SampleString as _}};
+
+        let id = Alphanumeric.sample_string(&mut rand::rng(), 16);
+
+        let temporary_broadcast_channel = BroadcastChannel::new(&id).unwrap();
+
         let mut cb = |resolve: js_sys::Function, reject: js_sys::Function| {
-            let message_closure: Rc<RefCell<Option<Closure<dyn Fn(MessageEvent)>>>> =
-                Rc::new(RefCell::new(None));
-            let error_closure: Closure<dyn Fn(_)> = {
-                let worker = self.worker.clone();
-                let message_closure = message_closure.clone();
-                Closure::new(move |event: web_sys::ErrorEvent| {
-                    info!(
-                        "error at client {event:?} {:?} {:?}",
-                        event.message(),
-                        event.error()
-                    );
-                    worker
-                        .get()
-                        .remove_event_listener_with_callback(
-                            "message",
-                            message_closure
-                                .borrow()
-                                .as_ref()
-                                .unwrap()
-                                .as_ref()
-                                .unchecked_ref(),
-                        )
-                        .unwrap();
-                    reject.call0(&JsValue::undefined()).unwrap();
+            let temporary_message_closure: Closure<dyn Fn(_)> = {
+                Closure::new(move |event: web_sys::MessageEvent| {
+                    resolve.call0(&JsValue::undefined()).unwrap();
                 })
             };
-            let error_closure_ref = error_closure.as_ref().clone();
-            *message_closure.borrow_mut() = {
-                let worker = self.worker.clone();
-                let error_closure_ref = error_closure_ref.clone();
-                Some(Closure::new(move |event: MessageEvent| {
-                    //info!("received message at client {:?}", event.data());
-                    worker
-                        .get()
-                        .remove_event_listener_with_callback(
-                            "error",
-                            error_closure_ref.unchecked_ref(),
-                        )
-                        .unwrap();
-                    resolve.call1(&JsValue::undefined(), &event.data()).unwrap();
-                }))
-            };
-            let options = AddEventListenerOptions::new();
-            options.set_once(true);
-            self.0
-                .get()
-                .add_event_listener_with_callback_and_add_event_listener_options(
-                    "error",
-                    error_closure_ref.unchecked_ref(),
-                    &options,
-                )
-                .unwrap();
-            self.0
-                .get()
-                .add_event_listener_with_callback_and_add_event_listener_options(
-                    "message",
-                    message_closure
-                        .borrow()
-                        .as_ref()
-                        .unwrap()
-                        .as_ref()
-                        .unchecked_ref(),
-                    &options,
-                )
-                .unwrap();
-            error_closure.forget();
+            temporary_broadcast_channel.add_event_listener_with_callback("message", temporary_message_closure.as_ref().unchecked_ref());
         };
 
-        let p = js_sys::Promise::new(&mut cb);
+        let promise = js_sys::Promise::new(&mut cb);
 
-        self.0
-            .get()
-            .post_message(&serde_wasm_bindgen::to_value(&RequestResponseEnum::from(value)).unwrap())
-            .unwrap();
+        let value = serde_wasm_bindgen::to_value(&MessageWithId {
+            id: id.clone(),
+            message: RequestResponseEnum::from(message)
+        }).unwrap();
 
-        serde_wasm_bindgen::from_value(wasm_bindgen_futures::JsFuture::from(p).await.unwrap())
+        self.broadcast_channel.post_message(&value);
+
+        serde_wasm_bindgen::from_value(wasm_bindgen_futures::JsFuture::from(promise).await.unwrap())
             .unwrap()
     }
 }
