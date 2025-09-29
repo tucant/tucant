@@ -163,6 +163,7 @@ impl MyDatabase {
                     };
                     let options = AddEventListenerOptions::new();
                     options.set_once(true);
+                    // TODO also log these errors later
                     worker
                         .add_event_listener_with_callback_and_add_event_listener_options(
                             "error",
@@ -188,7 +189,8 @@ impl MyDatabase {
                 return js_sys::Promise::new(&mut cb);
             })
         };
-        let promise = lock_manager.request_with_callback("dedicated-worker-lock", lock_closure.as_ref().unchecked_ref());
+        lock_manager.request_with_callback("opfs", lock_closure.as_ref().unchecked_ref());
+        lock_closure.forget();
 
         let broadcast_channel = Fragile::new(BroadcastChannel::new("global").unwrap());
 
