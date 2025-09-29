@@ -2022,6 +2022,7 @@ dependencies = [
  "ego-tree",
  "futures-core",
  "futures-util",
+ "getrandom 0.3.3",
  "html-extractor",
  "html-handler",
  "itertools",
