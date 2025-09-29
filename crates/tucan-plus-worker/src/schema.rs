@@ -35,5 +35,4 @@ diesel::table! {
     }
 }
 
-diesel::allow_tables_to_appear_in_same_query!(
-    anmeldungen_entries,anmeldungen_plan,store,);
+diesel::allow_tables_to_appear_in_same_query!(anmeldungen_entries, anmeldungen_plan, store,);
