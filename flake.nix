@@ -165,7 +165,8 @@
           buildPhaseCargoCommand = ''
             export CC=emcc
             export CXX=emcc
-            CARGO_TARGET_DIR=target ${dioxus-cli}/bin/dx bundle --wasm --bundle web --release --out-dir $out --base-path public
+            rm -R ./target/dx/tucan-plus-worker/release/web/public/assets || true
+            CARGO_TARGET_DIR=target ${dioxus-cli}/bin/dx bundle --verbose --wasm --bundle web --release --out-dir $out --base-path public
           '';
           installPhaseCommand = '''';
           checkPhaseCargoCommand = '''';
@@ -291,10 +292,11 @@
             cp ${worker}/public/assets/tucan-plus-worker_bg-*.wasm assets/
             cp ${service-worker}/tucan-plus-service-worker.js assets/tucan-plus-service-worker.js
             export WORKER_JS_PATH_ARRAY=(assets/tucan-plus-worker-*.js)
-            export WORKER_JS_PATH="/''${WORKER_JS_PATH_ARRAY[0]}"
+            export WORKER_JS_PATH="/''${WORKER_JS_PATH_ARRAY[@]}"
             export WORKER_WASM_PATH_ARRAY=(assets/tucan-plus-worker_bg-*.wasm)
-            export WORKER_WASM_PATH="/''${WORKER_WASM_PATH_ARRAY[0]}"
+            export WORKER_WASM_PATH="/''${WORKER_WASM_PATH_ARRAY[@]}"
             export SERVICE_WORKER_JS_PATH=/assets/tucan-plus-service-worker.js
+            rm -R ./target/dx/tucan-plus-dioxus/release/web/public/assets || true
             CARGO_TARGET_DIR=target ${dioxus-cli}/bin/dx bundle --platform web --release --out-dir $out --base-path public --features direct
           '';
           installPhaseCommand = ''
@@ -571,6 +573,7 @@
         packages.extension-source = source;
         packages.extension-source-unpacked = source-unpacked;
         packages.dioxus-cli = dioxus-cli;
+        packages.worker = worker;
 
         apps.server = flake-utils.lib.mkApp {
           name = "server";
