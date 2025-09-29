@@ -90,14 +90,6 @@ pub static SERVICE_WORKER_JS: Asset = asset!(
     AssetOptions::builder().with_hash_suffix(false)
 );
 
-// unfortunately the asset! macro produces a different hash as the build output
-#[cfg(target_arch = "wasm32")]
-#[used]
-pub static SERVICE_WORKER_WASM: Asset = asset!(
-    env!("SERVICE_WORKER_WASM_PATH"),
-    AssetOptions::builder().with_hash_suffix(false)
-);
-
 pub static BOOTSTRAP_JS: Asset = asset!("/assets/bootstrap.bundle.min.js",);
 
 pub static BOOTSTRAP_PATCH_JS: Asset = asset!("/assets/bootstrap.patch.js",);

@@ -113,6 +113,10 @@
           ./crates/tucan-plus-worker/migrations
         ];
 
+        fileset-service-worker = lib.fileset.unions [
+          (craneLib.fileset.commonCargoSources ./crates/tucan-plus-service-worker)
+        ];
+
         fileset-wasm = lib.fileset.unions [
           (craneLib.fileset.commonCargoSources ./crates/key-value-database)
           (craneLib.fileset.commonCargoSources ./crates/html-extractor)
@@ -201,6 +205,65 @@
           });
         });
 
+        service-worker-args = {
+          CARGO_TARGET_DIR = "./crates/tucan-plus-service-worker/target";
+          cargoToml = ./crates/tucan-plus-service-worker/Cargo.toml;
+          cargoLock = ./crates/tucan-plus-service-worker/Cargo.lock;
+          preBuild = ''
+            cd ./crates/tucan-plus-service-worker
+          '';
+          postBuild = ''
+            cd ../..
+          '';
+          strictDeps = true;
+          doCheck = false;
+          cargoExtraArgs = "--package=tucan-plus-service-worker";
+          pname = "tucan-plus-workspace-tucan-plus-service-worker";
+          buildPhaseCargoCommand = ''
+            CARGO_TARGET_DIR=target cargo build --target wasm32-unknown-unknown
+            wasm-bindgen target/wasm32-unknown-unknown/debug/tucan-plus-service-worker.wasm --target no-modules --out-dir ./target/dx/tucan-plus-service-worker/debug/web/public/wasm/ --no-typescript
+            echo "wasm_bindgen.initSync({ module: Uint8Array.fromBase64(\"$(base64 -w0 target/dx/tucan-plus-service-worker/debug/web/public/wasm/tucan-plus-service-worker_bg.wasm)\")})" >> ./target/dx/tucan-plus-service-worker/debug/web/public/wasm/tucan-plus-service-worker.js
+          '';
+          installPhaseCommand = ''
+            mkdir $out
+            cp ./crates/tucan-plus-service-worker/target/dx/tucan-plus-service-worker/debug/web/public/wasm/tucan-plus-service-worker.js $out/tucan-plus-service-worker.js
+          '';
+          checkPhaseCargoCommand = '''';
+          nativeBuildInputs = [
+            pkgs.which
+            wasm-bindgen
+            pkgs.binaryen
+            (pkgs.writeShellScriptBin "git" ''
+              echo ${self.rev or "dirty"}
+            '')
+          ];
+          doNotPostBuildInstallCargoBinaries = true;
+          src = lib.fileset.toSource {
+            root = ./.;
+            fileset = fileset-service-worker;
+          };
+        };
+
+        service-worker = craneLib.buildPackage (service-worker-args // {
+          cargoArtifacts = craneLib.buildDepsOnly (service-worker-args // {
+            dummySrc = craneLib.mkDummySrc {
+              src = service-worker-args.src;
+              extraDummyScript = ''
+                cp ${service-worker-args.cargoLock} $out/crates/tucan-plus-service-worker/Cargo.lock
+                rm $out/crates/tucan-plus-service-worker/src/main.rs
+                cp ${pkgs.writeText "main.rs" ''
+                  use wasm_bindgen::prelude::*;
+
+                  #[wasm_bindgen(main)]
+                  pub async fn main() {
+
+                  }
+                ''} $out/crates/tucan-plus-service-worker/src/main.rs
+              '';
+            };
+          });
+        });
+
         client-args = {
           CARGO_TARGET_DIR = "./crates/tucan-plus-dioxus/target";
           cargoToml = ./crates/tucan-plus-dioxus/Cargo.toml;
@@ -226,10 +289,12 @@
             mkdir -p assets/
             cp ${worker}/public/assets/tucan-plus-worker-*.js assets/
             cp ${worker}/public/assets/tucan-plus-worker_bg-*.wasm assets/
+            cp ${service-worker}/tucan-plus-service-worker.js assets/tucan-plus-service-worker.js
             export WORKER_JS_PATH_ARRAY=(assets/tucan-plus-worker-*.js)
             export WORKER_JS_PATH="/''${WORKER_JS_PATH_ARRAY[0]}"
             export WORKER_WASM_PATH_ARRAY=(assets/tucan-plus-worker_bg-*.wasm)
             export WORKER_WASM_PATH="/''${WORKER_WASM_PATH_ARRAY[0]}"
+            export SERVICE_WORKER_JS_PATH=/assets/tucan-plus-service-worker.js
             CARGO_TARGET_DIR=target ${dioxus-cli}/bin/dx bundle --platform web --release --out-dir $out --base-path public --features direct
           '';
           installPhaseCommand = ''
