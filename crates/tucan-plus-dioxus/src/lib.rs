@@ -31,10 +31,8 @@ use crate::planning::Planning;
 use dioxus::prelude::*;
 use fragile::Fragile;
 use log::info;
-use serde::{Deserialize, Serialize};
 use serde::de::DeserializeOwned;
-#[cfg(target_arch = "wasm32")]
-use web_sys::BroadcastChannel;
+use serde::{Deserialize, Serialize};
 use std::cell::RefCell;
 #[cfg(target_arch = "wasm32")]
 use std::collections::HashMap;
@@ -51,6 +49,8 @@ use tucan_types::{
 };
 use wasm_bindgen::prelude::Closure;
 use wasm_bindgen::{JsCast as _, JsValue};
+#[cfg(target_arch = "wasm32")]
+use web_sys::BroadcastChannel;
 use web_sys::{AddEventListenerOptions, MessageEvent, WorkerOptions, WorkerType};
 
 #[used]
@@ -119,16 +119,18 @@ impl MyDatabase {
                     let options = WorkerOptions::new();
                     options.set_type(WorkerType::Module);
                     let worker =
-                        web_sys::Worker::new_with_options(&WORKER_JS.to_string(), &options).unwrap();
-                    let error_closure: Closure<dyn Fn(_)> = Closure::new(move |event: web_sys::ErrorEvent| {
-                        info!(
-                            "error at client {event:?} {:?} {:?}",
-                            event.message(),
-                            event.error()
-                        );
-                        
-                        reject.call0(&JsValue::undefined()).unwrap();
-                    });
+                        web_sys::Worker::new_with_options(&WORKER_JS.to_string(), &options)
+                            .unwrap();
+                    let error_closure: Closure<dyn Fn(_)> =
+                        Closure::new(move |event: web_sys::ErrorEvent| {
+                            info!(
+                                "error at client {event:?} {:?} {:?}",
+                                event.message(),
+                                event.error()
+                            );
+
+                            reject.call0(&JsValue::undefined()).unwrap();
+                        });
                     let error_closure_ref = error_closure.as_ref().clone();
                     worker
                         .add_event_listener_with_callback(
@@ -149,14 +151,14 @@ impl MyDatabase {
 
         // TODO FIXME add wait for worker to be alive
 
-        Self {
-            broadcast_channel,
-        }
+        Self { broadcast_channel }
     }
 
     async fn send_message<R: RequestResponse + Debug>(&self, message: R) -> R::Response
-        where tucan_plus_worker::RequestResponseEnum: std::convert::From<R> {
-        use rand::{distr::{Alphanumeric, SampleString as _}};
+    where
+        tucan_plus_worker::RequestResponseEnum: std::convert::From<R>,
+    {
+        use rand::distr::{Alphanumeric, SampleString as _};
         use tucan_plus_worker::MessageWithId;
 
         // TODO FIXME add retry
@@ -171,7 +173,10 @@ impl MyDatabase {
                     resolve.call1(&JsValue::undefined(), &event.data()).unwrap();
                 })
             };
-            temporary_broadcast_channel.add_event_listener_with_callback("message", temporary_message_closure.as_ref().unchecked_ref());
+            temporary_broadcast_channel.add_event_listener_with_callback(
+                "message",
+                temporary_message_closure.as_ref().unchecked_ref(),
+            );
             temporary_message_closure.forget();
         };
 
@@ -179,8 +184,9 @@ impl MyDatabase {
 
         let value = serde_wasm_bindgen::to_value(&MessageWithId {
             id: id.clone(),
-            message: RequestResponseEnum::from(message)
-        }).unwrap();
+            message: RequestResponseEnum::from(message),
+        })
+        .unwrap();
 
         self.broadcast_channel.get().post_message(&value);
 

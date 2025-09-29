@@ -1,5 +1,6 @@
 use dioxus::prelude::*;
 use js_sys::{Array, Uint8Array};
+use time::{Month, macros::offset};
 use tucan_plus_planning::{compress, recursive_anmeldung};
 use tucan_types::{LoginResponse, RevalidationStrategy, Tucan, registration::AnmeldungRequest};
 use web_sys::{Blob, Url};
@@ -25,6 +26,12 @@ pub fn FetchAnmeldung() -> Element {
                 )
                 .await
                 .unwrap();
+            let datetime = time::OffsetDateTime::now_utc();
+            let datetime = datetime.to_offset(offset!(+2));
+            let date = datetime.date();
+            let registration_sose = Month::March <= date.month() && date.month() <= Month::August;
+            let semester = if registration_sose { "sose" } else { "wise" };
+
             let mut output = Vec::new();
             for course_of_study in anmeldung_response.studiumsauswahl {
                 let result = recursive_anmeldung(

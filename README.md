@@ -51,7 +51,6 @@ rustup toolchain install nightly-2025-09-08 --component rust-src --component rus
 rustup component remove --toolchain nightly-2025-09-08 rustfmt
 cargo +nightly-2025-09-08 install --force --git https://github.com/tucan-plus/rustfmt --branch html-extractor-formatting rustfmt-nightly
 cargo +nightly-2025-09-08 fmt
-rustup run nightly-2025-09-08 dx fmt
 
 rustup toolchain install nightly-2025-09-08 --component rustfmt
 ```
