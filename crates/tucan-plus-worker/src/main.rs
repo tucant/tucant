@@ -3,7 +3,7 @@ use std::{cell::RefCell, time::Duration};
 use diesel::{Connection as _, SqliteConnection};
 use diesel_migrations::{EmbeddedMigrations, MigrationHarness as _, embed_migrations};
 use log::info;
-use tucan_plus_worker::{MIGRATIONS, RequestResponseEnum};
+use tucan_plus_worker::{MIGRATIONS, MessageWithId, RequestResponseEnum};
 use wasm_bindgen::prelude::*;
 use web_sys::{BroadcastChannel, MessageEvent};
 
@@ -74,10 +74,13 @@ pub async fn main() {
         //info!("Got message at worker {:?}", event.data());
         let global = js_sys::global().unchecked_into::<web_sys::DedicatedWorkerGlobalScope>();
 
-        let afewe: RequestResponseEnum = serde_wasm_bindgen::from_value(event.data()).unwrap();
-        let result = afewe.execute(&mut connection.borrow_mut());
+        let value: MessageWithId = serde_wasm_bindgen::from_value(event.data()).unwrap();
+        let result = value.message.execute(&mut connection.borrow_mut());
         //info!("Got result at worker {:?}", result);
-        global.post_message(&result).unwrap();
+
+        let temporary_broadcast_channel = BroadcastChannel::new(&id).unwrap();
+
+        temporary_broadcast_channel.post_message(&result).unwrap();
     });
     broadcast_channel
         .add_event_listener_with_callback("message", closure.as_ref().unchecked_ref())

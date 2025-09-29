@@ -104,13 +104,7 @@ pub struct Anonymize(pub bool);
 #[cfg(target_arch = "wasm32")]
 #[derive(Clone)]
 pub struct MyDatabase {
-    broadcast_channel: BroadcastChannel,
-}
-
-#[derive(Serialize, Deserialize)]
-pub struct MessageWithId {
-    id: String,
-    message: RequestResponseEnum,
+    broadcast_channel: Fragile<BroadcastChannel>,
 }
 
 #[cfg(target_arch = "wasm32")]
@@ -196,7 +190,7 @@ impl MyDatabase {
         };
         let promise = lock_manager.request_with_callback("dedicated-worker-lock", lock_closure.as_ref().unchecked_ref());
 
-        let broadcast_channel = BroadcastChannel::new("global").unwrap();
+        let broadcast_channel = Fragile::new(BroadcastChannel::new("global").unwrap());
 
         Self {
             broadcast_channel,
@@ -227,7 +221,7 @@ impl MyDatabase {
             message: RequestResponseEnum::from(message)
         }).unwrap();
 
-        self.broadcast_channel.post_message(&value);
+        self.broadcast_channel.get().post_message(&value);
 
         serde_wasm_bindgen::from_value(wasm_bindgen_futures::JsFuture::from(promise).await.unwrap())
             .unwrap()

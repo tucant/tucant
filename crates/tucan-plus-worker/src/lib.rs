@@ -319,6 +319,12 @@ impl RequestResponseEnum {
     }
 }
 
+#[derive(Serialize, Deserialize)]
+pub struct MessageWithId {
+    pub id: String,
+    pub message: RequestResponseEnum,
+}
+
 #[cfg(not(target_arch = "wasm32"))]
 #[derive(Clone)]
 pub struct MyDatabase(Fragile<Rc<RefCell<SqliteConnection>>>);
