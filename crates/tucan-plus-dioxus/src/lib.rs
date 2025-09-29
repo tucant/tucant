@@ -168,7 +168,7 @@ impl MyDatabase {
         let mut cb = |resolve: js_sys::Function, reject: js_sys::Function| {
             let temporary_message_closure: Closure<dyn Fn(_)> = {
                 Closure::new(move |event: web_sys::MessageEvent| {
-                    resolve.call0(&JsValue::undefined()).unwrap();
+                    resolve.call1(&JsValue::undefined(), &event.data()).unwrap();
                 })
             };
             temporary_broadcast_channel.add_event_listener_with_callback("message", temporary_message_closure.as_ref().unchecked_ref());

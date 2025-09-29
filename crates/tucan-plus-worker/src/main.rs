@@ -71,14 +71,14 @@ pub async fn main() {
     let broadcast_channel = BroadcastChannel::new("global").unwrap();
 
     let closure: Closure<dyn Fn(MessageEvent)> = Closure::new(move |event: MessageEvent| {
-        //info!("Got message at worker {:?}", event.data());
-        let global = js_sys::global().unchecked_into::<web_sys::DedicatedWorkerGlobalScope>();
+        info!("Got message at worker {:?}", event.data());
 
         let value: MessageWithId = serde_wasm_bindgen::from_value(event.data()).unwrap();
         let result = value.message.execute(&mut connection.borrow_mut());
-        //info!("Got result at worker {:?}", result);
 
         let temporary_broadcast_channel = BroadcastChannel::new(&value.id).unwrap();
+
+        info!("Sent result at worker {:?}", result);
 
         temporary_broadcast_channel.post_message(&result).unwrap();
     });
