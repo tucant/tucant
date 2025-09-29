@@ -147,6 +147,8 @@ impl MyDatabase {
 
         let broadcast_channel = Fragile::new(BroadcastChannel::new("global").unwrap());
 
+        // TODO FIXME add wait for worker to be alive
+
         Self {
             broadcast_channel,
         }
@@ -156,6 +158,8 @@ impl MyDatabase {
         where tucan_plus_worker::RequestResponseEnum: std::convert::From<R> {
         use rand::{distr::{Alphanumeric, SampleString as _}};
         use tucan_plus_worker::MessageWithId;
+
+        // TODO FIXME add retry
 
         let id = Alphanumeric.sample_string(&mut rand::rng(), 16);
 
@@ -168,6 +172,7 @@ impl MyDatabase {
                 })
             };
             temporary_broadcast_channel.add_event_listener_with_callback("message", temporary_message_closure.as_ref().unchecked_ref());
+            temporary_message_closure.forget();
         };
 
         let promise = js_sys::Promise::new(&mut cb);
