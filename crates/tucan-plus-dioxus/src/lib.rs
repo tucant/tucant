@@ -33,6 +33,8 @@ use fragile::Fragile;
 use log::info;
 use serde::Serialize;
 use serde::de::DeserializeOwned;
+#[cfg(target_arch = "wasm32")]
+use web_sys::BroadcastChannel;
 use std::cell::RefCell;
 use std::fmt::Debug;
 use std::ops::Deref;
@@ -99,7 +101,10 @@ pub struct Anonymize(pub bool);
 
 #[cfg(target_arch = "wasm32")]
 #[derive(Clone)]
-pub struct MyDatabase(Fragile<web_sys::Worker>);
+pub struct MyDatabase {
+    broadcast_channel: BroadcastChannel,
+    worker: Option<Fragile<web_sys::Worker>>
+};
 
 #[cfg(target_arch = "wasm32")]
 impl MyDatabase {
