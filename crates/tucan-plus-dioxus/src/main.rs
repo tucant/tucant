@@ -26,16 +26,6 @@ extern "C" {
     fn stack(error: &Error) -> String;
 }
 
-fn ensure_host() {
-    let lock_manager = web_sys::window().unwrap().navigator().locks();
-    let error_closure: Closure<dyn Fn(_)> = {
-        Closure::new(move |event: web_sys::ErrorEvent| {
-            
-        })
-    };
-    lock_manager.request_with_callback("dedicated-worker-lock", error_closure.as_ref().unchecked_ref());
-}
-
 // https://github.com/tauri-apps/wry
 // https://github.com/tauri-apps/tao/blob/5ac00b57ad3f5c5c7135dde626cb90bc1ad469dc/src/platform_impl/android/ndk_glue.rs#L236
 
