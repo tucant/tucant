@@ -119,7 +119,7 @@ impl MyDatabase {
     async fn send_message_internal<R: RequestResponse + Debug>(&self, message: R) -> R::Response {
         use rand::{Rng, distr::{Alphanumeric, SampleString as _}};
 
-        let id = Alphanumeric.sample_string(&mut rand::thread_rng(), 16);
+        let id = Alphanumeric.sample_string(&mut rand::rng(), 16);
        
         // worker in local 
         if let Some(worker) = self.worker {
@@ -132,7 +132,12 @@ impl MyDatabase {
 
         let temporary_broadcast_channel = BroadcastChannel::new(&id).unwrap();
 
-        
+        let temporary_message_closure: Closure<dyn Fn(_)> = {
+            Closure::new(move |event: web_sys::MessageEvent| {
+                
+            })
+        };
+        temporary_broadcast_channel.add_event_listener_with_callback("message", temporary_message_closure.into_js_value())
 
     }
 
