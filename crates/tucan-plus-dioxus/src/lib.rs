@@ -116,19 +116,12 @@ pub struct MessageWithId {
 
 #[cfg(target_arch = "wasm32")]
 impl MyDatabase {
-    async fn send_message_internal<R: RequestResponse + Debug>(&self, message: R) -> R::Response {
+    // https://github.com/rust-lang/rust/issues/20671
+    async fn send_message_internal<R: RequestResponse + Debug>(&self, message: R) -> R::Response
+        where tucan_plus_worker::RequestResponseEnum: std::convert::From<R> {
         use rand::{Rng, distr::{Alphanumeric, SampleString as _}};
 
         let id = Alphanumeric.sample_string(&mut rand::rng(), 16);
-       
-        // worker in local 
-        if let Some(worker) = self.worker {
-            worker.get().post_message(&serde_wasm_bindgen::to_value(&MessageWithId {
-                id,
-                message: RequestResponseEnum::from(message)
-            }).unwrap());
-        }
-        // try temporarily creating a broadcast channel?
 
         let temporary_broadcast_channel = BroadcastChannel::new(&id).unwrap();
 
@@ -137,8 +130,20 @@ impl MyDatabase {
                 
             })
         };
-        temporary_broadcast_channel.add_event_listener_with_callback("message", temporary_message_closure.into_js_value())
+        temporary_broadcast_channel.add_event_listener_with_callback("message", temporary_message_closure.as_ref().unchecked_ref());
 
+        let value = serde_wasm_bindgen::to_value(&MessageWithId {
+            id: id.clone(),
+            message: RequestResponseEnum::from(message)
+        }).unwrap();
+        // worker in local 
+        if let Some(worker) = &self.worker {
+            worker.get().post_message(&value);
+        } else {
+            self.broadcast_channel.post_message(&value);
+        }
+
+        todo!()
     }
 
     pub async fn wait_for_worker() -> Self {
@@ -226,6 +231,7 @@ impl MyDatabase {
     }
 
     pub async fn send_message<R: RequestResponse + Debug>(&self, value: R) -> R::Response
+        where tucan_plus_worker::RequestResponseEnum: std::convert::From<R>
     {
         //info!("sending message from client {:?}", value);
         let mut cb = |resolve: js_sys::Function, reject: js_sys::Function| {
