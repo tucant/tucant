@@ -125,12 +125,16 @@ impl MyDatabase {
 
         let temporary_broadcast_channel = BroadcastChannel::new(&id).unwrap();
 
-        let temporary_message_closure: Closure<dyn Fn(_)> = {
-            Closure::new(move |event: web_sys::MessageEvent| {
-                
-            })
+        let mut cb = |resolve: js_sys::Function, reject: js_sys::Function| {
+            let temporary_message_closure: Closure<dyn Fn(_)> = {
+                Closure::new(move |event: web_sys::MessageEvent| {
+                    resolve.call0(&JsValue::undefined()).unwrap();
+                })
+            };
+            temporary_broadcast_channel.add_event_listener_with_callback("message", temporary_message_closure.as_ref().unchecked_ref());
         };
-        temporary_broadcast_channel.add_event_listener_with_callback("message", temporary_message_closure.as_ref().unchecked_ref());
+
+        let promise = js_sys::Promise::new(&mut cb);
 
         let value = serde_wasm_bindgen::to_value(&MessageWithId {
             id: id.clone(),
@@ -143,7 +147,8 @@ impl MyDatabase {
             self.broadcast_channel.post_message(&value);
         }
 
-        todo!()
+        serde_wasm_bindgen::from_value(wasm_bindgen_futures::JsFuture::from(promise).await.unwrap())
+            .unwrap()
     }
 
     pub async fn wait_for_worker() -> Self {
