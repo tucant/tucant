@@ -26,7 +26,10 @@ pub async fn course_details(
 ) -> Result<CourseDetailsResponse, TucanError> {
     let key = format!("unparsed_course_details.{}", request.inner());
 
-    let old_content_and_date = tucan.database.send_message(CacheRequest { key }).await;
+    let old_content_and_date = tucan
+        .database
+        .send_message(CacheRequest { key: key.clone() })
+        .await;
     if revalidation_strategy.max_age != 0 {
         if let Some(CacheEntry {
             key,
@@ -54,7 +57,7 @@ pub async fn course_details(
     let (content, date) =
         authenticated_retryable_get(tucan, &url, &login_response.cookie_cnsc).await?;
     let result = course_details_internal(login_response, &content, &request)?;
-    if invalidate_dependents && old_content_and_date.as_ref().map(|m| &m.0) != Some(&content) {
+    if invalidate_dependents && old_content_and_date.as_ref().map(|m| &m.key) != Some(&content) {
         // TODO invalidate cached ones?
     }
 
