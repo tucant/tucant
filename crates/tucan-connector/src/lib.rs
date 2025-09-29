@@ -7,7 +7,6 @@ use coursedetails::course_details;
 use courseresults::courseresults;
 use examresults::examresults;
 use externalpages::welcome::welcome;
-use key_value_database::Database;
 use login::{login, logout};
 use mlsstart::after_login;
 use moduledetails::module_details;
@@ -91,7 +90,7 @@ type MyClient = reqwest::Client;
 #[cfg_attr(not(target_arch = "wasm32"), derive(Clone))]
 pub struct TucanConnector {
     pub client: MyClient,
-    pub database: Database,
+    pub database: MyDatabase,
     semaphore: Arc<Semaphore>,
 }
 

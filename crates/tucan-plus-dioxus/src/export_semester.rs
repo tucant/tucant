@@ -43,7 +43,7 @@ pub fn FetchAnmeldung() -> Element {
                 let content = serde_json::to_string(&result).unwrap();
                 output.push((
                     format!(
-                        "registration{}_{}.json.br",
+                        "registration{}_{}.{semester}.v1.tucan",
                         course_of_study.value, course_of_study.name
                     ),
                     compress(content.as_bytes()).await.unwrap(),

@@ -77,7 +77,7 @@ pub async fn main() {
 
     let launcher = dioxus::LaunchBuilder::new();
 
-    let worker = MyDatabase::wait_for_worker().await;
+    let worker = MyDatabase::wait_for_worker(WORKER_JS.to_string()).await;
 
     let launcher = launcher.with_context(worker);
 

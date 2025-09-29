@@ -6,7 +6,7 @@ edition = "2024"
 [dependencies]
 js-sys = "0.3"
 wasm-bindgen = { version = "=0.2.101" } # https://github.com/wasm-bindgen/wasm-bindgen/issues/4654
-web-sys = { version = "0.3", features = ["DedicatedWorkerGlobalScope", "MessageEvent", "Worker", "BroadcastChannel"] }
+web-sys = { version = "0.3", features = ["DedicatedWorkerGlobalScope", "MessageEvent", "Worker", "BroadcastChannel", "Document", "Window", "HtmlDocument", "NodeList", "HtmlSelectElement", "Blob", "Url", "BlobPropertyBag", "Worker", "WorkerOptions", "WorkerType", "AddEventListenerOptions", "EventTarget", "ErrorEvent", "FileList", "HtmlInputElement", "Navigator", "ServiceWorkerContainer", "ServiceWorker", "LockManager", "Lock", "BroadcastChannel"] }
 console_log = { version = "1", features = ["color"] }
 log = { version = "0.4", features = ["max_level_debug", "release_max_level_warn"] }
 wasm-bindgen-futures = "0.4"
@@ -23,3 +23,5 @@ fragile = "2"
 derive_more = { version = "2.0.1", features = ["from"] }
 tucan-types = { path = "../tucan-types" }
 tokio = { features = [], version = "1" }
+rand = "0.9.2"
+getrandom = { version = "0.3", features = ["wasm_js"] }
