@@ -35,6 +35,9 @@ serde-wasm-bindgen = "0.6"
 serde = { version = "1", features = ["derive"] }
 fragile = "2"
 tucan-plus-worker = { path = "../tucan-plus-worker" }
+tokio = { version = "1" }
+rand = "0.9.2"
+getrandom = { version = "0.3", features = ["wasm_js"] }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 tokio = { features = ["macros", "rt", "rt-multi-thread"], version = "1" }

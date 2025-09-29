@@ -31,11 +31,13 @@ use crate::planning::Planning;
 use dioxus::prelude::*;
 use fragile::Fragile;
 use log::info;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use serde::de::DeserializeOwned;
 #[cfg(target_arch = "wasm32")]
 use web_sys::BroadcastChannel;
 use std::cell::RefCell;
+#[cfg(target_arch = "wasm32")]
+use std::collections::HashMap;
 use std::fmt::Debug;
 use std::ops::Deref;
 use std::rc::Rc;
@@ -103,11 +105,37 @@ pub struct Anonymize(pub bool);
 #[derive(Clone)]
 pub struct MyDatabase {
     broadcast_channel: BroadcastChannel,
-    worker: Option<Fragile<web_sys::Worker>>
+    worker: Option<Fragile<web_sys::Worker>>,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct MessageWithId {
+    id: String,
+    message: RequestResponseEnum,
 }
 
 #[cfg(target_arch = "wasm32")]
 impl MyDatabase {
+    async fn send_message_internal<R: RequestResponse + Debug>(&self, message: R) -> R::Response {
+        use rand::{Rng, distr::{Alphanumeric, SampleString as _}};
+
+        let id = Alphanumeric.sample_string(&mut rand::thread_rng(), 16);
+       
+        // worker in local 
+        if let Some(worker) = self.worker {
+            worker.get().post_message(&serde_wasm_bindgen::to_value(&MessageWithId {
+                id,
+                message: RequestResponseEnum::from(message)
+            }).unwrap());
+        }
+        // try temporarily creating a broadcast channel?
+
+        let temporary_broadcast_channel = BroadcastChannel::new(&id).unwrap();
+
+        
+
+    }
+
     pub async fn wait_for_worker() -> Self {
         use js_sys::Promise;
 
@@ -193,15 +221,13 @@ impl MyDatabase {
     }
 
     pub async fn send_message<R: RequestResponse + Debug>(&self, value: R) -> R::Response
-    where
-        RequestResponseEnum: std::convert::From<R>,
     {
         //info!("sending message from client {:?}", value);
         let mut cb = |resolve: js_sys::Function, reject: js_sys::Function| {
             let message_closure: Rc<RefCell<Option<Closure<dyn Fn(MessageEvent)>>>> =
                 Rc::new(RefCell::new(None));
             let error_closure: Closure<dyn Fn(_)> = {
-                let worker = self.0.clone();
+                let worker = self.worker.clone();
                 let message_closure = message_closure.clone();
                 Closure::new(move |event: web_sys::ErrorEvent| {
                     info!(
@@ -226,7 +252,7 @@ impl MyDatabase {
             };
             let error_closure_ref = error_closure.as_ref().clone();
             *message_closure.borrow_mut() = {
-                let worker = self.0.clone();
+                let worker = self.worker.clone();
                 let error_closure_ref = error_closure_ref.clone();
                 Some(Closure::new(move |event: MessageEvent| {
                     //info!("received message at client {:?}", event.data());

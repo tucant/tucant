@@ -24,7 +24,7 @@ pub mod schema;
 
 pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!("migrations");
 
-pub trait RequestResponse: Serialize {
+pub trait RequestResponse: Serialize + Into<RequestResponseEnum> {
     type Response: DeserializeOwned;
     fn execute(&self, connection: &mut SqliteConnection) -> Self::Response;
 }
