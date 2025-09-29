@@ -640,6 +640,10 @@
         devShells.default = pkgs.mkShellNoCC {
           shellHook = ''
             export PATH=~/.cargo/bin/:$PATH
+            export WORKER_JS_PATH=/assets/wasm/tucan-plus-worker.js
+            export WORKER_WASM_PATH=/assets/wasm/tucan-plus-worker_bg.wasm
+            export SERVICE_WORKER_JS_PATH=/assets/wasm/tucan-plus-service-worker.js
+            export SERVICE_WORKER_WASM_PATH=/assets/wasm/tucan-plus-service-worker_bg.wasm
           '';
           buildInputs = [
             pkgs.openssl
