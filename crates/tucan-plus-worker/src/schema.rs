@@ -32,6 +32,7 @@ diesel::table! {
     cache (key) {
         key -> Text,
         value -> Text,
+        updated -> Text,
     }
 }
 

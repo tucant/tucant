@@ -5602,6 +5602,7 @@ dependencies = [
  "serde",
  "serde-wasm-bindgen",
  "sqlite-wasm-rs",
+ "time",
  "tokio",
  "tucan-types",
  "typetag",

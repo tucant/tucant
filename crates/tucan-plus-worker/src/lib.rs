@@ -14,8 +14,8 @@ use wasm_bindgen::JsValue;
 use web_sys::BroadcastChannel;
 
 use crate::{
-    models::{Anmeldung, AnmeldungEntry, Semester, State},
-    schema::{anmeldungen_entries, anmeldungen_plan},
+    models::{Anmeldung, AnmeldungEntry, CacheEntry, Semester, State},
+    schema::{anmeldungen_entries, anmeldungen_plan, cache},
 };
 use tucan_types::{
     Semesterauswahl,
@@ -34,6 +34,22 @@ where
 {
     type Response: DeserializeOwned;
     fn execute(&self, connection: &mut SqliteConnection) -> Self::Response;
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct CacheRequest {
+    pub key: String,
+}
+
+impl RequestResponse for CacheRequest {
+    type Response = CacheEntry;
+
+    fn execute(&self, connection: &mut SqliteConnection) -> Self::Response {
+        QueryDsl::filter(cache::table, cache::key.eq(&self.key))
+            .select(CacheEntry::as_select())
+            .get_result(connection)
+            .unwrap()
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -290,6 +306,7 @@ pub enum RequestResponseEnum {
     UpdateModule(UpdateModule),
     SetStateAndCredits(SetStateAndCredits),
     SetCpAndModuleCount(SetCpAndModuleCount),
+    CacheRequest(CacheRequest),
 }
 
 impl RequestResponseEnum {
@@ -320,6 +337,9 @@ impl RequestResponseEnum {
                 serde_wasm_bindgen::to_value(&value.execute(connection)).unwrap()
             }
             RequestResponseEnum::SetCpAndModuleCount(value) => {
+                serde_wasm_bindgen::to_value(&value.execute(connection)).unwrap()
+            }
+            RequestResponseEnum::CacheRequest(value) => {
                 serde_wasm_bindgen::to_value(&value.execute(connection)).unwrap()
             }
         }
@@ -444,10 +464,12 @@ impl MyDatabase {
                     resolve.call1(&JsValue::undefined(), &event.data()).unwrap();
                 })
             };
-            temporary_broadcast_channel.add_event_listener_with_callback(
-                "message",
-                temporary_message_closure.as_ref().unchecked_ref(),
-            );
+            temporary_broadcast_channel
+                .add_event_listener_with_callback(
+                    "message",
+                    temporary_message_closure.as_ref().unchecked_ref(),
+                )
+                .unwrap();
             temporary_message_closure.forget();
         };
 
@@ -459,7 +481,7 @@ impl MyDatabase {
         })
         .unwrap();
 
-        self.broadcast_channel.get().post_message(&value);
+        self.broadcast_channel.get().post_message(&value).unwrap();
 
         serde_wasm_bindgen::from_value(wasm_bindgen_futures::JsFuture::from(promise).await.unwrap())
             .unwrap()

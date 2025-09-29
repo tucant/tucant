@@ -8,6 +8,7 @@ use diesel::{
     sql_types::Text,
 };
 use serde::{Deserialize, Serialize};
+use time::OffsetDateTime;
 
 #[derive(
     Debug, PartialEq, FromSqlRow, AsExpression, Eq, Copy, Clone, Hash, Serialize, Deserialize,
@@ -141,4 +142,5 @@ pub struct AnmeldungEntry {
 pub struct CacheEntry {
     pub key: String,
     pub value: String,
+    pub updated: OffsetDateTime,
 }

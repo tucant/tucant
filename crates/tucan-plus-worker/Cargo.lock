@@ -171,6 +171,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a41953f86f8a05768a6cda24def994fd2f424b04ec5c719cf89989779f199071"
 dependencies = [
  "powerfmt",
+ "serde_core",
 ]
 
 [[package]]
@@ -1425,6 +1426,7 @@ checksum = "91e7d9e3bb61134e77bde20dd4825b97c010155709965fedf0f49bb138e52a9d"
 dependencies = [
  "deranged",
  "itoa",
+ "js-sys",
  "num-conv",
  "powerfmt",
  "serde",
@@ -1632,6 +1634,7 @@ dependencies = [
  "serde",
  "serde-wasm-bindgen",
  "sqlite-wasm-rs",
+ "time",
  "tokio",
  "tucan-types",
  "typetag",
