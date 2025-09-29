@@ -9,7 +9,7 @@ use log::info;
 use scraper::CaseSensitivity;
 use sha3::{Digest, Sha3_256};
 use time::{Duration, OffsetDateTime};
-use tucan_plus_worker::{CacheRequest, models::CacheEntry};
+use tucan_plus_worker::{CacheRequest, StoreCacheRequest, models::CacheEntry};
 use tucan_types::{
     InstructorImage, LoginResponse, RevalidationStrategy, TucanError,
     coursedetails::{
@@ -58,7 +58,14 @@ pub async fn course_details(
         // TODO invalidate cached ones?
     }
 
-    tucan.database.send_message(&key, (content, date)).await;
+    tucan
+        .database
+        .send_message(StoreCacheRequest(CacheEntry {
+            key,
+            value: content,
+            updated: date,
+        }))
+        .await;
 
     Ok(result)
 }

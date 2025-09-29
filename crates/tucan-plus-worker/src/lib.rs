@@ -54,7 +54,7 @@ impl RequestResponse for CacheRequest {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct StoreCacheRequest(CacheEntry);
+pub struct StoreCacheRequest(pub CacheEntry);
 
 impl RequestResponse for StoreCacheRequest {
     type Response = ();
