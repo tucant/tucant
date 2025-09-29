@@ -42,13 +42,31 @@ pub struct CacheRequest {
 }
 
 impl RequestResponse for CacheRequest {
-    type Response = CacheEntry;
+    type Response = Option<CacheEntry>;
 
     fn execute(&self, connection: &mut SqliteConnection) -> Self::Response {
         QueryDsl::filter(cache::table, cache::key.eq(&self.key))
             .select(CacheEntry::as_select())
             .get_result(connection)
+            .optional()
             .unwrap()
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct StoreCacheRequest(CacheEntry);
+
+impl RequestResponse for StoreCacheRequest {
+    type Response = ();
+
+    fn execute(&self, connection: &mut SqliteConnection) -> Self::Response {
+        diesel::insert_into(cache::table)
+            .values(&self.0)
+            .on_conflict(cache::key)
+            .do_update()
+            .set(&self.0)
+            .execute(connection)
+            .unwrap();
     }
 }
 
@@ -69,7 +87,7 @@ impl RequestResponse for AnmeldungenRequest {
         )
         .select(Anmeldung::as_select())
         .load(connection)
-        .expect("Error loading anmeldungen")
+        .unwrap()
     }
 }
 
@@ -91,7 +109,7 @@ impl RequestResponse for AnmeldungenRequest2 {
         )
         .select(Anmeldung::as_select())
         .load(connection)
-        .expect("Error loading anmeldungen")
+        .unwrap()
     }
 }
 
@@ -113,7 +131,7 @@ impl RequestResponse for Fewe {
         )
         .select(AnmeldungEntry::as_select())
         .load(connection)
-        .expect("Error loading anmeldungen")
+        .unwrap()
     }
 }
 
@@ -132,7 +150,7 @@ impl RequestResponse for FEwefweewf {
             .do_update()
             .set(anmeldungen_plan::parent.eq(excluded(anmeldungen_plan::parent)))
             .execute(connection)
-            .expect("Error saving anmeldungen");
+            .unwrap();
     }
 }
 
@@ -160,7 +178,7 @@ impl RequestResponse for Wlewifhewefwef {
                 (anmeldungen_entries::credits.eq(excluded(anmeldungen_entries::credits))),
             ))
             .execute(connection)
-            .expect("Error saving anmeldungen");
+            .unwrap();
     }
 }
 
@@ -194,7 +212,7 @@ impl RequestResponse for ChildUrl {
         ))
         .returning(anmeldungen_plan::url)
         .get_result(connection)
-        .expect("Error updating anmeldungen")
+        .unwrap()
     }
 }
 
@@ -230,7 +248,7 @@ impl RequestResponse for UpdateModule {
                 (anmeldungen_entries::year.eq(self.semester.name[5..9].parse::<i32>().unwrap())),
             ))
             .execute(connection)
-            .expect("Error updating anmeldungen");
+            .unwrap();
     }
 }
 
@@ -257,7 +275,7 @@ impl RequestResponse for SetStateAndCredits {
                 (anmeldungen_entries::credits.eq(excluded(anmeldungen_entries::credits))),
             ))
             .execute(connection)
-            .expect("Error saving anmeldungen");
+            .unwrap();
     }
 }
 
@@ -291,7 +309,7 @@ impl RequestResponse for SetCpAndModuleCount {
         ))
         .returning(anmeldungen_plan::url)
         .get_result(connection)
-        .expect("Error updating anmeldungen")
+        .unwrap()
     }
 }
 
@@ -307,6 +325,7 @@ pub enum RequestResponseEnum {
     SetStateAndCredits(SetStateAndCredits),
     SetCpAndModuleCount(SetCpAndModuleCount),
     CacheRequest(CacheRequest),
+    StoreCacheRequest(StoreCacheRequest),
 }
 
 impl RequestResponseEnum {
@@ -340,6 +359,9 @@ impl RequestResponseEnum {
                 serde_wasm_bindgen::to_value(&value.execute(connection)).unwrap()
             }
             RequestResponseEnum::CacheRequest(value) => {
+                serde_wasm_bindgen::to_value(&value.execute(connection)).unwrap()
+            }
+            RequestResponseEnum::StoreCacheRequest(value) => {
                 serde_wasm_bindgen::to_value(&value.execute(connection)).unwrap()
             }
         }

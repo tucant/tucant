@@ -9,7 +9,7 @@ use log::info;
 use scraper::CaseSensitivity;
 use sha3::{Digest, Sha3_256};
 use time::{Duration, OffsetDateTime};
-use tucan_plus_worker::CacheRequest;
+use tucan_plus_worker::{CacheRequest, models::CacheEntry};
 use tucan_types::{
     InstructorImage, LoginResponse, RevalidationStrategy, TucanError,
     coursedetails::{
@@ -26,9 +26,14 @@ pub async fn course_details(
 ) -> Result<CourseDetailsResponse, TucanError> {
     let key = format!("unparsed_course_details.{}", request.inner());
 
-    let old_content_and_date = tucan.database.send_message(&CacheRequest { key }).await;
+    let old_content_and_date = tucan.database.send_message(CacheRequest { key }).await;
     if revalidation_strategy.max_age != 0 {
-        if let Some((content, date)) = &old_content_and_date {
+        if let Some(CacheEntry {
+            key,
+            value: content,
+            updated: date,
+        }) = &old_content_and_date
+        {
             info!("{}", OffsetDateTime::now_utc() - *date);
             if OffsetDateTime::now_utc() - *date < Duration::seconds(revalidation_strategy.max_age)
             {
@@ -53,7 +58,7 @@ pub async fn course_details(
         // TODO invalidate cached ones?
     }
 
-    tucan.database.put(&key, (content, date)).await;
+    tucan.database.send_message(&key, (content, date)).await;
 
     Ok(result)
 }
