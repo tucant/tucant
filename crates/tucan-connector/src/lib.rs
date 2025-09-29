@@ -20,6 +20,7 @@ use reqwest::header;
 use student_result::student_result;
 use time::{OffsetDateTime, format_description::well_known::Rfc2822};
 use tokio::sync::Semaphore;
+use tucan_plus_worker::MyDatabase;
 use tucan_types::{
     CONCURRENCY, LoginResponse, RevalidationStrategy, SemesterId, Tucan, TucanError,
     courseresults::ModuleResultsResponse,
@@ -156,7 +157,7 @@ pub async fn authenticated_retryable_get(
 }
 
 impl TucanConnector {
-    pub async fn new() -> Result<Self, TucanError> {
+    pub async fn new(database: MyDatabase) -> Result<Self, TucanError> {
         let mut headers = header::HeaderMap::new();
         headers.insert(
             "Accept-Language",
@@ -172,7 +173,7 @@ impl TucanConnector {
             .unwrap();
         Ok(Self {
             client,
-            database: Database::new().await,
+            database,
             semaphore: Arc::new(Semaphore::new(CONCURRENCY)),
         })
     }
@@ -180,11 +181,12 @@ impl TucanConnector {
     #[cfg(not(target_arch = "wasm32"))]
     pub async fn new_test(
         client: reqwest::Client,
+        database: MyDatabase,
         semaphore: Arc<Semaphore>,
     ) -> Result<Self, TucanError> {
         Ok(Self {
             client,
-            database: Database::new_test().await,
+            database,
             semaphore,
         })
     }

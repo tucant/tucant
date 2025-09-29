@@ -6,7 +6,7 @@ use futures::StreamExt as _;
 use js_sys::Uint8Array;
 use tucan_plus_planning::decompress;
 use tucan_plus_worker::{
-    FEwefweewf, Wlewifhewefwef,
+    FEwefweewf, MyDatabase, Wlewifhewefwef,
     models::{Anmeldung, AnmeldungEntry, Semester, State},
     schema::{anmeldungen_entries, anmeldungen_plan},
 };
@@ -16,7 +16,7 @@ use tucan_types::{
 use wasm_bindgen_futures::JsFuture;
 use web_sys::{FileList, HtmlInputElement, Worker};
 
-use crate::{MyDatabase, RcTucanType};
+use crate::RcTucanType;
 
 pub async fn handle_semester(
     course_of_study: &str,

@@ -421,7 +421,10 @@ impl MyDatabase {
         Self { broadcast_channel }
     }
 
-    async fn send_message<R: RequestResponse + std::fmt::Debug>(&self, message: R) -> R::Response
+    pub async fn send_message<R: RequestResponse + std::fmt::Debug>(
+        &self,
+        message: R,
+    ) -> R::Response
     where
         RequestResponseEnum: std::convert::From<R>,
     {

@@ -2,7 +2,7 @@ use dioxus::{hooks::use_context, html::MouseData};
 use fragile::Fragile;
 use log::info;
 use tucan_plus_worker::{
-    ChildUrl, SetCpAndModuleCount, SetStateAndCredits, UpdateModule,
+    ChildUrl, MyDatabase, SetCpAndModuleCount, SetStateAndCredits, UpdateModule,
     models::{AnmeldungEntry, Semester, State},
 };
 use tucan_types::{
@@ -11,7 +11,7 @@ use tucan_types::{
 };
 use web_sys::Worker;
 
-use crate::{MyDatabase, RcTucanType, student_result::StudentResult};
+use crate::{RcTucanType, student_result::StudentResult};
 
 pub async fn recursive_update(
     worker: MyDatabase,
