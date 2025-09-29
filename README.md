@@ -64,6 +64,8 @@ cargo install --git https://github.com/mohe2015/dioxus --branch my dioxus-cli
 cd crates/tucan-plus-dioxus/
 export WORKER_JS_PATH=/assets/wasm/tucan-plus-worker.js
 export WORKER_WASM_PATH=/assets/wasm/tucan-plus-worker_bg.wasm
+export SERVICE_WORKER_JS_PATH=/assets/wasm/tucan-plus-service-worker.js
+export SERVICE_WORKER_WASM_PATH=/assets/wasm/tucan-plus-service-worker_bg.wasm
 dx serve --platform web --features api --verbose
 
 cargo run --manifest-path ~/Documents/dioxus/packages/cli/Cargo.toml serve --platform web --features api --verbose
@@ -72,13 +74,21 @@ cargo install wasm-bindgen-cli@0.2.101
 
 cd crates/tucan-plus-worker/
 dx serve --wasm --bundle web --base-path assets # --hot-patch this lets everything explode with "env" imports and sqlite import stuff broken
-cd ../tucan-plus-dioxus
-cp -r ../tucan-plus-worker/target/dx/tucan-plus-worker/debug/web/public/wasm/. assets/wasm/
+cp -r ./target/dx/tucan-plus-worker/debug/web/public/wasm/. ../tucan-plus-dioxus/assets/wasm/
 
 # in second tab
 cargo install --locked bacon
 cd crates/tucan-plus-api/
 bacon run
+
+
+# Service Workers in Firefox can't be ES Modules https://bugzilla.mozilla.org/show_bug.cgi?id=1360870
+# Event handlers must be registered synchronously
+cd crates/tucan-plus-service-worker/
+cargo build --target wasm32-unknown-unknown
+wasm-bindgen target/wasm32-unknown-unknown/debug/tucan-plus-service-worker.wasm --target no-modules --out-dir ./target/dx/tucan-plus-service-worker/debug/web/public/wasm/ --no-typescript
+echo "wasm_bindgen.initSync({ module: Uint8Array.fromBase64(\"$(base64 -w0 target/dx/tucan-plus-service-worker/debug/web/public/wasm/tucan-plus-service-worker_bg.wasm)\")})" >> ./target/dx/tucan-plus-service-worker/debug/web/public/wasm/tucan-plus-service-worker.js
+cp -r ./target/dx/tucan-plus-service-worker/debug/web/public/wasm/. ../tucan-plus-dioxus/assets/wasm/
 
 # http://localhost:8080/#/
 ```

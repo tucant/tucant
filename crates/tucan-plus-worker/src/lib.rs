@@ -24,7 +24,7 @@ pub mod schema;
 
 pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!("migrations");
 
-pub trait RequestResponse: Serialize {
+pub trait RequestResponse: Serialize + Sized where RequestResponseEnum: From<Self> {
     type Response: DeserializeOwned;
     fn execute(&self, connection: &mut SqliteConnection) -> Self::Response;
 }
@@ -317,6 +317,12 @@ impl RequestResponseEnum {
             }
         }
     }
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct MessageWithId {
+    pub id: String,
+    pub message: RequestResponseEnum,
 }
 
 #[cfg(not(target_arch = "wasm32"))]

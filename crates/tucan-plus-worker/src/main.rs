@@ -3,9 +3,9 @@ use std::{cell::RefCell, time::Duration};
 use diesel::{Connection as _, SqliteConnection};
 use diesel_migrations::{EmbeddedMigrations, MigrationHarness as _, embed_migrations};
 use log::info;
-use tucan_plus_worker::{MIGRATIONS, RequestResponseEnum};
+use tucan_plus_worker::{MIGRATIONS, MessageWithId, RequestResponseEnum};
 use wasm_bindgen::prelude::*;
-use web_sys::MessageEvent;
+use web_sys::{BroadcastChannel, MessageEvent};
 
 pub async fn sleep(duration: Duration) {
     let mut cb = |resolve: js_sys::Function, _reject: js_sys::Function| {
@@ -27,8 +27,6 @@ pub async fn sleep(duration: Duration) {
 extern "C" {
     #[wasm_bindgen(js_namespace = console)]
     fn error(msg: String);
-
-    fn alert(s: &str);
 
     type Error;
 
@@ -52,7 +50,6 @@ pub async fn main() {
         msg.push_str(&stack);
         msg.push_str("\n\n");
         error(msg.clone());
-        alert(msg.as_str());
     }));
     console_log::init().unwrap();
 
@@ -71,16 +68,21 @@ pub async fn main() {
 
     let connection = RefCell::new(connection);
 
-    let closure: Closure<dyn Fn(MessageEvent)> = Closure::new(move |event: MessageEvent| {
-        //info!("Got message at worker {:?}", event.data());
-        let global = js_sys::global().unchecked_into::<web_sys::DedicatedWorkerGlobalScope>();
+    let broadcast_channel = BroadcastChannel::new("global").unwrap();
 
-        let afewe: RequestResponseEnum = serde_wasm_bindgen::from_value(event.data()).unwrap();
-        let result = afewe.execute(&mut connection.borrow_mut());
-        //info!("Got result at worker {:?}", result);
-        global.post_message(&result).unwrap();
+    let closure: Closure<dyn Fn(MessageEvent)> = Closure::new(move |event: MessageEvent| {
+        info!("Got message at worker {:?}", event.data());
+
+        let value: MessageWithId = serde_wasm_bindgen::from_value(event.data()).unwrap();
+        let result = value.message.execute(&mut connection.borrow_mut());
+
+        let temporary_broadcast_channel = BroadcastChannel::new(&value.id).unwrap();
+
+        info!("Sent result at worker {:?}", result);
+
+        temporary_broadcast_channel.post_message(&result).unwrap();
     });
-    global
+    broadcast_channel
         .add_event_listener_with_callback("message", closure.as_ref().unchecked_ref())
         .unwrap();
 

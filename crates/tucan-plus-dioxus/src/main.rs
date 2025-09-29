@@ -5,7 +5,7 @@ use js_sys::Function;
 use log::info;
 use serde::{Serialize, de::DeserializeOwned};
 use tracing::Level;
-use tucan_plus_dioxus::{Anonymize, BOOTSTRAP_JS, BOOTSTRAP_PATCH_JS, MyDatabase, Route};
+use tucan_plus_dioxus::{Anonymize, BOOTSTRAP_JS, BOOTSTRAP_PATCH_JS, MyDatabase, Route, SERVICE_WORKER_JS};
 use tucan_types::LoginResponse;
 use wasm_bindgen::prelude::*;
 use web_sys::{AddEventListenerOptions, MessageEvent, Worker, WorkerOptions, WorkerType};
@@ -69,10 +69,12 @@ pub async fn main() {
         false
     };
 
+    // Does not work in Firefox extensions
+    // web_sys::window().unwrap().navigator().service_worker().register(&SERVICE_WORKER_JS.to_string());
+
     let launcher = dioxus::LaunchBuilder::new();
 
     let worker = MyDatabase::wait_for_worker().await;
-    //let response: String = send_message(&worker, &"test").await;
 
     let launcher = launcher.with_context(worker);
 
