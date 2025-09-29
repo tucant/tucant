@@ -32,9 +32,8 @@ diesel::table! {
     cache (key) {
         key -> Text,
         value -> Text,
-        updated -> Text,
+        updated -> TimestamptzSqlite,
     }
 }
 
-diesel::allow_tables_to_appear_in_same_query!(
-    anmeldungen_entries,anmeldungen_plan,cache,);
+diesel::allow_tables_to_appear_in_same_query!(anmeldungen_entries, anmeldungen_plan, cache,);
