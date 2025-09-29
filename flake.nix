@@ -647,6 +647,7 @@
           '';
           buildInputs = [
             pkgs.openssl
+            pkgs.sqlite
           ];
           packages = [
             pkgs.bashInteractive

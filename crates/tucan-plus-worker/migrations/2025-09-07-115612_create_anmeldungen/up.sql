@@ -1,4 +1,5 @@
--- Your SQL goes here
+CREATE TABLE IF NOT EXISTS store (key TEXT PRIMARY KEY NOT NULL, value TEXT NOT NULL) STRICT;
+
 CREATE TABLE anmeldungen_plan (
     course_of_study TEXT NOT NULL, -- TODO FIXME the url contains this at the start so this is duplicate
     url TEXT NOT NULL,
