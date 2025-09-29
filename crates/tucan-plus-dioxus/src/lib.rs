@@ -104,7 +104,7 @@ pub struct Anonymize(pub bool);
 pub struct MyDatabase {
     broadcast_channel: BroadcastChannel,
     worker: Option<Fragile<web_sys::Worker>>
-};
+}
 
 #[cfg(target_arch = "wasm32")]
 impl MyDatabase {
