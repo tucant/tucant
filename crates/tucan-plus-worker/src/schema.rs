@@ -29,10 +29,11 @@ diesel::table! {
 }
 
 diesel::table! {
-    store (key) {
+    cache (key) {
         key -> Text,
         value -> Text,
     }
 }
 
-diesel::allow_tables_to_appear_in_same_query!(anmeldungen_entries, anmeldungen_plan, store,);
+diesel::allow_tables_to_appear_in_same_query!(
+    anmeldungen_entries,anmeldungen_plan,cache,);
