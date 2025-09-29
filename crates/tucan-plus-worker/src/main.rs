@@ -78,7 +78,7 @@ pub async fn main() {
         let result = value.message.execute(&mut connection.borrow_mut());
         //info!("Got result at worker {:?}", result);
 
-        let temporary_broadcast_channel = BroadcastChannel::new(&id).unwrap();
+        let temporary_broadcast_channel = BroadcastChannel::new(&value.id).unwrap();
 
         temporary_broadcast_channel.post_message(&result).unwrap();
     });

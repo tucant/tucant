@@ -200,6 +200,7 @@ impl MyDatabase {
     async fn send_message<R: RequestResponse + Debug>(&self, message: R) -> R::Response
         where tucan_plus_worker::RequestResponseEnum: std::convert::From<R> {
         use rand::{distr::{Alphanumeric, SampleString as _}};
+        use tucan_plus_worker::MessageWithId;
 
         let id = Alphanumeric.sample_string(&mut rand::rng(), 16);
 
