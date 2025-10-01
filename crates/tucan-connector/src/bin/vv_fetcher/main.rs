@@ -1,14 +1,24 @@
+#[cfg(not(target_arch = "wasm32"))]
 use std::future::Future;
+#[cfg(not(target_arch = "wasm32"))]
 use std::panic::AssertUnwindSafe;
+#[cfg(not(target_arch = "wasm32"))]
 use std::sync::Arc;
+#[cfg(not(target_arch = "wasm32"))]
 use std::sync::atomic::{AtomicU64, Ordering};
-
+#[cfg(not(target_arch = "wasm32"))]
 use futures_util::stream::FuturesUnordered;
+#[cfg(not(target_arch = "wasm32"))]
 use futures_util::{FutureExt, StreamExt};
+#[cfg(not(target_arch = "wasm32"))]
 use tucan_connector::TucanConnector;
+#[cfg(not(target_arch = "wasm32"))]
 use tucan_plus_worker::MyDatabase;
+#[cfg(not(target_arch = "wasm32"))]
 use tucan_types::vv::ActionRequest;
+#[cfg(not(target_arch = "wasm32"))]
 use tucan_types::{LoginRequest, RevalidationStrategy, Tucan};
+#[cfg(not(target_arch = "wasm32"))]
 use tucan_types::{LoginResponse, TucanError};
 
 /*

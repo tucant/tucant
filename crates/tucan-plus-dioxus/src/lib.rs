@@ -29,8 +29,6 @@ use crate::navbar::Navbar;
 use crate::overview::Overview;
 use crate::planning::Planning;
 use dioxus::prelude::*;
-#[cfg(target_arch = "wasm32")]
-use std::collections::HashMap;
 use std::ops::Deref;
 use std::sync::Arc;
 use tucan_types::DynTucan;
@@ -39,8 +37,6 @@ use tucan_types::{
     SemesterId, coursedetails::CourseDetailsRequest, moduledetails::ModuleDetailsRequest,
     registration::AnmeldungRequest, vv::ActionRequest,
 };
-#[cfg(target_arch = "wasm32")]
-use web_sys::BroadcastChannel;
 
 #[used]
 pub static BOOTSTRAP_CSS: Asset = asset!(
