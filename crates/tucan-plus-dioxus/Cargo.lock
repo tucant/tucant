@@ -5599,6 +5599,7 @@ dependencies = [
  "async-compression",
  "futures-util",
  "itertools",
+ "log",
  "serde",
  "serde_json",
  "tokio",
