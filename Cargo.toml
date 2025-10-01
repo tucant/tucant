@@ -1,0 +1,8 @@
+[workspace]
+members = [
+    "./tucan-plus/crates/tucan-plus-dioxus/",
+    "./tucan-plus/crates/tucan-connector/",
+    "./tucan-plus/crates/tucan-plus-worker/",
+    "./tucan-plus/crates/tucan-plus-service-worker/"
+]
+resolver = "3"
