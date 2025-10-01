@@ -29,16 +29,12 @@ use crate::navbar::Navbar;
 use crate::overview::Overview;
 use crate::planning::Planning;
 use dioxus::prelude::*;
-use fragile::Fragile;
-use log::info;
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
-use std::cell::RefCell;
 #[cfg(target_arch = "wasm32")]
 use std::collections::HashMap;
 use std::fmt::Debug;
 use std::ops::Deref;
-use std::rc::Rc;
 use std::sync::Arc;
 use tucan_plus_worker::{RequestResponse};
 use tucan_types::DynTucan;
@@ -47,11 +43,9 @@ use tucan_types::{
     SemesterId, coursedetails::CourseDetailsRequest, moduledetails::ModuleDetailsRequest,
     registration::AnmeldungRequest, vv::ActionRequest,
 };
-use wasm_bindgen::prelude::Closure;
-use wasm_bindgen::{JsCast as _, JsValue};
+use wasm_bindgen::JsCast as _;
 #[cfg(target_arch = "wasm32")]
 use web_sys::BroadcastChannel;
-use web_sys::{AddEventListenerOptions, MessageEvent, WorkerOptions, WorkerType};
 
 #[used]
 pub static BOOTSTRAP_CSS: Asset = asset!(

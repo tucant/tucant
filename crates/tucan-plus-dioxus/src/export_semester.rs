@@ -5,11 +5,11 @@ use tucan_plus_planning::{compress, recursive_anmeldung};
 use tucan_types::{LoginResponse, RevalidationStrategy, Tucan, registration::AnmeldungRequest};
 use web_sys::{Blob, Url};
 
-use crate::{RcTucanType, common::use_authenticated_data_loader};
+use crate::RcTucanType;
 
 #[component]
 pub fn FetchAnmeldung() -> Element {
-    let mut result: Signal<Vec<(String, Vec<u8>)>> = use_signal(|| Vec::new());
+    let mut result: Signal<Vec<(String, Vec<u8>)>> = use_signal(Vec::new);
     let tucan: RcTucanType = use_context();
     let current_session_handle = use_context::<Signal<Option<LoginResponse>>>();
     let mut loading = use_signal(|| false);

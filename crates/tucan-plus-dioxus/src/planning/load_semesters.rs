@@ -1,20 +1,15 @@
 use std::sync::Arc;
 
 use dioxus::{hooks::use_context, html::FileEngine, signals::Signal};
-use fragile::Fragile;
 use futures::StreamExt as _;
-use js_sys::Uint8Array;
 use tucan_plus_planning::decompress;
 use tucan_plus_worker::{
     FEwefweewf, MyDatabase, Wlewifhewefwef,
     models::{Anmeldung, AnmeldungEntry, Semester, State},
-    schema::{anmeldungen_entries, anmeldungen_plan},
 };
 use tucan_types::{
     CONCURRENCY, LoginResponse, RevalidationStrategy, Tucan as _, registration::AnmeldungResponse,
 };
-use wasm_bindgen_futures::JsFuture;
-use web_sys::{FileList, HtmlInputElement, Worker};
 
 use crate::RcTucanType;
 

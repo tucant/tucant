@@ -1,29 +1,22 @@
 pub mod load_leistungsspiegel;
 pub mod load_semesters;
 
-use std::cell::RefCell;
 use std::sync::Arc;
 
 use dioxus::html::FileEngine;
 use dioxus::prelude::*;
-use fragile::Fragile;
 use futures::StreamExt;
-use js_sys::Uint8Array;
 use log::info;
-use tucan_plus_planning::decompress;
 use tucan_plus_worker::models::{Anmeldung, AnmeldungEntry, Semester, State};
 use tucan_plus_worker::{AnmeldungenRequest, AnmeldungenRequest2, Fewe, MyDatabase};
-use tucan_types::registration::AnmeldungResponse;
-use tucan_types::student_result::{StudentResultLevel, StudentResultResponse};
+use tucan_types::student_result::StudentResultResponse;
 use tucan_types::{
-    CONCURRENCY, LeistungsspiegelGrade, LoginResponse, RevalidationStrategy, SemesterId, Tucan,
+    LoginResponse, RevalidationStrategy, Tucan,
 };
-use wasm_bindgen_futures::JsFuture;
-use web_sys::{FileList, HtmlInputElement, Worker};
 
 use crate::planning::load_leistungsspiegel::load_leistungsspiegel;
 use crate::planning::load_semesters::handle_semester;
-use crate::{MyRc, RcTucanType, Route};
+use crate::{RcTucanType, Route};
 
 #[component]
 pub fn Planning(course_of_study: ReadSignal<String>) -> Element {
@@ -33,15 +26,15 @@ pub fn Planning(course_of_study: ReadSignal<String>) -> Element {
         let value = tucan.clone();
         async move {
             // TODO FIXME don't unwrap here
-            let student_result = value
+            
+            value
                 .student_result(
                     &current_session_handle().unwrap(),
                     RevalidationStrategy::cache(),
                     course_of_study().parse().unwrap_or(0),
                 )
                 .await
-                .unwrap();
-            student_result
+                .unwrap()
         }
     });
     rsx! {
@@ -343,7 +336,7 @@ fn AnmeldungenEntries(entries: Vec<AnmeldungEntry>) -> Element {
                                 },
                                 option {
                                     onclick: {
-                                        let mut entry = entry.clone();
+                                        let entry = entry.clone();
                                         move |event| {
                                             /*
                                             event.prevent_default();
@@ -362,7 +355,7 @@ fn AnmeldungenEntries(entries: Vec<AnmeldungEntry>) -> Element {
                                 }
                                 option {
                                     onclick: {
-                                        let mut entry = entry.clone();
+                                        let entry = entry.clone();
                                         move |event| {
                                             /*
                                             event.prevent_default();
@@ -381,7 +374,7 @@ fn AnmeldungenEntries(entries: Vec<AnmeldungEntry>) -> Element {
                                 }
                                 option {
                                     onclick: {
-                                        let mut entry = entry.clone();
+                                        let entry = entry.clone();
                                         move |event| {
                                             /*
                                             event.prevent_default();
@@ -406,7 +399,7 @@ fn AnmeldungenEntries(entries: Vec<AnmeldungEntry>) -> Element {
                                     key: "",
                                     value: "",
                                     onclick: {
-                                        let mut entry = entry.clone();
+                                        let entry = entry.clone();
                                         move |event| {
                                             /*
                                             event.prevent_default();
@@ -428,7 +421,7 @@ fn AnmeldungenEntries(entries: Vec<AnmeldungEntry>) -> Element {
                                     option {
                                         key: "sose{i}",
                                         onclick: {
-                                            let mut entry = entry.clone();
+                                            let entry = entry.clone();
                                             move |event| {
                                                 /*
                                                 event.prevent_default();
@@ -450,7 +443,7 @@ fn AnmeldungenEntries(entries: Vec<AnmeldungEntry>) -> Element {
                                     option {
                                         key: "wise{i}",
                                         onclick: {
-                                            let mut entry = entry.clone();
+                                            let entry = entry.clone();
                                             move |event| {
                                                 /*
                                                 event.prevent_default();
