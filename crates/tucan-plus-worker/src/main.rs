@@ -3,10 +3,8 @@ use std::{cell::RefCell, time::Duration};
 use diesel::{Connection as _, SqliteConnection};
 use diesel_migrations::{EmbeddedMigrations, MigrationHarness as _, embed_migrations};
 use log::info;
-use tucan_plus_worker::{MIGRATIONS, MessageWithId, RequestResponseEnum};
-use wasm_bindgen::prelude::*;
-use web_sys::{BroadcastChannel, MessageEvent};
 
+#[cfg(target_arch = "wasm32")]
 pub async fn sleep(duration: Duration) {
     let mut cb = |resolve: js_sys::Function, _reject: js_sys::Function| {
         let global = js_sys::global().unchecked_into::<web_sys::DedicatedWorkerGlobalScope>();
@@ -23,6 +21,7 @@ pub async fn sleep(duration: Duration) {
     wasm_bindgen_futures::JsFuture::from(p).await.unwrap();
 }
 
+#[cfg(target_arch = "wasm32")]
 #[wasm_bindgen]
 extern "C" {
     #[wasm_bindgen(js_namespace = console)]
@@ -37,6 +36,7 @@ extern "C" {
     fn stack(error: &Error) -> String;
 }
 
+#[cfg(target_arch = "wasm32")]
 #[wasm_bindgen(main)]
 pub async fn main() {
     // From https://github.com/rustwasm/console_error_panic_hook, licensed under MIT and Apache 2.0
@@ -91,3 +91,6 @@ pub async fn main() {
 
     global.post_message(&JsValue::from_str("ready")).unwrap();
 }
+
+#[cfg(not(target_arch = "wasm32"))]
+pub fn main() {}
