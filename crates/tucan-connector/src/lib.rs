@@ -3,20 +3,10 @@ use std::{
     time::Duration,
 };
 
-use coursedetails::course_details;
-use courseresults::courseresults;
-use examresults::examresults;
 use externalpages::welcome::welcome;
 use log::info;
 use login::{login, logout};
-use mlsstart::after_login;
-use moduledetails::module_details;
-use mycourses::mycourses;
-use mydocuments::my_documents;
-use myexams::my_exams;
-use mymodules::mymodules;
 use regex::Regex;
-use registration::anmeldung;
 use reqwest::header;
 use student_result::student_result;
 use time::{Month, OffsetDateTime, format_description::well_known::Rfc2822, macros::offset};
@@ -131,11 +121,19 @@ pub async fn sleep(duration: Duration) {
 use tokio::time::sleep;
 
 use crate::{
-    coursedetails::course_details_internal, courseresults::course_results_internal,
-    examresults::exam_results_internal, gradeoverview::gradeoverview,
-    mlsstart::after_login_internal, moduledetails::module_details_internal,
-    mycourses::my_courses_internal, mydocuments::my_documents_internal, myexams::my_exams_internal,
-    mymodules::my_modules_internal, registration::anmeldung_internal, vv::vv_internal,
+    coursedetails::course_details_internal,
+    courseresults::course_results_internal,
+    examresults::exam_results_internal,
+    gradeoverview::{gradeoverview, gradeoverview_internal},
+    mlsstart::after_login_internal,
+    moduledetails::module_details_internal,
+    mycourses::my_courses_internal,
+    mydocuments::my_documents_internal,
+    myexams::my_exams_internal,
+    mymodules::my_modules_internal,
+    registration::anmeldung_internal,
+    student_result::student_result_internal,
+    vv::vv_internal,
 };
 
 static COURSEDETAILS_REGEX: LazyLock<Regex> = LazyLock::new(|| {
@@ -555,14 +553,25 @@ impl Tucan for TucanConnector {
         revalidation_strategy: RevalidationStrategy,
         request: ActionRequest,
     ) -> Result<Vorlesungsverzeichnis, TucanError> {
-        let key = format!(
-            "unparsed_vv.{}.{}",
-            login_response.is_some(),
-            request.inner()
-        );
+        vv(self, login_response, revalidation_strategy, request).await
+    }
+
+    async fn student_result(
+        &self,
+        login_response: &LoginResponse,
+        revalidation_strategy: RevalidationStrategy,
+        request: u64,
+    ) -> Result<StudentResultResponse, TucanError> {
+        /// 0 is the default
+        let key = format!("unparsed_student_result.{request}");
+
+        // TODO FIXME this can break as the normal tucan usage will remember which one
+        // you selected
+        let request =
+            format!("-N0,-N000000000000000,-N000000000000000,-N{request},-N0,-N000000000000000");
         let url = format!(
-        "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=ACTION&ARGUMENTS={}",
-        request.inner()
+        "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STUDENT_RESULT&ARGUMENTS=-N{:015},-N000316,{}",
+        login_response.id, request
     );
         fetch_with_cache(
             self,
@@ -571,27 +580,32 @@ impl Tucan for TucanConnector {
             &(),
             key,
             url,
-            vv_internal,
+            student_result_internal,
         )
         .await
     }
 
-    async fn student_result(
-        &self,
-        login_response: &LoginResponse,
-        revalidation_strategy: RevalidationStrategy,
-        course_of_study: u64,
-    ) -> Result<StudentResultResponse, TucanError> {
-        student_result(self, login_response, revalidation_strategy, course_of_study).await
-    }
-
-    fn gradeoverview(
+    async fn gradeoverview(
         &self,
         login_response: &LoginResponse,
         revalidation_strategy: RevalidationStrategy,
         request: GradeOverviewRequest,
-    ) -> impl std::future::Future<Output = Result<GradeOverviewResponse, TucanError>> {
-        gradeoverview(self, login_response, revalidation_strategy, request)
+    ) -> Result<GradeOverviewResponse, TucanError> {
+        let key = format!("unparsed_gradeoverview.{request}");
+        let url = format!(
+        "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=GRADEOVERVIEW&ARGUMENTS=-N{},-N000325,{request}",
+        login_response.id
+    );
+        fetch_with_cache(
+            self,
+            login_response,
+            revalidation_strategy,
+            &(),
+            key,
+            url,
+            gradeoverview_internal,
+        )
+        .await
     }
 }
 

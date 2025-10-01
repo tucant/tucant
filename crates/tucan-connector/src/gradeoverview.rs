@@ -21,53 +21,11 @@ pub static GRADEOVERVIEW_REGEX: LazyLock<Regex> = LazyLock::new(|| {
     .unwrap()
 });
 
-pub async fn gradeoverview(
-    tucan: &TucanConnector,
-    login_response: &LoginResponse,
-    revalidation_strategy: RevalidationStrategy,
-    request: GradeOverviewRequest,
-) -> Result<GradeOverviewResponse, TucanError> {
-    let key = format!("unparsed_gradeoverview.{request}");
-
-    let old_content_and_date = tucan.database.get::<(String, OffsetDateTime)>(&key).await;
-    if revalidation_strategy.max_age != 0 {
-        if let Some((content, date)) = &old_content_and_date {
-            info!("{}", OffsetDateTime::now_utc() - *date);
-            if OffsetDateTime::now_utc() - *date < Duration::seconds(revalidation_strategy.max_age)
-            {
-                return gradeoverview_internal(login_response, content);
-            }
-        }
-    }
-
-    let Some(invalidate_dependents) = revalidation_strategy.invalidate_dependents else {
-        return Err(TucanError::NotCached);
-    };
-
-    let url = format!(
-        "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=GRADEOVERVIEW&ARGUMENTS=-N{},-N000325,{request}",
-        login_response.id
-    );
-    let (content, date) =
-        authenticated_retryable_get(tucan, &url, &login_response.cookie_cnsc).await?;
-    let result = gradeoverview_internal(login_response, &content)?;
-    if invalidate_dependents && old_content_and_date.as_ref().map(|m| &m.0) != Some(&content) {
-        // TODO invalidate cached ones?
-        // TODO FIXME don't remove from database to be able to do recursive
-        // invalidations. maybe set age to oldest possible value? or
-        // more complex set invalidated and then queries can allow to return
-        // invalidated. I think we should do the more complex thing.
-    }
-
-    tucan.database.put(&key, (content, date)).await;
-
-    Ok(result)
-}
-
 #[expect(clippy::too_many_lines)]
-fn gradeoverview_internal(
+pub(crate) fn gradeoverview_internal(
     login_response: &LoginResponse,
     content: &str,
+    nothing: &(),
 ) -> Result<GradeOverviewResponse, TucanError> {
     let document = parse_document(content);
     let html_handler = Root::new(document.root());
