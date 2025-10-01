@@ -1,3 +1,5 @@
+#[cfg(target_arch = "wasm32")]
+use std::time::Duration;
 
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::wasm_bindgen;
@@ -41,6 +43,10 @@ extern "C" {
 pub async fn main() {
     // From https://github.com/rustwasm/console_error_panic_hook, licensed under MIT and Apache 2.0
 
+    use std::cell::RefCell;
+
+    use diesel::{Connection as _, SqliteConnection};
+    use diesel_migrations::MigrationHarness as _;
     use tucan_plus_worker::MIGRATIONS;
     use wasm_bindgen::{JsCast as _, JsValue, prelude::Closure};
     use web_sys::{BroadcastChannel, MessageEvent};
@@ -75,6 +81,7 @@ pub async fn main() {
     let broadcast_channel = BroadcastChannel::new("global").unwrap();
 
     let closure: Closure<dyn Fn(MessageEvent)> = Closure::new(move |event: MessageEvent| {
+        use log::info;
         use tucan_plus_worker::MessageWithId;
 
         info!("Got message at worker {:?}", event.data());

@@ -75,7 +75,7 @@ pub async fn main() {
     let launcher = dioxus::LaunchBuilder::new();
 
     #[cfg(target_arch = "wasm32")]
-    let worker = MyDatabase::wait_for_worker(WORKER_JS.to_string()).await;
+    let worker = MyDatabase::wait_for_worker(tucan_plus_dioxus::WORKER_JS.to_string()).await;
     #[cfg(not(target_arch = "wasm32"))]
     let worker = MyDatabase::wait_for_worker().await;
 

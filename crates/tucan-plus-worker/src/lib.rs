@@ -4,7 +4,7 @@ use diesel_migrations::{EmbeddedMigrations, embed_migrations};
 #[cfg(target_arch = "wasm32")]
 use fragile::Fragile;
 #[cfg(target_arch = "wasm32")]
-use serde::{Serialize, de::DeserializeOwned};
+use serde::{Serialize, Deserialize, de::DeserializeOwned};
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::JsValue;
 #[cfg(target_arch = "wasm32")]
@@ -338,7 +338,7 @@ impl RequestResponse for ExportDatabaseRequest {
 }
 
 #[cfg(target_arch = "wasm32")]
-#[derive(Serialize, Deserialize, Debug, From)]
+#[derive(Serialize, Deserialize, Debug, derive_more::From)]
 pub enum RequestResponseEnum {
     AnmeldungenRequest(AnmeldungenRequest),
     AnmeldungenRequest2(AnmeldungenRequest2),
