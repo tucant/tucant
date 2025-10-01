@@ -391,11 +391,12 @@ pub struct MessageWithId {
 
 #[cfg(not(target_arch = "wasm32"))]
 #[derive(Clone)]
-pub struct MyDatabase(Fragile<Rc<RefCell<SqliteConnection>>>);
+pub struct MyDatabase(diesel::r2d2::Pool<diesel::r2d2::ConnectionManager<SqliteConnection>>);
 
 #[cfg(not(target_arch = "wasm32"))]
 impl MyDatabase {
     pub async fn wait_for_worker() -> Self {
+        use diesel::r2d2::{ConnectionManager, Pool};
         use diesel_migrations::MigrationHarness as _;
 
         let url = if cfg!(target_os = "android") {
@@ -407,18 +408,23 @@ impl MyDatabase {
         } else {
             "sqlite://tucan-plus.db?mode=rwc"
         };
-        let mut connection = SqliteConnection::establish(url).unwrap();
+
+        let pool = Pool::builder()
+            .build(ConnectionManager::<SqliteConnection>::new(url))
+            .unwrap();
+
+        let connection = &mut pool.get().unwrap();
 
         connection.run_pending_migrations(MIGRATIONS).unwrap();
 
-        Self(Fragile::new(Rc::new(RefCell::new(connection))))
+        Self(pool)
     }
 
     pub async fn send_message<R: RequestResponse + std::fmt::Debug>(&self, value: R) -> R::Response
     where
         RequestResponseEnum: std::convert::From<R>,
     {
-        value.execute(&mut self.0.get().borrow_mut())
+        value.execute(&mut self.0.get().unwrap())
     }
 }
 

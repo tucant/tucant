@@ -11,7 +11,7 @@ console_log = { version = "1", features = ["color"] }
 log = { version = "0.4", features = ["max_level_debug", "release_max_level_warn"] }
 wasm-bindgen-futures = "0.4"
 # https://github.com/diesel-rs/diesel/discussions/4545
-diesel = { git = "https://github.com/diesel-rs/diesel.git", features = ["sqlite", "returning_clauses_for_sqlite_3_35", "time"] }
+diesel = { git = "https://github.com/diesel-rs/diesel.git", features = ["sqlite", "returning_clauses_for_sqlite_3_35", "time", "r2d2"] }
 diesel_migrations = { git = "https://github.com/diesel-rs/diesel.git", features = ["sqlite"] }
 serde-wasm-bindgen = "0.6"
 typetag = "0.2"
