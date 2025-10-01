@@ -256,7 +256,7 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
                     let worker = worker.clone();
                     let course_of_study = course_of_study.clone();
                     async move {worker.send_message(AnmeldungenEntriesInSemester { course_of_study, year: i, semester: Semester::Sommersemester }).await}
-                    })
+                    }).value()
                 },
                 }
                 h2 {
@@ -271,7 +271,7 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
                     let worker = worker.clone();
                     let course_of_study = course_of_study.clone();
                     async move {worker.send_message(AnmeldungenEntriesInSemester { course_of_study, year: i, semester: Semester::Wintersemester }).await}
-                    })
+                    }).value()
                 },
                 }
             }
@@ -296,7 +296,7 @@ pub enum PlanningState {
 }
 
 #[component]
-fn AnmeldungenEntries(future: Resource<Vec<Element>>, entries: Signal<Option<Vec<AnmeldungEntry>>>) -> Element {
+fn AnmeldungenEntries(future: Resource<Vec<Element>>, entries: ReadSignal<Option<Vec<AnmeldungEntry>>>) -> Element {
     let worker: MyDatabase = use_context();
     rsx! {
         table {
@@ -526,11 +526,11 @@ async fn prep_planning(
                     || entries.iter().any(|entry| entry.state != State::NotPlanned) {
                     AnmeldungenEntries {
                         future,
-                        entries: use_signal(|| entries
+                        entries: ReadSignal::new(use_signal(|| Some(entries
                             .iter()
                             .filter(|entry| expanded() || entry.state != State::NotPlanned)
                             .cloned()
-                            .collect::<Vec<_>>()),
+                            .collect::<Vec<_>>()))),
                     }
                 }
                 if expanded() || inner.iter().any(|v| v.has_contents) {
