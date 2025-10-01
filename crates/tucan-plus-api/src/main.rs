@@ -1,6 +1,8 @@
 use tower::ServiceBuilder;
 use tower_http::cors::CorsLayer;
+use tucan_connector::TucanConnector;
 use tucan_plus_api::router;
+use tucan_plus_worker::MyDatabase;
 use utoipa_swagger_ui::SwaggerUi;
 
 #[tokio::main]
@@ -16,6 +18,12 @@ async fn main() {
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
 
     let cors = CorsLayer::very_permissive();
+
+    let router = router.with_state(
+        TucanConnector::new(MyDatabase::wait_for_worker().await)
+            .await
+            .unwrap(),
+    );
 
     axum::serve(listener, router.layer(ServiceBuilder::new().layer(cors)))
         .await

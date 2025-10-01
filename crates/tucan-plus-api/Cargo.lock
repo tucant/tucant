@@ -2419,6 +2419,7 @@ dependencies = [
  "tower",
  "tower-http",
  "tucan-connector",
+ "tucan-plus-worker",
  "tucan-types",
  "utoipa",
  "utoipa-axum",

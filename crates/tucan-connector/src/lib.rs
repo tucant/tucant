@@ -457,7 +457,7 @@ impl Tucan for TucanConnector {
 
     async fn anmeldung(
         &self,
-        login_response: tucan_types::LoginResponse,
+        login_response: &tucan_types::LoginResponse,
         revalidation_strategy: RevalidationStrategy,
         request: tucan_types::registration::AnmeldungRequest,
     ) -> Result<tucan_types::registration::AnmeldungResponse, TucanError> {
