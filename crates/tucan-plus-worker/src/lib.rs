@@ -425,7 +425,7 @@ impl<C: diesel::connection::SimpleConnection, E> CustomizeConnection<C, E>
         Ok(())
     }
 
-    fn on_release(&self, conn: C) {}
+    fn on_release(&self, _conn: C) {}
 }
 
 #[cfg(not(target_arch = "wasm32"))]
