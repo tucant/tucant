@@ -396,7 +396,10 @@ pub struct MyDatabase(diesel::r2d2::Pool<diesel::r2d2::ConnectionManager<SqliteC
 #[cfg(not(target_arch = "wasm32"))]
 impl MyDatabase {
     pub async fn wait_for_worker() -> Self {
-        use diesel::r2d2::{ConnectionManager, Pool};
+        use diesel::{
+            connection::SimpleConnection as _,
+            r2d2::{ConnectionManager, Pool},
+        };
         use diesel_migrations::MigrationHarness as _;
 
         let url = if cfg!(target_os = "android") {
@@ -414,6 +417,30 @@ impl MyDatabase {
             .unwrap();
 
         let connection = &mut pool.get().unwrap();
+
+        // see https://fractaledmind.github.io/2023/09/07/enhancing-rails-sqlite-fine-tuning/
+        // sleep if the database is busy, this corresponds to up to 2 seconds sleeping
+        // time.
+        connection
+            .batch_execute("PRAGMA busy_timeout = 2000;")
+            .unwrap();
+        // better write-concurrency
+        connection
+            .batch_execute("PRAGMA journal_mode = WAL;")
+            .unwrap();
+        // fsync only in critical moments
+        connection
+            .batch_execute("PRAGMA synchronous = NORMAL;")
+            .unwrap();
+        // write WAL changes back every 1000 pages, for an in average 1MB WAL file.
+        // May affect readers if number is increased
+        connection
+            .batch_execute("PRAGMA wal_autocheckpoint = 1000;")
+            .unwrap();
+        // free some space by truncating possibly massive WAL files from the last run
+        connection
+            .batch_execute("PRAGMA wal_checkpoint(TRUNCATE);")
+            .unwrap();
 
         connection.run_pending_migrations(MIGRATIONS).unwrap();
 
