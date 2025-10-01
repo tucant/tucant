@@ -1,9 +1,15 @@
+#[cfg(not(target_arch = "wasm32"))]
 use tucan_connector::TucanConnector;
+#[cfg(not(target_arch = "wasm32"))]
 use tucan_plus_planning::{compress, recursive_anmeldung};
+#[cfg(not(target_arch = "wasm32"))]
 use tucan_types::TucanError;
+#[cfg(not(target_arch = "wasm32"))]
 use tucan_types::registration::AnmeldungRequest;
+#[cfg(not(target_arch = "wasm32"))]
 use tucan_types::{DynTucan, LoginRequest, RevalidationStrategy, Tucan};
 
+#[cfg(not(target_arch = "wasm32"))]
 fn main() -> Result<(), TucanError> {
     dotenvy::dotenv().unwrap();
     tokio::runtime::Builder::new_current_thread()
@@ -13,6 +19,7 @@ fn main() -> Result<(), TucanError> {
         .block_on(async_main())
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 async fn async_main() -> Result<(), TucanError> {
     let tucan = TucanConnector::new().await?;
 
@@ -31,7 +38,7 @@ async fn async_main() -> Result<(), TucanError> {
 
     let anmeldung_response = tucan
         .anmeldung(
-            login_response.clone(),
+            &login_response.clone(),
             RevalidationStrategy::cache(),
             AnmeldungRequest::default(),
         )
@@ -58,3 +65,6 @@ async fn async_main() -> Result<(), TucanError> {
 
     Ok(())
 }
+
+#[cfg(target_arch = "wasm32")]
+pub fn main() {}

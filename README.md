@@ -111,20 +111,34 @@ tucan-plus-multi-target
     tucan-plus
     wasm32-unknown-unknown
         .vscode/settings.json
+        .cargo/config.toml
+        Cargo.toml # workspace with subset of crates
         -> tucan-plus
     x86_64-unknown-linux-gnu
         .vscode/settings.json
+        .cargo/config.toml
+        Cargo.toml # workspace with subset of crates
         -> tucan-plus
+```
+
+```toml
+[workspace]
+members = [
+    "./tucan-plus/crates/tucan-plus-dioxus/",
+    "./tucan-plus/crates/tucan-connector/",
+    "./tucan-plus/crates/tucan-plus-worker/",
+    "./tucan-plus/crates/tucan-plus-service-worker/"
+]
+resolver = "3"
+```
+
+```toml
+[target.wasm32-unknown-unknown]
+rustflags = ["--cfg=web_sys_unstable_apis", "--cfg=getrandom_backend=\"wasm_js\""]
 ```
 
 ```json
 {
-    "rust-analyzer.linkedProjects": [
-        "./tucan-plus/crates/tucan-plus-dioxus/Cargo.toml",
-        "./tucan-plus/crates/tucan-connector/Cargo.toml",
-        "./tucan-plus/crates/tucan-plus-worker/Cargo.toml",
-        "./tucan-plus/crates/tucan-plus-service-worker/Cargo.toml",
-    ],
     "rust-analyzer.cargo.target": "wasm32-unknown-unknown",
     "rust-analyzer.files.watcher": "server",
 }

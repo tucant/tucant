@@ -1,21 +1,38 @@
+#[cfg(not(target_arch = "wasm32"))]
 use std::future::Future;
+#[cfg(not(target_arch = "wasm32"))]
 use std::panic::AssertUnwindSafe;
+#[cfg(not(target_arch = "wasm32"))]
 use std::pin::pin;
+#[cfg(not(target_arch = "wasm32"))]
 use std::sync::Arc;
+#[cfg(not(target_arch = "wasm32"))]
 use std::sync::atomic::{AtomicU64, Ordering};
+#[cfg(not(target_arch = "wasm32"))]
 use std::u64;
 
+#[cfg(not(target_arch = "wasm32"))]
 use futures_util::stream::{self, FuturesUnordered};
+#[cfg(not(target_arch = "wasm32"))]
 use futures_util::{FutureExt, Stream, StreamExt};
+#[cfg(not(target_arch = "wasm32"))]
 use itertools::Itertools;
+#[cfg(not(target_arch = "wasm32"))]
 use tucan_connector::TucanConnector;
+#[cfg(not(target_arch = "wasm32"))]
 use tucan_types::coursedetails::CourseDetailsRequest;
+#[cfg(not(target_arch = "wasm32"))]
 use tucan_types::moduledetails::ModuleDetailsResponse;
+#[cfg(not(target_arch = "wasm32"))]
 use tucan_types::registration::{AnmeldungModule, AnmeldungRequest, RegistrationState};
+#[cfg(not(target_arch = "wasm32"))]
 use tucan_types::student_result::{StudentResultEntry, StudentResultLevel, StudentResultState};
+#[cfg(not(target_arch = "wasm32"))]
 use tucan_types::{LeistungsspiegelGrade, LoginRequest, RevalidationStrategy, Tucan};
+#[cfg(not(target_arch = "wasm32"))]
 use tucan_types::{LoginResponse, TucanError};
 
+#[cfg(not(target_arch = "wasm32"))]
 fn main() -> Result<(), TucanError> {
     dotenvy::dotenv().unwrap();
     tokio::runtime::Builder::new_current_thread()
@@ -25,6 +42,7 @@ fn main() -> Result<(), TucanError> {
         .block_on(async_main())
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 fn validate(errors: &mut Vec<String>, level: &StudentResultLevel) -> (u64, u64) {
     let mut cp = 0;
     let mut modules = 0;
@@ -54,6 +72,7 @@ fn validate(errors: &mut Vec<String>, level: &StudentResultLevel) -> (u64, u64) 
     (cp, modules)
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 async fn async_main() -> Result<(), TucanError> {
     let tucan = TucanConnector::new().await?;
 
@@ -142,8 +161,10 @@ async fn async_main() -> Result<(), TucanError> {
     Ok(())
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 struct Fetcher {}
 
+#[cfg(not(target_arch = "wasm32"))]
 impl Fetcher {
     pub const fn new() -> Self {
         Self {}
@@ -239,3 +260,6 @@ impl Fetcher {
         })
     }
 }
+
+#[cfg(target_arch = "wasm32")]
+pub fn main() {}
