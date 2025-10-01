@@ -106,6 +106,14 @@ See https://extensionworkshop.com/documentation/develop/debugging/.
 
 ### VSCode
 
+https://github.com/rust-lang/cargo/issues/15177
+https://github.com/rust-lang/cargo/issues/1197
+
+Does not work but one by one works:
+```
+cargo check --target wasm32-unknown-unknown --target x86_64-unknown-linux-gnu
+```
+
 ```
 tucan-plus-multi-target
     tucan-plus

@@ -2,4 +2,5 @@
 members = [
     "./crates/*"
 ]
+edition = "2024"
 resolver = "3"
