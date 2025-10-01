@@ -18,50 +18,11 @@ use crate::{
 };
 use html_handler::{MyElementRef, MyNode, Root, parse_document};
 
-pub async fn module_details(
-    tucan: &TucanConnector,
-    login_response: &LoginResponse,
-    revalidation_strategy: RevalidationStrategy,
-    request: ModuleDetailsRequest,
-) -> Result<ModuleDetailsResponse, TucanError> {
-    let key = format!("unparsed_module_details.{}", request.inner());
-
-    let old_content_and_date = tucan.database.get::<(String, OffsetDateTime)>(&key).await;
-    if revalidation_strategy.max_age != 0 {
-        if let Some((content, date)) = &old_content_and_date {
-            info!("{}", OffsetDateTime::now_utc() - *date);
-            if OffsetDateTime::now_utc() - *date < Duration::seconds(revalidation_strategy.max_age)
-            {
-                return module_details_internal(login_response, content);
-            }
-        }
-    }
-
-    let Some(invalidate_dependents) = revalidation_strategy.invalidate_dependents else {
-        return Err(TucanError::NotCached);
-    };
-
-    let url = format!(
-        "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=-N{:015},-N000311,{}",
-        login_response.id,
-        request.inner()
-    );
-    let (content, date) =
-        authenticated_retryable_get(tucan, &url, &login_response.cookie_cnsc).await?;
-    let result = module_details_internal(login_response, &content)?;
-    if invalidate_dependents && old_content_and_date.as_ref().map(|m| &m.0) != Some(&content) {
-        // TODO invalidate cached ones?
-    }
-
-    tucan.database.put(&key, (content, date)).await;
-
-    Ok(result)
-}
-
 #[expect(clippy::too_many_lines, clippy::cognitive_complexity)]
-fn module_details_internal(
+pub(crate) fn module_details_internal(
     login_response: &LoginResponse,
     content: &str,
+    nothing: &(),
 ) -> Result<ModuleDetailsResponse, TucanError> {
     let document = parse_document(content);
     let html_handler = Root::new(document.root());

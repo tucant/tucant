@@ -13,58 +13,8 @@ use crate::{
 };
 use html_handler::{MyElementRef, MyNode, Root, parse_document};
 
-pub async fn vv(
-    tucan: &TucanConnector,
-    login_response: Option<&LoginResponse>,
-    revalidation_strategy: RevalidationStrategy,
-    request: ActionRequest,
-) -> Result<Vorlesungsverzeichnis, TucanError> {
-    let key = format!(
-        "unparsed_vv.{}.{}",
-        // TODO FIXME I think the complete cache should be separated for logged in and logged out?
-        // Otherwise we pass a session to the parser but the cached stuff is without a session
-        // Probably only relevant for stuff where you can have both and where parsing differs
-        // depending on session?
-        login_response.is_some(),
-        request.inner()
-    );
-
-    let old_content_and_date = tucan.database.get::<(String, OffsetDateTime)>(&key).await;
-    if revalidation_strategy.max_age != 0 {
-        if let Some((content, date)) = &old_content_and_date {
-            info!("{}", OffsetDateTime::now_utc() - *date);
-            if OffsetDateTime::now_utc() - *date < Duration::seconds(revalidation_strategy.max_age)
-            {
-                return vv_internal(login_response, content);
-            }
-        }
-    }
-
-    let Some(invalidate_dependents) = revalidation_strategy.invalidate_dependents else {
-        return Err(TucanError::NotCached);
-    };
-
-    let url = format!(
-        "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=ACTION&ARGUMENTS={}",
-        request.inner()
-    );
-    let (content, date) = if let Some(login_response) = login_response {
-        authenticated_retryable_get(tucan, &url, &login_response.cookie_cnsc).await?
-    } else {
-        retryable_get(tucan, &url).await?
-    };
-    let result = vv_internal(login_response, &content)?;
-    if invalidate_dependents && old_content_and_date.as_ref().map(|m| &m.0) != Some(&content) {
-        // TODO invalidate cached ones?
-    }
-
-    tucan.database.put(&key, (content, date)).await;
-
-    Ok(result)
-}
-
 #[expect(clippy::too_many_lines)]
-fn vv_internal(
+pub(crate) fn vv_internal(
     login_response: Option<&LoginResponse>,
     content: &str,
 ) -> Result<Vorlesungsverzeichnis, TucanError> {
