@@ -1,8 +1,4 @@
-use std::{cell::RefCell, time::Duration};
 
-use diesel::{Connection as _, SqliteConnection};
-use diesel_migrations::{EmbeddedMigrations, MigrationHarness as _, embed_migrations};
-use log::info;
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::wasm_bindgen;
 
