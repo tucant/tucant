@@ -111,7 +111,7 @@ pub async fn main() {
 
     #[cfg(any(feature = "direct", feature = "desktop", feature = "mobile"))]
     let launcher = launcher.with_context(tucan_plus_dioxus::RcTucanType::new(
-        tucan_types::DynTucan::new_arc(tucan_connector::TucanConnector::new().await.unwrap()),
+        tucan_types::DynTucan::new_arc(tucan_connector::TucanConnector::new(worker).await.unwrap()),
     ));
 
     let launcher = launcher.with_context(Anonymize(anonymize));

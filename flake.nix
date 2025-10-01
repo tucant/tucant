@@ -92,6 +92,7 @@
               (craneLib.fileset.commonCargoSources ./crates/tucan-connector)
               (craneLib.fileset.commonCargoSources ./crates/tucan-plus-api)
               (craneLib.fileset.commonCargoSources ./crates/tucan-plus-worker)
+              ./crates/tucan-plus-worker/migrations
               (craneLib.fileset.commonCargoSources ./crates/html-handler)
             ];
           };
