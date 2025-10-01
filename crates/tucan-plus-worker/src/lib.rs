@@ -262,6 +262,49 @@ impl RequestResponse for UpdateModule {
     }
 }
 
+#[derive(Debug)]
+pub struct UpdateAnmeldungEntry {
+    pub entry: AnmeldungEntry
+}
+
+impl RequestResponse for UpdateAnmeldungEntry {
+    type Response = ();
+
+    fn execute(&self, connection: &mut SqliteConnection) -> Self::Response {
+        diesel::update(&self.entry)
+            .set(&self.entry)
+            .execute(connection)
+            .unwrap();
+    }
+}
+
+#[derive(Debug)]
+pub struct AnmeldungenEntriesInSemester {
+    pub course_of_study: String,
+    pub year: i32,
+    pub semester: Semester,
+}
+
+impl RequestResponse for AnmeldungenEntriesInSemester {
+    type Response = Vec<AnmeldungEntry>;
+
+    fn execute(&self, connection: &mut SqliteConnection) -> Self::Response {
+       QueryDsl::filter(
+        anmeldungen_entries::table,
+        anmeldungen_entries::course_of_study
+            .eq(&self.course_of_study)
+            .and(
+                anmeldungen_entries::semester
+                    .eq(self.semester)
+                    .and(anmeldungen_entries::year.eq(self.year))
+            ),
+    )
+    .select(AnmeldungEntry::as_select())
+    .load(connection)
+    .unwrap()
+    }
+}
+
 #[cfg_attr(target_arch = "wasm32", derive(Serialize, Deserialize))]
 #[derive(Debug)]
 pub struct SetStateAndCredits {
