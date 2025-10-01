@@ -12,7 +12,7 @@
         "./crates/tucan-connector/Cargo.toml",
         "./crates/tucan-plus-worker/Cargo.toml",
         "./crates/tucan-plus-service-worker/Cargo.toml",
-        "./crates/tucan-plus-api/Cargo.toml"
+        /// "./crates/tucan-plus-api/Cargo.toml"
     ],
     "rust-analyzer.check.targets": [
         "x86_64-unknown-linux-gnu",
