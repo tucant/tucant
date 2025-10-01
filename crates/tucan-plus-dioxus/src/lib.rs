@@ -40,7 +40,7 @@ use std::fmt::Debug;
 use std::ops::Deref;
 use std::rc::Rc;
 use std::sync::Arc;
-use tucan_plus_worker::{RequestResponse, RequestResponseEnum};
+use tucan_plus_worker::{RequestResponse};
 use tucan_types::DynTucan;
 use tucan_types::gradeoverview::GradeOverviewRequest;
 use tucan_types::{

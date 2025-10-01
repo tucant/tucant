@@ -6,7 +6,7 @@ use log::info;
 use serde::{Serialize, de::DeserializeOwned};
 use tracing::Level;
 use tucan_plus_dioxus::{
-    Anonymize, BOOTSTRAP_JS, BOOTSTRAP_PATCH_JS, Route, SERVICE_WORKER_JS, WORKER_JS,
+    Anonymize, BOOTSTRAP_JS, BOOTSTRAP_PATCH_JS, Route
 };
 use tucan_plus_worker::MyDatabase;
 use tucan_types::LoginResponse;
@@ -78,7 +78,10 @@ pub async fn main() {
 
     let launcher = dioxus::LaunchBuilder::new();
 
+    #[cfg(target_arch = "wasm32")]
     let worker = MyDatabase::wait_for_worker(WORKER_JS.to_string()).await;
+    #[cfg(not(target_arch = "wasm32"))]
+    let worker = MyDatabase::wait_for_worker().await;
 
     let launcher = launcher.with_context(worker.clone());
 
