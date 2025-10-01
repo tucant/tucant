@@ -14,6 +14,7 @@ use tucan_types::{LoginResponse, TucanError, courseprep::CoursePrepRequest};
     );
 */
 #[expect(clippy::too_many_lines)]
+#[allow(unused)]
 pub(crate) fn month_internal(
     login_response: &LoginResponse,
     content: &str,

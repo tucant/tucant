@@ -17,7 +17,7 @@ use crate::{
 pub(crate) fn my_courses_internal(
     login_response: &LoginResponse,
     content: &str,
-    nothing: &(),
+    _nothing: &(),
 ) -> Result<MyCoursesResponse, TucanError> {
     let document = parse_document(content);
     let html_handler = Root::new(document.root());

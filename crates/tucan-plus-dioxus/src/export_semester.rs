@@ -14,7 +14,7 @@ pub fn FetchAnmeldung() -> Element {
     let current_session_handle = use_context::<Signal<Option<LoginResponse>>>();
     let mut loading = use_signal(|| false);
 
-    let onclick = move |event| {
+    let onclick = move |_event| {
         let tucan = tucan.clone();
         async move {
             loading.set(true);

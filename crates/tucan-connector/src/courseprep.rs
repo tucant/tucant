@@ -23,6 +23,7 @@ use tucan_types::{
 */
 
 #[allow(clippy::too_many_lines)]
+#[allow(unused)]
 pub(crate) fn course_prep_internal(
     login_response: &LoginResponse,
     content: &str,

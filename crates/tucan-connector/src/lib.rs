@@ -62,7 +62,7 @@ pub async fn fetch_with_cache<Request, Response>(
         .await;
     if revalidation_strategy.max_age != 0 {
         if let Some(CacheEntry {
-            key,
+            key: _,
             value: content,
             updated: date,
         }) = &old_content_and_date
@@ -554,7 +554,7 @@ impl Tucan for TucanConnector {
         revalidation_strategy: RevalidationStrategy,
         request: u64,
     ) -> Result<StudentResultResponse, TucanError> {
-        /// 0 is the default
+        // 0 is the default
         let key = format!("unparsed_student_result.{request}");
 
         // TODO FIXME this can break as the normal tucan usage will remember which one

@@ -59,7 +59,7 @@ fn is_tbsubhead(
 pub(crate) fn anmeldung_internal(
     login_response: &LoginResponse,
     content: &str,
-    nothing: &(),
+    _nothing: &(),
 ) -> Result<AnmeldungResponse, TucanError> {
     static REGISTRATION_REGEX: LazyLock<Regex> = LazyLock::new(|| {
         Regex::new(

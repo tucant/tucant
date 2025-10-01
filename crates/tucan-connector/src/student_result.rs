@@ -283,7 +283,7 @@ fn part1<T>(
 pub(crate) fn student_result_internal(
     login_response: &LoginResponse,
     content: &str,
-    nothing: &(),
+    _nothing: &(),
 ) -> Result<StudentResultResponse, TucanError> {
     let document = parse_document(content);
     let html_handler = Root::new(document.root());

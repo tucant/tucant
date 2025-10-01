@@ -36,7 +36,7 @@ pub async fn vv(
         .await;
     if revalidation_strategy.max_age != 0 {
         if let Some(CacheEntry {
-            key,
+            key: _,
             value: content,
             updated: date,
         }) = &old_content_and_date

@@ -18,7 +18,7 @@ use crate::{
 pub(crate) fn my_exams_internal(
     login_response: &LoginResponse,
     content: &str,
-    nothing: &(),
+    _nothing: &(),
 ) -> Result<MyExamsResponse, TucanError> {
     let document = parse_document(content);
     let html_handler = Root::new(document.root());
@@ -142,7 +142,7 @@ pub(crate) fn my_exams_internal(
                                                     </b>
                                                     _topic
                                                     <br></br>
-                                                    let submitted = if html_handler.peek().is_some() {
+                                                    let _submitted = if html_handler.peek().is_some() {
                                                         _submitted_date
                                                         <br></br>
                                                     } => ();

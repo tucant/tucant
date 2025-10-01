@@ -19,7 +19,7 @@ use html_handler::{MyElementRef, MyNode, Root, parse_document};
 pub(crate) fn module_details_internal(
     login_response: &LoginResponse,
     content: &str,
-    nothing: &(),
+    _nothing: &(),
 ) -> Result<ModuleDetailsResponse, TucanError> {
     let document = parse_document(content);
     let html_handler = Root::new(document.root());

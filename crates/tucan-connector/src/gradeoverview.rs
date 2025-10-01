@@ -23,7 +23,7 @@ pub static GRADEOVERVIEW_REGEX: LazyLock<Regex> = LazyLock::new(|| {
 pub(crate) fn gradeoverview_internal(
     login_response: &LoginResponse,
     content: &str,
-    nothing: &(),
+    _nothing: &(),
 ) -> Result<GradeOverviewResponse, TucanError> {
     let document = parse_document(content);
     let html_handler = Root::new(document.root());
