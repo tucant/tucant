@@ -21,73 +21,6 @@ use crate::{
 };
 use html_handler::{InElement, InRoot, MyElementRef, MyNode, Root, parse_document};
 
-pub async fn anmeldung(
-    tucan: &TucanConnector,
-    login_response: &LoginResponse,
-    revalidation_strategy: RevalidationStrategy,
-    request: AnmeldungRequest,
-) -> Result<AnmeldungResponse, TucanError> {
-    // calculate registration semester
-    let datetime = time::OffsetDateTime::now_utc();
-    let datetime = datetime.to_offset(offset!(+2));
-    let date = datetime.date();
-    let registration_sose = Month::March <= date.month() && date.month() <= Month::August;
-    let key = format!(
-        "unparsed_anmeldung.{}.{}",
-        if registration_sose { "sose" } else { "wise" },
-        request.inner()
-    );
-
-    let old_content_and_date = tucan.database.get::<(String, OffsetDateTime)>(&key).await;
-    if revalidation_strategy.max_age != 0 {
-        if let Some((content, date)) = &old_content_and_date {
-            info!("{}", OffsetDateTime::now_utc() - *date);
-            if OffsetDateTime::now_utc() - *date < Duration::seconds(revalidation_strategy.max_age)
-            {
-                return anmeldung_internal(login_response, content);
-            }
-        }
-    }
-
-    let Some(invalidate_dependents) = revalidation_strategy.invalidate_dependents else {
-        return Err(TucanError::NotCached);
-    };
-
-    let url = format!(
-        "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N{:015},-N000311,{}",
-        login_response.id,
-        request.inner()
-    );
-    let (content, date) =
-        authenticated_retryable_get(tucan, &url, &login_response.cookie_cnsc).await?;
-    let result = anmeldung_internal(login_response, &content)?;
-    if invalidate_dependents && old_content_and_date.as_ref().map(|m| &m.0) != Some(&content) {
-        // TODO invalidate cached ones?
-        // TODO FIXME don't remove from database to be able to do recursive
-        // invalidations. maybe set age to oldest possible value? or more
-        // complex set invalidated and then queries can allow to return invalidated.
-        // I think we should do the more complex thing.
-        let keys: Vec<String> = result
-            .entries
-            .iter()
-            .flat_map(|e| &e.module)
-            .map(|e| format!("unparsed_module_details.{}", e.url.inner()))
-            .chain(
-                result
-                    .entries
-                    .iter()
-                    .flat_map(|e| &e.courses)
-                    .map(|e| format!("unparsed_course_details.{}", e.1.url.inner())),
-            )
-            .collect();
-        tucan.database.remove_many(keys).await;
-    }
-
-    tucan.database.put(&key, (content, date)).await;
-
-    Ok(result)
-}
-
 pub static MODULEDETAILS_REGEX: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(
         "^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=-N\\d+,-N\\d+,",
@@ -126,9 +59,10 @@ fn is_tbsubhead(
 }
 
 #[expect(clippy::too_many_lines, clippy::cognitive_complexity)]
-fn anmeldung_internal(
+pub(crate) fn anmeldung_internal(
     login_response: &LoginResponse,
     content: &str,
+    nothing: &(),
 ) -> Result<AnmeldungResponse, TucanError> {
     static REGISTRATION_REGEX: LazyLock<Regex> = LazyLock::new(|| {
         Regex::new(

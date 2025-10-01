@@ -2,16 +2,20 @@
 use std::{cell::RefCell, rc::Rc};
 
 use derive_more::From;
-use diesel::{prelude::*, upsert::excluded};
+use diesel::{prelude::*, r2d2::CustomizeConnection, upsert::excluded};
 use diesel_migrations::{EmbeddedMigrations, embed_migrations};
+#[cfg(target_arch = "wasm32")]
+use fragile::Fragile;
 #[cfg(not(target_arch = "wasm32"))]
 use fragile::Fragile;
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use wasm_bindgen::JsValue;
+#[cfg(target_arch = "wasm32")]
+use web_sys::BroadcastChannel;
 
 use crate::{
-    models::{Anmeldung, AnmeldungEntry, Semester, State},
-    schema::{anmeldungen_entries, anmeldungen_plan},
+    models::{Anmeldung, AnmeldungEntry, CacheEntry, Semester, State},
+    schema::{anmeldungen_entries, anmeldungen_plan, cache},
 };
 use tucan_types::{
     Semesterauswahl,
@@ -24,9 +28,46 @@ pub mod schema;
 
 pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!("migrations");
 
-pub trait RequestResponse: Serialize + Sized where RequestResponseEnum: From<Self> {
+pub trait RequestResponse: Serialize + Sized
+where
+    RequestResponseEnum: From<Self>,
+{
     type Response: DeserializeOwned;
     fn execute(&self, connection: &mut SqliteConnection) -> Self::Response;
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct CacheRequest {
+    pub key: String,
+}
+
+impl RequestResponse for CacheRequest {
+    type Response = Option<CacheEntry>;
+
+    fn execute(&self, connection: &mut SqliteConnection) -> Self::Response {
+        QueryDsl::filter(cache::table, cache::key.eq(&self.key))
+            .select(CacheEntry::as_select())
+            .get_result(connection)
+            .optional()
+            .unwrap()
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct StoreCacheRequest(pub CacheEntry);
+
+impl RequestResponse for StoreCacheRequest {
+    type Response = ();
+
+    fn execute(&self, connection: &mut SqliteConnection) -> Self::Response {
+        diesel::insert_into(cache::table)
+            .values(&self.0)
+            .on_conflict(cache::key)
+            .do_update()
+            .set(&self.0)
+            .execute(connection)
+            .unwrap();
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -46,7 +87,7 @@ impl RequestResponse for AnmeldungenRequest {
         )
         .select(Anmeldung::as_select())
         .load(connection)
-        .expect("Error loading anmeldungen")
+        .unwrap()
     }
 }
 
@@ -68,7 +109,7 @@ impl RequestResponse for AnmeldungenRequest2 {
         )
         .select(Anmeldung::as_select())
         .load(connection)
-        .expect("Error loading anmeldungen")
+        .unwrap()
     }
 }
 
@@ -90,7 +131,7 @@ impl RequestResponse for Fewe {
         )
         .select(AnmeldungEntry::as_select())
         .load(connection)
-        .expect("Error loading anmeldungen")
+        .unwrap()
     }
 }
 
@@ -109,7 +150,7 @@ impl RequestResponse for FEwefweewf {
             .do_update()
             .set(anmeldungen_plan::parent.eq(excluded(anmeldungen_plan::parent)))
             .execute(connection)
-            .expect("Error saving anmeldungen");
+            .unwrap();
     }
 }
 
@@ -137,7 +178,7 @@ impl RequestResponse for Wlewifhewefwef {
                 (anmeldungen_entries::credits.eq(excluded(anmeldungen_entries::credits))),
             ))
             .execute(connection)
-            .expect("Error saving anmeldungen");
+            .unwrap();
     }
 }
 
@@ -171,7 +212,7 @@ impl RequestResponse for ChildUrl {
         ))
         .returning(anmeldungen_plan::url)
         .get_result(connection)
-        .expect("Error updating anmeldungen")
+        .unwrap()
     }
 }
 
@@ -207,7 +248,7 @@ impl RequestResponse for UpdateModule {
                 (anmeldungen_entries::year.eq(self.semester.name[5..9].parse::<i32>().unwrap())),
             ))
             .execute(connection)
-            .expect("Error updating anmeldungen");
+            .unwrap();
     }
 }
 
@@ -234,7 +275,7 @@ impl RequestResponse for SetStateAndCredits {
                 (anmeldungen_entries::credits.eq(excluded(anmeldungen_entries::credits))),
             ))
             .execute(connection)
-            .expect("Error saving anmeldungen");
+            .unwrap();
     }
 }
 
@@ -268,7 +309,18 @@ impl RequestResponse for SetCpAndModuleCount {
         ))
         .returning(anmeldungen_plan::url)
         .get_result(connection)
-        .expect("Error updating anmeldungen")
+        .unwrap()
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct ExportDatabaseRequest;
+
+impl RequestResponse for ExportDatabaseRequest {
+    type Response = Vec<u8>;
+
+    fn execute(&self, connection: &mut SqliteConnection) -> Self::Response {
+        connection.serialize_database_to_buffer().to_vec()
     }
 }
 
@@ -283,6 +335,9 @@ pub enum RequestResponseEnum {
     UpdateModule(UpdateModule),
     SetStateAndCredits(SetStateAndCredits),
     SetCpAndModuleCount(SetCpAndModuleCount),
+    CacheRequest(CacheRequest),
+    StoreCacheRequest(StoreCacheRequest),
+    ExportDatabaseRequest(ExportDatabaseRequest),
 }
 
 impl RequestResponseEnum {
@@ -315,6 +370,15 @@ impl RequestResponseEnum {
             RequestResponseEnum::SetCpAndModuleCount(value) => {
                 serde_wasm_bindgen::to_value(&value.execute(connection)).unwrap()
             }
+            RequestResponseEnum::CacheRequest(value) => {
+                serde_wasm_bindgen::to_value(&value.execute(connection)).unwrap()
+            }
+            RequestResponseEnum::StoreCacheRequest(value) => {
+                serde_wasm_bindgen::to_value(&value.execute(connection)).unwrap()
+            }
+            RequestResponseEnum::ExportDatabaseRequest(value) => {
+                serde_wasm_bindgen::to_value(&value.execute(connection)).unwrap()
+            }
         }
     }
 }
@@ -327,11 +391,34 @@ pub struct MessageWithId {
 
 #[cfg(not(target_arch = "wasm32"))]
 #[derive(Clone)]
-pub struct MyDatabase(Fragile<Rc<RefCell<SqliteConnection>>>);
+pub struct MyDatabase(diesel::r2d2::Pool<diesel::r2d2::ConnectionManager<SqliteConnection>>);
+
+#[derive(Debug)]
+struct ConnectionCustomizer;
+
+impl<C: diesel::connection::SimpleConnection, E> CustomizeConnection<C, E>
+    for ConnectionCustomizer
+{
+    fn on_acquire(&self, connection: &mut C) -> Result<(), E> {
+        connection
+            .batch_execute("PRAGMA busy_timeout = 2000;")
+            .unwrap();
+        connection
+            .batch_execute("PRAGMA synchronous = NORMAL;")
+            .unwrap();
+        Ok(())
+    }
+
+    fn on_release(&self, conn: C) {}
+}
 
 #[cfg(not(target_arch = "wasm32"))]
 impl MyDatabase {
     pub async fn wait_for_worker() -> Self {
+        use diesel::{
+            connection::SimpleConnection as _,
+            r2d2::{ConnectionManager, Pool},
+        };
         use diesel_migrations::MigrationHarness as _;
 
         let url = if cfg!(target_os = "android") {
@@ -343,17 +430,129 @@ impl MyDatabase {
         } else {
             "sqlite://tucan-plus.db?mode=rwc"
         };
-        let mut connection = SqliteConnection::establish(url).unwrap();
+
+        let pool = Pool::builder()
+            .connection_customizer(Box::new(ConnectionCustomizer))
+            .build(ConnectionManager::<SqliteConnection>::new(url))
+            .unwrap();
+
+        let connection = &mut pool.get().unwrap();
+        connection
+            .batch_execute("PRAGMA journal_mode = WAL;")
+            .unwrap();
 
         connection.run_pending_migrations(MIGRATIONS).unwrap();
 
-        Self(Fragile::new(Rc::new(RefCell::new(connection))))
+        Self(pool)
     }
 
     pub async fn send_message<R: RequestResponse + std::fmt::Debug>(&self, value: R) -> R::Response
     where
         RequestResponseEnum: std::convert::From<R>,
     {
-        value.execute(&mut self.0.get().borrow_mut())
+        value.execute(&mut self.0.get().unwrap())
+    }
+}
+
+#[cfg(target_arch = "wasm32")]
+#[derive(Clone)]
+pub struct MyDatabase {
+    broadcast_channel: Fragile<BroadcastChannel>,
+}
+
+#[cfg(target_arch = "wasm32")]
+impl MyDatabase {
+    pub async fn wait_for_worker(worker_js: String) -> Self {
+        use js_sys::Promise;
+        use wasm_bindgen::{JsCast as _, prelude::Closure};
+
+        let lock_manager = web_sys::window().unwrap().navigator().locks();
+        let lock_closure: Closure<dyn Fn(_) -> Promise> = {
+            Closure::new(move |event: web_sys::Lock| {
+                let mut cb = |resolve: js_sys::Function, reject: js_sys::Function| {
+                    use web_sys::{WorkerOptions, WorkerType};
+
+                    let options = WorkerOptions::new();
+                    options.set_type(WorkerType::Module);
+                    let worker = web_sys::Worker::new_with_options(&worker_js, &options).unwrap();
+                    let error_closure: Closure<dyn Fn(_)> =
+                        Closure::new(move |event: web_sys::ErrorEvent| {
+                            use log::info;
+
+                            info!(
+                                "error at client {event:?} {:?} {:?}",
+                                event.message(),
+                                event.error()
+                            );
+
+                            reject.call0(&JsValue::undefined()).unwrap();
+                        });
+                    let error_closure_ref = error_closure.as_ref().clone();
+                    worker
+                        .add_event_listener_with_callback(
+                            "error",
+                            error_closure_ref.unchecked_ref(),
+                        )
+                        .unwrap();
+                    error_closure.forget();
+                };
+
+                return js_sys::Promise::new(&mut cb);
+            })
+        };
+        lock_manager.request_with_callback("opfs", lock_closure.as_ref().unchecked_ref());
+        lock_closure.forget();
+
+        let broadcast_channel = Fragile::new(BroadcastChannel::new("global").unwrap());
+
+        // TODO FIXME add wait for worker to be alive
+
+        Self { broadcast_channel }
+    }
+
+    pub async fn send_message<R: RequestResponse + std::fmt::Debug>(
+        &self,
+        message: R,
+    ) -> R::Response
+    where
+        RequestResponseEnum: std::convert::From<R>,
+    {
+        use rand::distr::{Alphanumeric, SampleString as _};
+
+        // TODO FIXME add retry
+
+        let id = Alphanumeric.sample_string(&mut rand::rng(), 16);
+
+        let temporary_broadcast_channel = BroadcastChannel::new(&id).unwrap();
+
+        let mut cb = |resolve: js_sys::Function, reject: js_sys::Function| {
+            use wasm_bindgen::{JsCast as _, prelude::Closure};
+
+            let temporary_message_closure: Closure<dyn Fn(_)> = {
+                Closure::new(move |event: web_sys::MessageEvent| {
+                    resolve.call1(&JsValue::undefined(), &event.data()).unwrap();
+                })
+            };
+            temporary_broadcast_channel
+                .add_event_listener_with_callback(
+                    "message",
+                    temporary_message_closure.as_ref().unchecked_ref(),
+                )
+                .unwrap();
+            temporary_message_closure.forget();
+        };
+
+        let promise = js_sys::Promise::new(&mut cb);
+
+        let value = serde_wasm_bindgen::to_value(&MessageWithId {
+            id: id.clone(),
+            message: RequestResponseEnum::from(message),
+        })
+        .unwrap();
+
+        self.broadcast_channel.get().post_message(&value).unwrap();
+
+        serde_wasm_bindgen::from_value(wasm_bindgen_futures::JsFuture::from(promise).await.unwrap())
+            .unwrap()
     }
 }

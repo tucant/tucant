@@ -83,15 +83,19 @@
             cd ./crates/tucan-plus-api
           '';
           strictDeps = true;
+          buildInputs = [
+            pkgs.sqlite
+          ];
           pname = "tucan-plus-workspace-native-api";
           src = lib.fileset.toSource {
             root = ./.;
             fileset = lib.fileset.unions [
               (craneLib.fileset.commonCargoSources ./crates/tucan-types)
-              (craneLib.fileset.commonCargoSources ./crates/key-value-database)
               (craneLib.fileset.commonCargoSources ./crates/html-extractor)
               (craneLib.fileset.commonCargoSources ./crates/tucan-connector)
               (craneLib.fileset.commonCargoSources ./crates/tucan-plus-api)
+              (craneLib.fileset.commonCargoSources ./crates/tucan-plus-worker)
+              ./crates/tucan-plus-worker/migrations
               (craneLib.fileset.commonCargoSources ./crates/html-handler)
             ];
           };
@@ -118,7 +122,6 @@
         ];
 
         fileset-wasm = lib.fileset.unions [
-          (craneLib.fileset.commonCargoSources ./crates/key-value-database)
           (craneLib.fileset.commonCargoSources ./crates/html-extractor)
           (craneLib.fileset.commonCargoSources ./crates/tucan-connector)
           (craneLib.fileset.commonCargoSources ./crates/tucan-plus-dioxus)
@@ -642,9 +645,14 @@
         devShells.default = pkgs.mkShellNoCC {
           shellHook = ''
             export PATH=~/.cargo/bin/:$PATH
+            export WORKER_JS_PATH=/assets/wasm/tucan-plus-worker.js
+            export WORKER_WASM_PATH=/assets/wasm/tucan-plus-worker_bg.wasm
+            export SERVICE_WORKER_JS_PATH=/assets/wasm/tucan-plus-service-worker.js
+            export SERVICE_WORKER_WASM_PATH=/assets/wasm/tucan-plus-service-worker_bg.wasm
           '';
           buildInputs = [
             pkgs.openssl
+            pkgs.sqlite
           ];
           packages = [
             pkgs.bashInteractive

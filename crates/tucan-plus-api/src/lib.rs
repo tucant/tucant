@@ -2,12 +2,12 @@ use std::convert::Infallible;
 
 use axum::{
     Json,
-    extract::{FromRequestParts, Path},
+    extract::{FromRequestParts, Path, State},
     http::{StatusCode, request::Parts},
     response::IntoResponse,
 };
 use axum_extra::extract::{CookieJar, cookie::Cookie};
-use tucan_connector::{TucanConnector, login::login, registration::anmeldung};
+use tucan_connector::{TucanConnector, login::login};
 use tucan_types::{
     LoginRequest, LoginResponse, RevalidationStrategy, SemesterId, TucanError,
     coursedetails::CourseDetailsRequest,
@@ -73,11 +73,10 @@ impl Modify for SecurityAddon {
     )
 )]
 pub async fn login_endpoint(
+    State(tucan): State<TucanConnector>,
     jar: CookieJar,
     Json(login_request): Json<LoginRequest>,
 ) -> Result<impl IntoResponse, TucanError> {
-    let tucan = TucanConnector::new().await?;
-
     let response = login(&tucan.client, &login_request).await?;
 
     let jar = jar
@@ -96,9 +95,10 @@ pub async fn login_endpoint(
         (status = 500, description = "Some TUCaN error")
     )
 )]
-pub async fn logout_endpoint(jar: CookieJar) -> Result<impl IntoResponse, TucanError> {
-    let tucan = TucanConnector::new().await?;
-
+pub async fn logout_endpoint(
+    State(tucan): State<TucanConnector>,
+    jar: CookieJar,
+) -> Result<impl IntoResponse, TucanError> {
     let login_response: LoginResponse = LoginResponse {
         id: jar.get("id").unwrap().value().parse().unwrap(),
         cookie_cnsc: jar.get("cnsc").unwrap().value().to_owned(),
@@ -144,24 +144,23 @@ where
     )
 )]
 pub async fn registration_endpoint(
+    State(tucan): State<TucanConnector>,
     jar: CookieJar,
     Path(registration): Path<String>,
     revalidation_strategy: RevalidationStrategyW,
 ) -> Result<impl IntoResponse, TucanError> {
-    let tucan = TucanConnector::new().await?;
-
     let login_response: LoginResponse = LoginResponse {
         id: jar.get("id").unwrap().value().parse().unwrap(),
         cookie_cnsc: jar.get("cnsc").unwrap().value().to_owned(),
     };
 
-    let response = anmeldung(
-        &tucan,
-        &login_response,
-        revalidation_strategy.0,
-        AnmeldungRequest::parse(&registration),
-    )
-    .await?;
+    let response = tucan
+        .anmeldung(
+            &login_response,
+            revalidation_strategy.0,
+            AnmeldungRequest::parse(&registration),
+        )
+        .await?;
 
     Ok((StatusCode::OK, Json(response)).into_response())
 }
@@ -177,12 +176,11 @@ pub async fn registration_endpoint(
     )
 )]
 pub async fn vv_endpoint(
+    State(tucan): State<TucanConnector>,
     jar: CookieJar,
     Path(vv): Path<String>,
     revalidation_strategy: RevalidationStrategyW,
 ) -> Result<impl IntoResponse, TucanError> {
-    let tucan = TucanConnector::new().await?;
-
     let login_response = match (jar.get("id"), jar.get("cnsc")) {
         (Some(id), Some(cnsc)) => Some(LoginResponse {
             id: id.value().parse().unwrap(),
@@ -213,12 +211,11 @@ pub async fn vv_endpoint(
     )
 )]
 pub async fn module_details_endpoint(
+    State(tucan): State<TucanConnector>,
     jar: CookieJar,
     Path(module): Path<String>,
     revalidation_strategy: RevalidationStrategyW,
 ) -> Result<impl IntoResponse, TucanError> {
-    let tucan = TucanConnector::new().await?;
-
     let login_response: LoginResponse = LoginResponse {
         id: jar.get("id").unwrap().value().parse().unwrap(),
         cookie_cnsc: jar.get("cnsc").unwrap().value().to_owned(),
@@ -246,12 +243,11 @@ pub async fn module_details_endpoint(
     )
 )]
 pub async fn course_details_endpoint(
+    State(tucan): State<TucanConnector>,
     jar: CookieJar,
     Path(course): Path<String>,
     revalidation_strategy: RevalidationStrategyW,
 ) -> Result<impl IntoResponse, TucanError> {
-    let tucan = TucanConnector::new().await?;
-
     let login_response: LoginResponse = LoginResponse {
         id: jar.get("id").unwrap().value().parse().unwrap(),
         cookie_cnsc: jar.get("cnsc").unwrap().value().to_owned(),
@@ -278,11 +274,10 @@ pub async fn course_details_endpoint(
     )
 )]
 pub async fn after_login_endpoint(
+    State(tucan): State<TucanConnector>,
     jar: CookieJar,
     revalidation_strategy: RevalidationStrategyW,
 ) -> Result<impl IntoResponse, TucanError> {
-    let tucan = TucanConnector::new().await?;
-
     let login_response: LoginResponse = LoginResponse {
         id: jar.get("id").unwrap().value().parse().unwrap(),
         cookie_cnsc: jar.get("cnsc").unwrap().value().to_owned(),
@@ -306,12 +301,11 @@ pub async fn after_login_endpoint(
     )
 )]
 pub async fn my_modules_endpoint(
+    State(tucan): State<TucanConnector>,
     jar: CookieJar,
     revalidation_strategy: RevalidationStrategyW,
     semester: Path<SemesterId>,
 ) -> Result<impl IntoResponse, TucanError> {
-    let tucan = TucanConnector::new().await?;
-
     let login_response: LoginResponse = LoginResponse {
         id: jar.get("id").unwrap().value().parse().unwrap(),
         cookie_cnsc: jar.get("cnsc").unwrap().value().to_owned(),
@@ -335,12 +329,11 @@ pub async fn my_modules_endpoint(
     )
 )]
 pub async fn my_courses_endpoint(
+    State(tucan): State<TucanConnector>,
     jar: CookieJar,
     revalidation_strategy: RevalidationStrategyW,
     semester: Path<SemesterId>,
 ) -> Result<impl IntoResponse, TucanError> {
-    let tucan = TucanConnector::new().await?;
-
     let login_response: LoginResponse = LoginResponse {
         id: jar.get("id").unwrap().value().parse().unwrap(),
         cookie_cnsc: jar.get("cnsc").unwrap().value().to_owned(),
@@ -364,12 +357,11 @@ pub async fn my_courses_endpoint(
     )
 )]
 pub async fn my_exams_endpoint(
+    State(tucan): State<TucanConnector>,
     jar: CookieJar,
     revalidation_strategy: RevalidationStrategyW,
     semester: Path<SemesterId>,
 ) -> Result<impl IntoResponse, TucanError> {
-    let tucan = TucanConnector::new().await?;
-
     let login_response: LoginResponse = LoginResponse {
         id: jar.get("id").unwrap().value().parse().unwrap(),
         cookie_cnsc: jar.get("cnsc").unwrap().value().to_owned(),
@@ -393,12 +385,11 @@ pub async fn my_exams_endpoint(
     )
 )]
 pub async fn exam_results_endpoint(
+    State(tucan): State<TucanConnector>,
     jar: CookieJar,
     revalidation_strategy: RevalidationStrategyW,
     semester: Path<SemesterId>,
 ) -> Result<impl IntoResponse, TucanError> {
-    let tucan = TucanConnector::new().await?;
-
     let login_response: LoginResponse = LoginResponse {
         id: jar.get("id").unwrap().value().parse().unwrap(),
         cookie_cnsc: jar.get("cnsc").unwrap().value().to_owned(),
@@ -422,12 +413,11 @@ pub async fn exam_results_endpoint(
     )
 )]
 pub async fn course_results_endpoint(
+    State(tucan): State<TucanConnector>,
     jar: CookieJar,
     revalidation_strategy: RevalidationStrategyW,
     semester: Path<SemesterId>,
 ) -> Result<impl IntoResponse, TucanError> {
-    let tucan = TucanConnector::new().await?;
-
     let login_response: LoginResponse = LoginResponse {
         id: jar.get("id").unwrap().value().parse().unwrap(),
         cookie_cnsc: jar.get("cnsc").unwrap().value().to_owned(),
@@ -450,11 +440,10 @@ pub async fn course_results_endpoint(
     )
 )]
 pub async fn my_documents_endpoint(
+    State(tucan): State<TucanConnector>,
     jar: CookieJar,
     revalidation_strategy: RevalidationStrategyW,
 ) -> Result<impl IntoResponse, TucanError> {
-    let tucan = TucanConnector::new().await?;
-
     let login_response: LoginResponse = LoginResponse {
         id: jar.get("id").unwrap().value().parse().unwrap(),
         cookie_cnsc: jar.get("cnsc").unwrap().value().to_owned(),
@@ -479,12 +468,11 @@ pub async fn my_documents_endpoint(
 )]
 /// set course-of-study to default to get the default one
 pub async fn student_result_endpoint(
+    State(tucan): State<TucanConnector>,
     jar: CookieJar,
     revalidation_strategy: RevalidationStrategyW,
     course_of_study: Path<String>,
 ) -> Result<impl IntoResponse, TucanError> {
-    let tucan = TucanConnector::new().await?;
-
     let login_response: LoginResponse = LoginResponse {
         id: jar.get("id").unwrap().value().parse().unwrap(),
         cookie_cnsc: jar.get("cnsc").unwrap().value().to_owned(),
@@ -516,12 +504,11 @@ pub async fn student_result_endpoint(
     )
 )]
 pub async fn gradeoverview_endpoint(
+    State(tucan): State<TucanConnector>,
     jar: CookieJar,
     Path(gradeoverview): Path<GradeOverviewRequest>,
     revalidation_strategy: RevalidationStrategyW,
 ) -> Result<impl IntoResponse, TucanError> {
-    let tucan = TucanConnector::new().await?;
-
     let login_response: LoginResponse = LoginResponse {
         id: jar.get("id").unwrap().value().parse().unwrap(),
         cookie_cnsc: jar.get("cnsc").unwrap().value().to_owned(),
@@ -534,7 +521,7 @@ pub async fn gradeoverview_endpoint(
     Ok((StatusCode::OK, Json(response)).into_response())
 }
 
-pub fn router() -> OpenApiRouter {
+pub fn router() -> OpenApiRouter<TucanConnector> {
     OpenApiRouter::with_openapi(ApiDoc::openapi())
         .routes(routes!(login_endpoint))
         .routes(routes!(logout_endpoint))

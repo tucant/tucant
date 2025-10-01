@@ -9,6 +9,7 @@ use log::info;
 use scraper::CaseSensitivity;
 use sha3::{Digest, Sha3_256};
 use time::{Duration, OffsetDateTime};
+use tucan_plus_worker::{CacheRequest, StoreCacheRequest, models::CacheEntry};
 use tucan_types::{
     InstructorImage, LoginResponse, RevalidationStrategy, TucanError,
     coursedetails::{
@@ -16,46 +17,6 @@ use tucan_types::{
         InstructorImageWithLink, Room, Termin,
     },
 };
-
-pub async fn course_details(
-    tucan: &TucanConnector,
-    login_response: &LoginResponse,
-    revalidation_strategy: RevalidationStrategy,
-    request: CourseDetailsRequest,
-) -> Result<CourseDetailsResponse, TucanError> {
-    let key = format!("unparsed_course_details.{}", request.inner());
-
-    let old_content_and_date = tucan.database.get::<(String, OffsetDateTime)>(&key).await;
-    if revalidation_strategy.max_age != 0 {
-        if let Some((content, date)) = &old_content_and_date {
-            info!("{}", OffsetDateTime::now_utc() - *date);
-            if OffsetDateTime::now_utc() - *date < Duration::seconds(revalidation_strategy.max_age)
-            {
-                return course_details_internal(login_response, content, &request);
-            }
-        }
-    }
-
-    let Some(invalidate_dependents) = revalidation_strategy.invalidate_dependents else {
-        return Err(TucanError::NotCached);
-    };
-
-    let url = format!(
-        "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSEDETAILS&ARGUMENTS=-N{:015},-N000311,{}",
-        login_response.id,
-        request.inner()
-    );
-    let (content, date) =
-        authenticated_retryable_get(tucan, &url, &login_response.cookie_cnsc).await?;
-    let result = course_details_internal(login_response, &content, &request)?;
-    if invalidate_dependents && old_content_and_date.as_ref().map(|m| &m.0) != Some(&content) {
-        // TODO invalidate cached ones?
-    }
-
-    tucan.database.put(&key, (content, date)).await;
-
-    Ok(result)
-}
 
 fn h(input: &str) -> String {
     BASE64URL_NOPAD.encode(&Sha3_256::digest(input))
@@ -66,7 +27,7 @@ fn h(input: &str) -> String {
     clippy::too_many_lines,
     clippy::cognitive_complexity
 )]
-fn course_details_internal(
+pub(crate) fn course_details_internal(
     login_response: &LoginResponse,
     content: &str,
     request: &CourseDetailsRequest,

@@ -434,7 +434,7 @@ pub trait Tucan: Send + Sync {
 
     fn anmeldung(
         &self,
-        login_response: LoginResponse,
+        login_response: &LoginResponse,
         revalidation_strategy: RevalidationStrategy,
         request: AnmeldungRequest,
     ) -> impl std::future::Future<Output = Result<AnmeldungResponse, TucanError>>;

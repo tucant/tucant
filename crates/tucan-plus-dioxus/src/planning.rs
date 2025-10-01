@@ -12,7 +12,7 @@ use js_sys::Uint8Array;
 use log::info;
 use tucan_plus_planning::decompress;
 use tucan_plus_worker::models::{Anmeldung, AnmeldungEntry, Semester, State};
-use tucan_plus_worker::{AnmeldungenRequest, AnmeldungenRequest2, Fewe};
+use tucan_plus_worker::{AnmeldungenRequest, AnmeldungenRequest2, Fewe, MyDatabase};
 use tucan_types::registration::AnmeldungResponse;
 use tucan_types::student_result::{StudentResultLevel, StudentResultResponse};
 use tucan_types::{
@@ -23,7 +23,7 @@ use web_sys::{FileList, HtmlInputElement, Worker};
 
 use crate::planning::load_leistungsspiegel::load_leistungsspiegel;
 use crate::planning::load_semesters::handle_semester;
-use crate::{MyDatabase, MyRc, RcTucanType, Route};
+use crate::{MyRc, RcTucanType, Route};
 
 #[component]
 pub fn Planning(course_of_study: ReadSignal<String>) -> Element {

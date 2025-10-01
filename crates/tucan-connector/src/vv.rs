@@ -1,5 +1,6 @@
 use log::info;
 use time::{Duration, OffsetDateTime};
+use tucan_plus_worker::{CacheRequest, StoreCacheRequest, models::CacheEntry};
 use tucan_types::{
     LoginResponse, RevalidationStrategy, TucanError,
     coursedetails::CourseDetailsRequest,
@@ -29,11 +30,20 @@ pub async fn vv(
         request.inner()
     );
 
-    let old_content_and_date = tucan.database.get::<(String, OffsetDateTime)>(&key).await;
+    let old_content_and_date = tucan
+        .database
+        .send_message(CacheRequest { key: key.clone() })
+        .await;
     if revalidation_strategy.max_age != 0 {
-        if let Some((content, date)) = &old_content_and_date {
+        if let Some(CacheEntry {
+            key,
+            value: content,
+            updated: date,
+        }) = &old_content_and_date
+        {
             info!("{}", OffsetDateTime::now_utc() - *date);
-            if OffsetDateTime::now_utc() - *date < Duration::seconds(revalidation_strategy.max_age)
+            if OffsetDateTime::now_utc() - *date
+                < time::Duration::seconds(revalidation_strategy.max_age)
             {
                 return vv_internal(login_response, content);
             }
@@ -54,17 +64,25 @@ pub async fn vv(
         retryable_get(tucan, &url).await?
     };
     let result = vv_internal(login_response, &content)?;
-    if invalidate_dependents && old_content_and_date.as_ref().map(|m| &m.0) != Some(&content) {
+
+    if invalidate_dependents && old_content_and_date.as_ref().map(|m| &m.key) != Some(&content) {
         // TODO invalidate cached ones?
     }
 
-    tucan.database.put(&key, (content, date)).await;
+    tucan
+        .database
+        .send_message(StoreCacheRequest(CacheEntry {
+            key,
+            value: content,
+            updated: date,
+        }))
+        .await;
 
     Ok(result)
 }
 
 #[expect(clippy::too_many_lines)]
-fn vv_internal(
+pub(crate) fn vv_internal(
     login_response: Option<&LoginResponse>,
     content: &str,
 ) -> Result<Vorlesungsverzeichnis, TucanError> {

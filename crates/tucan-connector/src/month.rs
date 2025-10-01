@@ -1,11 +1,5 @@
-// https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSEPREP&ARGUMENTS=-N503526614753137,-N000268,-N0,-N391553606081258,-ACODA,-N393006535520104
-
 use std::sync::LazyLock;
 
-// just use the url of another course and change the last number to the last
-// number in the coursedetails url seems like there is access control. if you
-// are not in a course it does not work. though you could easily register and
-// unregister again
 use crate::{
     TucanConnector, authenticated_retryable_get,
     head::{html_head, logged_in_head, logged_out_head},
@@ -16,50 +10,16 @@ use regex::Regex;
 use scraper::CaseSensitivity;
 use time::{Duration, OffsetDateTime};
 use tucan_types::{LoginResponse, RevalidationStrategy, TucanError, courseprep::CoursePrepRequest};
-
-/// 04.2025
-pub async fn month(
-    tucan: &TucanConnector,
-    login_response: &LoginResponse,
-    revalidation_strategy: RevalidationStrategy,
-    request: String,
-) -> Result<Vec<(String, CoursePrepRequest)>, TucanError> {
-    println!("{request}");
+/*
     let key = format!("unparsed_month.{request}");
-
-    let old_content_and_date = tucan.database.get::<(String, OffsetDateTime)>(&key).await;
-    if revalidation_strategy.max_age != 0 {
-        if let Some((content, date)) = &old_content_and_date {
-            info!("{}", OffsetDateTime::now_utc() - *date);
-            if OffsetDateTime::now_utc() - *date < Duration::seconds(revalidation_strategy.max_age)
-            {
-                return month_internal(login_response, content);
-            }
-        }
-    }
-
-    let Some(invalidate_dependents) = revalidation_strategy.invalidate_dependents else {
-        return Err(TucanError::NotCached);
-    };
 
     let url = format!(
         "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MONTH&ARGUMENTS=-N{:015},-N000271,-A01.{},-A,-N000000000000000",
         login_response.id, request
     );
-    let (content, date) =
-        authenticated_retryable_get(tucan, &url, &login_response.cookie_cnsc).await?;
-    let result = month_internal(login_response, &content)?;
-    if invalidate_dependents && old_content_and_date.as_ref().map(|m| &m.0) != Some(&content) {
-        // TODO invalidate cached ones?
-    }
-
-    tucan.database.put(&key, (content, date)).await;
-
-    Ok(result)
-}
-
+*/
 #[expect(clippy::too_many_lines)]
-fn month_internal(
+pub(crate) fn month_internal(
     login_response: &LoginResponse,
     content: &str,
 ) -> Result<Vec<(String, CoursePrepRequest)>, TucanError> {

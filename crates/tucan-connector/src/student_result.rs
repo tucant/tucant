@@ -18,52 +18,6 @@ use tucan_types::{
     },
 };
 
-/// 0 is the default
-pub async fn student_result(
-    tucan: &TucanConnector,
-    login_response: &LoginResponse,
-    revalidation_strategy: RevalidationStrategy,
-    request: u64,
-) -> Result<StudentResultResponse, TucanError> {
-    let key = format!("unparsed_student_result.{request}");
-
-    // TODO FIXME this can break as the normal tucan usage will remember which one
-    // you selected
-    let request =
-        format!("-N0,-N000000000000000,-N000000000000000,-N{request},-N0,-N000000000000000");
-
-    let old_content_and_date = tucan.database.get::<(String, OffsetDateTime)>(&key).await;
-    if revalidation_strategy.max_age != 0 {
-        if let Some((content, date)) = &old_content_and_date {
-            info!("{}", OffsetDateTime::now_utc() - *date);
-            if OffsetDateTime::now_utc() - *date < Duration::seconds(revalidation_strategy.max_age)
-            {
-                return student_result_internal(login_response, content);
-            }
-        }
-    }
-
-    let Some(invalidate_dependents) = revalidation_strategy.invalidate_dependents else {
-        return Err(TucanError::NotCached);
-    };
-
-    let url = format!(
-        "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STUDENT_RESULT&ARGUMENTS=-N{:015},-N000316,{}",
-        login_response.id, request
-    );
-    println!("{url}");
-    let (content, date) =
-        authenticated_retryable_get(tucan, &url, &login_response.cookie_cnsc).await?;
-    let result = student_result_internal(login_response, &content)?;
-    if invalidate_dependents && old_content_and_date.as_ref().map(|m| &m.0) != Some(&content) {
-        // TODO invalidate cached ones?
-    }
-
-    tucan.database.put(&key, (content, date)).await;
-
-    Ok(result)
-}
-
 fn get_level(node: &NodeRef<MyNode>) -> i8 {
     node.value()
         .as_element()
@@ -331,9 +285,10 @@ fn part1<T>(
 }
 
 #[expect(clippy::too_many_lines)]
-fn student_result_internal(
+pub(crate) fn student_result_internal(
     login_response: &LoginResponse,
     content: &str,
+    nothing: &(),
 ) -> Result<StudentResultResponse, TucanError> {
     let document = parse_document(content);
     let html_handler = Root::new(document.root());

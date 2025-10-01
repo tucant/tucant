@@ -15,52 +15,21 @@ use tucan_types::{
     LoginResponse, RevalidationStrategy, TucanError,
     courseprep::{CoursePrepRequest, CoursePrepType},
 };
-
-pub async fn course_prep(
-    tucan: &TucanConnector,
-    login_response: &LoginResponse,
-    revalidation_strategy: RevalidationStrategy,
-    request: CoursePrepRequest,
-) -> Result<String, TucanError> {
+/*
     assert_eq!(request.r#type, CoursePrepType::Course);
     let key = format!(
         "unparsed_course_prep.{}.{}",
         login_response.id, request.course_id
     );
 
-    let old_content_and_date = tucan.database.get::<(String, OffsetDateTime)>(&key).await;
-    if revalidation_strategy.max_age != 0 {
-        if let Some((content, date)) = &old_content_and_date {
-            info!("{}", OffsetDateTime::now_utc() - *date);
-            if OffsetDateTime::now_utc() - *date < Duration::seconds(revalidation_strategy.max_age)
-            {
-                return course_prep_internal(login_response, content);
-            }
-        }
-    }
-
-    let Some(invalidate_dependents) = revalidation_strategy.invalidate_dependents else {
-        return Err(TucanError::NotCached);
-    };
-
     let url = format!(
         "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSEPREP&ARGUMENTS=-N{:015},-N000268,{}",
         login_response.id, request
     );
-    let (content, date) =
-        authenticated_retryable_get(tucan, &url, &login_response.cookie_cnsc).await?;
-    let result = course_prep_internal(login_response, &content)?;
-    if invalidate_dependents && old_content_and_date.as_ref().map(|m| &m.0) != Some(&content) {
-        // TODO invalidate cached ones?
-    }
-
-    tucan.database.put(&key, (content, date)).await;
-
-    Ok(result)
-}
+*/
 
 #[allow(clippy::too_many_lines)]
-fn course_prep_internal(
+pub(crate) fn course_prep_internal(
     login_response: &LoginResponse,
     content: &str,
 ) -> Result<String, TucanError> {

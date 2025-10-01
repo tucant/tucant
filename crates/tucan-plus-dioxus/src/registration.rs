@@ -10,7 +10,7 @@ use crate::{RcTucanType, Route, common::use_authenticated_data_loader};
 pub fn Registration(registration: ReadSignal<AnmeldungRequest>) -> Element {
     let handler = async |tucan: RcTucanType, current_session, revalidation_strategy, additional| {
         tucan
-            .anmeldung(current_session, revalidation_strategy, additional)
+            .anmeldung(&current_session, revalidation_strategy, additional)
             .await
     };
 

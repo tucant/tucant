@@ -5,7 +5,10 @@ use js_sys::Function;
 use log::info;
 use serde::{Serialize, de::DeserializeOwned};
 use tracing::Level;
-use tucan_plus_dioxus::{Anonymize, BOOTSTRAP_JS, BOOTSTRAP_PATCH_JS, MyDatabase, Route, SERVICE_WORKER_JS};
+use tucan_plus_dioxus::{
+    Anonymize, BOOTSTRAP_JS, BOOTSTRAP_PATCH_JS, Route, SERVICE_WORKER_JS, WORKER_JS,
+};
+use tucan_plus_worker::MyDatabase;
 use tucan_types::LoginResponse;
 use wasm_bindgen::prelude::*;
 use web_sys::{AddEventListenerOptions, MessageEvent, Worker, WorkerOptions, WorkerType};
@@ -70,13 +73,14 @@ pub async fn main() {
     };
 
     // Does not work in Firefox extensions
-    // web_sys::window().unwrap().navigator().service_worker().register(&SERVICE_WORKER_JS.to_string());
+    // web_sys::window().unwrap().navigator().service_worker().register(&
+    // SERVICE_WORKER_JS.to_string());
 
     let launcher = dioxus::LaunchBuilder::new();
 
-    let worker = MyDatabase::wait_for_worker().await;
+    let worker = MyDatabase::wait_for_worker(WORKER_JS.to_string()).await;
 
-    let launcher = launcher.with_context(worker);
+    let launcher = launcher.with_context(worker.clone());
 
     #[cfg(feature = "web")]
     let launcher = launcher.with_cfg(
@@ -107,7 +111,7 @@ pub async fn main() {
 
     #[cfg(any(feature = "direct", feature = "desktop", feature = "mobile"))]
     let launcher = launcher.with_context(tucan_plus_dioxus::RcTucanType::new(
-        tucan_types::DynTucan::new_arc(tucan_connector::TucanConnector::new().await.unwrap()),
+        tucan_types::DynTucan::new_arc(tucan_connector::TucanConnector::new(worker).await.unwrap()),
     ));
 
     let launcher = launcher.with_context(Anonymize(anonymize));

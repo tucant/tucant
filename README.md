@@ -51,7 +51,6 @@ rustup toolchain install nightly-2025-09-08 --component rust-src --component rus
 rustup component remove --toolchain nightly-2025-09-08 rustfmt
 cargo +nightly-2025-09-08 install --force --git https://github.com/tucan-plus/rustfmt --branch html-extractor-formatting rustfmt-nightly
 cargo +nightly-2025-09-08 fmt
-rustup run nightly-2025-09-08 dx fmt
 
 rustup toolchain install nightly-2025-09-08 --component rustfmt
 ```
@@ -81,6 +80,8 @@ cargo install --locked bacon
 cd crates/tucan-plus-api/
 bacon run
 
+cargo install diesel_cli --no-default-features --features sqlite
+DATABASE_URL=sqlite://$(mktemp) diesel database reset
 
 # Service Workers in Firefox can't be ES Modules https://bugzilla.mozilla.org/show_bug.cgi?id=1360870
 # Event handlers must be registered synchronously

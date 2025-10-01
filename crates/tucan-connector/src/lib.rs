@@ -3,24 +3,14 @@ use std::{
     time::Duration,
 };
 
-use coursedetails::course_details;
-use courseresults::courseresults;
-use examresults::examresults;
 use externalpages::welcome::welcome;
-use key_value_database::Database;
+use log::info;
 use login::{login, logout};
-use mlsstart::after_login;
-use moduledetails::module_details;
-use mycourses::mycourses;
-use mydocuments::my_documents;
-use myexams::my_exams;
-use mymodules::mymodules;
 use regex::Regex;
-use registration::anmeldung;
 use reqwest::header;
-use student_result::student_result;
-use time::{OffsetDateTime, format_description::well_known::Rfc2822};
+use time::{Month, OffsetDateTime, format_description::well_known::Rfc2822, macros::offset};
 use tokio::sync::Semaphore;
+use tucan_plus_worker::{CacheRequest, MyDatabase, StoreCacheRequest, models::CacheEntry};
 use tucan_types::{
     CONCURRENCY, LoginResponse, RevalidationStrategy, SemesterId, Tucan, TucanError,
     courseresults::ModuleResultsResponse,
@@ -57,6 +47,58 @@ pub mod startpage_dispatch;
 pub mod student_result;
 pub mod vv;
 
+pub async fn fetch_with_cache<Request, Response>(
+    tucan: &TucanConnector,
+    login_response: &LoginResponse,
+    revalidation_strategy: RevalidationStrategy,
+    request: &Request,
+    key: String,
+    url: String,
+    parser: fn(&LoginResponse, &str, &Request) -> Result<Response, TucanError>,
+) -> Result<Response, TucanError> {
+    let old_content_and_date = tucan
+        .database
+        .send_message(CacheRequest { key: key.clone() })
+        .await;
+    if revalidation_strategy.max_age != 0 {
+        if let Some(CacheEntry {
+            key,
+            value: content,
+            updated: date,
+        }) = &old_content_and_date
+        {
+            info!("{}", OffsetDateTime::now_utc() - *date);
+            if OffsetDateTime::now_utc() - *date
+                < time::Duration::seconds(revalidation_strategy.max_age)
+            {
+                return parser(login_response, content, request);
+            }
+        }
+    }
+
+    let Some(invalidate_dependents) = revalidation_strategy.invalidate_dependents else {
+        return Err(TucanError::NotCached);
+    };
+
+    let (content, date) =
+        authenticated_retryable_get(tucan, &url, &login_response.cookie_cnsc).await?;
+    let result = parser(login_response, &content, request)?;
+    if invalidate_dependents && old_content_and_date.as_ref().map(|m| &m.key) != Some(&content) {
+        // TODO invalidate cached ones?
+    }
+
+    tucan
+        .database
+        .send_message(StoreCacheRequest(CacheEntry {
+            key,
+            value: content,
+            updated: date,
+        }))
+        .await;
+
+    Ok(result)
+}
+
 #[cfg(target_arch = "wasm32")]
 pub async fn sleep(duration: Duration) {
     let mut cb = |resolve: js_sys::Function, _reject: js_sys::Function| {
@@ -77,7 +119,14 @@ pub async fn sleep(duration: Duration) {
 #[cfg(not(target_arch = "wasm32"))]
 use tokio::time::sleep;
 
-use crate::gradeoverview::gradeoverview;
+use crate::{
+    coursedetails::course_details_internal, courseresults::course_results_internal,
+    examresults::exam_results_internal, gradeoverview::gradeoverview_internal,
+    mlsstart::after_login_internal, moduledetails::module_details_internal,
+    mycourses::my_courses_internal, mydocuments::my_documents_internal, myexams::my_exams_internal,
+    mymodules::my_modules_internal, registration::anmeldung_internal,
+    student_result::student_result_internal,
+};
 
 static COURSEDETAILS_REGEX: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(
@@ -91,7 +140,7 @@ type MyClient = reqwest::Client;
 #[cfg_attr(not(target_arch = "wasm32"), derive(Clone))]
 pub struct TucanConnector {
     pub client: MyClient,
-    pub database: Database,
+    pub database: MyDatabase,
     semaphore: Arc<Semaphore>,
 }
 
@@ -157,7 +206,7 @@ pub async fn authenticated_retryable_get(
 }
 
 impl TucanConnector {
-    pub async fn new() -> Result<Self, TucanError> {
+    pub async fn new(database: MyDatabase) -> Result<Self, TucanError> {
         let mut headers = header::HeaderMap::new();
         headers.insert(
             "Accept-Language",
@@ -173,7 +222,7 @@ impl TucanConnector {
             .unwrap();
         Ok(Self {
             client,
-            database: Database::new().await,
+            database,
             semaphore: Arc::new(Semaphore::new(CONCURRENCY)),
         })
     }
@@ -181,11 +230,12 @@ impl TucanConnector {
     #[cfg(not(target_arch = "wasm32"))]
     pub async fn new_test(
         client: reqwest::Client,
+        database: MyDatabase,
         semaphore: Arc<Semaphore>,
     ) -> Result<Self, TucanError> {
         Ok(Self {
             client,
-            database: Database::new_test().await,
+            database,
             semaphore,
         })
     }
@@ -205,10 +255,27 @@ impl Tucan for TucanConnector {
 
     async fn after_login(
         &self,
-        request: &tucan_types::LoginResponse,
+        login_response: &tucan_types::LoginResponse,
         revalidation_strategy: RevalidationStrategy,
     ) -> Result<MlsStart, TucanError> {
-        after_login(self, request, revalidation_strategy).await
+        let datetime = time::OffsetDateTime::now_utc();
+        let datetime = datetime.to_offset(offset!(+2));
+        let date = datetime.date();
+        let key = format!("unparsed_mlsstart.{}.{}", date, login_response.id);
+        let url = format!(
+        "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MLSSTART&ARGUMENTS=-N{},-N000019,",
+        login_response.id
+    );
+        fetch_with_cache(
+            self,
+            login_response,
+            revalidation_strategy,
+            &(),
+            key,
+            url,
+            after_login_internal,
+        )
+        .await
     }
 
     async fn logout(&self, request: &tucan_types::LoginResponse) -> Result<(), TucanError> {
@@ -217,64 +284,221 @@ impl Tucan for TucanConnector {
 
     async fn my_modules(
         &self,
-        request: &tucan_types::LoginResponse,
+        login_response: &tucan_types::LoginResponse,
         revalidation_strategy: RevalidationStrategy,
         semester: SemesterId,
     ) -> Result<MyModulesResponse, TucanError> {
-        mymodules(self, request, revalidation_strategy, semester).await
+        let key = format!("unparsed_mymodules.{}", semester.inner());
+        let url = format!(
+            "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MYMODULES&ARGUMENTS=-N{:015},-N000275,{}",
+            login_response.id,
+            if semester == SemesterId::current() {
+                "-N1337".to_owned() // DO NOT ASK
+            } else if semester == SemesterId::all() {
+                "-N999".to_owned()
+            } else {
+                format!("-N{}", semester.inner())
+            }
+        );
+        fetch_with_cache(
+            self,
+            login_response,
+            revalidation_strategy,
+            &(),
+            key,
+            url,
+            my_modules_internal,
+        )
+        .await
     }
 
     async fn my_courses(
         &self,
-        request: &tucan_types::LoginResponse,
+        login_response: &tucan_types::LoginResponse,
         revalidation_strategy: RevalidationStrategy,
         semester: SemesterId,
     ) -> Result<MyCoursesResponse, TucanError> {
-        mycourses(self, request, revalidation_strategy, semester).await
+        let key = format!("unparsed_mycourses.{}", semester.inner());
+        let url = format!(
+        "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=PROFCOURSES&ARGUMENTS=-N{:015},-N000274,{}",
+        login_response.id,
+        if semester == SemesterId::current() {
+            "-N1337".to_owned() // DO NOT ASK
+        } else if semester == SemesterId::all() {
+            "-N999".to_owned()
+        } else {
+            format!("-N{}", semester.inner())
+        }
+    );
+        fetch_with_cache(
+            self,
+            login_response,
+            revalidation_strategy,
+            &(),
+            key,
+            url,
+            my_courses_internal,
+        )
+        .await
     }
 
     async fn my_exams(
         &self,
-        request: &tucan_types::LoginResponse,
+        login_response: &tucan_types::LoginResponse,
         revalidation_strategy: RevalidationStrategy,
         semester: SemesterId,
     ) -> Result<MyExamsResponse, TucanError> {
-        my_exams(self, request, revalidation_strategy, semester).await
+        let key = format!("unparsed_myexams.{}", semester.inner());
+        let url = format!(
+        "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MYEXAMS&ARGUMENTS=-N{:015},-N000318,{}",
+        login_response.id,
+        if semester == SemesterId::current() {
+            String::new()
+        } else if semester == SemesterId::all() {
+            "-N999".to_owned()
+        } else {
+            format!("-N{}", semester.inner())
+        }
+    );
+        fetch_with_cache(
+            self,
+            login_response,
+            revalidation_strategy,
+            &(),
+            key,
+            url,
+            my_exams_internal,
+        )
+        .await
     }
 
     async fn exam_results(
         &self,
-        request: &tucan_types::LoginResponse,
+        login_response: &tucan_types::LoginResponse,
         revalidation_strategy: RevalidationStrategy,
         semester: SemesterId,
     ) -> Result<ExamResultsResponse, TucanError> {
-        examresults(self, request, revalidation_strategy, semester).await
+        let key = format!("unparsed_examresults.{}", semester.inner());
+
+        let url = format!(
+        "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXAMRESULTS&ARGUMENTS=-N{:015},-N000325,{}",
+        login_response.id,
+        if semester == SemesterId::current() {
+            String::new()
+        } else if semester == SemesterId::all() {
+            "-N999".to_owned()
+        } else {
+            format!("-N{}", semester.inner())
+        }
+    );
+        fetch_with_cache(
+            self,
+            login_response,
+            revalidation_strategy,
+            &(),
+            key,
+            url,
+            exam_results_internal,
+        )
+        .await
     }
 
     async fn course_results(
         &self,
-        request: &tucan_types::LoginResponse,
+        login_response: &tucan_types::LoginResponse,
         revalidation_strategy: RevalidationStrategy,
         semester: SemesterId,
     ) -> Result<ModuleResultsResponse, TucanError> {
-        courseresults(self, request, revalidation_strategy, semester).await
+        let key = format!("unparsed_courseresults.{}", semester.inner());
+        let url = format!(
+        "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSERESULTS&ARGUMENTS=-N{:015},-N000324,{}",
+        login_response.id,
+        if semester == SemesterId::current() {
+            String::new()
+        } else if semester == SemesterId::all() {
+            panic!("not supported")
+        } else {
+            format!("-N{}", semester.inner())
+        }
+    );
+        fetch_with_cache(
+            self,
+            login_response,
+            revalidation_strategy,
+            &(),
+            key,
+            url,
+            course_results_internal,
+        )
+        .await
     }
 
     async fn my_documents(
         &self,
-        request: &tucan_types::LoginResponse,
+        login_response: &tucan_types::LoginResponse,
         revalidation_strategy: RevalidationStrategy,
     ) -> Result<MyDocumentsResponse, TucanError> {
-        my_documents(self, request, revalidation_strategy).await
+        let key = "unparsed_mydocuments".to_string();
+        let url = format!(
+        "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=CREATEDOCUMENT&ARGUMENTS=-N{:015},-N000557,",
+        login_response.id
+    );
+        fetch_with_cache(
+            self,
+            login_response,
+            revalidation_strategy,
+            &(),
+            key,
+            url,
+            my_documents_internal,
+        )
+        .await
     }
 
     async fn anmeldung(
         &self,
-        login_response: tucan_types::LoginResponse,
+        login_response: &tucan_types::LoginResponse,
         revalidation_strategy: RevalidationStrategy,
         request: tucan_types::registration::AnmeldungRequest,
     ) -> Result<tucan_types::registration::AnmeldungResponse, TucanError> {
-        anmeldung(self, &login_response, revalidation_strategy, request).await
+        let datetime = time::OffsetDateTime::now_utc();
+        let datetime = datetime.to_offset(offset!(+2));
+        let date = datetime.date();
+        let registration_sose = Month::March <= date.month() && date.month() <= Month::August;
+        let key = format!(
+            "unparsed_anmeldung.{}.{}",
+            if registration_sose { "sose" } else { "wise" },
+            request.inner()
+        );
+        let url = format!(
+        "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N{:015},-N000311,{}",
+        login_response.id,
+        request.inner()
+    );
+        /* let keys: Vec<String> = result
+            .entries
+            .iter()
+            .flat_map(|e| &e.module)
+            .map(|e| format!("unparsed_module_details.{}", e.url.inner()))
+            .chain(
+                result
+                    .entries
+                    .iter()
+                    .flat_map(|e| &e.courses)
+                    .map(|e| format!("unparsed_course_details.{}", e.1.url.inner())),
+            )
+            .collect();
+        tucan.database.remove_many(keys).await; */
+        fetch_with_cache(
+            self,
+            &login_response,
+            revalidation_strategy,
+            &(),
+            key,
+            url,
+            anmeldung_internal,
+        )
+        .await
     }
 
     async fn module_details(
@@ -283,7 +507,23 @@ impl Tucan for TucanConnector {
         revalidation_strategy: RevalidationStrategy,
         request: tucan_types::moduledetails::ModuleDetailsRequest,
     ) -> Result<tucan_types::moduledetails::ModuleDetailsResponse, TucanError> {
-        module_details(self, login_response, revalidation_strategy, request).await
+        let key = format!("unparsed_module_details.{}", request.inner());
+        let url = format!(
+        "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=-N{:015},-N000311,{}",
+        login_response.id,
+        request.inner()
+    );
+
+        fetch_with_cache(
+            self,
+            login_response,
+            revalidation_strategy,
+            &(),
+            key,
+            url,
+            module_details_internal,
+        )
+        .await
     }
 
     async fn course_details(
@@ -292,34 +532,72 @@ impl Tucan for TucanConnector {
         revalidation_strategy: RevalidationStrategy,
         request: tucan_types::coursedetails::CourseDetailsRequest,
     ) -> Result<tucan_types::coursedetails::CourseDetailsResponse, TucanError> {
-        course_details(self, login_response, revalidation_strategy, request).await
+        fetch_with_cache(self, login_response, revalidation_strategy, &request, format!("unparsed_course_details.{}", request.inner()), format!(
+            "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSEDETAILS&ARGUMENTS=-N{:015},-N000311,{}",
+            login_response.id,
+            request.inner()
+        ), course_details_internal).await
     }
 
     async fn vv(
         &self,
         login_response: Option<&tucan_types::LoginResponse>,
         revalidation_strategy: RevalidationStrategy,
-        action: ActionRequest,
+        request: ActionRequest,
     ) -> Result<Vorlesungsverzeichnis, TucanError> {
-        vv(self, login_response, revalidation_strategy, action).await
+        vv(self, login_response, revalidation_strategy, request).await
     }
 
     async fn student_result(
         &self,
         login_response: &LoginResponse,
         revalidation_strategy: RevalidationStrategy,
-        course_of_study: u64,
+        request: u64,
     ) -> Result<StudentResultResponse, TucanError> {
-        student_result(self, login_response, revalidation_strategy, course_of_study).await
+        /// 0 is the default
+        let key = format!("unparsed_student_result.{request}");
+
+        // TODO FIXME this can break as the normal tucan usage will remember which one
+        // you selected
+        let request =
+            format!("-N0,-N000000000000000,-N000000000000000,-N{request},-N0,-N000000000000000");
+        let url = format!(
+        "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STUDENT_RESULT&ARGUMENTS=-N{:015},-N000316,{}",
+        login_response.id, request
+    );
+        fetch_with_cache(
+            self,
+            login_response,
+            revalidation_strategy,
+            &(),
+            key,
+            url,
+            student_result_internal,
+        )
+        .await
     }
 
-    fn gradeoverview(
+    async fn gradeoverview(
         &self,
         login_response: &LoginResponse,
         revalidation_strategy: RevalidationStrategy,
         request: GradeOverviewRequest,
-    ) -> impl std::future::Future<Output = Result<GradeOverviewResponse, TucanError>> {
-        gradeoverview(self, login_response, revalidation_strategy, request)
+    ) -> Result<GradeOverviewResponse, TucanError> {
+        let key = format!("unparsed_gradeoverview.{request}");
+        let url = format!(
+        "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=GRADEOVERVIEW&ARGUMENTS=-N{},-N000325,{request}",
+        login_response.id
+    );
+        fetch_with_cache(
+            self,
+            login_response,
+            revalidation_strategy,
+            &(),
+            key,
+            url,
+            gradeoverview_internal,
+        )
+        .await
     }
 }
 

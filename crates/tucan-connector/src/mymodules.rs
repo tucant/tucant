@@ -14,59 +14,11 @@ use crate::{
     registration::MODULEDETAILS_REGEX,
 };
 
-pub async fn mymodules(
-    tucan: &TucanConnector,
-    login_response: &LoginResponse,
-    revalidation_strategy: RevalidationStrategy,
-    semester: SemesterId,
-) -> Result<MyModulesResponse, TucanError> {
-    let key = format!("unparsed_mymodules.{}", semester.inner());
-
-    let old_content_and_date = tucan.database.get::<(String, OffsetDateTime)>(&key).await;
-    if revalidation_strategy.max_age != 0 {
-        if let Some((content, date)) = &old_content_and_date {
-            if OffsetDateTime::now_utc() - *date < Duration::seconds(revalidation_strategy.max_age)
-            {
-                return mymodules_internal(login_response, content);
-            }
-        }
-    }
-
-    let Some(invalidate_dependents) = revalidation_strategy.invalidate_dependents else {
-        return Err(TucanError::NotCached);
-    };
-
-    let url = format!(
-        "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MYMODULES&ARGUMENTS=-N{:015},-N000275,{}",
-        login_response.id,
-        if semester == SemesterId::current() {
-            "-N1337".to_owned() // DO NOT ASK
-        } else if semester == SemesterId::all() {
-            "-N999".to_owned()
-        } else {
-            format!("-N{}", semester.inner())
-        }
-    );
-    let (content, date) =
-        authenticated_retryable_get(tucan, &url, &login_response.cookie_cnsc).await?;
-    let result = mymodules_internal(login_response, &content)?;
-    if invalidate_dependents && old_content_and_date.as_ref().map(|m| &m.0) != Some(&content) {
-        // TODO invalidate cached ones?
-        // TODO FIXME don't remove from database to be able to do recursive
-        // invalidations. maybe set age to oldest possible value? or
-        // more complex set invalidated and then queries can allow to return
-        // invalidated. I think we should do the more complex thing.
-    }
-
-    tucan.database.put(&key, (content, date)).await;
-
-    Ok(result)
-}
-
 #[expect(clippy::too_many_lines)]
-fn mymodules_internal(
+pub(crate) fn my_modules_internal(
     login_response: &LoginResponse,
     content: &str,
+    nothing: &(),
 ) -> Result<MyModulesResponse, TucanError> {
     let document = parse_document(content);
     let html_handler = Root::new(document.root());
