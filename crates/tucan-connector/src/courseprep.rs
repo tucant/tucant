@@ -4,16 +4,10 @@
 // number in the coursedetails url seems like there is access control. if you
 // are not in a course it does not work. though you could easily register and
 // unregister again
-use crate::{
-    TucanConnector, authenticated_retryable_get,
-    head::{html_head, logged_in_head, logged_out_head},
-};
+use crate::head::{html_head, logged_in_head, logged_out_head};
 use html_handler::{Root, parse_document};
-use log::info;
-use time::{Duration, OffsetDateTime};
 use tucan_types::{
-    LoginResponse, RevalidationStrategy, TucanError,
-    courseprep::{CoursePrepRequest, CoursePrepType},
+    LoginResponse, TucanError,
 };
 /*
     assert_eq!(request.r#type, CoursePrepType::Course);

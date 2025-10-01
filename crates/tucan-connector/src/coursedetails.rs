@@ -1,17 +1,14 @@
 use crate::{
-    COURSEDETAILS_REGEX, TucanConnector, authenticated_retryable_get,
+    COURSEDETAILS_REGEX,
     head::{footer, html_head, logged_in_head, logged_out_head},
 };
 use data_encoding::BASE64URL_NOPAD;
 use html_handler::{MyElementRef, MyNode, Root, parse_document};
 use itertools::{Either, Itertools};
-use log::info;
 use scraper::CaseSensitivity;
 use sha3::{Digest, Sha3_256};
-use time::{Duration, OffsetDateTime};
-use tucan_plus_worker::{CacheRequest, StoreCacheRequest, models::CacheEntry};
 use tucan_types::{
-    InstructorImage, LoginResponse, RevalidationStrategy, TucanError,
+    InstructorImage, LoginResponse, TucanError,
     coursedetails::{
         CourseAnmeldefrist, CourseDetailsRequest, CourseDetailsResponse, CourseUebungsGruppe,
         InstructorImageWithLink, Room, Termin,
@@ -772,8 +769,7 @@ pub(crate) fn course_details_internal(
             "ZhaKKJFX25tOY1kxA60kaVFRXPhnq-2Znq16l9V5acQ",
             "dUAw_-nWeQp2zAi07MFw7M99KQGdgI6QmZMem0wTtgo",
             "o37txCeZ2uWIszeTnl6vocuOugvPMZnSjpKwaHGqfmo",
-        ]
-        .into_iter())
+        ])
     {
         // hack, one person has a second name at one place and not at the other
         // place

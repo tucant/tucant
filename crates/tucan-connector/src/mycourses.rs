@@ -2,15 +2,14 @@ use std::str::FromStr;
 
 use html_handler::{Root, parse_document};
 use scraper::CaseSensitivity;
-use time::{Duration, OffsetDateTime};
 use tucan_types::{
-    LoginResponse, RevalidationStrategy, SemesterId, Semesterauswahl, TucanError,
+    LoginResponse, SemesterId, Semesterauswahl, TucanError,
     coursedetails::CourseDetailsRequest,
     mycourses::{Course, MyCoursesResponse},
 };
 
 use crate::{
-    COURSEDETAILS_REGEX, TucanConnector, authenticated_retryable_get,
+    COURSEDETAILS_REGEX,
     head::{footer, html_head, logged_in_head},
 };
 

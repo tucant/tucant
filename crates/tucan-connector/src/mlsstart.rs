@@ -1,13 +1,11 @@
-use log::info;
-use time::{Duration, OffsetDateTime, macros::offset};
 use tucan_types::{
-    LoginResponse, RevalidationStrategy,
+    LoginResponse,
     coursedetails::CourseDetailsRequest,
     mlsstart::{MlsStart, Nachricht, StundenplanEintrag},
 };
 
 use crate::{
-    COURSEDETAILS_REGEX, TucanConnector, TucanError, authenticated_retryable_get,
+    COURSEDETAILS_REGEX, TucanError,
     head::{footer, html_head, logged_in_head},
 };
 use html_handler::{MyElementRef, MyNode, Root, parse_document};

@@ -491,7 +491,7 @@ impl Tucan for TucanConnector {
         tucan.database.remove_many(keys).await; */
         fetch_with_cache(
             self,
-            &login_response,
+            login_response,
             revalidation_strategy,
             &(),
             key,
