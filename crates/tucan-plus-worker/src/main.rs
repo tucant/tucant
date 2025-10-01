@@ -65,7 +65,7 @@ pub async fn main() {
 
     let global = js_sys::global().unchecked_into::<web_sys::DedicatedWorkerGlobalScope>();
 
-    let util = sqlite_wasm_rs::sahpool_vfs::install(
+    let _util = sqlite_wasm_rs::sahpool_vfs::install(
         &sqlite_wasm_rs::sahpool_vfs::OpfsSAHPoolCfg::default(),
         true,
     )

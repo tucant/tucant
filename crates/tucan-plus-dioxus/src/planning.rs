@@ -525,7 +525,7 @@ async fn prep_planning(
                 if (!entries.is_empty() && expanded())
                     || entries.iter().any(|entry| entry.state != State::NotPlanned) {
                     AnmeldungenEntries {
-                        future,
+                        future: use_resource(|| async { Vec::new() }),
                         entries: ReadSignal::new(use_signal(|| Some(entries
                             .iter()
                             .filter(|entry| expanded() || entry.state != State::NotPlanned)

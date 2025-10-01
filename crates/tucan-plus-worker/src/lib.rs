@@ -1,5 +1,5 @@
 
-use diesel::{prelude::*, r2d2::CustomizeConnection, upsert::excluded};
+use diesel::{prelude::*, upsert::excluded};
 use diesel_migrations::{EmbeddedMigrations, embed_migrations};
 #[cfg(target_arch = "wasm32")]
 use fragile::Fragile;
@@ -26,7 +26,8 @@ pub mod schema;
 pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!("migrations");
 
 #[cfg(target_arch = "wasm32")]
-pub trait RequestResponse: Serialize + Sized {
+pub trait RequestResponse: Serialize + Sized where
+    RequestResponseEnum: From<Self>, {
     type Response: DeserializeOwned;
     fn execute(&self, connection: &mut SqliteConnection) -> Self::Response;
 }
@@ -262,6 +263,7 @@ impl RequestResponse for UpdateModule {
     }
 }
 
+#[cfg_attr(target_arch = "wasm32", derive(Serialize, Deserialize))]
 #[derive(Debug)]
 pub struct UpdateAnmeldungEntry {
     pub entry: AnmeldungEntry
@@ -278,6 +280,7 @@ impl RequestResponse for UpdateAnmeldungEntry {
     }
 }
 
+#[cfg_attr(target_arch = "wasm32", derive(Serialize, Deserialize))]
 #[derive(Debug)]
 pub struct AnmeldungenEntriesInSemester {
     pub course_of_study: String,
@@ -395,6 +398,8 @@ pub enum RequestResponseEnum {
     CacheRequest(CacheRequest),
     StoreCacheRequest(StoreCacheRequest),
     ExportDatabaseRequest(ExportDatabaseRequest),
+    UpdateAnmeldungEntry(UpdateAnmeldungEntry),
+    AnmeldungenEntriesInSemester(AnmeldungenEntriesInSemester)
 }
 
 #[cfg(target_arch = "wasm32")]
@@ -437,6 +442,12 @@ impl RequestResponseEnum {
             RequestResponseEnum::ExportDatabaseRequest(value) => {
                 serde_wasm_bindgen::to_value(&value.execute(connection)).unwrap()
             }
+            RequestResponseEnum::UpdateAnmeldungEntry(value) => {
+                serde_wasm_bindgen::to_value(&value.execute(connection)).unwrap()
+            }
+            RequestResponseEnum::AnmeldungenEntriesInSemester(value) => {
+                serde_wasm_bindgen::to_value(&value.execute(connection)).unwrap()
+            }
         }
     }
 }
@@ -452,9 +463,11 @@ pub struct MessageWithId {
 #[derive(Clone)]
 pub struct MyDatabase(diesel::r2d2::Pool<diesel::r2d2::ConnectionManager<SqliteConnection>>);
 
+#[cfg(not(target_arch = "wasm32"))]
 #[derive(Debug)]
 struct ConnectionCustomizer;
 
+#[cfg(not(target_arch = "wasm32"))]
 impl<C: diesel::connection::SimpleConnection, E> CustomizeConnection<C, E>
     for ConnectionCustomizer
 {
@@ -527,8 +540,8 @@ impl MyDatabase {
 
         let lock_manager = web_sys::window().unwrap().navigator().locks();
         let lock_closure: Closure<dyn Fn(_) -> Promise> = {
-            Closure::new(move |event: web_sys::Lock| {
-                let mut cb = |resolve: js_sys::Function, reject: js_sys::Function| {
+            Closure::new(move |_event: web_sys::Lock| {
+                let mut cb = |_resolve: js_sys::Function, reject: js_sys::Function| {
                     use web_sys::{WorkerOptions, WorkerType};
 
                     let options = WorkerOptions::new();
@@ -559,7 +572,7 @@ impl MyDatabase {
                 return js_sys::Promise::new(&mut cb);
             })
         };
-        lock_manager.request_with_callback("opfs", lock_closure.as_ref().unchecked_ref());
+        let _intentional = lock_manager.request_with_callback("opfs", lock_closure.as_ref().unchecked_ref());
         lock_closure.forget();
 
         let broadcast_channel = Fragile::new(BroadcastChannel::new("global").unwrap());
@@ -584,7 +597,7 @@ impl MyDatabase {
 
         let temporary_broadcast_channel = BroadcastChannel::new(&id).unwrap();
 
-        let mut cb = |resolve: js_sys::Function, reject: js_sys::Function| {
+        let mut cb = |resolve: js_sys::Function, _reject: js_sys::Function| {
             use wasm_bindgen::{JsCast as _, prelude::Closure};
 
             let temporary_message_closure: Closure<dyn Fn(_)> = {
