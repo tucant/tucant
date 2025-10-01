@@ -80,7 +80,7 @@ pub async fn main() {
 
     let worker = MyDatabase::wait_for_worker(WORKER_JS.to_string()).await;
 
-    let launcher = launcher.with_context(worker);
+    let launcher = launcher.with_context(worker.clone());
 
     #[cfg(feature = "web")]
     let launcher = launcher.with_cfg(

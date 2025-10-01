@@ -83,6 +83,9 @@
             cd ./crates/tucan-plus-api
           '';
           strictDeps = true;
+          buildInputs = [
+            pkgs.sqlite
+          ];
           pname = "tucan-plus-workspace-native-api";
           src = lib.fileset.toSource {
             root = ./.;
