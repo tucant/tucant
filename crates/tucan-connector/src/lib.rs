@@ -610,6 +610,7 @@ mod tests {
         runtime::Runtime,
         sync::{OnceCell, Semaphore},
     };
+    use tucan_plus_worker::MyDatabase;
     use tucan_types::{
         LoginRequest, LoginResponse, RevalidationStrategy, TucanError,
         coursedetails::CourseDetailsRequest, moduledetails::ModuleDetailsRequest,
@@ -649,13 +650,17 @@ mod tests {
                     .build()
                     .unwrap();
 
-                let semaphore = Arc::new(Semaphore::new(CONCURRENCY));
+                let semaphore = Arc::new(Semaphore::new(crate::CONCURRENCY));
                 (client, semaphore)
             })
             .await;
-        TucanConnector::new_test(client.clone(), semaphore.clone())
-            .await
-            .unwrap()
+        TucanConnector::new_test(
+            client.clone(),
+            MyDatabase::wait_for_worker().await,
+            semaphore.clone(),
+        )
+        .await
+        .unwrap()
     }
 
     #[test]

@@ -14,7 +14,10 @@
         "./crates/tucan-plus-service-worker/Cargo.toml",
         "./crates/tucan-plus-api/Cargo.toml"
     ],
-    //"rust-analyzer.cargo.target": "wasm32-unknown-unknown",
+    "rust-analyzer.check.targets": [
+        "x86_64-unknown-linux-gnu",
+        "wasm32-unknown-unknown"
+    ],
     "rust-analyzer.cargo.features": [
         //"desktop",
         //"authenticated_tests"

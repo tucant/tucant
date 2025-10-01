@@ -6,6 +6,7 @@ use std::sync::atomic::{AtomicU64, Ordering};
 use futures_util::stream::FuturesUnordered;
 use futures_util::{FutureExt, StreamExt};
 use tucan_connector::TucanConnector;
+use tucan_plus_worker::MyDatabase;
 use tucan_types::coursedetails::CourseDetailsRequest;
 use tucan_types::registration::{AnmeldungRequest, RegistrationState};
 use tucan_types::{LoginRequest, RevalidationStrategy, Tucan};
@@ -21,7 +22,7 @@ fn main() -> Result<(), TucanError> {
 }
 
 async fn async_main() -> Result<(), TucanError> {
-    let tucan = TucanConnector::new().await?;
+    let tucan = TucanConnector::new(MyDatabase::wait_for_worker().await).await?;
 
     /*let login_response = LoginResponse {
         id: std::env::var("SESSION_ID").unwrap().parse().unwrap(),
@@ -85,7 +86,7 @@ impl Fetcher {
             let result = AssertUnwindSafe(async {
                 tucan
                     .anmeldung(
-                        login_response.clone(),
+                        &login_response.clone(),
                         RevalidationStrategy::cache(),
                         anmeldung_request.clone(),
                     )

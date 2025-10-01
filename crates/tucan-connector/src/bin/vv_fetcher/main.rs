@@ -6,6 +6,7 @@ use std::sync::atomic::{AtomicU64, Ordering};
 use futures_util::stream::FuturesUnordered;
 use futures_util::{FutureExt, StreamExt};
 use tucan_connector::TucanConnector;
+use tucan_plus_worker::MyDatabase;
 use tucan_types::vv::ActionRequest;
 use tucan_types::{LoginRequest, RevalidationStrategy, Tucan};
 use tucan_types::{LoginResponse, TucanError};
@@ -26,7 +27,7 @@ fn main() -> Result<(), TucanError> {
 }
 
 async fn async_main() -> Result<(), TucanError> {
-    let tucan = TucanConnector::new().await?;
+    let tucan = TucanConnector::new(MyDatabase::wait_for_worker().await).await?;
 
     /*let login_response = LoginResponse {
         id: std::env::var("SESSION_ID").unwrap().parse().unwrap(),
