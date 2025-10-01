@@ -7,6 +7,7 @@ use coursedetails::course_details;
 use courseresults::courseresults;
 use examresults::examresults;
 use externalpages::welcome::welcome;
+use log::info;
 use login::{login, logout};
 use mlsstart::after_login;
 use moduledetails::module_details;
@@ -20,7 +21,7 @@ use reqwest::header;
 use student_result::student_result;
 use time::{OffsetDateTime, format_description::well_known::Rfc2822};
 use tokio::sync::Semaphore;
-use tucan_plus_worker::MyDatabase;
+use tucan_plus_worker::{CacheRequest, MyDatabase, StoreCacheRequest, models::CacheEntry};
 use tucan_types::{
     CONCURRENCY, LoginResponse, RevalidationStrategy, SemesterId, Tucan, TucanError,
     courseresults::ModuleResultsResponse,
@@ -57,6 +58,58 @@ pub mod startpage_dispatch;
 pub mod student_result;
 pub mod vv;
 
+pub async fn fetch_with_cache<Request, Response>(
+    tucan: &TucanConnector,
+    login_response: &LoginResponse,
+    revalidation_strategy: RevalidationStrategy,
+    request: &Request,
+    key: String,
+    url: String,
+    parser: fn(&LoginResponse, &str, &Request) -> Result<Response, TucanError>,
+) -> Result<Response, TucanError> {
+    let old_content_and_date = tucan
+        .database
+        .send_message(CacheRequest { key: key.clone() })
+        .await;
+    if revalidation_strategy.max_age != 0 {
+        if let Some(CacheEntry {
+            key,
+            value: content,
+            updated: date,
+        }) = &old_content_and_date
+        {
+            info!("{}", OffsetDateTime::now_utc() - *date);
+            if OffsetDateTime::now_utc() - *date
+                < time::Duration::seconds(revalidation_strategy.max_age)
+            {
+                return parser(login_response, content, request);
+            }
+        }
+    }
+
+    let Some(invalidate_dependents) = revalidation_strategy.invalidate_dependents else {
+        return Err(TucanError::NotCached);
+    };
+
+    let (content, date) =
+        authenticated_retryable_get(tucan, &url, &login_response.cookie_cnsc).await?;
+    let result = parser(login_response, &content, request)?;
+    if invalidate_dependents && old_content_and_date.as_ref().map(|m| &m.key) != Some(&content) {
+        // TODO invalidate cached ones?
+    }
+
+    tucan
+        .database
+        .send_message(StoreCacheRequest(CacheEntry {
+            key,
+            value: content,
+            updated: date,
+        }))
+        .await;
+
+    Ok(result)
+}
+
 #[cfg(target_arch = "wasm32")]
 pub async fn sleep(duration: Duration) {
     let mut cb = |resolve: js_sys::Function, _reject: js_sys::Function| {
@@ -77,7 +130,7 @@ pub async fn sleep(duration: Duration) {
 #[cfg(not(target_arch = "wasm32"))]
 use tokio::time::sleep;
 
-use crate::gradeoverview::gradeoverview;
+use crate::{coursedetails::course_details_internal, gradeoverview::gradeoverview};
 
 static COURSEDETAILS_REGEX: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(
@@ -293,7 +346,11 @@ impl Tucan for TucanConnector {
         revalidation_strategy: RevalidationStrategy,
         request: tucan_types::coursedetails::CourseDetailsRequest,
     ) -> Result<tucan_types::coursedetails::CourseDetailsResponse, TucanError> {
-        course_details(self, login_response, revalidation_strategy, request).await
+        fetch_with_cache(self, login_response, revalidation_strategy, &request, format!("unparsed_course_details.{}", request.inner()), format!(
+        "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSEDETAILS&ARGUMENTS=-N{:015},-N000311,{}",
+        login_response.id,
+        request.inner()
+    ), course_details_internal).await
     }
 
     async fn vv(
