@@ -18,3 +18,4 @@ log = { version = "0.4" }
 [dev-dependencies]
 tucan-connector = { path = "../tucan-connector" }
 dotenvy = "0.15"
+tucan-plus-worker = { path = "../tucan-plus-worker" }

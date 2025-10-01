@@ -74,7 +74,9 @@ fn validate(errors: &mut Vec<String>, level: &StudentResultLevel) -> (u64, u64) 
 
 #[cfg(not(target_arch = "wasm32"))]
 async fn async_main() -> Result<(), TucanError> {
-    let tucan = TucanConnector::new().await?;
+    use tucan_plus_worker::MyDatabase;
+
+    let tucan = TucanConnector::new(MyDatabase::wait_for_worker().await).await?;
 
     /*let login_response = LoginResponse {
         id: std::env::var("SESSION_ID").unwrap().parse().unwrap(),
@@ -183,7 +185,7 @@ impl Fetcher {
             async move {
                 tucan
                     .anmeldung(
-                        login_response.clone(),
+                        &login_response.clone(),
                         RevalidationStrategy::cache(),
                         anmeldung_request.clone(),
                     )

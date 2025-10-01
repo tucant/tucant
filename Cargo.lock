@@ -5927,6 +5927,7 @@ dependencies = [
  "serde_json",
  "tokio",
  "tucan-connector",
+ "tucan-plus-worker",
  "tucan-types",
 ]
 
