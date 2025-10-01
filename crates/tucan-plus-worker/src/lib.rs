@@ -1,4 +1,6 @@
 
+#[cfg(not(target_arch = "wasm32"))]
+use diesel::r2d2::CustomizeConnection;
 use diesel::{prelude::*, upsert::excluded};
 use diesel_migrations::{EmbeddedMigrations, embed_migrations};
 #[cfg(target_arch = "wasm32")]
