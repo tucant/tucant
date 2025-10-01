@@ -2,7 +2,7 @@
 use std::{cell::RefCell, rc::Rc};
 
 use derive_more::From;
-use diesel::{prelude::*, upsert::excluded};
+use diesel::{prelude::*, r2d2::CustomizeConnection, upsert::excluded};
 use diesel_migrations::{EmbeddedMigrations, embed_migrations};
 #[cfg(target_arch = "wasm32")]
 use fragile::Fragile;
@@ -393,6 +393,25 @@ pub struct MessageWithId {
 #[derive(Clone)]
 pub struct MyDatabase(diesel::r2d2::Pool<diesel::r2d2::ConnectionManager<SqliteConnection>>);
 
+#[derive(Debug)]
+struct ConnectionCustomizer;
+
+impl<C: diesel::connection::SimpleConnection, E> CustomizeConnection<C, E>
+    for ConnectionCustomizer
+{
+    fn on_acquire(&self, connection: &mut C) -> Result<(), E> {
+        connection
+            .batch_execute("PRAGMA busy_timeout = 2000;")
+            .unwrap();
+        connection
+            .batch_execute("PRAGMA synchronous = NORMAL;")
+            .unwrap();
+        Ok(())
+    }
+
+    fn on_release(&self, conn: C) {}
+}
+
 #[cfg(not(target_arch = "wasm32"))]
 impl MyDatabase {
     pub async fn wait_for_worker() -> Self {
@@ -413,33 +432,13 @@ impl MyDatabase {
         };
 
         let pool = Pool::builder()
+            .connection_customizer(Box::new(ConnectionCustomizer))
             .build(ConnectionManager::<SqliteConnection>::new(url))
             .unwrap();
 
         let connection = &mut pool.get().unwrap();
-
-        // see https://fractaledmind.github.io/2023/09/07/enhancing-rails-sqlite-fine-tuning/
-        // sleep if the database is busy, this corresponds to up to 2 seconds sleeping
-        // time.
-        connection
-            .batch_execute("PRAGMA busy_timeout = 2000;")
-            .unwrap();
-        // better write-concurrency
         connection
             .batch_execute("PRAGMA journal_mode = WAL;")
-            .unwrap();
-        // fsync only in critical moments
-        connection
-            .batch_execute("PRAGMA synchronous = NORMAL;")
-            .unwrap();
-        // write WAL changes back every 1000 pages, for an in average 1MB WAL file.
-        // May affect readers if number is increased
-        connection
-            .batch_execute("PRAGMA wal_autocheckpoint = 1000;")
-            .unwrap();
-        // free some space by truncating possibly massive WAL files from the last run
-        connection
-            .batch_execute("PRAGMA wal_checkpoint(TRUNCATE);")
             .unwrap();
 
         connection.run_pending_migrations(MIGRATIONS).unwrap();
