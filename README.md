@@ -104,6 +104,32 @@ dx bundle --platform web --out-dir ../../tucan-plus-extension/ --base-path publi
 Go to Firefox Extensions, click settings, debug addons. Then click load temporary add-on and select ./tucan-plus-extension/manifest.json
 See https://extensionworkshop.com/documentation/develop/debugging/.
 
+### VSCode
+
+```
+tucan-plus-multi-target
+    tucan-plus
+    wasm32-unknown-unknown
+        .vscode/settings.json
+        -> tucan-plus
+    x86_64-unknown-linux-gnu
+        .vscode/settings.json
+        -> tucan-plus
+```
+
+```json
+{
+    "rust-analyzer.linkedProjects": [
+        "./tucan-plus/crates/tucan-plus-dioxus/Cargo.toml",
+        "./tucan-plus/crates/tucan-connector/Cargo.toml",
+        "./tucan-plus/crates/tucan-plus-worker/Cargo.toml",
+        "./tucan-plus/crates/tucan-plus-service-worker/Cargo.toml",
+    ],
+    "rust-analyzer.cargo.target": "wasm32-unknown-unknown",
+    "rust-analyzer.files.watcher": "server",
+}
+```
+
 ## Building extension (not for development)
 
 ```bash
