@@ -32,7 +32,7 @@ pub fn recursive_anmeldung<'a, 'b>(
     async move {
         let anmeldung_response = tucan
             .anmeldung(
-                login_response.clone(),
+                login_response,
                 RevalidationStrategy::cache(),
                 anmeldung_request.clone(),
             )

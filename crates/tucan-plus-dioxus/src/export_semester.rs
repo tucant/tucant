@@ -20,7 +20,7 @@ pub fn FetchAnmeldung() -> Element {
             loading.set(true);
             let anmeldung_response = tucan
                 .anmeldung(
-                    current_session_handle().unwrap(),
+                    &current_session_handle().unwrap(),
                     RevalidationStrategy::cache(),
                     AnmeldungRequest::default(),
                 )

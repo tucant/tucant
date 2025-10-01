@@ -58,7 +58,7 @@ impl Tucan for ApiServerTucan {
 
     async fn anmeldung(
         &self,
-        _login_response: LoginResponse,
+        _login_response: &LoginResponse,
         revalidation_strategy: RevalidationStrategy,
         request: AnmeldungRequest,
     ) -> Result<tucan_types::registration::AnmeldungResponse, TucanError> {
