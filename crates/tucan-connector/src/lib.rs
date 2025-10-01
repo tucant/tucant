@@ -8,7 +8,6 @@ use log::info;
 use login::{login, logout};
 use regex::Regex;
 use reqwest::header;
-use student_result::student_result;
 use time::{Month, OffsetDateTime, format_description::well_known::Rfc2822, macros::offset};
 use tokio::sync::Semaphore;
 use tucan_plus_worker::{CacheRequest, MyDatabase, StoreCacheRequest, models::CacheEntry};
@@ -121,19 +120,12 @@ pub async fn sleep(duration: Duration) {
 use tokio::time::sleep;
 
 use crate::{
-    coursedetails::course_details_internal,
-    courseresults::course_results_internal,
-    examresults::exam_results_internal,
-    gradeoverview::{gradeoverview, gradeoverview_internal},
-    mlsstart::after_login_internal,
-    moduledetails::module_details_internal,
-    mycourses::my_courses_internal,
-    mydocuments::my_documents_internal,
-    myexams::my_exams_internal,
-    mymodules::my_modules_internal,
-    registration::anmeldung_internal,
+    coursedetails::course_details_internal, courseresults::course_results_internal,
+    examresults::exam_results_internal, gradeoverview::gradeoverview_internal,
+    mlsstart::after_login_internal, moduledetails::module_details_internal,
+    mycourses::my_courses_internal, mydocuments::my_documents_internal, myexams::my_exams_internal,
+    mymodules::my_modules_internal, registration::anmeldung_internal,
     student_result::student_result_internal,
-    vv::vv_internal,
 };
 
 static COURSEDETAILS_REGEX: LazyLock<Regex> = LazyLock::new(|| {

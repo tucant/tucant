@@ -313,6 +313,17 @@ impl RequestResponse for SetCpAndModuleCount {
     }
 }
 
+#[derive(Serialize, Deserialize, Debug)]
+pub struct ExportDatabaseRequest;
+
+impl RequestResponse for ExportDatabaseRequest {
+    type Response = Vec<u8>;
+
+    fn execute(&self, connection: &mut SqliteConnection) -> Self::Response {
+        connection.serialize_database_to_buffer().to_vec()
+    }
+}
+
 #[derive(Serialize, Deserialize, Debug, From)]
 pub enum RequestResponseEnum {
     AnmeldungenRequest(AnmeldungenRequest),
@@ -326,6 +337,7 @@ pub enum RequestResponseEnum {
     SetCpAndModuleCount(SetCpAndModuleCount),
     CacheRequest(CacheRequest),
     StoreCacheRequest(StoreCacheRequest),
+    ExportDatabaseRequest(ExportDatabaseRequest),
 }
 
 impl RequestResponseEnum {
@@ -362,6 +374,9 @@ impl RequestResponseEnum {
                 serde_wasm_bindgen::to_value(&value.execute(connection)).unwrap()
             }
             RequestResponseEnum::StoreCacheRequest(value) => {
+                serde_wasm_bindgen::to_value(&value.execute(connection)).unwrap()
+            }
+            RequestResponseEnum::ExportDatabaseRequest(value) => {
                 serde_wasm_bindgen::to_value(&value.execute(connection)).unwrap()
             }
         }

@@ -3,10 +3,12 @@ use std::cell::RefCell;
 use crate::MyRc;
 use dioxus::prelude::*;
 use js_sys::{Array, Uint8Array};
+use tucan_plus_worker::{ExportDatabaseRequest, MyDatabase};
 use web_sys::{Blob, Url};
 
 async fn export_db() -> Vec<u8> {
-    panic!();
+    let worker: MyDatabase = use_context();
+    worker.send_message(ExportDatabaseRequest).await
 }
 
 #[component]
