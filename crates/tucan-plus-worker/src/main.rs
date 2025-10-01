@@ -3,10 +3,14 @@ use std::{cell::RefCell, time::Duration};
 use diesel::{Connection as _, SqliteConnection};
 use diesel_migrations::{EmbeddedMigrations, MigrationHarness as _, embed_migrations};
 use log::info;
+#[cfg(target_arch = "wasm32")]
+use wasm_bindgen::prelude::wasm_bindgen;
 
 #[cfg(target_arch = "wasm32")]
 pub async fn sleep(duration: Duration) {
     let mut cb = |resolve: js_sys::Function, _reject: js_sys::Function| {
+        use wasm_bindgen::JsCast as _;
+
         let global = js_sys::global().unchecked_into::<web_sys::DedicatedWorkerGlobalScope>();
         global
             .set_timeout_with_callback_and_timeout_and_arguments_0(
@@ -40,6 +44,10 @@ extern "C" {
 #[wasm_bindgen(main)]
 pub async fn main() {
     // From https://github.com/rustwasm/console_error_panic_hook, licensed under MIT and Apache 2.0
+
+    use tucan_plus_worker::MIGRATIONS;
+    use wasm_bindgen::{JsCast as _, JsValue, prelude::Closure};
+    use web_sys::{BroadcastChannel, MessageEvent};
     std::panic::set_hook(Box::new(|info| {
         let mut msg = "Worker ".to_string();
         msg.push('\n');
@@ -71,6 +79,8 @@ pub async fn main() {
     let broadcast_channel = BroadcastChannel::new("global").unwrap();
 
     let closure: Closure<dyn Fn(MessageEvent)> = Closure::new(move |event: MessageEvent| {
+        use tucan_plus_worker::MessageWithId;
+
         info!("Got message at worker {:?}", event.data());
 
         let value: MessageWithId = serde_wasm_bindgen::from_value(event.data()).unwrap();

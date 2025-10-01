@@ -17,6 +17,7 @@ cargo run --bin fetcher --release | sort > anmeldung.txt
 
 */
 
+#[cfg(not(target_arch = "wasm32"))]
 fn main() -> Result<(), TucanError> {
     dotenvy::dotenv().unwrap();
     tokio::runtime::Builder::new_current_thread()
@@ -26,6 +27,7 @@ fn main() -> Result<(), TucanError> {
         .block_on(async_main())
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 async fn async_main() -> Result<(), TucanError> {
     let tucan = TucanConnector::new(MyDatabase::wait_for_worker().await).await?;
 
@@ -58,11 +60,13 @@ async fn async_main() -> Result<(), TucanError> {
     Ok(())
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 struct Fetcher {
     vv: AtomicU64,
     course: AtomicU64,
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 impl Fetcher {
     pub const fn new() -> Self {
         Self {
@@ -149,3 +153,6 @@ impl Fetcher {
         }
     }
 }
+
+#[cfg(target_arch = "wasm32")]
+pub fn main() {}

@@ -6,6 +6,11 @@ use diesel::{prelude::*, r2d2::CustomizeConnection, upsert::excluded};
 use diesel_migrations::{EmbeddedMigrations, embed_migrations};
 #[cfg(target_arch = "wasm32")]
 use fragile::Fragile;
+use serde::Deserialize;
+#[cfg(target_arch = "wasm32")]
+use serde::{Serialize, de::DeserializeOwned};
+#[cfg(target_arch = "wasm32")]
+use wasm_bindgen::JsValue;
 #[cfg(target_arch = "wasm32")]
 use web_sys::BroadcastChannel;
 
