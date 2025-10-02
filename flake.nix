@@ -74,13 +74,14 @@
             pnameSuffix = "-dioxus";
 
             # Set the cargo command we will use and pass through the flags
-            buildPhaseCargoCommand = "${dioxus-cli}/bin/dx ${dioxusCommand} --verbose --release --out-dir $out --base-path public ${dioxusExtraArgs} ${cargoExtraArgs}";
+            buildPhaseCargoCommand = "${dioxus-cli}/bin/dx ${dioxusCommand} --trace --release --out-dir $out --base-path public ${dioxusExtraArgs} ${cargoExtraArgs}";
           };
         in
         craneLib.mkCargoDerivation (args // {
           cargoArtifacts = craneLib.buildDepsOnly (args // {
             # build, don't bundle
-            buildPhaseCargoCommand = "${dioxus-cli}/bin/dx build --verbose --release --out-dir $out --base-path public ${dioxusExtraArgs} ${cargoExtraArgs}";
+            buildPhaseCargoCommand = "DIOXUS_LOG=trace ${dioxus-cli}/bin/dx build --trace --release --base-path public ${dioxusExtraArgs} ${cargoExtraArgs}";
+            doCheck = false;
           });
         });
 
