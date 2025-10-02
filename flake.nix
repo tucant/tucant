@@ -35,7 +35,7 @@
 
         rustToolchainFor =
           p:
-          p.rust-bin.nightly.latest.minimal.override {
+          p.rust-bin.stable.latest.minimal.override {
             targets = [ "wasm32-unknown-unknown" ];
             extensions = [ "rustfmt" ];
           };
@@ -56,24 +56,109 @@
           buildInputs = [ pkgs.openssl ];
         };
 
+        cargoDioxus = {
+          cargoArtifacts,
+          cargoDioxusExtraArgs ? "", # Arguments that are generally useful default
+          cargoExtraArgs ? "" # Other cargo-general flags (e.g. for features or targets)
+        }@origArgs: let
+          # Clean the original arguments for good hygiene (i.e. so the flags specific
+          # to this helper don't pollute the environment variables of the derivation)
+          args = builtins.removeAttrs origArgs [
+            "cargoDioxusExtraArgs"
+            "cargoExtraArgs"
+          ];
+        in
+        craneLib.mkCargoDerivation (args // {
+          # Additional overrides we want to explicitly set in this helper
+
+          # Require the caller to specify cargoArtifacts we can use
+          inherit cargoArtifacts;
+
+          # A suffix name used by the derivation, useful for logging
+          pnameSuffix = "-dioxus";
+
+          # Set the cargo command we will use and pass through the flags
+          buildPhaseCargoCommand = "${dioxus-cli}/bin/dx ${cargoExtraArgs} ${cargoDioxusExtraArgs}";
+
+          # Append the `cargo-awesome` package to the nativeBuildInputs set by the
+          # caller (or default to an empty list if none were set)
+          nativeBuildInputs = (args.nativeBuildInputs or [ ]) ++ [ pkgs.cargo-awesome ];
+        });
+
+        fileset-worker = lib.fileset.unions [
+          (craneLib.fileset.commonCargoSources ./crates/tucan-plus-worker)
+          (craneLib.fileset.commonCargoSources ./crates/tucan-types)
+          ./crates/tucan-plus-worker/migrations
+        ];
+
+        fileset-service-worker = lib.fileset.unions [
+          (craneLib.fileset.commonCargoSources ./crates/tucan-plus-service-worker)
+        ];
+
+        fileset-dioxus = lib.fileset.unions [
+          (craneLib.fileset.commonCargoSources ./crates/tucan-plus-dioxus)
+          ./crates/tucan-plus-dioxus/assets/logo.svg
+          ./crates/tucan-plus-dioxus/assets/manifest.json
+          ./crates/tucan-plus-dioxus/assets/bootstrap.css
+          ./crates/tucan-plus-dioxus/assets/bootstrap.bundle.min.js
+          ./crates/tucan-plus-dioxus/assets/bootstrap.patch.js
+          ./crates/tucan-plus-dioxus/index.html
+          ./crates/tucan-plus-dioxus/Dioxus.toml
+          ./crates/tucan-plus-dioxus/.cargo/config.toml
+        ];
+
+        fileset-wasm = lib.fileset.unions [
+          (craneLib.fileset.commonCargoSources ./crates/html-extractor)
+          (craneLib.fileset.commonCargoSources ./crates/tucan-connector)
+          (craneLib.fileset.commonCargoSources ./crates/html-handler)
+          (craneLib.fileset.commonCargoSources ./crates/tucan-plus-planning)
+          fileset-dioxus
+          fileset-worker
+        ];
+
+        fileset-extension = lib.fileset.unions [
+          ./tucan-plus-extension/background.js
+          ./tucan-plus-extension/fix-session-id-in-url.js
+          ./tucan-plus-extension/context-menu.js
+          ./tucan-plus-extension/content-script.js
+          ./tucan-plus-extension/content-script-redirect.js
+          ./tucan-plus-extension/open-in-tucan.js
+          ./tucan-plus-extension/bootstrap.bundle.min.js
+          ./tucan-plus-extension/bootstrap.css
+          ./tucan-plus-extension/manifest.json
+          ./tucan-plus-extension/mobile.css
+          ./tucan-plus-extension/mobile.js
+          ./tucan-plus-extension/options.html
+          ./tucan-plus-extension/options.js
+          ./tucan-plus-extension/popup.html
+          ./tucan-plus-extension/popup.js
+          ./tucan-plus-extension/custom-ui.js
+          ./tucan-plus-extension/recover-tabs.js
+          ./tucan-plus-extension/url-mappings.js
+          ./tucan-plus-extension/utils.js
+          ./tucan-plus-extension/rules.json
+          ./tucan-plus-extension/logo.png
+        ];
+
         nativeArgs = {
           strictDeps = true;
           src = lib.fileset.toSource {
             root = ./.;
             fileset = lib.fileset.unions [
-              (craneLib.fileset.commonCargoSources ./crates)
-              (lib.fileset.fileFilter (
-                file:
-                lib.any file.hasExt [
-                  "html"
-                  "scss"
-                ]
-              ) ./.)
-              ./tucan-plus-extension/bootstrap.bundle.min.js
-              ./tucan-plus-extension/bootstrap.css
+              (craneLib.fileset.commonCargoSources ./crates/html-extractor)
+              (craneLib.fileset.commonCargoSources ./crates/html-handler)
+              (craneLib.fileset.commonCargoSources ./crates/tucan-connector)
+              (craneLib.fileset.commonCargoSources ./crates/tucan-plus-planning)
+              fileset-dioxus
+              fileset-worker # TODO rename to database
             ];
           };
           pname = "tucan-plus-workspace-native";
+        };
+
+        native = cargoDioxus {
+          cargoDioxusExtraArgs = "--platform linux";
+          cargoExtraArgs = "--features direct";
         };
 
         api = craneLib.buildPackage {
@@ -110,32 +195,6 @@
             ''
               ${api}/bin/schema > $out
             '';
-
-        fileset-worker = lib.fileset.unions [
-          (craneLib.fileset.commonCargoSources ./crates/tucan-plus-worker)
-          (craneLib.fileset.commonCargoSources ./crates/tucan-types)
-          ./crates/tucan-plus-worker/migrations
-        ];
-
-        fileset-service-worker = lib.fileset.unions [
-          (craneLib.fileset.commonCargoSources ./crates/tucan-plus-service-worker)
-        ];
-
-        fileset-wasm = lib.fileset.unions [
-          (craneLib.fileset.commonCargoSources ./crates/html-extractor)
-          (craneLib.fileset.commonCargoSources ./crates/tucan-connector)
-          (craneLib.fileset.commonCargoSources ./crates/tucan-plus-dioxus)
-          (craneLib.fileset.commonCargoSources ./crates/html-handler)
-          (craneLib.fileset.commonCargoSources ./crates/tucan-plus-planning)
-          ./crates/tucan-plus-dioxus/assets/logo.svg
-          ./crates/tucan-plus-dioxus/assets/manifest.json
-          ./crates/tucan-plus-dioxus/assets/bootstrap.css
-          ./crates/tucan-plus-dioxus/assets/bootstrap.bundle.min.js
-          ./crates/tucan-plus-dioxus/assets/bootstrap.patch.js
-          ./crates/tucan-plus-dioxus/index.html
-          ./crates/tucan-plus-dioxus/.cargo/config.toml
-          fileset-worker
-        ];
 
         wasm-bindgen = (pkgs.buildWasmBindgenCli rec {
           src = pkgs.fetchCrate {
@@ -343,30 +402,6 @@
             };
           });
         });
-
-        fileset-extension = lib.fileset.unions [
-          ./tucan-plus-extension/background.js
-          ./tucan-plus-extension/fix-session-id-in-url.js
-          ./tucan-plus-extension/context-menu.js
-          ./tucan-plus-extension/content-script.js
-          ./tucan-plus-extension/content-script-redirect.js
-          ./tucan-plus-extension/open-in-tucan.js
-          ./tucan-plus-extension/bootstrap.bundle.min.js
-          ./tucan-plus-extension/bootstrap.css
-          ./tucan-plus-extension/manifest.json
-          ./tucan-plus-extension/mobile.css
-          ./tucan-plus-extension/mobile.js
-          ./tucan-plus-extension/options.html
-          ./tucan-plus-extension/options.js
-          ./tucan-plus-extension/popup.html
-          ./tucan-plus-extension/popup.js
-          ./tucan-plus-extension/custom-ui.js
-          ./tucan-plus-extension/recover-tabs.js
-          ./tucan-plus-extension/url-mappings.js
-          ./tucan-plus-extension/utils.js
-          ./tucan-plus-extension/rules.json
-          ./tucan-plus-extension/logo.png
-        ];
 
         extension-unpacked = pkgs.stdenv.mkDerivation {
           pname = "tucan-plus-extension";
