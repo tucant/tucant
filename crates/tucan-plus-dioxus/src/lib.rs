@@ -56,6 +56,12 @@ pub static LOGO_SVG: Asset = asset!(
     AssetOptions::builder().with_hash_suffix(false)
 );
 
+#[used]
+pub static LOGO_PNG: Asset = asset!(
+    "/assets/logo.png",
+    AssetOptions::builder().with_hash_suffix(false)
+);
+
 // unfortunately the asset! macro produces a different hash as the build output
 #[cfg(target_arch = "wasm32")]
 #[used]

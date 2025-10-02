@@ -36,10 +36,12 @@
         rustToolchainFor =
           p:
           p.rust-bin.stable.latest.minimal.override {
-            targets = [ "wasm32-unknown-unknown" ];
+            targets = [ "wasm32-unknown-unknown" "x86_64-pc-windows-gnu" "aarch64-apple-darwin" "aarch64-unknown-linux-gnu" ];
             extensions = [ "rustfmt" ];
           };
         craneLib = (crane.mkLib pkgs).overrideToolchain rustToolchainFor;
+        craneLibAarch64Linux = (crane.mkLib pkgs.pkgsCross.aarch64-multiplatform).overrideToolchain rustToolchainFor;
+        craneLibWindows = (crane.mkLib pkgs.pkgsCross.mingwW64).overrideToolchain rustToolchainFor;
 
         dioxus-cli = craneLib.buildPackage {
           src = pkgs.fetchFromGitHub {
@@ -56,7 +58,7 @@
           buildInputs = [ pkgs.openssl ];
         };
 
-        cargoDioxus = {
+        cargoDioxus = craneLib: {
           cargoDioxusExtraArgs ? "", # Arguments that are generally useful default
           cargoExtraArgs ? "", # Other cargo-general flags (e.g. for features or targets)
           ...
@@ -183,7 +185,20 @@
           ];
         };
 
-        native = cargoDioxus (nativeLinuxArgs // {
+        nativeLinux = cargoDioxus craneLib (nativeLinuxArgs // {
+          
+        });
+
+        nativeLinuxAarch64 = cargoDioxus craneLibAarch64Linux (nativeLinuxArgs // {
+          
+        });
+
+        nativeWindowsArgs = nativeArgs // {
+          cargoDioxusExtraArgs = "--platform windows";
+          cargoExtraArgs = "--package tucan-plus-dioxus --features direct";
+        };
+
+        nativeWindows = cargoDioxus craneLibWindows (nativeWindowsArgs // {
           
         });
 
@@ -639,7 +654,9 @@
         #packages.extension-source-unpacked = source-unpacked;
         #packages.dioxus-cli = dioxus-cli;
         #packages.worker = worker;
-        packages.native = native;
+        packages.nativeLinux = nativeLinux;
+        packages.nativeLinuxAarch64 = nativeLinuxAarch64;
+        packages.nativeWindows = nativeWindows;
 
         #apps.server = flake-utils.lib.mkApp {
         #  name = "server";
@@ -705,7 +722,7 @@
           '';
         };
 */
-        devShells.default = pkgs.mkShellNoCC {
+        devShells.default = pkgs.mkShell {
           shellHook = ''
             export PATH=~/.cargo/bin/:$PATH
             export WORKER_JS_PATH=/assets/wasm/tucan-plus-worker.js
@@ -736,7 +753,6 @@
             pkgs.pkg-config
             pkgs.emscripten
             pkgs.gobject-introspection
-            (pkgs.clang_21.overrideAttrs { setupHooks = []; })
           ];
         };
       }
