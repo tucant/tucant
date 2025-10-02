@@ -3,6 +3,8 @@ name = "tucan-plus"
 
 [bundle]
 identifier = "de.selfmade4u"
+publisher = "Moritz Hedtke"
+icon = ["assets/logo.png"]
 
 [web.app]
 title = "TUCaN Plus"

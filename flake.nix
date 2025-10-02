@@ -80,6 +80,7 @@
               src = args.src;
               extraDummyScript = ''
                 cp ${args.src}/crates/tucan-plus-dioxus/Dioxus.toml $out/crates/tucan-plus-dioxus/Dioxus.toml
+                cp ${args.src}/crates/tucan-plus-dioxus/assets/logo.png $out/crates/tucan-plus-dioxus/assets/logo.png
               '';
             };
           });
