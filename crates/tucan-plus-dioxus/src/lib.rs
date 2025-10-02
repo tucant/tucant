@@ -78,12 +78,14 @@ pub static WORKER_WASM: Asset = asset!(
     AssetOptions::builder().with_hash_suffix(false)
 );
 
+/*
 #[cfg(target_arch = "wasm32")]
 #[used]
 pub static SERVICE_WORKER_JS: Asset = asset!(
     env!("SERVICE_WORKER_JS_PATH"),
     AssetOptions::builder().with_hash_suffix(false)
 );
+*/
 
 pub static BOOTSTRAP_JS: Asset = asset!("/assets/bootstrap.bundle.min.js",);
 

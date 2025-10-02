@@ -421,12 +421,12 @@
             mkdir -p assets/
             cp ${worker}/public/assets/tucan-plus-worker-*.js assets/
             cp ${worker}/public/assets/tucan-plus-worker_bg-*.wasm assets/
-            cp ${service-worker}/tucan-plus-service-worker.js assets/tucan-plus-service-worker.js
+            #cp ${service-worker}/tucan-plus-service-worker.js assets/tucan-plus-service-worker.js
             export WORKER_JS_PATH_ARRAY=(assets/tucan-plus-worker-*.js)
             export WORKER_JS_PATH="/''${WORKER_JS_PATH_ARRAY[@]}"
             export WORKER_WASM_PATH_ARRAY=(assets/tucan-plus-worker_bg-*.wasm)
             export WORKER_WASM_PATH="/''${WORKER_WASM_PATH_ARRAY[@]}"
-            export SERVICE_WORKER_JS_PATH=/assets/tucan-plus-service-worker.js
+            #export SERVICE_WORKER_JS_PATH=/assets/tucan-plus-service-worker.js
             rm -R ./target/dx/tucan-plus-dioxus/release/web/public/assets || true
             CARGO_TARGET_DIR=target ${dioxus-cli}/bin/dx bundle --platform web --release --out-dir $out --base-path public --features direct
           '';
@@ -759,8 +759,7 @@
             export PATH=~/.cargo/bin/:$PATH
             export WORKER_JS_PATH=/assets/wasm/tucan-plus-worker.js
             export WORKER_WASM_PATH=/assets/wasm/tucan-plus-worker_bg.wasm
-            export SERVICE_WORKER_JS_PATH=/assets/wasm/tucan-plus-service-worker.js
-            export SERVICE_WORKER_WASM_PATH=/assets/wasm/tucan-plus-service-worker_bg.wasm
+            #export SERVICE_WORKER_JS_PATH=/assets/wasm/tucan-plus-service-worker.js
           '';
           buildInputs = [
             pkgs.openssl
