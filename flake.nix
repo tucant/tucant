@@ -80,6 +80,7 @@
               src = args.src;
               extraDummyScript = ''
                 cp ${args.src}/crates/tucan-plus-dioxus/Dioxus.toml $out/crates/tucan-plus-dioxus/Dioxus.toml
+                mkdir -p $out/crates/tucan-plus-dioxus/assets
                 cp ${args.src}/crates/tucan-plus-dioxus/assets/logo.png $out/crates/tucan-plus-dioxus/assets/logo.png
               '';
             };
@@ -99,6 +100,7 @@
         fileset-dioxus = lib.fileset.unions [
           (craneLib.fileset.commonCargoSources ./crates/tucan-plus-dioxus)
           ./crates/tucan-plus-dioxus/assets/logo.svg
+          ./crates/tucan-plus-dioxus/assets/logo.png
           ./crates/tucan-plus-dioxus/assets/manifest.json
           ./crates/tucan-plus-dioxus/assets/bootstrap.css
           ./crates/tucan-plus-dioxus/assets/bootstrap.bundle.min.js
