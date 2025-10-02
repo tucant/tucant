@@ -63,19 +63,26 @@
         }@origArgs: let
           # Clean the original arguments for good hygiene (i.e. so the flags specific
           # to this helper don't pollute the environment variables of the derivation)
-          args = builtins.removeAttrs origArgs [
+          args = (builtins.removeAttrs origArgs [
             "cargoDioxusExtraArgs"
             "cargoExtraArgs"
-          ];
+          ]) // {
+            # A suffix name used by the derivation, useful for logging
+            pnameSuffix = "-dioxus";
+
+            # Set the cargo command we will use and pass through the flags
+            buildPhaseCargoCommand = "${dioxus-cli}/bin/dx bundle --verbose --release --out-dir $out --base-path public ${cargoDioxusExtraArgs} ${cargoExtraArgs}";
+          };
         in
-        craneLib.buildPackage (args // {
-          # Additional overrides we want to explicitly set in this helper
-
-          # A suffix name used by the derivation, useful for logging
-          pnameSuffix = "-dioxus";
-
-          # Set the cargo command we will use and pass through the flags
-          buildPhaseCargoCommand = "${dioxus-cli}/bin/dx bundle --verbose --release --out-dir $out --base-path public ${cargoDioxusExtraArgs} ${cargoExtraArgs}";
+        craneLib.mkCargoDerivation (args // {
+          cargoArtifacts = craneLib.buildDepsOnly (args // {
+            dummySrc = craneLib.mkDummySrc {
+              src = args.src;
+              extraDummyScript = ''
+                cp ${args.src}/crates/tucan-plus-dioxus/Dioxus.toml $out/crates/tucan-plus-dioxus/Dioxus.toml
+              '';
+            };
+          });
         });
 
         fileset-worker = lib.fileset.unions [
@@ -172,14 +179,7 @@
         };
 
         native = cargoDioxus (nativeLinuxArgs // {
-          cargoArtifacts = craneLib.buildDepsOnly (nativeLinuxArgs // {
-            dummySrc = craneLib.mkDummySrc {
-              src = nativeLinuxArgs.src;
-              extraDummyScript = ''
-                cp ${nativeLinuxArgs.src}/crates/tucan-plus-dioxus/Dioxus.toml $out/crates/tucan-plus-dioxus/Dioxus.toml
-              '';
-            };
-          });
+          
         });
 
         api = craneLib.buildPackage {
