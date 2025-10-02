@@ -56,6 +56,12 @@
           buildInputs = [ pkgs.openssl ];
         };
 
+        cargoArtifacts = craneLib.buildDepsOnly {
+          src = craneLib.cleanCargoSource ./.;
+          strictDeps = true;
+          pname = "tucan-plus-deps";
+        };
+
         nativeArgs = {
           strictDeps = true;
           src = lib.fileset.toSource {
@@ -569,6 +575,7 @@
           };
         };
 
+        packages.cargoArtifacts = cargoArtifacts;
         packages.schema = schema;
         packages.client = client;
         packages.server = api;

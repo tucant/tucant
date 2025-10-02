@@ -4,3 +4,4 @@ members = [
 ]
 edition = "2024"
 resolver = "3"
+version = "0.1.0"
