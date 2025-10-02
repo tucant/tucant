@@ -58,7 +58,8 @@
 
         cargoDioxus = {
           cargoDioxusExtraArgs ? "", # Arguments that are generally useful default
-          cargoExtraArgs ? "" # Other cargo-general flags (e.g. for features or targets)
+          cargoExtraArgs ? "", # Other cargo-general flags (e.g. for features or targets)
+          ...
         }@origArgs: let
           # Clean the original arguments for good hygiene (i.e. so the flags specific
           # to this helper don't pollute the environment variables of the derivation)
@@ -74,7 +75,7 @@
           pnameSuffix = "-dioxus";
 
           # Set the cargo command we will use and pass through the flags
-          buildPhaseCargoCommand = "${dioxus-cli}/bin/dx ${cargoExtraArgs} ${cargoDioxusExtraArgs}";
+          buildPhaseCargoCommand = "${dioxus-cli}/bin/dx bundle --verbose --release --out-dir $out --base-path public ${cargoDioxusExtraArgs} ${cargoExtraArgs}";
         });
 
         fileset-worker = lib.fileset.unions [
@@ -150,10 +151,25 @@
           };
         };
 
-        native = cargoDioxus {
+        native = cargoDioxus (nativeArgs // {
           cargoDioxusExtraArgs = "--platform linux";
-          cargoExtraArgs = "--features direct";
-        };
+          cargoExtraArgs = "--package tucan-plus-dioxus --features direct";
+          nativeBuildInputs = [ pkgs.pkg-config pkgs.gobject-introspection ];
+          buildInputs = [
+            pkgs.at-spi2-atk
+            pkgs.atkmm
+            pkgs.cairo
+            pkgs.gdk-pixbuf
+            pkgs.glib
+            pkgs.gtk3
+            pkgs.harfbuzz
+            pkgs.librsvg
+            pkgs.libsoup_3
+            pkgs.pango
+            pkgs.webkitgtk_4_1
+            pkgs.openssl  
+          ];
+        });
 
         api = craneLib.buildPackage {
           cargoToml = ./crates/tucan-plus-api/Cargo.toml;

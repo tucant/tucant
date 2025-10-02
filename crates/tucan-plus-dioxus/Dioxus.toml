@@ -1,6 +1,9 @@
 [application]
 name = "tucan-plus"
 
+[bundle]
+identifier = "de.selfmade4u"
+
 [web.app]
 title = "TUCaN Plus"
 
