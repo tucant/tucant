@@ -28,7 +28,6 @@
       let
         pkgs = import nixpkgs {
           inherit system;
-          crossSystem = nixpkgs.lib.systems.examples.emscripten;
           overlays = [ (import rust-overlay) ];
         };
 
@@ -57,7 +56,7 @@
         cargoArtifacts = cargoArtifactsCommon.overrideAttrs { stdenv = p: p.emscriptenStdenv; };
         cargoArtifactsWasm = cargoArtifactsCommon.overrideAttrs { CARGO_BUILD_TARGET = "wasm32-unknown-unknown"; };
         # packages.x86_64-linux.experiment.stdenv.cc.passthru 
-        experiment = pkgs.stdenv.mkDerivation {
+        experiment = pkgs.pkgsCross.emscripten.stdenv.mkDerivation {
           pname = "test";
           version = "0.1.0";
         };
