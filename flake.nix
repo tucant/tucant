@@ -147,12 +147,11 @@
               (craneLib.fileset.commonCargoSources ./crates/tucan-plus-planning)
               fileset-dioxus
               fileset-worker # TODO rename to database
-              ./Dioxus.toml
             ];
           };
         };
 
-        native = cargoDioxus (nativeArgs // {
+        nativeLinuxArgs = nativeArgs // {
           cargoDioxusExtraArgs = "--platform linux";
           cargoExtraArgs = "--package tucan-plus-dioxus --features direct";
           nativeBuildInputs = [ pkgs.pkg-config pkgs.gobject-introspection ];
@@ -170,6 +169,17 @@
             pkgs.webkitgtk_4_1
             pkgs.openssl  
           ];
+        };
+
+        native = cargoDioxus (nativeLinuxArgs // {
+          cargoArtifacts = craneLib.buildDepsOnly (nativeLinuxArgs // {
+            dummySrc = craneLib.mkDummySrc {
+              src = nativeLinuxArgs.src;
+              extraDummyScript = ''
+                cp ${nativeLinuxArgs.src}/crates/tucan-plus-dioxus/Dioxus.toml $out/crates/tucan-plus-dioxus/Dioxus.toml
+              '';
+            };
+          });
         });
 
         api = craneLib.buildPackage {
