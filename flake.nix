@@ -177,7 +177,9 @@
             pkgs.libsoup_3
             pkgs.pango
             pkgs.webkitgtk_4_1
-            pkgs.openssl  
+            pkgs.openssl
+            pkgs.xdotool
+            pkgs.zlib
           ];
         };
 
@@ -702,7 +704,7 @@
             cargo test --package tucan-plus-tests -- --nocapture
           '';
         };
-
+*/
         devShells.default = pkgs.mkShellNoCC {
           shellHook = ''
             export PATH=~/.cargo/bin/:$PATH
@@ -714,14 +716,29 @@
           buildInputs = [
             pkgs.openssl
             pkgs.sqlite
+            pkgs.at-spi2-atk
+            pkgs.atkmm
+            pkgs.cairo
+            pkgs.gdk-pixbuf
+            pkgs.glib
+            pkgs.gtk3
+            pkgs.harfbuzz
+            pkgs.librsvg
+            pkgs.libsoup_3
+            pkgs.pango
+            pkgs.webkitgtk_4_1
+            pkgs.openssl
+            pkgs.xdotool
+            pkgs.zlib
           ];
           packages = [
             pkgs.bashInteractive
             pkgs.pkg-config
             pkgs.emscripten
+            pkgs.gobject-introspection
             (pkgs.clang_21.overrideAttrs { setupHooks = []; })
           ];
-        };*/
+        };
       }
     );
 }
