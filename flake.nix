@@ -147,6 +147,7 @@
               (craneLib.fileset.commonCargoSources ./crates/tucan-plus-planning)
               fileset-dioxus
               fileset-worker # TODO rename to database
+              ./Dioxus.toml
             ];
           };
         };

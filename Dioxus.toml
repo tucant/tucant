@@ -1,0 +1,20 @@
+[application]
+name = "tucan-plus"
+
+[bundle]
+identifier = "de.selfmade4u"
+
+[web.app]
+title = "TUCaN Plus"
+
+[[web.proxy]]
+backend = "http://127.0.0.1:3000/api/"
+
+# https://developer.android.com/build/building-cmdline
+# keytool -genkey -v -keystore my-release-key.jks -keyalg RSA -keysize 2048 -validity 10000 -alias my-alias
+# dx bundle --platform android --release
+[bundle.android]
+jks_file = "../my-release-key.jks"
+jks_password = "password"
+key_alias = "my-alias"
+key_password = "password"
