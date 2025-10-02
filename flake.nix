@@ -32,11 +32,12 @@
         };
         pkgsWasm = import nixpkgs {
           inherit system;
+          crossSystem = nixpkgs.lib.systems.examples.emscripten;
           stdenv = p: p.emscriptenStdenv;
           overlays = [ (import rust-overlay) ];
         };
 
-        inherit (pkgs) lib;
+        inherit (pkgsWasm) lib;
 
         rustToolchainFor =
           p:
@@ -71,11 +72,12 @@
           '';
           src = craneLib.cleanCargoSource ./.;
           strictDeps = true;
-          pname = "tucan-plus-deps";
+          pname = "tucan-plus";
         };
-        cargoArtifacts = cargoArtifactsCommon;
+        cargoArtifacts = cargoArtifactsCommon.overrideAttrs { stdenv = p: p.emscriptenStdenv; };
         cargoArtifactsWasm = cargoArtifactsCommon.overrideAttrs { CARGO_BUILD_TARGET = "wasm32-unknown-unknown"; };
-        experiment = pkgs.emscriptenStdenv.mkDerivation {
+        # packages.x86_64-linux.experiment.stdenv.cc.passthru 
+        experiment = pkgsWasm.emscriptenStdenv.mkDerivation {
           pname = "test";
           version = "0.1.0";
         };
