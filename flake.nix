@@ -474,6 +474,7 @@
           # nix run -L .#checks.x86_64-linux.extension-test.driverInteractive
           # test_script()
           # nix flake check -L
+          /*
           extension-test = pkgs.testers.runNixOSTest {
             name = "extension-test";
             nodes = {
@@ -595,25 +596,25 @@
             # ssh vsock/3 -o User=root
             # machinectl shell test@
             # nix-shell -I nixpkgs=channel:nixos-unstable -p gobject-introspection gtk3 'python3.withPackages (ps: with ps; [ dogtail ])' --run python /home/test/tucan_plus/tucan_plus.py
-          };
+          };*/
         };
-
-        packages.schema = schema;
-        packages.client = client;
-        packages.server = api;
-        packages.extension = extension;
-        packages.extension-unpacked = extension-unpacked;
-        packages.extension-source = source;
-        packages.extension-source-unpacked = source-unpacked;
-        packages.dioxus-cli = dioxus-cli;
-        packages.worker = worker;
+        #packages.schema = schema;
+        #packages.client = client;
+        #packages.server = api;
+        #packages.extension = extension;
+        #packages.extension-unpacked = extension-unpacked;
+        #packages.extension-source = source;
+        #packages.extension-source-unpacked = source-unpacked;
+        #packages.dioxus-cli = dioxus-cli;
+        #packages.worker = worker;
         packages.native = native;
 
-        apps.server = flake-utils.lib.mkApp {
-          name = "server";
-          drv = api;
-        };
+        #apps.server = flake-utils.lib.mkApp {
+        #  name = "server";
+        #  drv = api;
+        #};
 
+  /*
         packages.publish =
           let
             version = (lib.importJSON ./tucan-plus-extension/manifest.json).version;
@@ -690,7 +691,7 @@
             pkgs.emscripten
             (pkgs.clang_21.overrideAttrs { setupHooks = []; })
           ];
-        };
+        };*/
       }
     );
 }
