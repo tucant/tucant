@@ -106,6 +106,7 @@ See https://extensionworkshop.com/documentation/develop/debugging/.
 
 ### VSCode
 
+https://github.com/rust-lang/cargo/issues/16038
 https://github.com/rust-lang/cargo/issues/15177
 https://github.com/rust-lang/cargo/issues/1197
 
