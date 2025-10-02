@@ -194,6 +194,7 @@
           
         });
 
+        # https://github.com/DioxusLabs/dioxus/blob/ad40f816073f91da67c0287a5512a5111e5a1617/packages/cli/src/config/bundle.rs#L263 we could use fixedruntime but it would be better if the others would also allow specifying a path
         # https://github.com/DioxusLabs/dioxus/issues/4281
         # https://github.com/DioxusLabs/dioxus/issues/4599
         # https://github.com/DioxusLabs/dioxus/issues/4076 probably not possible yet
