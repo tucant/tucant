@@ -2,7 +2,7 @@
   description = "Build a cargo project";
 
   inputs = {
-    nixpkgs.url = "github:mohe2015/nixpkgs/update-dogtail";
+    nixpkgs.url = "git+file:///home/moritz/Documents/nixpkgs";
 
     crane.url = "github:ipetkov/crane";
 
@@ -30,6 +30,11 @@
           inherit system;
           overlays = [ (import rust-overlay) ];
         };
+        pkgsWasm = import nixpkgs {
+          inherit system;
+          stdenv = p: p.emscriptenStdenv;
+          overlays = [ (import rust-overlay) ];
+        };
 
         inherit (pkgs) lib;
 
@@ -39,7 +44,7 @@
             targets = [ "wasm32-unknown-unknown" ];
             extensions = [ "rustfmt" ];
           };
-        craneLib = (crane.mkLib pkgs).overrideToolchain rustToolchainFor;
+        craneLib = (crane.mkLib pkgsWasm).overrideToolchain rustToolchainFor;
 
         dioxus-cli = craneLib.buildPackage {
           src = pkgs.fetchFromGitHub {
@@ -56,10 +61,23 @@
           buildInputs = [ pkgs.openssl ];
         };
 
-        cargoArtifacts = craneLib.buildDepsOnly {
+        cargoArtifactsCommon = craneLib.buildDepsOnly {
+          stdenv = p: p.emscriptenStdenv;
+          preBuild = ''
+            env | grep CC
+            env | grep WASM
+            env | grep wasm
+            exit 1
+          '';
           src = craneLib.cleanCargoSource ./.;
           strictDeps = true;
           pname = "tucan-plus-deps";
+        };
+        cargoArtifacts = cargoArtifactsCommon;
+        cargoArtifactsWasm = cargoArtifactsCommon.overrideAttrs { CARGO_BUILD_TARGET = "wasm32-unknown-unknown"; };
+        experiment = pkgs.emscriptenStdenv.mkDerivation {
+          pname = "test";
+          version = "0.1.0";
         };
 
         nativeArgs = {
@@ -575,7 +593,9 @@
           };
         };
 
+        packages.experiment = experiment;
         packages.cargoArtifacts = cargoArtifacts;
+        packages.cargoArtifactsWasm = cargoArtifactsWasm;
         packages.schema = schema;
         packages.client = client;
         packages.server = api;
