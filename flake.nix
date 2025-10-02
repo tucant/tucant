@@ -36,6 +36,7 @@
         rustToolchainFor =
           p:
           p.rust-bin.stable.latest.minimal.override {
+            # TODO add x86_64-apple-darwin
             targets = [ "wasm32-unknown-unknown" "x86_64-pc-windows-gnu" "aarch64-apple-darwin" "aarch64-unknown-linux-gnu" ];
             extensions = [ "rustfmt" ];
           };
@@ -193,9 +194,27 @@
           
         });
 
+        # https://github.com/DioxusLabs/dioxus/issues/4281
+        # https://github.com/DioxusLabs/dioxus/issues/4599
+        # https://github.com/DioxusLabs/dioxus/issues/4076 probably not possible yet
         nativeWindowsArgs = nativeArgs // {
-          cargoDioxusExtraArgs = "--platform windows";
+          cargoDioxusExtraArgs = "--target x86_64-pc-windows-gnu --platform windows"; # TODO FIXME dioxus should auto-detect the target from the env variable
           cargoExtraArgs = "--package tucan-plus-dioxus --features direct";
+          nativeBuildInputs = [ pkgs.pkg-config ];
+          buildInputs = [ pkgs.at-spi2-atk
+            pkgs.atkmm
+            pkgs.cairo
+            pkgs.gdk-pixbuf
+            pkgs.glib
+            pkgs.gtk3
+            pkgs.harfbuzz
+            pkgs.librsvg
+            pkgs.libsoup_3
+            pkgs.pango
+            pkgs.webkitgtk_4_1
+            pkgs.openssl
+            pkgs.xdotool
+            pkgs.zlib ];
         };
 
         nativeWindows = cargoDioxus craneLibWindows (nativeWindowsArgs // {
@@ -656,7 +675,10 @@
         #packages.worker = worker;
         packages.nativeLinux = nativeLinux;
         packages.nativeLinuxAarch64 = nativeLinuxAarch64;
-        packages.nativeWindows = nativeWindows;
+
+        # maybe dioxus downloads stuff here
+        # https://github.com/tauri-apps/tauri/blob/2e089f6acb854e4d7f8eafb9b2f8242b1c9fa491/crates/tauri-bundler/src/bundle/windows/util.rs#L45
+        #packages.nativeWindows = nativeWindows; # cross building is broken for dioxus
 
         #apps.server = flake-utils.lib.mkApp {
         #  name = "server";
