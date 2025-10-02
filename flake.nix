@@ -85,6 +85,8 @@
                 cp ${args.src}/crates/tucan-plus-dioxus/Dioxus.toml $out/crates/tucan-plus-dioxus/Dioxus.toml
                 mkdir -p $out/crates/tucan-plus-dioxus/assets
                 cp ${args.src}/crates/tucan-plus-dioxus/assets/logo.png $out/crates/tucan-plus-dioxus/assets/logo.png
+                mkdir -p $out/assets
+                cp ${args.src}/crates/tucan-plus-dioxus/assets/logo.png $out/assets/logo.png
               '';
             };
           });
@@ -190,8 +192,9 @@
           
         });
 
+        # https://v2.tauri.app/distribute/appimage/#appimages-for-arm-based-devices cross compiling not possible
         nativeLinuxAarch64 = cargoDioxus craneLibAarch64Linux (nativeLinuxArgs // {
-          
+          cargoDioxusExtraArgs = "--target aarch64-unknown-linux-gnu --platform linux";
         });
 
         # https://github.com/DioxusLabs/dioxus/blob/ad40f816073f91da67c0287a5512a5111e5a1617/packages/cli/src/config/bundle.rs#L263 we could use fixedruntime but it would be better if the others would also allow specifying a path
@@ -675,7 +678,8 @@
         #packages.dioxus-cli = dioxus-cli;
         #packages.worker = worker;
         packages.nativeLinux = nativeLinux;
-        packages.nativeLinuxAarch64 = nativeLinuxAarch64;
+        
+        # packages.nativeLinuxAarch64 = nativeLinuxAarch64; # cross compiling appimage not possible
 
         # maybe dioxus downloads stuff here
         # https://github.com/tauri-apps/tauri/blob/2e089f6acb854e4d7f8eafb9b2f8242b1c9fa491/crates/tauri-bundler/src/bundle/windows/util.rs#L45
