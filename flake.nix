@@ -251,28 +251,6 @@
         # https://github.com/gradle/gradle/blob/360f9eab2f6f1595025f746a03ee5895659b0b8c/platforms/core-runtime/wrapper-shared/src/main/java/org/gradle/wrapper/WrapperExecutor.java#L41
         # https://github.com/gradle/gradle/blob/master/platforms/core-runtime/wrapper-shared/src/main/java/org/gradle/wrapper/PathAssembler.java#L38
 
-        # add this as gradle home
-        gradleWrapper = pkgs.runCommand "gradle-wrapper" {} ''
-          mkdir a
-          cd a
-          export GRADLE_USER_HOME=../b
-          export JAVA_HOME=${pkgs.jdk}
-          ${pkgs.gradle_9}/bin/gradle init
-          ls -la
-          sed -i '/validateDistributionUrl=/d' gradle/wrapper/gradle-wrapper.properties
-          echo "validateDistributionUrl=false" >> gradle/wrapper/gradle-wrapper.properties
-          cat gradle/wrapper/gradle-wrapper.properties
-          mkdir -p $GRADLE_USER_HOME/wrapper/dists/gradle-9.1.0-bin/9agqghryom9wkf8r80qlhnts3/
-          cp ${pkgs.fetchurl {
-            url = "https://services.gradle.org/distributions/gradle-9.1.0-bin.zip";
-            hash = "sha256-oX3dhaJran9d23H/iwX8UQTAICxuZHgkKXkMkzaGyAY=";
-          }} $GRADLE_USER_HOME/wrapper/dists/gradle-9.1.0-bin/9agqghryom9wkf8r80qlhnts3/gradle-9.1.0-bin.zip
-          #touch $GRADLE_USER_HOME/wrapper/dists/gradle-9.1.0-bin/9agqghryom9wkf8r80qlhnts3/gradle-9.1.0-bin.zip.ok
-          ./gradlew
-          ls -laR ../b/wrapper
-          cp -r $GRADLE_USER_HOME $out
-        '';
-
         # https://github.com/NixOS/nixpkgs/blob/master/doc/languages-frameworks/gradle.section.md
         # https://github.com/NixOS/nixpkgs/pull/383115
         # /build/source/target/dx/tucan-plus-dioxus/release/android/app/gradlew
@@ -285,7 +263,12 @@
             buildToolsVersions = [ "34.0.0" ];
           }).androidsdk}/libexec/android-sdk";
           preBuild = ''
-            export GRADLE_OPTS=""
+            export GRADLE_USER_HOME=$(mktemp -d)
+            mkdir -p $GRADLE_USER_HOME/wrapper/dists/gradle-9.1.0-bin/9agqghryom9wkf8r80qlhnts3/
+            cp ${pkgs.fetchurl {
+              url = "https://services.gradle.org/distributions/gradle-9.1.0-bin.zip";
+              hash = "sha256-oX3dhaJran9d23H/iwX8UQTAICxuZHgkKXkMkzaGyAY=";
+            }} $GRADLE_USER_HOME/wrapper/dists/gradle-9.1.0-bin/9agqghryom9wkf8r80qlhnts3/gradle-9.1.0-bin.zip
           '';
           nativeBuildInputs = [
             pkgs.jdk
@@ -793,8 +776,6 @@
         # maybe dioxus downloads stuff here
         # https://github.com/tauri-apps/tauri/blob/2e089f6acb854e4d7f8eafb9b2f8242b1c9fa491/crates/tauri-bundler/src/bundle/windows/util.rs#L45
         packages.nativeWindows = nativeWindows; # cross building is broken for dioxus
-
-        packages.gradleWrapper = gradleWrapper;
 
         #apps.server = flake-utils.lib.mkApp {
         #  name = "server";
