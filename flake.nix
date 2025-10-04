@@ -99,6 +99,12 @@
               DX_HOME=$(mktemp -d) DIOXUS_LOG=trace ${dioxus-cli}/bin/dx ${dioxusBuildDepsOnlyCommand} --trace --release --base-path public ${dioxusExtraArgs} ${cargoExtraArgs}
             '';
             doCheck = false;
+            dummySrc = craneLib.mkDummySrc {
+              src = args.src;
+              extraDummyScript = ''
+                cp ${args.src}/crates/tucan-plus-dioxus/Dioxus.toml $out/crates/tucan-plus-dioxus/Dioxus.toml
+              '';
+            };
           } // args);
         } // args // notBuildDepsOnly);
 
@@ -299,9 +305,9 @@
             touch $GRADLE_USER_HOME/wrapper/dists/gradle-9.1.0-bin/9agqghryom9wkf8r80qlhnts3/gradle-9.1.0-bin.zip.ok
             export GRADLE_OPTS="-Dorg.gradle.project.android.aapt2FromMavenOverride=$ANDROID_HOME/build-tools/34.0.0/aapt2 -Dhttp.proxyHost=$MITM_CACHE_HOST -Dhttp.proxyPort=$MITM_CACHE_PORT -Dhttps.proxyHost=$MITM_CACHE_HOST -Dhttps.proxyPort=$MITM_CACHE_PORT -Djavax.net.ssl.trustStore=$MITM_CACHE_KEYSTORE -Djavax.net.ssl.trustStorePassword=$MITM_CACHE_KS_PWD"
           '';
-          notBuildDepsOnly.preBuild = preBuild + ''
+          notBuildDepsOnly.preBuild = ''
             keytool -genkey -v -keystore my-release-key.jks -keyalg RSA -keysize 2048 -validity 10000 -alias my-alias --keypass password --storepass password -dname "CN=Test"
-          '';
+          '' + preBuild;
           nativeBuildInputs = nativeAndroidArgs.nativeBuildInputs ++ [
             pkgs.jdk
             pkgs.gradle_9 # version must match the wrapper version, otherwise you get Failed to assemble apk: Exception in thread "main" java.net.UnknownHostException: services.gradle.org
