@@ -237,6 +237,19 @@
           dioxusBuildDepsOnlyCommand = "bundle"; # maybe build does not work on android?
         };
 
+        # 9agqghryom9wkf8r80qlhnts3/
+        /*
+        jshell
+        java.security.MessageDigest messageDigest = java.security.MessageDigest.getInstance("MD5");
+        byte[] bytes = "https://services.gradle.org/distributions/gradle-9.1.0-bin.zip".getBytes("UTF-8");
+        messageDigest.update(bytes);
+        String result = new BigInteger(1, messageDigest.digest()).toString(36);
+        */
+
+        # https://github.com/gradle/gradle/blob/master/platforms/ide/tooling-api/src/main/java/org/gradle/tooling/internal/consumer/DistributionFactory.java#L116
+        # https://github.com/gradle/gradle/blob/360f9eab2f6f1595025f746a03ee5895659b0b8c/platforms/core-runtime/wrapper-shared/src/main/java/org/gradle/wrapper/WrapperExecutor.java#L41
+        # https://github.com/gradle/gradle/blob/master/platforms/core-runtime/wrapper-shared/src/main/java/org/gradle/wrapper/PathAssembler.java#L38
+
         # add this as gradle home
         gradleWrapper = pkgs.runCommand "gradle-wrapper" {} ''
           mkdir a
