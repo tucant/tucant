@@ -49,8 +49,8 @@
           src = pkgs.fetchFromGitHub {
             owner = "mohe2015";
             repo = "dioxus";
-            rev = "16aeec0b7f31ed1bc44897c287cd6611905008c7";
-            hash = "sha256-jG/obJDlKyOJLoyH3kBjuIkedFfcOPT23dQM6Xm7a54=";
+            rev = "697e2fc6283f5dbd198d988767d35775fae165d2";
+            hash = "sha256-SgwHTPqbERZR95+M16KpNRdhiDYipFumyiFcfo2MOkI=";
           };
           doCheck = false;
           strictDeps = true;
@@ -69,6 +69,7 @@
           dioxusMainArgs ? "",
           cargoExtraArgs ? "", # Other cargo-general flags (e.g. for features or targets)
           notBuildDepsOnly ? {},
+          dioxusBuildDepsOnlyCommand ? "build",
           ...
         }@origArgs: let
           # Clean the original arguments for good hygiene (i.e. so the flags specific
@@ -79,20 +80,23 @@
             "dioxusMainArgs"
             "cargoExtraArgs"
             "notBuildDepsOnly"
+            "dioxusBuildDepsOnlyCommand"
           ]) // {
             # A suffix name used by the derivation, useful for logging
             pnameSuffix = "-dioxus";
 
             # Set the cargo command we will use and pass through the flags
             buildPhaseCargoCommand = ''
-              RUST_BACKTRACE=1 RUST_LOG=trace DIOXUS_LOG=trace ${dioxus-cli}/bin/dx ${dioxusCommand} --trace --release --base-path public ${dioxusExtraArgs}  ${dioxusMainArgs} ${cargoExtraArgs}
+              DX_HOME=$(mktemp -d) RUST_BACKTRACE=1 RUST_LOG=trace DIOXUS_LOG=trace ${dioxus-cli}/bin/dx ${dioxusCommand} --trace --release --base-path public ${dioxusExtraArgs}  ${dioxusMainArgs} ${cargoExtraArgs}
             '';
           };
         in
         craneLib.mkCargoDerivation (args // {
           cargoArtifacts = craneLib.buildDepsOnly (args // {
             # build, don't bundle
-            buildPhaseCargoCommand = "RUST_LOG=trace DIOXUS_LOG=trace ${dioxus-cli}/bin/dx build --trace --release --base-path public ${dioxusExtraArgs} ${cargoExtraArgs}";
+            # TODO make dx home persistent as it's useful
+            # ${pkgs.strace}/bin/strace
+            buildPhaseCargoCommand = "DX_HOME=$(mktemp -d) RUST_LOG=trace DIOXUS_LOG=trace ${dioxus-cli}/bin/dx ${dioxusBuildDepsOnlyCommand} --trace --release --base-path public ${dioxusExtraArgs} ${cargoExtraArgs}";
             doCheck = false;
           });
         } // notBuildDepsOnly);
@@ -230,7 +234,7 @@
 
         nativeAndroidArgs = nativeArgs // {
           dioxusExtraArgs = "--android";
-          
+          dioxusBuildDepsOnlyCommand = "bundle"; # maybe build does not work on android?
         };
 
         # https://github.com/NixOS/nixpkgs/blob/master/doc/languages-frameworks/android.section.md?plain=1
@@ -238,6 +242,9 @@
           ANDROID_HOME = "${(pkgs.androidenv.composeAndroidPackages {
             includeNDK = true;
           }).androidsdk}/libexec/android-sdk";
+          nativeBuildInputs = [
+            pkgs.jdk
+          ];
           preBuild = ''
             echo $ANDROID_HOME
           '';
@@ -828,6 +835,7 @@
             pkgs.pkg-config
             pkgs.emscripten
             pkgs.gobject-introspection
+            pkgs.jdk
             dioxus-cli
           ];
         };
