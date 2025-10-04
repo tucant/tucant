@@ -259,13 +259,14 @@
           ${pkgs.gradle_9}/bin/gradle init
           ls -la
           sed -i '/validateDistributionUrl=/d' gradle/wrapper/gradle-wrapper.properties
-          sed -i '/distributionUrl=/d' gradle/wrapper/gradle-wrapper.properties
-          echo "distributionUrl=file\://${pkgs.fetchurl {
-            url = "https://services.gradle.org/distributions/gradle-9.1.0-bin.zip";
-            hash = "sha256-oX3dhaJran9d23H/iwX8UQTAICxuZHgkKXkMkzaGyAY=";
-          }}" >> gradle/wrapper/gradle-wrapper.properties
           echo "validateDistributionUrl=false" >> gradle/wrapper/gradle-wrapper.properties
           cat gradle/wrapper/gradle-wrapper.properties
+          mkdir -p $GRADLE_USER_HOME/wrapper/dists/gradle-9.1.0-bin/9agqghryom9wkf8r80qlhnts3/
+          cp ${pkgs.fetchurl {
+            url = "https://services.gradle.org/distributions/gradle-9.1.0-bin.zip";
+            hash = "sha256-oX3dhaJran9d23H/iwX8UQTAICxuZHgkKXkMkzaGyAY=";
+          }} $GRADLE_USER_HOME/wrapper/dists/gradle-9.1.0-bin/9agqghryom9wkf8r80qlhnts3/gradle-9.1.0-bin.zip
+          touch $GRADLE_USER_HOME/wrapper/dists/gradle-9.1.0-bin/9agqghryom9wkf8r80qlhnts3/gradle-9.1.0-bin.zip.ok
           ./gradlew
           ls -laR ../b/wrapper
         '';
