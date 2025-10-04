@@ -248,7 +248,6 @@
           dioxusExtraArgs = "--android";
           # build produces .apk, bundle produces .aab
           dioxusCommand = "build";
-          dioxusMainArgs = "--out-dir $out";
         };
 
         gradleWrapper = pkgs.runCommand "gradle-wrapper" {} ''
@@ -311,6 +310,10 @@
             touch $GRADLE_USER_HOME/wrapper/dists/gradle-9.1.0-bin/9agqghryom9wkf8r80qlhnts3/gradle-9.1.0-bin.zip.ok
             export GRADLE_OPTS="-Dorg.gradle.project.android.aapt2FromMavenOverride=$ANDROID_HOME/build-tools/34.0.0/aapt2 -Dhttp.proxyHost=$MITM_CACHE_HOST -Dhttp.proxyPort=$MITM_CACHE_PORT -Dhttps.proxyHost=$MITM_CACHE_HOST -Dhttps.proxyPort=$MITM_CACHE_PORT -Djavax.net.ssl.trustStore=$MITM_CACHE_KEYSTORE -Djavax.net.ssl.trustStorePassword=$MITM_CACHE_KS_PWD"
           ''+ nativeAndroidArgs.preBuild;
+          installPhase = ''
+            mkdir $out
+            cp target/dx/tucan-plus-dioxus/release/android/app/app/build/outputs/apk/release/app-release.apk $out/app-release.apk
+          '';
           nativeBuildInputs = nativeAndroidArgs.nativeBuildInputs ++ [
             pkgs.jdk
             pkgs.gradle_9 # version must match the wrapper version, otherwise you get Failed to assemble apk: Exception in thread "main" java.net.UnknownHostException: services.gradle.org
