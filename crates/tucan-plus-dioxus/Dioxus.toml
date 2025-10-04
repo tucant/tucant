@@ -4,7 +4,7 @@ name = "tucan-plus"
 [bundle]
 identifier = "de.selfmade4u"
 publisher = "Moritz Hedtke"
-icon = ["assets/logo.png"]
+icon = ["/build/source/target/dx/tucan-plus-dioxus/release/linux/app/assets/logo.png"]
 
 [web.app]
 title = "TUCaN Plus"

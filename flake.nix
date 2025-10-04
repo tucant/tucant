@@ -47,8 +47,8 @@
           src = pkgs.fetchFromGitHub {
             owner = "mohe2015";
             repo = "dioxus";
-            rev = "4e2b36831e2fef577fbc1ad10d82c79cf331afdb";
-            hash = "sha256-fPKIOTkZee5bpTBdwSxWTNM4S3gL87rySQnD806aVNA=";
+            rev = "7a9e0669250143d6a3f29a629446198d95d7e556";
+            hash = "sha256-FAHHJHK+UlugiQZSssKCKkB4PBQz1Cfy48Y3VFk2mGw=";
           };
           doCheck = false;
           strictDeps = true;
@@ -74,13 +74,16 @@
             pnameSuffix = "-dioxus";
 
             # Set the cargo command we will use and pass through the flags
-            buildPhaseCargoCommand = "${dioxus-cli}/bin/dx ${dioxusCommand} --trace --release --out-dir $out --base-path public ${dioxusExtraArgs} ${cargoExtraArgs}";
+            buildPhaseCargoCommand = ''
+              RUST_LOG=trace DIOXUS_LOG=trace ${dioxus-cli}/bin/dx ${dioxusCommand} --trace --release --out-dir $out --base-path public ${dioxusExtraArgs} ${cargoExtraArgs} || true
+              ls -R /build/source/target/dx/tucan-plus-dioxus/release/linux/app
+            '';
           };
         in
         craneLib.mkCargoDerivation (args // {
           cargoArtifacts = craneLib.buildDepsOnly (args // {
             # build, don't bundle
-            buildPhaseCargoCommand = "DIOXUS_LOG=trace ${dioxus-cli}/bin/dx build --trace --release --base-path public ${dioxusExtraArgs} ${cargoExtraArgs}";
+            buildPhaseCargoCommand = "RUST_LOG=trace DIOXUS_LOG=trace ${dioxus-cli}/bin/dx build --trace --release --base-path public ${dioxusExtraArgs} ${cargoExtraArgs}";
             doCheck = false;
           });
         });
@@ -143,6 +146,13 @@
 
         nativeArgs = {
           pname = "tucan-plus-native";
+          cargoExtraArgs = "--package tucan-plus-dioxus";
+          preBuild = ''
+            cd ./crates/tucan-plus-worker
+          '';
+          postBuild = ''
+            cd ../..
+          '';
           strictDeps = true;
           src = lib.fileset.toSource {
             root = ./.;
@@ -168,8 +178,7 @@
         };
 
         nativeLinuxArgs = nativeArgs // {
-          dioxusExtraArgs = "--platform linux";
-          cargoExtraArgs = "--package tucan-plus-dioxus";
+          dioxusExtraArgs = "--linux";
           nativeBuildInputs = nativeArgs.nativeBuildInputs ++ [ pkgs.pkg-config pkgs.gobject-introspection  ];
           buildInputs = nativeArgs.buildInputs ++ [
             pkgs.at-spi2-atk
@@ -190,23 +199,26 @@
         };
 
         nativeLinux = cargoDioxus craneLib (nativeLinuxArgs // {
-          
+          # TODO make this depend on the unbundled derivation?
+        });
+
+        nativeLinuxUnbundled = cargoDioxus craneLib (nativeLinuxArgs // {
+          dioxusCommand = "build";
         });
 
         # https://v2.tauri.app/distribute/appimage/#appimages-for-arm-based-devices cross compiling not possible
-        nativeLinuxAarch64 = cargoDioxus craneLibAarch64Linux (nativeLinuxArgs // {
+        nativeLinuxAarch64Unbundled = cargoDioxus craneLibAarch64Linux (nativeLinuxArgs // {
           dioxusCommand = "build"; # TODO we could try building and not bundling?
-          dioxusExtraArgs = "--target aarch64-unknown-linux-gnu --platform linux";
+          dioxusExtraArgs = "--target aarch64-unknown-linux-gnu --linux";
         });
 
         nativeAndroidArgs = nativeArgs // {
-          dioxusExtraArgs = "--platform android";
-          cargoExtraArgs = "--package tucan-plus-dioxus";
+          dioxusExtraArgs = "--android";
           
         };
 
         nativeAndroid = cargoDioxus craneLib (nativeAndroidArgs // {
-          
+
         });
 
         # https://github.com/DioxusLabs/dioxus/blob/ad40f816073f91da67c0287a5512a5111e5a1617/packages/cli/src/config/bundle.rs#L263 we could use fixedruntime but it would be better if the others would also allow specifying a path
@@ -215,7 +227,7 @@
         # https://github.com/DioxusLabs/dioxus/issues/4076 probably not possible yet
         nativeWindowsArgs = nativeArgs // {
           dioxusCommand = "build"; # TODO we could try building and not bundling?
-          cargoDioxusExtraArgs = "--target x86_64-pc-windows-gnu --platform windows"; # TODO FIXME dioxus should auto-detect the target from the env variable
+          cargoDioxusExtraArgs = "--target x86_64-pc-windows-gnu --windows"; # TODO FIXME dioxus should auto-detect the target from the env variable
           cargoExtraArgs = "--package tucan-plus-dioxus";
           nativeBuildInputs = nativeArgs.nativeBuildInputs ++ [ pkgs.pkg-config ];
           buildInputs = nativeArgs.buildInputs ++ [ pkgs.at-spi2-atk
@@ -437,7 +449,7 @@
             export WORKER_WASM_PATH="/''${WORKER_WASM_PATH_ARRAY[@]}"
             #export SERVICE_WORKER_JS_PATH=/assets/tucan-plus-service-worker.js
             rm -R ./target/dx/tucan-plus-dioxus/release/web/public/assets || true
-            CARGO_TARGET_DIR=target ${dioxus-cli}/bin/dx bundle --platform web --release --out-dir $out --base-path public --features direct
+            CARGO_TARGET_DIR=target ${dioxus-cli}/bin/dx bundle --web --release --out-dir $out --base-path public --features direct
           '';
           installPhaseCommand = ''
           '';
@@ -460,7 +472,7 @@
             buildPhaseCargoCommand = ''
               export CC=emcc
               export CXX=emcc
-              CARGO_TARGET_DIR=target ${dioxus-cli}/bin/dx bundle --platform web --release --out-dir $out --base-path public --features direct
+              CARGO_TARGET_DIR=target ${dioxus-cli}/bin/dx bundle --web --release --out-dir $out --base-path public --features direct
             '';
             dummySrc = craneLib.mkDummySrc {
               src = client-args.src;
@@ -691,9 +703,10 @@
         #packages.dioxus-cli = dioxus-cli;
         #packages.worker = worker;
         packages.nativeLinux = nativeLinux;
+        packages.nativeLinuxUnbundled = nativeLinuxUnbundled;
         packages.nativeAndroid = nativeAndroid;
 
-        packages.nativeLinuxAarch64 = nativeLinuxAarch64; # cross compiling appimage not possible
+        packages.nativeLinuxAarch64Unbundled = nativeLinuxAarch64Unbundled; # cross compiling appimage not possible
 
         # maybe dioxus downloads stuff here
         # https://github.com/tauri-apps/tauri/blob/2e089f6acb854e4d7f8eafb9b2f8242b1c9fa491/crates/tauri-bundler/src/bundle/windows/util.rs#L45
@@ -793,6 +806,7 @@
             pkgs.pkg-config
             pkgs.emscripten
             pkgs.gobject-introspection
+            dioxus-cli
           ];
         };
       }
