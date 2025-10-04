@@ -157,13 +157,21 @@
               fileset-worker # TODO rename to database
             ];
           };
+          nativeBuildInputs = [
+            (pkgs.writeShellScriptBin "git" ''
+              echo ${self.rev or "dirty"}
+            '') # TODO we probably need to remove this from the deps derivation.
+          ];
+          buildInputs = [
+            pkgs.sqlite
+          ];
         };
 
         nativeLinuxArgs = nativeArgs // {
           dioxusExtraArgs = "--platform linux";
-          cargoExtraArgs = "--package tucan-plus-dioxus --features direct";
-          nativeBuildInputs = [ pkgs.pkg-config pkgs.gobject-introspection ];
-          buildInputs = [
+          cargoExtraArgs = "--package tucan-plus-dioxus";
+          nativeBuildInputs = nativeArgs.nativeBuildInputs ++ [ pkgs.pkg-config pkgs.gobject-introspection  ];
+          buildInputs = nativeArgs.buildInputs ++ [
             pkgs.at-spi2-atk
             pkgs.atkmm
             pkgs.cairo
@@ -193,7 +201,7 @@
 
         nativeAndroidArgs = nativeArgs // {
           dioxusExtraArgs = "--platform android";
-          cargoExtraArgs = "--package tucan-plus-dioxus --features direct";
+          cargoExtraArgs = "--package tucan-plus-dioxus";
           
         };
 
@@ -208,9 +216,9 @@
         nativeWindowsArgs = nativeArgs // {
           dioxusCommand = "build"; # TODO we could try building and not bundling?
           cargoDioxusExtraArgs = "--target x86_64-pc-windows-gnu --platform windows"; # TODO FIXME dioxus should auto-detect the target from the env variable
-          cargoExtraArgs = "--package tucan-plus-dioxus --features direct";
-          nativeBuildInputs = [ pkgs.pkg-config ];
-          buildInputs = [ pkgs.at-spi2-atk
+          cargoExtraArgs = "--package tucan-plus-dioxus";
+          nativeBuildInputs = nativeArgs.nativeBuildInputs ++ [ pkgs.pkg-config ];
+          buildInputs = nativeArgs.buildInputs ++ [ pkgs.at-spi2-atk
             pkgs.atkmm
             pkgs.cairo
             pkgs.gdk-pixbuf
