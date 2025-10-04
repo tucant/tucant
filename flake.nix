@@ -47,8 +47,8 @@
           src = pkgs.fetchFromGitHub {
             owner = "mohe2015";
             repo = "dioxus";
-            rev = "7a9e0669250143d6a3f29a629446198d95d7e556";
-            hash = "sha256-FAHHJHK+UlugiQZSssKCKkB4PBQz1Cfy48Y3VFk2mGw=";
+            rev = "0dfbe624b2d4c5cb0ac020907e1eb41cb7941dd1";
+            hash = "sha256-eHGkByW6JncDG4CCIoinOIUuQfwpytMuH8l5Ewvkflc=";
           };
           doCheck = false;
           strictDeps = true;
@@ -56,6 +56,9 @@
           cargoExtraArgs = "-p dioxus-cli --features no-downloads";
           nativeBuildInputs = [ pkgs.pkg-config ];
           buildInputs = [ pkgs.openssl ];
+          meta = {
+            mainProgram = "dx";
+          };
         };
 
         cargoDioxus = craneLib: {
@@ -700,7 +703,7 @@
         #packages.extension-unpacked = extension-unpacked;
         #packages.extension-source = source;
         #packages.extension-source-unpacked = source-unpacked;
-        #packages.dioxus-cli = dioxus-cli;
+        packages.dioxus-cli = dioxus-cli;
         #packages.worker = worker;
         packages.nativeLinux = nativeLinux;
         packages.nativeLinuxUnbundled = nativeLinuxUnbundled;
