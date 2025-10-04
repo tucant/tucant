@@ -237,6 +237,8 @@
           dioxusBuildDepsOnlyCommand = "bundle"; # maybe build does not work on android?
         };
 
+        # https://github.com/NixOS/nixpkgs/blob/master/doc/languages-frameworks/gradle.section.md
+        # https://github.com/NixOS/nixpkgs/pull/383115
         # /build/source/target/dx/tucan-plus-dioxus/release/android/app/gradlew
         # https://github.com/NixOS/nixpkgs/blob/master/doc/languages-frameworks/android.section.md?plain=1
         nativeAndroid = cargoDioxus craneLib (nativeAndroidArgs // {
@@ -247,10 +249,16 @@
           }).androidsdk}/libexec/android-sdk";
           nativeBuildInputs = [
             pkgs.jdk
+            pkgs.gradle
           ];
           preBuild = ''
             echo $ANDROID_HOME
           '';
+          # nix build -L .#nativeAndroid.mitmCache.updateScript
+          mitmCache = pkgs.gradle.fetchDeps {
+            pkg = nativeAndroid;
+            data = ./deps.json;
+          };
         });
 
         # https://github.com/DioxusLabs/dioxus/blob/ad40f816073f91da67c0287a5512a5111e5a1617/packages/cli/src/config/bundle.rs#L263 we could use fixedruntime but it would be better if the others would also allow specifying a path
