@@ -237,36 +237,6 @@
           dioxusBuildDepsOnlyCommand = "bundle"; # maybe build does not work on android?
         };
 
-        unbuiltAndroidProject = cargoDioxus craneLib (nativeAndroidArgs // {
-          ANDROID_HOME = "${(pkgs.androidenv.composeAndroidPackages {
-            includeNDK = true;
-            platformVersions = [ "33" ];
-            buildToolsVersions = [ "34.0.0" ];
-          }).androidsdk}/libexec/android-sdk";
-          nativeBuildInputs = nativeAndroidArgs.nativeBuildInputs ++ [
-            pkgs.jdk
-            pkgs.gradle
-          ];
-          buildPhaseCargoCommand = "DX_HOME=$(mktemp -d) ${dioxus-cli}/bin/dx bundle --android --trace --release --base-path public --package tucan-plus-dioxus || true";
-          installPhase = ''
-            cp -r target/dx/tucan-plus-dioxus/release/android/app/ $out
-          '';
-        });
-
-        unbuiltAndroidProject2 = cargoDioxus craneLib (nativeAndroidArgs // {
-          src = unbuiltAndroidProject;
-          ANDROID_HOME = "${(pkgs.androidenv.composeAndroidPackages {
-            includeNDK = true;
-            platformVersions = [ "33" ];
-            buildToolsVersions = [ "34.0.0" ];
-          }).androidsdk}/libexec/android-sdk";
-          nativeBuildInputs = nativeAndroidArgs.nativeBuildInputs ++ [
-            pkgs.jdk
-            pkgs.gradle
-          ];
-          buildPhaseCargoCommand = "gradle assembleRelease";
-        });
-
         # https://github.com/NixOS/nixpkgs/blob/master/doc/languages-frameworks/gradle.section.md
         # https://github.com/NixOS/nixpkgs/pull/383115
         # /build/source/target/dx/tucan-plus-dioxus/release/android/app/gradlew
@@ -281,9 +251,14 @@
             pkgs.jdk
             pkgs.gradle
           ];
+          gradleUpdateScript = ''
+            DX_HOME=$(mktemp -d) ${dioxus-cli}/bin/dx bundle --android --trace --release --base-path public --package tucan-plus-dioxus || true
+            cd target/dx/tucan-plus-dioxus/release/android/app/
+            GRADLE_OPTS="-Dorg.gradle.project.android.aapt2FromMavenOverride=$ANDROID_HOME/build-tools/34.0.0/aapt2" gradle --info --no-daemon assembleDebug
+          '';
           # nix build -L .#nativeAndroid.mitmCache.updateScript && ./result
           mitmCache = pkgs.gradle.fetchDeps {
-            pkg = unbuiltAndroidProject2;
+            pkg = nativeAndroid.cargoArtifacts;
             data = ./deps.json;
           };
         });
@@ -772,7 +747,6 @@
         packages.nativeLinux = nativeLinux;
         packages.nativeLinuxUnbundled = nativeLinuxUnbundled;
         packages.nativeAndroid = nativeAndroid;
-        packages.unbuiltAndroidProject = unbuiltAndroidProject;
 
         packages.nativeLinuxAarch64Unbundled = nativeLinuxAarch64Unbundled; # cross compiling appimage not possible
 
