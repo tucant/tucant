@@ -55,7 +55,7 @@
           doCheck = false;
           strictDeps = true;
           pname = "dioxus-cli";
-          cargoExtraArgs = "-p dioxus-cli --features no-downloads";
+          cargoExtraArgs = "-p dioxus-cli --features no-downloads --features disable-telemetry";
           nativeBuildInputs = [ pkgs.pkg-config ];
           buildInputs = [ pkgs.openssl ];
           meta = {
@@ -241,6 +241,7 @@
         # https://github.com/NixOS/nixpkgs/pull/383115
         # /build/source/target/dx/tucan-plus-dioxus/release/android/app/gradlew
         # https://github.com/NixOS/nixpkgs/blob/master/doc/languages-frameworks/android.section.md?plain=1
+        # https://github.com/NixOS/nixpkgs/issues/402297
         nativeAndroid = cargoDioxus craneLib (nativeAndroidArgs // {
           ANDROID_HOME = "${(pkgs.androidenv.composeAndroidPackages {
             includeNDK = true;
@@ -254,7 +255,7 @@
           gradleUpdateScript = ''
             DX_HOME=$(mktemp -d) ${dioxus-cli}/bin/dx bundle --android --trace --release --base-path public --package tucan-plus-dioxus || true
             cd target/dx/tucan-plus-dioxus/release/android/app/
-            GRADLE_OPTS="-Dorg.gradle.project.android.aapt2FromMavenOverride=$ANDROID_HOME/build-tools/34.0.0/aapt2" gradle --info --no-daemon assembleDebug
+            gradle -Dorg.gradle.project.android.aapt2FromMavenOverride=$ANDROID_HOME/build-tools/34.0.0/aapt2 --info --no-daemon assembleDebug
           '';
           # nix build -L .#nativeAndroid.mitmCache.updateScript && ./result
           mitmCache = pkgs.gradle.fetchDeps {
