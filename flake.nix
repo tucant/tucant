@@ -87,16 +87,20 @@
           ]);
         in
         craneLib.mkCargoDerivation ({
-            # Set the cargo command we will use and pass through the flags
-            buildPhaseCargoCommand = ''
-              DX_HOME=$(mktemp -d) DIOXUS_LOG=trace ${dioxus-cli}/bin/dx ${dioxusCommand} --trace --release --base-path public ${dioxusExtraArgs} ${dioxusMainArgs} ${cargoExtraArgs}
-            '';
+          # Set the cargo command we will use and pass through the flags
+          buildPhaseCargoCommand = ''
+            set -x
+            DX_HOME=$(mktemp -d) DIOXUS_LOG=trace ${dioxus-cli}/bin/dx ${dioxusCommand} --trace --release --base-path public ${dioxusExtraArgs} ${dioxusMainArgs} ${cargoExtraArgs}
+            set +x
+          '';
           cargoArtifacts = craneLib.buildDepsOnly ({
             # build, don't bundle
             # TODO make dx home persistent as it's useful
             # ${pkgs.strace}/bin/strace --follow-forks
             buildPhaseCargoCommand = ''
+              set -x
               DX_HOME=$(mktemp -d) DIOXUS_LOG=trace ${dioxus-cli}/bin/dx ${dioxusBuildDepsOnlyCommand} --trace --release --base-path public ${dioxusExtraArgs} ${cargoExtraArgs}
+              set +x
             '';
             doCheck = false;
             dummySrc = craneLib.mkDummySrc {
@@ -294,7 +298,8 @@
             platformVersions = [ "33" ];
             buildToolsVersions = [ "34.0.0" ];
           }).androidsdk}/libexec/android-sdk";
-          preBuild = nativeAndroidArgs.preBuild + ''
+          preBuild = ''
+            keytool -genkey -v -keystore my-release-key.jks -keyalg RSA -keysize 2048 -validity 10000 -alias my-alias --keypass password --storepass password -dname "CN=Test"
             export GRADLE_USER_HOME=$(mktemp -d)
             mkdir -p $GRADLE_USER_HOME/wrapper/dists/gradle-9.1.0-bin/9agqghryom9wkf8r80qlhnts3/
             cp ${pkgs.fetchurl {
@@ -304,10 +309,7 @@
             ${pkgs.unzip}/bin/unzip $GRADLE_USER_HOME/wrapper/dists/gradle-9.1.0-bin/9agqghryom9wkf8r80qlhnts3/gradle-9.1.0-bin.zip -d $GRADLE_USER_HOME/wrapper/dists/gradle-9.1.0-bin/9agqghryom9wkf8r80qlhnts3/
             touch $GRADLE_USER_HOME/wrapper/dists/gradle-9.1.0-bin/9agqghryom9wkf8r80qlhnts3/gradle-9.1.0-bin.zip.ok
             export GRADLE_OPTS="-Dorg.gradle.project.android.aapt2FromMavenOverride=$ANDROID_HOME/build-tools/34.0.0/aapt2 -Dhttp.proxyHost=$MITM_CACHE_HOST -Dhttp.proxyPort=$MITM_CACHE_PORT -Dhttps.proxyHost=$MITM_CACHE_HOST -Dhttps.proxyPort=$MITM_CACHE_PORT -Djavax.net.ssl.trustStore=$MITM_CACHE_KEYSTORE -Djavax.net.ssl.trustStorePassword=$MITM_CACHE_KS_PWD"
-          '';
-          notBuildDepsOnly.preBuild = ''
-            keytool -genkey -v -keystore my-release-key.jks -keyalg RSA -keysize 2048 -validity 10000 -alias my-alias --keypass password --storepass password -dname "CN=Test"
-          '' + preBuild;
+          ''+ nativeAndroidArgs.preBuild;
           nativeBuildInputs = nativeAndroidArgs.nativeBuildInputs ++ [
             pkgs.jdk
             pkgs.gradle_9 # version must match the wrapper version, otherwise you get Failed to assemble apk: Exception in thread "main" java.net.UnknownHostException: services.gradle.org
