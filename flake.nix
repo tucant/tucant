@@ -77,11 +77,6 @@
           args = {
             # A suffix name used by the derivation, useful for logging
             pnameSuffix = "-dioxus";
-
-            # Set the cargo command we will use and pass through the flags
-            buildPhaseCargoCommand = ''
-              DX_HOME=$(mktemp -d) DIOXUS_LOG=trace ${dioxus-cli}/bin/dx ${dioxusCommand} --trace --release --base-path public ${dioxusExtraArgs} ${dioxusMainArgs} ${cargoExtraArgs}
-            '';
           } // (builtins.removeAttrs origArgs [
             "dioxusCommand"
             "dioxusExtraArgs"
@@ -92,11 +87,19 @@
           ]);
         in
         craneLib.mkCargoDerivation ({
+            # Set the cargo command we will use and pass through the flags
+            buildPhaseCargoCommand = ''
+              set -x
+              DX_HOME=$(mktemp -d) DIOXUS_LOG=trace ${dioxus-cli}/bin/dx ${dioxusCommand} --trace --release --base-path public ${dioxusExtraArgs} ${dioxusMainArgs} ${cargoExtraArgs}
+            '';
           cargoArtifacts = craneLib.buildDepsOnly ({
             # build, don't bundle
             # TODO make dx home persistent as it's useful
             # ${pkgs.strace}/bin/strace --follow-forks
-            buildPhaseCargoCommand = "DX_HOME=$(mktemp -d) DIOXUS_LOG=trace ${dioxus-cli}/bin/dx ${dioxusBuildDepsOnlyCommand} --trace --release --base-path public ${dioxusExtraArgs} ${cargoExtraArgs}";
+            buildPhaseCargoCommand = ''
+              set -x
+              DX_HOME=$(mktemp -d) DIOXUS_LOG=trace ${dioxus-cli}/bin/dx ${dioxusBuildDepsOnlyCommand} --trace --release --base-path public ${dioxusExtraArgs} ${cargoExtraArgs}
+            '';
             doCheck = false;
           } // args);
         } // args // notBuildDepsOnly);
@@ -235,7 +238,7 @@
 
         nativeAndroidArgs = nativeArgs // {
           dioxusExtraArgs = "--android";
-          dioxusBuildDepsOnlyCommand = "bundle"; # otherwise we build twice?
+          dioxusBuildDepsOnlyCommand = "bundle"; # TODO try build again
           dioxusMainArgs = "--out-dir $out";
         };
 
@@ -281,7 +284,7 @@
         # /build/source/target/dx/tucan-plus-dioxus/release/android/app/gradlew
         # https://github.com/NixOS/nixpkgs/blob/master/doc/languages-frameworks/android.section.md?plain=1
         # https://github.com/NixOS/nixpkgs/issues/402297
-        nativeAndroid = cargoDioxus craneLib (nativeAndroidArgs // {
+        nativeAndroid = cargoDioxus craneLib (nativeAndroidArgs // rec {
           ANDROID_HOME = "${(pkgs.androidenv.composeAndroidPackages {
             includeNDK = true;
             platformVersions = [ "33" ];
@@ -297,6 +300,9 @@
             ${pkgs.unzip}/bin/unzip $GRADLE_USER_HOME/wrapper/dists/gradle-9.1.0-bin/9agqghryom9wkf8r80qlhnts3/gradle-9.1.0-bin.zip -d $GRADLE_USER_HOME/wrapper/dists/gradle-9.1.0-bin/9agqghryom9wkf8r80qlhnts3/
             touch $GRADLE_USER_HOME/wrapper/dists/gradle-9.1.0-bin/9agqghryom9wkf8r80qlhnts3/gradle-9.1.0-bin.zip.ok
             export GRADLE_OPTS="-Dorg.gradle.project.android.aapt2FromMavenOverride=$ANDROID_HOME/build-tools/34.0.0/aapt2 -Dhttp.proxyHost=$MITM_CACHE_HOST -Dhttp.proxyPort=$MITM_CACHE_PORT -Dhttps.proxyHost=$MITM_CACHE_HOST -Dhttps.proxyPort=$MITM_CACHE_PORT -Djavax.net.ssl.trustStore=$MITM_CACHE_KEYSTORE -Djavax.net.ssl.trustStorePassword=$MITM_CACHE_KS_PWD"
+          '';
+          notBuildDepsOnly.preBuild = preBuild + ''
+            keytool -genkey -v -keystore my-release-key.jks -keyalg RSA -keysize 2048 -validity 10000 -alias my-alias --keypass password --storepass password -dname "CN=Test"
           '';
           nativeBuildInputs = nativeAndroidArgs.nativeBuildInputs ++ [
             pkgs.jdk
