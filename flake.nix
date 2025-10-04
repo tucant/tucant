@@ -64,7 +64,7 @@
         cargoDioxus = craneLib: {
           dioxusCommand ? "bundle",
           dioxusExtraArgs ? "", # Arguments that are generally useful default
-          dioxusMainArgs,
+          dioxusMainArgs ? "",
           cargoExtraArgs ? "", # Other cargo-general flags (e.g. for features or targets)
           ...
         }@origArgs: let
@@ -81,7 +81,7 @@
 
             # Set the cargo command we will use and pass through the flags
             buildPhaseCargoCommand = ''
-              RUST_BACKTRACE=1 RUST_LOG=trace DIOXUS_LOG=trace ${dioxus-cli}/bin/dx ${dioxusCommand} --trace --release --out-dir $out --base-path public ${dioxusExtraArgs}  ${dioxusMainArgs} ${cargoExtraArgs}
+              RUST_BACKTRACE=1 RUST_LOG=trace DIOXUS_LOG=trace ${dioxus-cli}/bin/dx ${dioxusCommand} --trace --release --base-path public ${dioxusExtraArgs}  ${dioxusMainArgs} ${cargoExtraArgs}
             '';
           };
         in
@@ -184,8 +184,6 @@
 
         nativeLinuxArgs = nativeArgs // {
           dioxusExtraArgs = "--linux";
-          # likely fails in or something https://github.com/tauri-apps/tauri/blob/2e089f6acb854e4d7f8eafb9b2f8242b1c9fa491/crates/tauri-bundler/src/bundle/linux/appimage.rs#L224 because it's before the log message
-          dioxusMainArgs = "--package-types deb --package-types rpm"; # --package-types appimage
           nativeBuildInputs = nativeArgs.nativeBuildInputs ++ [ pkgs.pkg-config pkgs.gobject-introspection  ];
           buildInputs = nativeArgs.buildInputs ++ [
             pkgs.at-spi2-atk
@@ -206,6 +204,8 @@
         };
 
         nativeLinux = cargoDioxus craneLib (nativeLinuxArgs // {
+          # likely fails in or something https://github.com/tauri-apps/tauri/blob/2e089f6acb854e4d7f8eafb9b2f8242b1c9fa491/crates/tauri-bundler/src/bundle/linux/appimage.rs#L224 because it's before the log message
+          dioxusMainArgs = "--out-dir $out --package-types deb --package-types rpm"; # --package-types appimage
           # TODO make this depend on the unbundled derivation?
         });
 
