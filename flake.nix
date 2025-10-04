@@ -66,6 +66,7 @@
           dioxusExtraArgs ? "", # Arguments that are generally useful default
           dioxusMainArgs ? "",
           cargoExtraArgs ? "", # Other cargo-general flags (e.g. for features or targets)
+          notBuildDepsOnly ? {},
           ...
         }@origArgs: let
           # Clean the original arguments for good hygiene (i.e. so the flags specific
@@ -75,6 +76,7 @@
             "dioxusExtraArgs"
             "dioxusMainArgs"
             "cargoExtraArgs"
+            "notBuildDepsOnly"
           ]) // {
             # A suffix name used by the derivation, useful for logging
             pnameSuffix = "-dioxus";
@@ -91,7 +93,7 @@
             buildPhaseCargoCommand = "RUST_LOG=trace DIOXUS_LOG=trace ${dioxus-cli}/bin/dx build --trace --release --base-path public ${dioxusExtraArgs} ${cargoExtraArgs}";
             doCheck = false;
           });
-        });
+        } // notBuildDepsOnly);
 
         fileset-worker = lib.fileset.unions [
           (craneLib.fileset.commonCargoSources ./crates/tucan-plus-worker)
@@ -211,6 +213,11 @@
 
         nativeLinuxUnbundled = cargoDioxus craneLib (nativeLinuxArgs // {
           dioxusCommand = "build";
+          notBuildDepsOnly = {
+            installPhase = ''
+              cp -r target/dx/tucan-plus-dioxus/release/linux/app $out
+            '';
+          };
         });
 
         # https://v2.tauri.app/distribute/appimage/#appimages-for-arm-based-devices cross compiling not possible
