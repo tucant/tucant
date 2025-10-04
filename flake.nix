@@ -79,9 +79,8 @@
             pnameSuffix = "-dioxus";
 
             # Set the cargo command we will use and pass through the flags
-            # RUST_BACKTRACE=1 RUST_LOG=trace DIOXUS_LOG=trace 
             buildPhaseCargoCommand = ''
-              DX_HOME=$(mktemp -d) ${dioxus-cli}/bin/dx ${dioxusCommand} --trace --release --base-path public ${dioxusExtraArgs} ${dioxusMainArgs} ${cargoExtraArgs}
+              DX_HOME=$(mktemp -d) DIOXUS_LOG=trace ${dioxus-cli}/bin/dx ${dioxusCommand} --trace --release --base-path public ${dioxusExtraArgs} ${dioxusMainArgs} ${cargoExtraArgs}
             '';
           } // (builtins.removeAttrs origArgs [
             "dioxusCommand"
@@ -97,8 +96,7 @@
             # build, don't bundle
             # TODO make dx home persistent as it's useful
             # ${pkgs.strace}/bin/strace --follow-forks
-            # RUST_LOG=trace DIOXUS_LOG=trace 
-            buildPhaseCargoCommand = "DX_HOME=$(mktemp -d) ${dioxus-cli}/bin/dx ${dioxusBuildDepsOnlyCommand} --trace --release --base-path public ${dioxusExtraArgs} ${cargoExtraArgs}";
+            buildPhaseCargoCommand = "DX_HOME=$(mktemp -d) DIOXUS_LOG=trace ${dioxus-cli}/bin/dx ${dioxusBuildDepsOnlyCommand} --trace --release --base-path public ${dioxusExtraArgs} ${cargoExtraArgs}";
             doCheck = false;
           } // args);
         } // args // notBuildDepsOnly);
@@ -183,6 +181,7 @@
             ];
           };
           nativeBuildInputs = [
+            pkgs.pkg-config
             (pkgs.writeShellScriptBin "git" ''
               echo ${self.rev or "dirty"}
             '') # TODO we probably need to remove this from the deps derivation.
@@ -194,7 +193,7 @@
 
         nativeLinuxArgs = nativeArgs // {
           dioxusExtraArgs = "--linux";
-          nativeBuildInputs = nativeArgs.nativeBuildInputs ++ [ pkgs.pkg-config pkgs.gobject-introspection  ];
+          nativeBuildInputs = nativeArgs.nativeBuildInputs ++ [ pkgs.gobject-introspection  ];
           buildInputs = nativeArgs.buildInputs ++ [
             pkgs.at-spi2-atk
             pkgs.atkmm
@@ -236,7 +235,8 @@
 
         nativeAndroidArgs = nativeArgs // {
           dioxusExtraArgs = "--android";
-          dioxusBuildDepsOnlyCommand = "bundle"; # maybe build does not work on android?
+          dioxusBuildDepsOnlyCommand = "bundle"; # otherwise we build twice?
+          dioxusMainArgs = "--out-dir $out";
         };
 
         gradleWrapper = pkgs.runCommand "gradle-wrapper" {} ''
