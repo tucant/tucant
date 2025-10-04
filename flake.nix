@@ -295,11 +295,14 @@
             ${pkgs.unzip}/bin/unzip $GRADLE_USER_HOME/wrapper/dists/gradle-9.1.0-bin/9agqghryom9wkf8r80qlhnts3/gradle-9.1.0-bin.zip -d $GRADLE_USER_HOME/wrapper/dists/gradle-9.1.0-bin/9agqghryom9wkf8r80qlhnts3/
             touch $GRADLE_USER_HOME/wrapper/dists/gradle-9.1.0-bin/9agqghryom9wkf8r80qlhnts3/gradle-9.1.0-bin.zip.ok
             ls -la $GRADLE_USER_HOME/wrapper/dists/gradle-9.1.0-bin/9agqghryom9wkf8r80qlhnts3/gradle-9.1.0
+            export GRADLE_OPTS="-Dhttp.proxyHost=$MITM_CACHE_HOST -Dhttp.proxyPort=$MITM_CACHE_PORT -Dhttps.proxyHost=$MITM_CACHE_HOST -Dhttps.proxyPort=$MITM_CACHE_PORT -Djavax.net.ssl.trustStore=$MITM_CACHE_KEYSTORE -Djavax.net.ssl.trustStorePassword=$MITM_CACHE_KS_PWD"
+            echo $GRADLE_OPTS
           '';
           nativeBuildInputs = [
             pkgs.jdk
             pkgs.gradle_9 # version must match the wrapper version, otherwise you get Failed to assemble apk: Exception in thread "main" java.net.UnknownHostException: services.gradle.org
           ];
+          # https://github.com/NixOS/nixpkgs/blob/master/pkgs/development/tools/build-managers/gradle/setup-hook.sh
           gradleUpdateScript = ''
             DX_HOME=$(mktemp -d) ${dioxus-cli}/bin/dx bundle --android --trace --release --base-path public --package tucan-plus-dioxus || true
             cd target/dx/tucan-plus-dioxus/release/android/app/
