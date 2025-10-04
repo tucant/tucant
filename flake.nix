@@ -239,6 +239,7 @@
 
         # 9agqghryom9wkf8r80qlhnts3/
         /*
+        # https://github.com/gradle/gradle/blob/360f9eab2f6f1595025f746a03ee5895659b0b8c/platforms/core-runtime/wrapper-shared/src/main/java/org/gradle/wrapper/PathAssembler.java#L63
         jshell
         java.security.MessageDigest messageDigest = java.security.MessageDigest.getInstance("MD5");
         byte[] bytes = "https://services.gradle.org/distributions/gradle-9.1.0-bin.zip".getBytes("UTF-8");
@@ -266,9 +267,10 @@
             url = "https://services.gradle.org/distributions/gradle-9.1.0-bin.zip";
             hash = "sha256-oX3dhaJran9d23H/iwX8UQTAICxuZHgkKXkMkzaGyAY=";
           }} $GRADLE_USER_HOME/wrapper/dists/gradle-9.1.0-bin/9agqghryom9wkf8r80qlhnts3/gradle-9.1.0-bin.zip
-          touch $GRADLE_USER_HOME/wrapper/dists/gradle-9.1.0-bin/9agqghryom9wkf8r80qlhnts3/gradle-9.1.0-bin.zip.ok
+          #touch $GRADLE_USER_HOME/wrapper/dists/gradle-9.1.0-bin/9agqghryom9wkf8r80qlhnts3/gradle-9.1.0-bin.zip.ok
           ./gradlew
           ls -laR ../b/wrapper
+          cp -r $GRADLE_USER_HOME $out
         '';
 
         # https://github.com/NixOS/nixpkgs/blob/master/doc/languages-frameworks/gradle.section.md
