@@ -311,8 +311,10 @@
             export GRADLE_OPTS="-Dorg.gradle.project.android.aapt2FromMavenOverride=$ANDROID_HOME/build-tools/34.0.0/aapt2 -Dhttp.proxyHost=$MITM_CACHE_HOST -Dhttp.proxyPort=$MITM_CACHE_PORT -Dhttps.proxyHost=$MITM_CACHE_HOST -Dhttps.proxyPort=$MITM_CACHE_PORT -Djavax.net.ssl.trustStore=$MITM_CACHE_KEYSTORE -Djavax.net.ssl.trustStorePassword=$MITM_CACHE_KS_PWD"
           ''+ nativeAndroidArgs.preBuild;
           installPhase = ''
+            runHook preInstall
             mkdir $out
             cp target/dx/tucan-plus-dioxus/release/android/app/app/build/outputs/apk/release/app-release.apk $out/app-release.apk
+            runHook postInstall
           '';
           nativeBuildInputs = nativeAndroidArgs.nativeBuildInputs ++ [
             pkgs.jdk
