@@ -38,7 +38,7 @@
         rustToolchainFor =
           p:
           p.rust-bin.stable.latest.minimal.override {
-            targets = [ "aarch64-unknown-linux-gnu" "wasm32-unknown-unknown" "x86_64-pc-windows-gnu" "aarch64-apple-darwin" "x86_64-apple-darwin" ];
+            targets = [ "aarch64-unknown-linux-gnu" "wasm32-unknown-unknown" "x86_64-pc-windows-gnu" "aarch64-apple-darwin" "x86_64-apple-darwin" "x86_64-linux-android" "aarch64-linux-android" ];
             extensions = [ "rustfmt" ];
           };
         craneLib = (crane.mkLib pkgs).overrideToolchain rustToolchainFor;
@@ -235,7 +235,12 @@
 
         # https://github.com/NixOS/nixpkgs/blob/master/doc/languages-frameworks/android.section.md?plain=1
         nativeAndroid = cargoDioxus craneLib (nativeAndroidArgs // {
-          ANDROID_HOME = "${pkgs.androidenv.androidPkgs.androidsdk}/libexec/android-sdk";
+          ANDROID_HOME = "${(pkgs.androidenv.composeAndroidPackages {
+            includeNDK = true;
+          }).androidsdk}/libexec/android-sdk";
+          preBuild = ''
+            echo $ANDROID_HOME
+          '';
         });
 
         # https://github.com/DioxusLabs/dioxus/blob/ad40f816073f91da67c0287a5512a5111e5a1617/packages/cli/src/config/bundle.rs#L263 we could use fixedruntime but it would be better if the others would also allow specifying a path
