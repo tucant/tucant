@@ -28,6 +28,8 @@
       let
         pkgs = import nixpkgs {
           inherit system;
+          config.allowUnfree = true;
+          config.android_sdk.accept_license = true;
           overlays = [ (import rust-overlay) ];
         };
 
@@ -231,8 +233,9 @@
           
         };
 
+        # https://github.com/NixOS/nixpkgs/blob/master/doc/languages-frameworks/android.section.md?plain=1
         nativeAndroid = cargoDioxus craneLib (nativeAndroidArgs // {
-
+          ANDROID_HOME = "${pkgs.androidenv.androidPkgs.androidsdk}/libexec/android-sdk";
         });
 
         # https://github.com/DioxusLabs/dioxus/blob/ad40f816073f91da67c0287a5512a5111e5a1617/packages/cli/src/config/bundle.rs#L263 we could use fixedruntime but it would be better if the others would also allow specifying a path
