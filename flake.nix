@@ -49,8 +49,8 @@
           src = pkgs.fetchFromGitHub {
             owner = "mohe2015";
             repo = "dioxus";
-            rev = "306a2d54a990f2f36629790dbb78bff62f880f9e";
-            hash = "sha256-hrNKj3jC1UnTSALFR12xZZTZ5ZsU5rMznbeVq60nHMw=";
+            rev = "d8b119d711d21ec45ba2b1b66e8d0b1819d45b20";
+            hash = "sha256-+9Fg84NBN3Nm//ihKn5ONZU4O+5dSLhWdRZXl6ddXBA=";
           };
           doCheck = false;
           strictDeps = true;
@@ -237,6 +237,26 @@
           dioxusBuildDepsOnlyCommand = "bundle"; # maybe build does not work on android?
         };
 
+        # add this as gradle home
+        gradleWrapper = pkgs.runCommand "gradle-wrapper" {} ''
+          mkdir a
+          cd a
+          export GRADLE_USER_HOME=../b
+          export JAVA_HOME=${pkgs.jdk}
+          ${pkgs.gradle_9}/bin/gradle init
+          ls -la
+          sed -i '/validateDistributionUrl=/d' gradle/wrapper/gradle-wrapper.properties
+          sed -i '/distributionUrl=/d' gradle/wrapper/gradle-wrapper.properties
+          echo "distributionUrl=file\://${pkgs.fetchurl {
+            url = "https://services.gradle.org/distributions/gradle-9.1.0-bin.zip";
+            hash = "sha256-oX3dhaJran9d23H/iwX8UQTAICxuZHgkKXkMkzaGyAY=";
+          }}" >> gradle/wrapper/gradle-wrapper.properties
+          echo "validateDistributionUrl=false" >> gradle/wrapper/gradle-wrapper.properties
+          cat gradle/wrapper/gradle-wrapper.properties
+          ./gradlew
+          ls -laR ../b/wrapper
+        '';
+
         # https://github.com/NixOS/nixpkgs/blob/master/doc/languages-frameworks/gradle.section.md
         # https://github.com/NixOS/nixpkgs/pull/383115
         # /build/source/target/dx/tucan-plus-dioxus/release/android/app/gradlew
@@ -248,9 +268,12 @@
             platformVersions = [ "33" ];
             buildToolsVersions = [ "34.0.0" ];
           }).androidsdk}/libexec/android-sdk";
+          preBuild = ''
+            export GRADLE_OPTS=""
+          '';
           nativeBuildInputs = [
             pkgs.jdk
-            pkgs.gradle
+            pkgs.gradle_9 # version must match the wrapper version, otherwise you get Failed to assemble apk: Exception in thread "main" java.net.UnknownHostException: services.gradle.org
           ];
           gradleUpdateScript = ''
             DX_HOME=$(mktemp -d) ${dioxus-cli}/bin/dx bundle --android --trace --release --base-path public --package tucan-plus-dioxus || true
@@ -258,7 +281,7 @@
             gradle -Dorg.gradle.project.android.aapt2FromMavenOverride=$ANDROID_HOME/build-tools/34.0.0/aapt2 --info --no-daemon assembleDebug
           '';
           # nix build -L .#nativeAndroid.mitmCache.updateScript && ./result
-          mitmCache = pkgs.gradle.fetchDeps {
+          mitmCache = pkgs.gradle_9.fetchDeps {
             pkg = nativeAndroid.cargoArtifacts;
             data = ./deps.json;
           };
@@ -754,6 +777,8 @@
         # maybe dioxus downloads stuff here
         # https://github.com/tauri-apps/tauri/blob/2e089f6acb854e4d7f8eafb9b2f8242b1c9fa491/crates/tauri-bundler/src/bundle/windows/util.rs#L45
         packages.nativeWindows = nativeWindows; # cross building is broken for dioxus
+
+        packages.gradleWrapper = gradleWrapper;
 
         #apps.server = flake-utils.lib.mkApp {
         #  name = "server";
