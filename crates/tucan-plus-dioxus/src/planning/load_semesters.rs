@@ -1,6 +1,4 @@
-use std::sync::Arc;
-
-use dioxus::{hooks::use_context, html::FileEngine, signals::Signal};
+use dioxus::{hooks::use_context, html::FileData, signals::Signal};
 use futures::StreamExt as _;
 use tucan_plus_planning::decompress;
 use tucan_plus_worker::{
@@ -18,14 +16,11 @@ pub async fn handle_semester(
     tucan: RcTucanType,
     login_response: &LoginResponse,
     semester: Semester,
-    element: Signal<Option<Arc<dyn FileEngine>>>,
+    file_names: Signal<Vec<FileData>>,
 ) {
     let worker: MyDatabase = use_context();
-    let element = element().unwrap();
-    let file_names = element.files();
-    for file_name in file_names {
-        let file = element.read_file(&file_name).await.unwrap();
-        let decompressed = decompress(&file).await.unwrap();
+    for file in file_names() {
+        let decompressed = decompress(&file.read_bytes().await.unwrap()).await.unwrap();
         let mut result: Vec<AnmeldungResponse> =
             serde_json::from_reader(decompressed.as_slice()).unwrap();
         result.sort_by_key(|e| e.path.len());

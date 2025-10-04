@@ -1,9 +1,7 @@
 pub mod load_leistungsspiegel;
 pub mod load_semesters;
 
-use std::sync::Arc;
-
-use dioxus::html::FileEngine;
+use dioxus::html::FileData;
 use dioxus::prelude::*;
 use futures::StreamExt;
 use log::info;
@@ -57,8 +55,8 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
         .value
         .to_string();
     let navigator = use_navigator();
-    let mut sommersemester: Signal<Option<Arc<dyn FileEngine>>> = use_signal(|| None);
-    let mut wintersemester: Signal<Option<Arc<dyn FileEngine>>> = use_signal(|| None);
+    let mut sommersemester: Signal<Vec<FileData>> = use_signal(|| Vec::new());
+    let mut wintersemester: Signal<Vec<FileData>> = use_signal(|| Vec::new());
     let tucan: RcTucanType = use_context();
     let current_session_handle = use_context::<Signal<Option<LoginResponse>>>();
     let mut loading = use_signal(|| false);
