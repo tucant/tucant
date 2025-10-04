@@ -184,6 +184,7 @@
 
         nativeLinuxArgs = nativeArgs // {
           dioxusExtraArgs = "--linux";
+          # likely fails in or something https://github.com/tauri-apps/tauri/blob/2e089f6acb854e4d7f8eafb9b2f8242b1c9fa491/crates/tauri-bundler/src/bundle/linux/appimage.rs#L224 because it's before the log message
           dioxusMainArgs = "--package-types deb --package-types rpm"; # --package-types appimage
           nativeBuildInputs = nativeArgs.nativeBuildInputs ++ [ pkgs.pkg-config pkgs.gobject-introspection  ];
           buildInputs = nativeArgs.buildInputs ++ [
