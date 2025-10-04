@@ -246,7 +246,8 @@
 
         nativeAndroidArgs = nativeArgs // {
           dioxusExtraArgs = "--android";
-          dioxusBuildDepsOnlyCommand = "build"; # TODO try build again
+          # build produces .apk, bundle produces .aab
+          dioxusCommand = "build";
           dioxusMainArgs = "--out-dir $out";
         };
 
