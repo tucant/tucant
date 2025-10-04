@@ -74,32 +74,32 @@
         }@origArgs: let
           # Clean the original arguments for good hygiene (i.e. so the flags specific
           # to this helper don't pollute the environment variables of the derivation)
-          args = (builtins.removeAttrs origArgs [
+          args = {
+            # A suffix name used by the derivation, useful for logging
+            pnameSuffix = "-dioxus";
+
+            # Set the cargo command we will use and pass through the flags
+            buildPhaseCargoCommand = ''
+              DX_HOME=$(mktemp -d) RUST_BACKTRACE=1 RUST_LOG=trace DIOXUS_LOG=trace ${dioxus-cli}/bin/dx ${dioxusCommand} --trace --release --base-path public ${dioxusExtraArgs} ${dioxusMainArgs} ${cargoExtraArgs}
+            '';
+          } // (builtins.removeAttrs origArgs [
             "dioxusCommand"
             "dioxusExtraArgs"
             "dioxusMainArgs"
             "cargoExtraArgs"
             "notBuildDepsOnly"
             "dioxusBuildDepsOnlyCommand"
-          ]) // {
-            # A suffix name used by the derivation, useful for logging
-            pnameSuffix = "-dioxus";
-
-            # Set the cargo command we will use and pass through the flags
-            buildPhaseCargoCommand = ''
-              DX_HOME=$(mktemp -d) RUST_BACKTRACE=1 RUST_LOG=trace DIOXUS_LOG=trace ${dioxus-cli}/bin/dx ${dioxusCommand} --trace --release --base-path public ${dioxusExtraArgs}  ${dioxusMainArgs} ${cargoExtraArgs}
-            '';
-          };
+          ]);
         in
-        craneLib.mkCargoDerivation (args // {
-          cargoArtifacts = craneLib.buildDepsOnly (args // {
+        craneLib.mkCargoDerivation ({
+          cargoArtifacts = craneLib.buildDepsOnly ({
             # build, don't bundle
             # TODO make dx home persistent as it's useful
             # ${pkgs.strace}/bin/strace --follow-forks
             buildPhaseCargoCommand = "DX_HOME=$(mktemp -d) RUST_LOG=trace DIOXUS_LOG=trace ${dioxus-cli}/bin/dx ${dioxusBuildDepsOnlyCommand} --trace --release --base-path public ${dioxusExtraArgs} ${cargoExtraArgs}";
             doCheck = false;
-          });
-        } // notBuildDepsOnly);
+          } // args);
+        } // args // notBuildDepsOnly);
 
         fileset-worker = lib.fileset.unions [
           (craneLib.fileset.commonCargoSources ./crates/tucan-plus-worker)
@@ -161,7 +161,7 @@
           pname = "tucan-plus-native";
           cargoExtraArgs = "--package tucan-plus-dioxus";
           preBuild = ''
-            cd ./crates/tucan-plus-worker
+            cd ./crates/tucan-plus-dioxus
           '';
           postBuild = ''
             cd ../..
@@ -237,6 +237,36 @@
           dioxusBuildDepsOnlyCommand = "bundle"; # maybe build does not work on android?
         };
 
+        unbuiltAndroidProject = cargoDioxus craneLib (nativeAndroidArgs // {
+          ANDROID_HOME = "${(pkgs.androidenv.composeAndroidPackages {
+            includeNDK = true;
+            platformVersions = [ "33" ];
+            buildToolsVersions = [ "34.0.0" ];
+          }).androidsdk}/libexec/android-sdk";
+          nativeBuildInputs = nativeAndroidArgs.nativeBuildInputs ++ [
+            pkgs.jdk
+            pkgs.gradle
+          ];
+          buildPhaseCargoCommand = "DX_HOME=$(mktemp -d) ${dioxus-cli}/bin/dx bundle --android --trace --release --base-path public --package tucan-plus-dioxus || true";
+          installPhase = ''
+            cp -r target/dx/tucan-plus-dioxus/release/android/app/ $out
+          '';
+        });
+
+        unbuiltAndroidProject2 = cargoDioxus craneLib (nativeAndroidArgs // {
+          src = unbuiltAndroidProject;
+          ANDROID_HOME = "${(pkgs.androidenv.composeAndroidPackages {
+            includeNDK = true;
+            platformVersions = [ "33" ];
+            buildToolsVersions = [ "34.0.0" ];
+          }).androidsdk}/libexec/android-sdk";
+          nativeBuildInputs = nativeAndroidArgs.nativeBuildInputs ++ [
+            pkgs.jdk
+            pkgs.gradle
+          ];
+          buildPhaseCargoCommand = "gradle assembleRelease";
+        });
+
         # https://github.com/NixOS/nixpkgs/blob/master/doc/languages-frameworks/gradle.section.md
         # https://github.com/NixOS/nixpkgs/pull/383115
         # /build/source/target/dx/tucan-plus-dioxus/release/android/app/gradlew
@@ -251,12 +281,9 @@
             pkgs.jdk
             pkgs.gradle
           ];
-          preBuild = ''
-            echo $ANDROID_HOME
-          '';
-          # nix build -L .#nativeAndroid.mitmCache.updateScript
+          # nix build -L .#nativeAndroid.mitmCache.updateScript && ./result
           mitmCache = pkgs.gradle.fetchDeps {
-            pkg = nativeAndroid;
+            pkg = unbuiltAndroidProject2;
             data = ./deps.json;
           };
         });
@@ -745,6 +772,7 @@
         packages.nativeLinux = nativeLinux;
         packages.nativeLinuxUnbundled = nativeLinuxUnbundled;
         packages.nativeAndroid = nativeAndroid;
+        packages.unbuiltAndroidProject = unbuiltAndroidProject;
 
         packages.nativeLinuxAarch64Unbundled = nativeLinuxAarch64Unbundled; # cross compiling appimage not possible
 
