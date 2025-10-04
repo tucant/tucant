@@ -306,7 +306,8 @@
             cat gradle/wrapper/gradle-wrapper.properties
             echo $GRADLE_USER_HOME
             patchShebangs ./gradlew
-            ./gradlew -Dorg.gradle.project.android.aapt2FromMavenOverride=$ANDROID_HOME/build-tools/34.0.0/aapt2 --info --no-daemon assembleDebug
+            # the hook overrides gradle user home
+            gradle -Dorg.gradle.project.android.aapt2FromMavenOverride=$ANDROID_HOME/build-tools/34.0.0/aapt2 --info --no-daemon bundleRelease
           '';
           # nix build -L .#nativeAndroid.mitmCache.updateScript && ./result
           mitmCache = pkgs.gradle_9.fetchDeps {
