@@ -49,8 +49,8 @@
           src = pkgs.fetchFromGitHub {
             owner = "mohe2015";
             repo = "dioxus";
-            rev = "697e2fc6283f5dbd198d988767d35775fae165d2";
-            hash = "sha256-SgwHTPqbERZR95+M16KpNRdhiDYipFumyiFcfo2MOkI=";
+            rev = "fb317af5a89d6fc6bdd2e91873093fd151d64ce3";
+            hash = "sha256-nt/16iB4UgBdO1vgeVfYhIP42iFinCdUbu2+e7SSxGk=";
           };
           doCheck = false;
           strictDeps = true;
@@ -95,7 +95,7 @@
           cargoArtifacts = craneLib.buildDepsOnly (args // {
             # build, don't bundle
             # TODO make dx home persistent as it's useful
-            # ${pkgs.strace}/bin/strace
+            # ${pkgs.strace}/bin/strace --follow-forks
             buildPhaseCargoCommand = "DX_HOME=$(mktemp -d) RUST_LOG=trace DIOXUS_LOG=trace ${dioxus-cli}/bin/dx ${dioxusBuildDepsOnlyCommand} --trace --release --base-path public ${dioxusExtraArgs} ${cargoExtraArgs}";
             doCheck = false;
           });
@@ -237,10 +237,13 @@
           dioxusBuildDepsOnlyCommand = "bundle"; # maybe build does not work on android?
         };
 
+        # /build/source/target/dx/tucan-plus-dioxus/release/android/app/gradlew
         # https://github.com/NixOS/nixpkgs/blob/master/doc/languages-frameworks/android.section.md?plain=1
         nativeAndroid = cargoDioxus craneLib (nativeAndroidArgs // {
           ANDROID_HOME = "${(pkgs.androidenv.composeAndroidPackages {
             includeNDK = true;
+            platformVersions = [ "33" ];
+            buildToolsVersions = [ "34.0.0" ];
           }).androidsdk}/libexec/android-sdk";
           nativeBuildInputs = [
             pkgs.jdk
