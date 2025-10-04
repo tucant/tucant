@@ -47,8 +47,8 @@
           src = pkgs.fetchFromGitHub {
             owner = "mohe2015";
             repo = "dioxus";
-            rev = "0dfbe624b2d4c5cb0ac020907e1eb41cb7941dd1";
-            hash = "sha256-eHGkByW6JncDG4CCIoinOIUuQfwpytMuH8l5Ewvkflc=";
+            rev = "2bc197588049413c95aa497155b20fc129d094cb";
+            hash = "sha256-/7u2EaL14ncTzbhTa5yue9iZwN8P+7qyxSx2EL6XFv8=";
           };
           doCheck = false;
           strictDeps = true;
@@ -64,13 +64,16 @@
         cargoDioxus = craneLib: {
           dioxusCommand ? "bundle",
           dioxusExtraArgs ? "", # Arguments that are generally useful default
+          dioxusMainArgs,
           cargoExtraArgs ? "", # Other cargo-general flags (e.g. for features or targets)
           ...
         }@origArgs: let
           # Clean the original arguments for good hygiene (i.e. so the flags specific
           # to this helper don't pollute the environment variables of the derivation)
           args = (builtins.removeAttrs origArgs [
+            "dioxusCommand"
             "dioxusExtraArgs"
+            "dioxusMainArgs"
             "cargoExtraArgs"
           ]) // {
             # A suffix name used by the derivation, useful for logging
@@ -78,8 +81,7 @@
 
             # Set the cargo command we will use and pass through the flags
             buildPhaseCargoCommand = ''
-              RUST_LOG=trace DIOXUS_LOG=trace ${dioxus-cli}/bin/dx ${dioxusCommand} --trace --release --out-dir $out --base-path public ${dioxusExtraArgs} ${cargoExtraArgs} || true
-              ls -R /build/source/target/dx/tucan-plus-dioxus/release/linux/app
+              RUST_BACKTRACE=1 RUST_LOG=trace DIOXUS_LOG=trace ${dioxus-cli}/bin/dx ${dioxusCommand} --trace --release --out-dir $out --base-path public ${dioxusExtraArgs}  ${dioxusMainArgs} ${cargoExtraArgs}
             '';
           };
         in
@@ -182,6 +184,7 @@
 
         nativeLinuxArgs = nativeArgs // {
           dioxusExtraArgs = "--linux";
+          dioxusMainArgs = "--package-types deb --package-types rpm"; # --package-types appimage
           nativeBuildInputs = nativeArgs.nativeBuildInputs ++ [ pkgs.pkg-config pkgs.gobject-introspection  ];
           buildInputs = nativeArgs.buildInputs ++ [
             pkgs.at-spi2-atk
