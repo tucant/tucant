@@ -89,7 +89,6 @@
         craneLib.mkCargoDerivation ({
             # Set the cargo command we will use and pass through the flags
             buildPhaseCargoCommand = ''
-              set -x
               DX_HOME=$(mktemp -d) DIOXUS_LOG=trace ${dioxus-cli}/bin/dx ${dioxusCommand} --trace --release --base-path public ${dioxusExtraArgs} ${dioxusMainArgs} ${cargoExtraArgs}
             '';
           cargoArtifacts = craneLib.buildDepsOnly ({
@@ -97,7 +96,6 @@
             # TODO make dx home persistent as it's useful
             # ${pkgs.strace}/bin/strace --follow-forks
             buildPhaseCargoCommand = ''
-              set -x
               DX_HOME=$(mktemp -d) DIOXUS_LOG=trace ${dioxus-cli}/bin/dx ${dioxusBuildDepsOnlyCommand} --trace --release --base-path public ${dioxusExtraArgs} ${cargoExtraArgs}
             '';
             doCheck = false;
@@ -238,7 +236,7 @@
 
         nativeAndroidArgs = nativeArgs // {
           dioxusExtraArgs = "--android";
-          dioxusBuildDepsOnlyCommand = "bundle"; # TODO try build again
+          dioxusBuildDepsOnlyCommand = "build"; # TODO try build again
           dioxusMainArgs = "--out-dir $out";
         };
 
@@ -290,7 +288,7 @@
             platformVersions = [ "33" ];
             buildToolsVersions = [ "34.0.0" ];
           }).androidsdk}/libexec/android-sdk";
-          preBuild = ''
+          preBuild = nativeAndroidArgs.preBuild + ''
             export GRADLE_USER_HOME=$(mktemp -d)
             mkdir -p $GRADLE_USER_HOME/wrapper/dists/gradle-9.1.0-bin/9agqghryom9wkf8r80qlhnts3/
             cp ${pkgs.fetchurl {
