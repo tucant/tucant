@@ -237,6 +237,28 @@
           dioxusBuildDepsOnlyCommand = "bundle"; # maybe build does not work on android?
         };
 
+        gradleWrapper = pkgs.runCommand "gradle-wrapper" {} ''
+            mkdir a
+            cd a
+            export GRADLE_USER_HOME=../b
+            export JAVA_HOME=${pkgs.jdk}
+            ${pkgs.gradle_9}/bin/gradle init
+            ls -la
+            sed -i '/validateDistributionUrl=/d' gradle/wrapper/gradle-wrapper.properties
+            echo "validateDistributionUrl=false" >> gradle/wrapper/gradle-wrapper.properties
+            rm -R $GRADLE_USER_HOME
+            mkdir -p $GRADLE_USER_HOME/wrapper/dists/gradle-9.1.0-bin/9agqghryom9wkf8r80qlhnts3/
+            cp ${pkgs.fetchurl {
+              url = "https://services.gradle.org/distributions/gradle-9.1.0-bin.zip";
+              hash = "sha256-oX3dhaJran9d23H/iwX8UQTAICxuZHgkKXkMkzaGyAY=";
+            }} $GRADLE_USER_HOME/wrapper/dists/gradle-9.1.0-bin/9agqghryom9wkf8r80qlhnts3/gradle-9.1.0-bin.zip
+            ${pkgs.unzip}/bin/unzip $GRADLE_USER_HOME/wrapper/dists/gradle-9.1.0-bin/9agqghryom9wkf8r80qlhnts3/gradle-9.1.0-bin.zip -d $GRADLE_USER_HOME/wrapper/dists/gradle-9.1.0-bin/9agqghryom9wkf8r80qlhnts3/gradle-9.1.0
+            touch $GRADLE_USER_HOME/wrapper/dists/gradle-9.1.0-bin/9agqghryom9wkf8r80qlhnts3/gradle-9.1.0-bin.zip.ok
+            ./gradlew
+            ls -laR ../b/wrapper
+            cp -r $GRADLE_USER_HOME $out
+        '';
+
         # 9agqghryom9wkf8r80qlhnts3/
         /*
         # https://github.com/gradle/gradle/blob/360f9eab2f6f1595025f746a03ee5895659b0b8c/platforms/core-runtime/wrapper-shared/src/main/java/org/gradle/wrapper/PathAssembler.java#L63
@@ -247,6 +269,7 @@
         String result = new BigInteger(1, messageDigest.digest()).toString(36);
         */
 
+        # https://github.com/gradle/gradle/blob/360f9eab2f6f1595025f746a03ee5895659b0b8c/platforms/core-runtime/wrapper-shared/src/main/java/org/gradle/wrapper/Install.java
         # https://github.com/gradle/gradle/blob/master/platforms/ide/tooling-api/src/main/java/org/gradle/tooling/internal/consumer/DistributionFactory.java#L116
         # https://github.com/gradle/gradle/blob/360f9eab2f6f1595025f746a03ee5895659b0b8c/platforms/core-runtime/wrapper-shared/src/main/java/org/gradle/wrapper/WrapperExecutor.java#L41
         # https://github.com/gradle/gradle/blob/master/platforms/core-runtime/wrapper-shared/src/main/java/org/gradle/wrapper/PathAssembler.java#L38
@@ -269,6 +292,7 @@
               url = "https://services.gradle.org/distributions/gradle-9.1.0-bin.zip";
               hash = "sha256-oX3dhaJran9d23H/iwX8UQTAICxuZHgkKXkMkzaGyAY=";
             }} $GRADLE_USER_HOME/wrapper/dists/gradle-9.1.0-bin/9agqghryom9wkf8r80qlhnts3/gradle-9.1.0-bin.zip
+            touch $GRADLE_USER_HOME/wrapper/dists/gradle-9.1.0-bin/9agqghryom9wkf8r80qlhnts3/gradle-9.1.0-bin.zip.ok
           '';
           nativeBuildInputs = [
             pkgs.jdk
@@ -277,7 +301,10 @@
           gradleUpdateScript = ''
             DX_HOME=$(mktemp -d) ${dioxus-cli}/bin/dx bundle --android --trace --release --base-path public --package tucan-plus-dioxus || true
             cd target/dx/tucan-plus-dioxus/release/android/app/
-            gradle -Dorg.gradle.project.android.aapt2FromMavenOverride=$ANDROID_HOME/build-tools/34.0.0/aapt2 --info --no-daemon assembleDebug
+            cat gradle/wrapper/gradle-wrapper.properties
+            echo $GRADLE_USER_HOME
+            patchShebangs ./gradlew
+            ./gradlew -Dorg.gradle.project.android.aapt2FromMavenOverride=$ANDROID_HOME/build-tools/34.0.0/aapt2 --info --no-daemon assembleDebug
           '';
           # nix build -L .#nativeAndroid.mitmCache.updateScript && ./result
           mitmCache = pkgs.gradle_9.fetchDeps {
@@ -776,6 +803,7 @@
         # maybe dioxus downloads stuff here
         # https://github.com/tauri-apps/tauri/blob/2e089f6acb854e4d7f8eafb9b2f8242b1c9fa491/crates/tauri-bundler/src/bundle/windows/util.rs#L45
         packages.nativeWindows = nativeWindows; # cross building is broken for dioxus
+        packages.gradleWrapper = gradleWrapper;
 
         #apps.server = flake-utils.lib.mkApp {
         #  name = "server";
