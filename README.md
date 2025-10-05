@@ -236,11 +236,11 @@ xdg-open target/coverage/index.html
 ```
 sudo systemctl stop firewalld.service
 adb connect 172.18.61.176:43109
-adb uninstall com.example.TucanPlusDioxus
+adb uninstall de.selfmade4u.tucanplus
 dx serve --device --platform android --hotpatch --verbose
 
 adb logcat -c
-adb shell run-as com.example.TucanPlusDioxus logcat
+adb shell run-as de.selfmade4u.tucanplus logcat
 
 dx bundle --platform android --device
 /home/moritz/Documents/tucan-plus/target/dx/tucan-plus-dioxus/debug/android/app/app/build/outputs/apk/debug/app-debug.apk

@@ -90,7 +90,7 @@
           # Set the cargo command we will use and pass through the flags
           buildPhaseCargoCommand = ''
             set -x
-            DX_HOME=$(mktemp -d) DIOXUS_LOG=trace ${dioxus-cli}/bin/dx ${dioxusCommand} --trace --release --base-path public ${dioxusExtraArgs} ${dioxusMainArgs} ${cargoExtraArgs}
+            DX_HOME=$(mktemp -d) DIOXUS_LOG=trace ${dioxus-cli}/bin/dx ${dioxusCommand} --trace --base-path public ${dioxusExtraArgs} ${dioxusMainArgs} ${cargoExtraArgs}
             set +x
           '';
           cargoArtifacts = craneLib.buildDepsOnly ({
@@ -99,7 +99,7 @@
             # ${pkgs.strace}/bin/strace --follow-forks
             buildPhaseCargoCommand = ''
               set -x
-              DX_HOME=$(mktemp -d) DIOXUS_LOG=trace ${dioxus-cli}/bin/dx ${dioxusBuildDepsOnlyCommand} --trace --release --base-path public ${dioxusExtraArgs} ${cargoExtraArgs}
+              DX_HOME=$(mktemp -d) DIOXUS_LOG=trace ${dioxus-cli}/bin/dx ${dioxusBuildDepsOnlyCommand} --trace --base-path public ${dioxusExtraArgs} ${cargoExtraArgs}
               set +x
             '';
             doCheck = false;
@@ -291,7 +291,7 @@
           installPhase = ''
             runHook preInstall
             mkdir $out
-            cp target/dx/tucan-plus-dioxus/release/android/app/app/build/outputs/apk/release/app-release.apk $out/app-release.apk
+            cp target/dx/tucan-plus-dioxus/debug/android/app/app/build/outputs/apk/debug/app-debug.apk $out/app-debug.apk
             runHook postInstall
           '';
           nativeBuildInputs = nativeAndroidArgs.nativeBuildInputs ++ [
@@ -899,6 +899,7 @@
             pkgs.emscripten
             pkgs.gobject-introspection
             pkgs.jdk
+            pkgs.android-tools
             dioxus-cli
           ];
         };
