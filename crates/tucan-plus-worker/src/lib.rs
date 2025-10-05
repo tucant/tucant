@@ -496,11 +496,11 @@ impl MyDatabase {
         use diesel_migrations::MigrationHarness as _;
 
         let url = if cfg!(target_os = "android") {
-            tokio::fs::create_dir_all("/data/data/com.example.TucanPlusDioxus/files")
+            tokio::fs::create_dir_all("/data/data/de.selfmade4u.tucanplus/files")
                 .await
                 .unwrap();
 
-            "sqlite:///data/data/com.example.TucanPlusDioxus/files/data.db?mode=rwc"
+            "sqlite:///data/data/de.selfmade4u.tucanplus/files/data.db?mode=rwc"
         } else {
             "sqlite://tucan-plus.db?mode=rwc"
         };

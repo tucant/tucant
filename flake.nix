@@ -65,6 +65,7 @@
         };
 
         cargoDioxus = craneLib: {
+          profile ? "--release",
           dioxusCommand ? "bundle",
           dioxusExtraArgs ? "", # Arguments that are generally useful default
           dioxusMainArgs ? "",
@@ -91,7 +92,7 @@
           # Set the cargo command we will use and pass through the flags
           buildPhaseCargoCommand = ''
             set -x
-            DX_HOME=$(mktemp -d) DIOXUS_LOG=trace ${dioxus-cli}/bin/dx ${dioxusCommand} --trace --base-path public ${dioxusExtraArgs} ${dioxusMainArgs} ${cargoExtraArgs}
+            DX_HOME=$(mktemp -d) DIOXUS_LOG=trace ${dioxus-cli}/bin/dx ${dioxusCommand} --trace ${profile} --base-path public ${dioxusExtraArgs} ${dioxusMainArgs} ${cargoExtraArgs}
             set +x
           '';
           cargoArtifacts = craneLib.buildDepsOnly ({
@@ -100,7 +101,7 @@
             # ${pkgs.strace}/bin/strace --follow-forks
             buildPhaseCargoCommand = ''
               set -x
-              DX_HOME=$(mktemp -d) DIOXUS_LOG=trace ${dioxus-cli}/bin/dx ${dioxusBuildDepsOnlyCommand} --trace --base-path public ${dioxusExtraArgs} ${cargoExtraArgs}
+              DX_HOME=$(mktemp -d) DIOXUS_LOG=trace ${dioxus-cli}/bin/dx ${dioxusBuildDepsOnlyCommand} --trace ${profile} --base-path public ${dioxusExtraArgs} ${cargoExtraArgs}
               set +x
             '';
             doCheck = false;
@@ -250,12 +251,9 @@
           # build produces .apk, bundle produces .aab
           dioxusCommand = "build";
           buildInputs = [
-            #pkgs.sqlite
+            #pkgsCross.aarch64-android-prebuilt.sqlite # should work with my patched nixpkgs
           ];
         };
-
-        # Linker errors don't fail the program
-        # https://github.com/DioxusLabs/dioxus/blob/a4aef33369894cd6872283d6d7d265303ae63913/packages/cli/src/cli/link.rs#L152
 
         # 9agqghryom9wkf8r80qlhnts3/
         /*
@@ -298,7 +296,7 @@
           installPhase = ''
             runHook preInstall
             mkdir $out
-            cp target/dx/tucan-plus-dioxus/debug/android/app/app/build/outputs/apk/debug/app-debug.apk $out/app-debug.apk
+            cp target/dx/tucan-plus-dioxus/release/android/app/app/build/outputs/apk/release/app-release.apk $out/app-debug.apk
             runHook postInstall
           '';
           nativeBuildInputs = nativeAndroidArgs.nativeBuildInputs ++ [
