@@ -43,14 +43,15 @@
           };
         craneLib = (crane.mkLib pkgs).overrideToolchain rustToolchainFor;
         craneLibAarch64Linux = (crane.mkLib pkgs.pkgsCross.aarch64-multiplatform).overrideToolchain rustToolchainFor;
+        craneLibAarch64Android = (crane.mkLib pkgs.pkgsCross.aarch64-android-prebuilt).overrideToolchain rustToolchainFor;
         craneLibWindows = (crane.mkLib pkgs.pkgsCross.mingwW64).overrideToolchain rustToolchainFor;
 
         dioxus-cli = craneLib.buildPackage {
           src = pkgs.fetchFromGitHub {
             owner = "mohe2015";
             repo = "dioxus";
-            rev = "d0fa25c72fea231d9c0218ae8e7a46bc47e123e0";
-            hash = "sha256-Xb3LasXPH/H6qhpdkwlMGOCYVigRVoXLGpidrj0gggE=";
+            rev = "e1cf37c7427813726af7456f2ba31791e3957e43";
+            hash = "sha256-YtDbd0S2z1P3NCFvQeJn6foKj0A/uygTF8BudNHSpUU=";
           };
           doCheck = false;
           strictDeps = true;
@@ -248,6 +249,9 @@
           dioxusExtraArgs = "--android --target aarch64-linux-android";
           # build produces .apk, bundle produces .aab
           dioxusCommand = "build";
+          buildInputs = [
+            pkgs.sqlite
+          ];
         };
 
         # Linker errors don't fail the program
@@ -273,7 +277,7 @@
         # /build/source/target/dx/tucan-plus-dioxus/release/android/app/gradlew
         # https://github.com/NixOS/nixpkgs/blob/master/doc/languages-frameworks/android.section.md?plain=1
         # https://github.com/NixOS/nixpkgs/issues/402297
-        nativeAndroid = cargoDioxus craneLib (nativeAndroidArgs // rec {
+        nativeAndroid = cargoDioxus craneLibAarch64Android (nativeAndroidArgs // rec {
           ANDROID_HOME = "${(pkgs.androidenv.composeAndroidPackages {
             includeNDK = true;
             platformVersions = [ "33" ];
