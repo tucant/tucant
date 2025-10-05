@@ -250,7 +250,7 @@
           # build produces .apk, bundle produces .aab
           dioxusCommand = "build";
           buildInputs = [
-            pkgs.sqlite
+            #pkgs.sqlite
           ];
         };
 
