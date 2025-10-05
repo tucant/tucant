@@ -245,32 +245,10 @@
         });
 
         nativeAndroidArgs = nativeArgs // {
-          dioxusExtraArgs = "--android";
+          dioxusExtraArgs = "--android --target aarch64-linux-android";
           # build produces .apk, bundle produces .aab
           dioxusCommand = "build";
         };
-
-        gradleWrapper = pkgs.runCommand "gradle-wrapper" {} ''
-            mkdir a
-            cd a
-            export GRADLE_USER_HOME=../b
-            export JAVA_HOME=${pkgs.jdk}
-            ${pkgs.gradle_9}/bin/gradle init
-            ls -la
-            sed -i '/validateDistributionUrl=/d' gradle/wrapper/gradle-wrapper.properties
-            echo "validateDistributionUrl=false" >> gradle/wrapper/gradle-wrapper.properties
-            rm -R $GRADLE_USER_HOME
-            mkdir -p $GRADLE_USER_HOME/wrapper/dists/gradle-9.1.0-bin/9agqghryom9wkf8r80qlhnts3/
-            cp ${pkgs.fetchurl {
-              url = "https://services.gradle.org/distributions/gradle-9.1.0-bin.zip";
-              hash = "sha256-oX3dhaJran9d23H/iwX8UQTAICxuZHgkKXkMkzaGyAY=";
-            }} $GRADLE_USER_HOME/wrapper/dists/gradle-9.1.0-bin/9agqghryom9wkf8r80qlhnts3/gradle-9.1.0-bin.zip
-            ${pkgs.unzip}/bin/unzip $GRADLE_USER_HOME/wrapper/dists/gradle-9.1.0-bin/9agqghryom9wkf8r80qlhnts3/gradle-9.1.0-bin.zip -d $GRADLE_USER_HOME/wrapper/dists/gradle-9.1.0-bin/9agqghryom9wkf8r80qlhnts3/gradle-9.1.0
-            touch $GRADLE_USER_HOME/wrapper/dists/gradle-9.1.0-bin/9agqghryom9wkf8r80qlhnts3/gradle-9.1.0-bin.zip.ok
-            ./gradlew # is this a patched version?
-            ls -laR ../b/wrapper
-            cp -r $GRADLE_USER_HOME $out
-        '';
 
         # 9agqghryom9wkf8r80qlhnts3/
         /*
@@ -825,7 +803,6 @@
         # maybe dioxus downloads stuff here
         # https://github.com/tauri-apps/tauri/blob/2e089f6acb854e4d7f8eafb9b2f8242b1c9fa491/crates/tauri-bundler/src/bundle/windows/util.rs#L45
         packages.nativeWindows = nativeWindows; # cross building is broken for dioxus
-        packages.gradleWrapper = gradleWrapper;
 
         #apps.server = flake-utils.lib.mkApp {
         #  name = "server";
