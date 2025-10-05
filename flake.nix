@@ -49,8 +49,8 @@
           src = pkgs.fetchFromGitHub {
             owner = "mohe2015";
             repo = "dioxus";
-            rev = "d8b119d711d21ec45ba2b1b66e8d0b1819d45b20";
-            hash = "sha256-+9Fg84NBN3Nm//ihKn5ONZU4O+5dSLhWdRZXl6ddXBA=";
+            rev = "d0fa25c72fea231d9c0218ae8e7a46bc47e123e0";
+            hash = "sha256-Xb3LasXPH/H6qhpdkwlMGOCYVigRVoXLGpidrj0gggE=";
           };
           doCheck = false;
           strictDeps = true;
@@ -249,6 +249,9 @@
           # build produces .apk, bundle produces .aab
           dioxusCommand = "build";
         };
+
+        # Linker errors don't fail the program
+        # https://github.com/DioxusLabs/dioxus/blob/a4aef33369894cd6872283d6d7d265303ae63913/packages/cli/src/cli/link.rs#L152
 
         # 9agqghryom9wkf8r80qlhnts3/
         /*
