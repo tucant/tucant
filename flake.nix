@@ -38,7 +38,15 @@
         rustToolchainFor =
           p:
           p.rust-bin.stable.latest.minimal.override {
-            targets = [ "aarch64-unknown-linux-gnu" "wasm32-unknown-unknown" "x86_64-pc-windows-gnu" "aarch64-apple-darwin" "x86_64-apple-darwin" "x86_64-linux-android" "aarch64-linux-android" ];
+            targets = [
+              "aarch64-unknown-linux-gnu"
+              "wasm32-unknown-unknown"
+              "x86_64-pc-windows-gnu"
+              "aarch64-apple-darwin"
+              "x86_64-apple-darwin"
+              "x86_64-linux-android"
+              "aarch64-linux-android"
+            ];
             extensions = [ "rustfmt" ];
           };
         craneLib = (crane.mkLib pkgs).overrideToolchain rustToolchainFor;
@@ -64,55 +72,66 @@
           };
         };
 
-        cargoDioxus = craneLib: {
-          profile ? "--release",
-          dioxusCommand ? "bundle",
-          dioxusExtraArgs ? "", # Arguments that are generally useful default
-          dioxusMainArgs ? "",
-          cargoExtraArgs ? "", # Other cargo-general flags (e.g. for features or targets)
-          notBuildDepsOnly ? {},
-          dioxusBuildDepsOnlyCommand ? "build",
-          ...
-        }@origArgs: let
-          # Clean the original arguments for good hygiene (i.e. so the flags specific
-          # to this helper don't pollute the environment variables of the derivation)
-          args = {
-            # A suffix name used by the derivation, useful for logging
-            pnameSuffix = "-dioxus";
-          } // (builtins.removeAttrs origArgs [
-            "dioxusCommand"
-            "dioxusExtraArgs"
-            "dioxusMainArgs"
-            "cargoExtraArgs"
-            "notBuildDepsOnly"
-            "dioxusBuildDepsOnlyCommand"
-          ]);
-        in
-        craneLib.mkCargoDerivation ({
-          # Set the cargo command we will use and pass through the flags
-          buildPhaseCargoCommand = ''
-            set -x
-            DX_HOME=$(mktemp -d) DIOXUS_LOG=trace ${dioxus-cli}/bin/dx ${dioxusCommand} --trace ${profile} --base-path public ${dioxusExtraArgs} ${dioxusMainArgs} ${cargoExtraArgs}
-            set +x
-          '';
-          cargoArtifacts = craneLib.buildDepsOnly ({
-            # build, don't bundle
-            # TODO make dx home persistent as it's useful
-            # ${pkgs.strace}/bin/strace --follow-forks
-            buildPhaseCargoCommand = ''
-              set -x
-              DX_HOME=$(mktemp -d) DIOXUS_LOG=trace ${dioxus-cli}/bin/dx ${dioxusBuildDepsOnlyCommand} --trace ${profile} --base-path public ${dioxusExtraArgs} ${cargoExtraArgs}
-              set +x
-            '';
-            doCheck = false;
-            dummySrc = craneLib.mkDummySrc {
-              src = args.src;
-              extraDummyScript = ''
-                cp ${args.src}/crates/tucan-plus-dioxus/Dioxus.toml $out/crates/tucan-plus-dioxus/Dioxus.toml
+        cargoDioxus =
+          craneLib:
+          {
+            profile ? "--release",
+            dioxusCommand ? "bundle",
+            dioxusExtraArgs ? "", # Arguments that are generally useful default
+            dioxusMainArgs ? "",
+            cargoExtraArgs ? "", # Other cargo-general flags (e.g. for features or targets)
+            notBuildDepsOnly ? { },
+            dioxusBuildDepsOnlyCommand ? "build",
+            ...
+          }@origArgs:
+          let
+            # Clean the original arguments for good hygiene (i.e. so the flags specific
+            # to this helper don't pollute the environment variables of the derivation)
+            args = {
+              # A suffix name used by the derivation, useful for logging
+              pnameSuffix = "-dioxus";
+            }
+            // (builtins.removeAttrs origArgs [
+              "dioxusCommand"
+              "dioxusExtraArgs"
+              "dioxusMainArgs"
+              "cargoExtraArgs"
+              "notBuildDepsOnly"
+              "dioxusBuildDepsOnlyCommand"
+            ]);
+          in
+          craneLib.mkCargoDerivation (
+            {
+              # Set the cargo command we will use and pass through the flags
+              buildPhaseCargoCommand = ''
+                set -x
+                DX_HOME=$(mktemp -d) DIOXUS_LOG=trace ${dioxus-cli}/bin/dx ${dioxusCommand} --trace ${profile} --base-path public ${dioxusExtraArgs} ${dioxusMainArgs} ${cargoExtraArgs}
+                set +x
               '';
-            };
-          } // args);
-        } // args // notBuildDepsOnly);
+              cargoArtifacts = craneLib.buildDepsOnly (
+                {
+                  # build, don't bundle
+                  # TODO make dx home persistent as it's useful
+                  # ${pkgs.strace}/bin/strace --follow-forks
+                  buildPhaseCargoCommand = ''
+                    set -x
+                    DX_HOME=$(mktemp -d) DIOXUS_LOG=trace ${dioxus-cli}/bin/dx ${dioxusBuildDepsOnlyCommand} --trace ${profile} --base-path public ${dioxusExtraArgs} ${cargoExtraArgs}
+                    set +x
+                  '';
+                  doCheck = false;
+                  dummySrc = craneLib.mkDummySrc {
+                    src = args.src;
+                    extraDummyScript = ''
+                      cp ${args.src}/crates/tucan-plus-dioxus/Dioxus.toml $out/crates/tucan-plus-dioxus/Dioxus.toml
+                    '';
+                  };
+                }
+                // args
+              );
+            }
+            // args
+            // notBuildDepsOnly
+          );
 
         fileset-worker = lib.fileset.unions [
           (craneLib.fileset.commonCargoSources ./crates/tucan-plus-worker)
@@ -206,7 +225,7 @@
 
         nativeLinuxArgs = nativeArgs // {
           dioxusExtraArgs = "--linux";
-          nativeBuildInputs = nativeArgs.nativeBuildInputs ++ [ pkgs.gobject-introspection  ];
+          nativeBuildInputs = nativeArgs.nativeBuildInputs ++ [ pkgs.gobject-introspection ];
           buildInputs = nativeArgs.buildInputs ++ [
             pkgs.at-spi2-atk
             pkgs.atkmm
@@ -225,26 +244,35 @@
           ];
         };
 
-        nativeLinux = cargoDioxus craneLib (nativeLinuxArgs // {
-          # likely fails in or something https://github.com/tauri-apps/tauri/blob/2e089f6acb854e4d7f8eafb9b2f8242b1c9fa491/crates/tauri-bundler/src/bundle/linux/appimage.rs#L224 because it's before the log message
-          dioxusMainArgs = "--out-dir $out --package-types deb --package-types rpm"; # --package-types appimage
-          # TODO make this depend on the unbundled derivation?
-        });
+        nativeLinux = cargoDioxus craneLib (
+          nativeLinuxArgs
+          // {
+            # likely fails in or something https://github.com/tauri-apps/tauri/blob/2e089f6acb854e4d7f8eafb9b2f8242b1c9fa491/crates/tauri-bundler/src/bundle/linux/appimage.rs#L224 because it's before the log message
+            dioxusMainArgs = "--out-dir $out --package-types deb --package-types rpm"; # --package-types appimage
+            # TODO make this depend on the unbundled derivation?
+          }
+        );
 
-        nativeLinuxUnbundled = cargoDioxus craneLib (nativeLinuxArgs // {
-          dioxusCommand = "build";
-          notBuildDepsOnly = {
-            installPhase = ''
-              cp -r target/dx/tucan-plus-dioxus/release/linux/app $out
-            '';
-          };
-        });
+        nativeLinuxUnbundled = cargoDioxus craneLib (
+          nativeLinuxArgs
+          // {
+            dioxusCommand = "build";
+            notBuildDepsOnly = {
+              installPhase = ''
+                cp -r target/dx/tucan-plus-dioxus/release/linux/app $out
+              '';
+            };
+          }
+        );
 
         # https://v2.tauri.app/distribute/appimage/#appimages-for-arm-based-devices cross compiling not possible
-        nativeLinuxAarch64Unbundled = cargoDioxus craneLibAarch64Linux (nativeLinuxArgs // {
-          dioxusCommand = "build"; # TODO we could try building and not bundling?
-          dioxusExtraArgs = "--target aarch64-unknown-linux-gnu --linux";
-        });
+        nativeLinuxAarch64Unbundled = cargoDioxus craneLibAarch64Linux (
+          nativeLinuxArgs
+          // {
+            dioxusCommand = "build"; # TODO we could try building and not bundling?
+            dioxusExtraArgs = "--target aarch64-unknown-linux-gnu --linux";
+          }
+        );
 
         nativeAndroidArgs = nativeArgs // {
           dioxusExtraArgs = "--android --target aarch64-linux-android";
@@ -257,12 +285,12 @@
 
         # 9agqghryom9wkf8r80qlhnts3/
         /*
-        # https://github.com/gradle/gradle/blob/360f9eab2f6f1595025f746a03ee5895659b0b8c/platforms/core-runtime/wrapper-shared/src/main/java/org/gradle/wrapper/PathAssembler.java#L63
-        jshell
-        java.security.MessageDigest messageDigest = java.security.MessageDigest.getInstance("MD5");
-        byte[] bytes = "https://services.gradle.org/distributions/gradle-9.1.0-bin.zip".getBytes("UTF-8");
-        messageDigest.update(bytes);
-        String result = new BigInteger(1, messageDigest.digest()).toString(36);
+          # https://github.com/gradle/gradle/blob/360f9eab2f6f1595025f746a03ee5895659b0b8c/platforms/core-runtime/wrapper-shared/src/main/java/org/gradle/wrapper/PathAssembler.java#L63
+          jshell
+          java.security.MessageDigest messageDigest = java.security.MessageDigest.getInstance("MD5");
+          byte[] bytes = "https://services.gradle.org/distributions/gradle-9.1.0-bin.zip".getBytes("UTF-8");
+          messageDigest.update(bytes);
+          String result = new BigInteger(1, messageDigest.digest()).toString(36);
         */
 
         # https://github.com/gradle/gradle/blob/360f9eab2f6f1595025f746a03ee5895659b0b8c/platforms/core-runtime/wrapper-shared/src/main/java/org/gradle/wrapper/Install.java
@@ -275,48 +303,56 @@
         # /build/source/target/dx/tucan-plus-dioxus/release/android/app/gradlew
         # https://github.com/NixOS/nixpkgs/blob/master/doc/languages-frameworks/android.section.md?plain=1
         # https://github.com/NixOS/nixpkgs/issues/402297
-        nativeAndroid = cargoDioxus craneLibAarch64Android (nativeAndroidArgs // rec {
-          ANDROID_HOME = "${(pkgs.androidenv.composeAndroidPackages {
-            includeNDK = true;
-            platformVersions = [ "33" ];
-            buildToolsVersions = [ "34.0.0" ];
-          }).androidsdk}/libexec/android-sdk";
-          preBuild = ''
-            keytool -genkey -v -keystore my-release-key.jks -keyalg RSA -keysize 2048 -validity 10000 -alias my-alias --keypass password --storepass password -dname "CN=Test"
-            export GRADLE_USER_HOME=$(mktemp -d)
-            mkdir -p $GRADLE_USER_HOME/wrapper/dists/gradle-9.1.0-bin/9agqghryom9wkf8r80qlhnts3/
-            cp ${pkgs.fetchurl {
-              url = "https://services.gradle.org/distributions/gradle-9.1.0-bin.zip";
-              hash = "sha256-oX3dhaJran9d23H/iwX8UQTAICxuZHgkKXkMkzaGyAY=";
-            }} $GRADLE_USER_HOME/wrapper/dists/gradle-9.1.0-bin/9agqghryom9wkf8r80qlhnts3/gradle-9.1.0-bin.zip
-            ${pkgs.unzip}/bin/unzip $GRADLE_USER_HOME/wrapper/dists/gradle-9.1.0-bin/9agqghryom9wkf8r80qlhnts3/gradle-9.1.0-bin.zip -d $GRADLE_USER_HOME/wrapper/dists/gradle-9.1.0-bin/9agqghryom9wkf8r80qlhnts3/
-            touch $GRADLE_USER_HOME/wrapper/dists/gradle-9.1.0-bin/9agqghryom9wkf8r80qlhnts3/gradle-9.1.0-bin.zip.ok
-            export GRADLE_OPTS="-Dorg.gradle.project.android.aapt2FromMavenOverride=$ANDROID_HOME/build-tools/34.0.0/aapt2 -Dhttp.proxyHost=$MITM_CACHE_HOST -Dhttp.proxyPort=$MITM_CACHE_PORT -Dhttps.proxyHost=$MITM_CACHE_HOST -Dhttps.proxyPort=$MITM_CACHE_PORT -Djavax.net.ssl.trustStore=$MITM_CACHE_KEYSTORE -Djavax.net.ssl.trustStorePassword=$MITM_CACHE_KS_PWD"
-          ''+ nativeAndroidArgs.preBuild;
-          installPhase = ''
-            runHook preInstall
-            mkdir $out
-            cp target/dx/tucan-plus-dioxus/release/android/app/app/build/outputs/apk/release/app-release.apk $out/app-debug.apk
-            runHook postInstall
-          '';
-          nativeBuildInputs = nativeAndroidArgs.nativeBuildInputs ++ [
-            pkgs.jdk
-            pkgs.gradle_9 # version must match the wrapper version, otherwise you get Failed to assemble apk: Exception in thread "main" java.net.UnknownHostException: services.gradle.org
-          ];
-          # https://github.com/NixOS/nixpkgs/blob/master/pkgs/development/tools/build-managers/gradle/setup-hook.sh
-          gradleUpdateScript = ''
-            DX_HOME=$(mktemp -d) ${dioxus-cli}/bin/dx bundle --android --trace --release --base-path public --package tucan-plus-dioxus || true
-            cd target/dx/tucan-plus-dioxus/release/android/app/
-            patchShebangs ./gradlew
-            # the hook overrides gradle user home and stuff so we can't call gradlew
-            gradle -Dorg.gradle.project.android.aapt2FromMavenOverride=$ANDROID_HOME/build-tools/34.0.0/aapt2 --info --no-daemon bundleRelease
-          '';
-          # nix build -L .#nativeAndroid.mitmCache.updateScript && ./result
-          mitmCache = pkgs.gradle_9.fetchDeps {
-            pkg = nativeAndroid.cargoArtifacts;
-            data = ./deps.json;
-          };
-        });
+        nativeAndroid = cargoDioxus craneLibAarch64Android (
+          nativeAndroidArgs
+          // rec {
+            ANDROID_HOME = "${
+              (pkgs.androidenv.composeAndroidPackages {
+                includeNDK = true;
+                platformVersions = [ "33" ];
+                buildToolsVersions = [ "34.0.0" ];
+              }).androidsdk
+            }/libexec/android-sdk";
+            preBuild = ''
+              keytool -genkey -v -keystore my-release-key.jks -keyalg RSA -keysize 2048 -validity 10000 -alias my-alias --keypass password --storepass password -dname "CN=Test"
+              export GRADLE_USER_HOME=$(mktemp -d)
+              mkdir -p $GRADLE_USER_HOME/wrapper/dists/gradle-9.1.0-bin/9agqghryom9wkf8r80qlhnts3/
+              cp ${
+                pkgs.fetchurl {
+                  url = "https://services.gradle.org/distributions/gradle-9.1.0-bin.zip";
+                  hash = "sha256-oX3dhaJran9d23H/iwX8UQTAICxuZHgkKXkMkzaGyAY=";
+                }
+              } $GRADLE_USER_HOME/wrapper/dists/gradle-9.1.0-bin/9agqghryom9wkf8r80qlhnts3/gradle-9.1.0-bin.zip
+              ${pkgs.unzip}/bin/unzip $GRADLE_USER_HOME/wrapper/dists/gradle-9.1.0-bin/9agqghryom9wkf8r80qlhnts3/gradle-9.1.0-bin.zip -d $GRADLE_USER_HOME/wrapper/dists/gradle-9.1.0-bin/9agqghryom9wkf8r80qlhnts3/
+              touch $GRADLE_USER_HOME/wrapper/dists/gradle-9.1.0-bin/9agqghryom9wkf8r80qlhnts3/gradle-9.1.0-bin.zip.ok
+              export GRADLE_OPTS="-Dorg.gradle.project.android.aapt2FromMavenOverride=$ANDROID_HOME/build-tools/34.0.0/aapt2 -Dhttp.proxyHost=$MITM_CACHE_HOST -Dhttp.proxyPort=$MITM_CACHE_PORT -Dhttps.proxyHost=$MITM_CACHE_HOST -Dhttps.proxyPort=$MITM_CACHE_PORT -Djavax.net.ssl.trustStore=$MITM_CACHE_KEYSTORE -Djavax.net.ssl.trustStorePassword=$MITM_CACHE_KS_PWD"
+            ''
+            + nativeAndroidArgs.preBuild;
+            installPhase = ''
+              runHook preInstall
+              mkdir $out
+              cp target/dx/tucan-plus-dioxus/release/android/app/app/build/outputs/apk/release/app-release.apk $out/app-debug.apk
+              runHook postInstall
+            '';
+            nativeBuildInputs = nativeAndroidArgs.nativeBuildInputs ++ [
+              pkgs.jdk
+              pkgs.gradle_9 # version must match the wrapper version, otherwise you get Failed to assemble apk: Exception in thread "main" java.net.UnknownHostException: services.gradle.org
+            ];
+            # https://github.com/NixOS/nixpkgs/blob/master/pkgs/development/tools/build-managers/gradle/setup-hook.sh
+            gradleUpdateScript = ''
+              DX_HOME=$(mktemp -d) ${dioxus-cli}/bin/dx bundle --android --trace --release --base-path public --package tucan-plus-dioxus || true
+              cd target/dx/tucan-plus-dioxus/release/android/app/
+              patchShebangs ./gradlew
+              # the hook overrides gradle user home and stuff so we can't call gradlew
+              gradle -Dorg.gradle.project.android.aapt2FromMavenOverride=$ANDROID_HOME/build-tools/34.0.0/aapt2 --info --no-daemon bundleRelease
+            '';
+            # nix build -L .#nativeAndroid.mitmCache.updateScript && ./result
+            mitmCache = pkgs.gradle_9.fetchDeps {
+              pkg = nativeAndroid.cargoArtifacts;
+              data = ./deps.json;
+            };
+          }
+        );
 
         # https://github.com/DioxusLabs/dioxus/blob/ad40f816073f91da67c0287a5512a5111e5a1617/packages/cli/src/config/bundle.rs#L263 we could use fixedruntime but it would be better if the others would also allow specifying a path
         # https://github.com/DioxusLabs/dioxus/issues/4281
@@ -327,7 +363,8 @@
           cargoDioxusExtraArgs = "--target x86_64-pc-windows-gnu --windows"; # TODO FIXME dioxus should auto-detect the target from the env variable
           cargoExtraArgs = "--package tucan-plus-dioxus";
           nativeBuildInputs = nativeArgs.nativeBuildInputs ++ [ pkgs.pkg-config ];
-          buildInputs = nativeArgs.buildInputs ++ [ pkgs.at-spi2-atk
+          buildInputs = nativeArgs.buildInputs ++ [
+            pkgs.at-spi2-atk
             pkgs.atkmm
             pkgs.cairo
             pkgs.gdk-pixbuf
@@ -340,12 +377,16 @@
             pkgs.webkitgtk_4_1
             pkgs.openssl
             pkgs.xdotool
-            pkgs.zlib ];
+            pkgs.zlib
+          ];
         };
 
-        nativeWindows = cargoDioxus craneLibWindows (nativeWindowsArgs // {
-          
-        });
+        nativeWindows = cargoDioxus craneLibWindows (
+          nativeWindowsArgs
+          // {
+
+          }
+        );
 
         api = craneLib.buildPackage {
           cargoToml = ./crates/tucan-plus-api/Cargo.toml;
@@ -382,19 +423,21 @@
               ${api}/bin/schema > $out
             '';
 
-        wasm-bindgen = (pkgs.buildWasmBindgenCli rec {
-          src = pkgs.fetchCrate {
-            pname = "wasm-bindgen-cli";
-            version = "0.2.101";
-            hash = "sha256-txpbTzlrPSEktyT9kSpw4RXQoiSZHm9t3VxeRn//9JI=";
-          };
+        wasm-bindgen = (
+          pkgs.buildWasmBindgenCli rec {
+            src = pkgs.fetchCrate {
+              pname = "wasm-bindgen-cli";
+              version = "0.2.101";
+              hash = "sha256-txpbTzlrPSEktyT9kSpw4RXQoiSZHm9t3VxeRn//9JI=";
+            };
 
-          cargoDeps = pkgs.rustPlatform.fetchCargoVendor {
-            inherit src;
-            inherit (src) pname version;
-            hash = "sha256-J+F9SqTpH3T0MbvlNKVyKnMachgn8UXeoTF0Pk3Xtnc=";
-          };
-        });
+            cargoDeps = pkgs.rustPlatform.fetchCargoVendor {
+              inherit src;
+              inherit (src) pname version;
+              hash = "sha256-J+F9SqTpH3T0MbvlNKVyKnMachgn8UXeoTF0Pk3Xtnc=";
+            };
+          }
+        );
 
         worker-args = {
           CARGO_TARGET_DIR = "./crates/tucan-plus-worker/target";
@@ -435,25 +478,31 @@
           };
         };
 
-        worker = craneLib.buildPackage (worker-args // {
-          cargoArtifacts = craneLib.buildDepsOnly (worker-args // {
-            dummySrc = craneLib.mkDummySrc {
-              src = worker-args.src;
-              extraDummyScript = ''
-                cp ${worker-args.cargoLock} $out/crates/tucan-plus-worker/Cargo.lock
-                rm $out/crates/tucan-plus-worker/src/main.rs
-                cp ${pkgs.writeText "main.rs" ''
-                  use wasm_bindgen::prelude::*;
+        worker = craneLib.buildPackage (
+          worker-args
+          // {
+            cargoArtifacts = craneLib.buildDepsOnly (
+              worker-args
+              // {
+                dummySrc = craneLib.mkDummySrc {
+                  src = worker-args.src;
+                  extraDummyScript = ''
+                    cp ${worker-args.cargoLock} $out/crates/tucan-plus-worker/Cargo.lock
+                    rm $out/crates/tucan-plus-worker/src/main.rs
+                    cp ${pkgs.writeText "main.rs" ''
+                      use wasm_bindgen::prelude::*;
 
-                  #[wasm_bindgen(main)]
-                  pub async fn main() {
+                      #[wasm_bindgen(main)]
+                      pub async fn main() {
 
-                  }
-                ''} $out/crates/tucan-plus-worker/src/main.rs
-              '';
-            };
-          });
-        });
+                      }
+                    ''} $out/crates/tucan-plus-worker/src/main.rs
+                  '';
+                };
+              }
+            );
+          }
+        );
 
         service-worker-args = {
           CARGO_TARGET_DIR = "./crates/tucan-plus-service-worker/target";
@@ -494,25 +543,31 @@
           };
         };
 
-        service-worker = craneLib.buildPackage (service-worker-args // {
-          cargoArtifacts = craneLib.buildDepsOnly (service-worker-args // {
-            dummySrc = craneLib.mkDummySrc {
-              src = service-worker-args.src;
-              extraDummyScript = ''
-                cp ${service-worker-args.cargoLock} $out/crates/tucan-plus-service-worker/Cargo.lock
-                rm $out/crates/tucan-plus-service-worker/src/main.rs
-                cp ${pkgs.writeText "main.rs" ''
-                  use wasm_bindgen::prelude::*;
+        service-worker = craneLib.buildPackage (
+          service-worker-args
+          // {
+            cargoArtifacts = craneLib.buildDepsOnly (
+              service-worker-args
+              // {
+                dummySrc = craneLib.mkDummySrc {
+                  src = service-worker-args.src;
+                  extraDummyScript = ''
+                    cp ${service-worker-args.cargoLock} $out/crates/tucan-plus-service-worker/Cargo.lock
+                    rm $out/crates/tucan-plus-service-worker/src/main.rs
+                    cp ${pkgs.writeText "main.rs" ''
+                      use wasm_bindgen::prelude::*;
 
-                  #[wasm_bindgen(main)]
-                  pub async fn main() {
+                      #[wasm_bindgen(main)]
+                      pub async fn main() {
 
-                  }
-                ''} $out/crates/tucan-plus-service-worker/src/main.rs
-              '';
-            };
-          });
-        });
+                      }
+                    ''} $out/crates/tucan-plus-service-worker/src/main.rs
+                  '';
+                };
+              }
+            );
+          }
+        );
 
         client-args = {
           CARGO_TARGET_DIR = "./crates/tucan-plus-dioxus/target";
@@ -548,10 +603,8 @@
             rm -R ./target/dx/tucan-plus-dioxus/release/web/public/assets || true
             CARGO_TARGET_DIR=target ${dioxus-cli}/bin/dx bundle --web --release --out-dir $out --base-path public --features direct
           '';
-          installPhaseCommand = ''
-          '';
-          checkPhaseCargoCommand = ''
-          '';
+          installPhaseCommand = '''';
+          checkPhaseCargoCommand = '''';
           nativeBuildInputs = [
             pkgs.which
             pkgs.emscripten
@@ -564,30 +617,36 @@
           doNotPostBuildInstallCargoBinaries = true;
         };
 
-        client = craneLib.buildPackage (client-args // {
-          cargoArtifacts = craneLib.buildDepsOnly (client-args // {
-            buildPhaseCargoCommand = ''
-              export CC=emcc
-              export CXX=emcc
-              CARGO_TARGET_DIR=target ${dioxus-cli}/bin/dx bundle --web --release --out-dir $out --base-path public --features direct
-            '';
-            dummySrc = craneLib.mkDummySrc {
-              src = client-args.src;
-              extraDummyScript = ''
-                cp ${client-args.cargoLock} $out/crates/tucan-plus-dioxus/Cargo.lock
-                rm $out/crates/tucan-plus-dioxus/src/main.rs
-                cp ${pkgs.writeText "main.rs" ''
-                  use wasm_bindgen::prelude::*;
+        client = craneLib.buildPackage (
+          client-args
+          // {
+            cargoArtifacts = craneLib.buildDepsOnly (
+              client-args
+              // {
+                buildPhaseCargoCommand = ''
+                  export CC=emcc
+                  export CXX=emcc
+                  CARGO_TARGET_DIR=target ${dioxus-cli}/bin/dx bundle --web --release --out-dir $out --base-path public --features direct
+                '';
+                dummySrc = craneLib.mkDummySrc {
+                  src = client-args.src;
+                  extraDummyScript = ''
+                    cp ${client-args.cargoLock} $out/crates/tucan-plus-dioxus/Cargo.lock
+                    rm $out/crates/tucan-plus-dioxus/src/main.rs
+                    cp ${pkgs.writeText "main.rs" ''
+                      use wasm_bindgen::prelude::*;
 
-                  #[wasm_bindgen(main)]
-                  pub async fn main() {
+                      #[wasm_bindgen(main)]
+                      pub async fn main() {
 
-                  }
-                ''} $out/crates/tucan-plus-dioxus/src/main.rs
-              '';
-            };
-          });
-        });
+                      }
+                    ''} $out/crates/tucan-plus-dioxus/src/main.rs
+                  '';
+                };
+              }
+            );
+          }
+        );
 
         extension-unpacked = pkgs.stdenv.mkDerivation {
           pname = "tucan-plus-extension";
@@ -654,7 +713,7 @@
           #    cargoLock = ./crates/tucan-plus-dioxus/Cargo.lock;
           #    preBuild = ''
           #      cd ./crates/tucan-plus-dioxus
-           #   '';
+          #   '';
           #    cargoExtraArgs = "--all";
           #    src = source-with-build-instructions;
           #  }
@@ -667,128 +726,129 @@
           # test_script()
           # nix flake check -L
           /*
-          extension-test = pkgs.testers.runNixOSTest {
-            name = "extension-test";
-            nodes = {
-              machine = {pkgs, ...}: {
-                virtualisation = {
-                  sharedDirectories = {
-                    projects = {source="/home/moritz/Documents/tucan-plus/demo-video/"; target="/home/test/tucan_plus";};
+            extension-test = pkgs.testers.runNixOSTest {
+              name = "extension-test";
+              nodes = {
+                machine = {pkgs, ...}: {
+                  virtualisation = {
+                    sharedDirectories = {
+                      projects = {source="/home/moritz/Documents/tucan-plus/demo-video/"; target="/home/test/tucan_plus";};
+                    };
                   };
-                };
-                virtualisation.memorySize = 8192;
+                  virtualisation.memorySize = 8192;
 
-                services.gnome.at-spi2-core.enable = true;
+                  services.gnome.at-spi2-core.enable = true;
 
-                services.xserver.xkb.layout = "de";
+                  services.xserver.xkb.layout = "de";
 
-                boot.kernelPackages = pkgs.linuxPackages_latest;
+                  boot.kernelPackages = pkgs.linuxPackages_latest;
 
-                services.displayManager.gdm.enable = true;
-                services.desktopManager.gnome.enable = true;
+                  services.displayManager.gdm.enable = true;
+                  services.desktopManager.gnome.enable = true;
 
-                #services.gnome.core-apps.enable = false;
-                #services.gnome.core-developer-tools.enable = false;
-                #services.gnome.games.enable = false;
-                environment.gnome.excludePackages = with pkgs; [ gnome-tour ]; # gnome-user-docs
+                  #services.gnome.core-apps.enable = false;
+                  #services.gnome.core-developer-tools.enable = false;
+                  #services.gnome.games.enable = false;
+                  environment.gnome.excludePackages = with pkgs; [ gnome-tour ]; # gnome-user-docs
 
-                services.displayManager.autoLogin.enable = true;
-                services.displayManager.autoLogin.user = "test";
+                  services.displayManager.autoLogin.enable = true;
+                  services.displayManager.autoLogin.user = "test";
 
-                users.users.test = {
-                  isNormalUser = true;
-                  uid = 1000;
-                };
+                  users.users.test = {
+                    isNormalUser = true;
+                    uid = 1000;
+                  };
 
-                environment.systemPackages = [
-                  pkgs.firefox
-                  # TODO https://nixos.org/manual/nixpkgs/unstable/#ssec-gnome-common-issues-double-wrapped
-                  (pkgs.python3.pkgs.buildPythonApplication {
-                      pname = "run-test";
-                      version = "3.32.2";
-                      pyproject = true;
-                      build-system = with pkgs.python3Packages; [ setuptools ];
+                  environment.systemPackages = [
+                    pkgs.firefox
+                    # TODO https://nixos.org/manual/nixpkgs/unstable/#ssec-gnome-common-issues-double-wrapped
+                    (pkgs.python3.pkgs.buildPythonApplication {
+                        pname = "run-test";
+                        version = "3.32.2";
+                        pyproject = true;
+                        build-system = with pkgs.python3Packages; [ setuptools ];
 
-                      dependencies = with pkgs.python3Packages; [
-                        dogtail
-                      ];
+                        dependencies = with pkgs.python3Packages; [
+                          dogtail
+                        ];
 
-                      src = ./demo-video;
+                        src = ./demo-video;
 
-                      nativeBuildInputs = [
-                        pkgs.wrapGAppsHook3
-                        pkgs.gobject-introspection
-                      ];
+                        nativeBuildInputs = [
+                          pkgs.wrapGAppsHook3
+                          pkgs.gobject-introspection
+                        ];
 
-                      dontWrapGApps = true;
+                        dontWrapGApps = true;
 
-                      # Arguments to be passed to `makeWrapper`, only used by buildPython*
-                      preFixup = ''
-                        makeWrapperArgs+=("''${gappsWrapperArgs[@]}")
-                      '';
+                        # Arguments to be passed to `makeWrapper`, only used by buildPython*
+                        preFixup = ''
+                          makeWrapperArgs+=("''${gappsWrapperArgs[@]}")
+                        '';
+                      }
+                    )
+                    (pkgs.writeShellScriptBin "ponytail"
+                    ''
+                      ${pkgs.gnome-ponytail-daemon}/libexec/gnome-ponytail-daemon
+                    '')
+                  ];
+
+                  programs.dconf.enable = true;
+                  programs.dconf.profiles.test.databases = [
+                    {
+                      settings = {
+                        "org/gnome/desktop/interface" = {
+                          toolkit-accessibility = true;
+                        };
+                      };
                     }
-                  )
-                  (pkgs.writeShellScriptBin "ponytail"
-                  ''
-                    ${pkgs.gnome-ponytail-daemon}/libexec/gnome-ponytail-daemon
-                  '')
-                ];
+                  ];
 
-                programs.dconf.enable = true;
-                programs.dconf.profiles.test.databases = [
-                  {
-                    settings = {
-                      "org/gnome/desktop/interface" = {
-                        toolkit-accessibility = true;
+                  systemd.user.services = {
+                    "org.gnome.Shell@wayland" = {
+                      serviceConfig = {
+                        ExecStart = [
+                          # Clear the list before overriding it.
+                          ""
+                          # Eval API is now internal so Shell needs to run in unsafe mode.
+                          # TODO: improve test driver so that it supports openqa-like manipulation
+                          # that would allow us to drop this mess.
+                          "${pkgs.gnome-shell}/bin/gnome-shell --unsafe-mode"
+                        ];
                       };
                     };
-                  }
-                ];
-
-                systemd.user.services = {
-                  "org.gnome.Shell@wayland" = {
-                    serviceConfig = {
-                      ExecStart = [
-                        # Clear the list before overriding it.
-                        ""
-                        # Eval API is now internal so Shell needs to run in unsafe mode.
-                        # TODO: improve test driver so that it supports openqa-like manipulation
-                        # that would allow us to drop this mess.
-                        "${pkgs.gnome-shell}/bin/gnome-shell --unsafe-mode"
-                      ];
-                    };
                   };
-                };
 
-                system.stateVersion = "25.11";
+                  system.stateVersion = "25.11";
+                };
               };
+              testScript = { nodes, ... }: lib.mkForce ''
+                print("a")
+                start_all()
+                print("b")
+                machine.wait_until_succeeds(
+                    "systemd-run --pipe --machine=test@.host --user /usr/bin/env bash -c 'gdbus call --session -d org.gnome.Shell -o /org/gnome/Shell -m org.gnome.Shell.Eval Main.layoutManager._startingUp' | grep -q \"true,..false\"",
+                    timeout=60
+                )
+                print("c")
+                machine.succeed("systemd-run --machine=test@.host --user /usr/bin/env bash -c 'gsettings set org.gnome.desktop.interface toolkit-accessibility true'")
+                print("d")
+                machine.succeed("systemd-run --machine=test@.host --user /usr/bin/env bash -c firefox")
+                print("e")
+                machine.succeed("systemd-run --machine=test@.host --user /usr/bin/env bash -c ponytail")
+                print("f")
+                machine.succeed("systemd-run --pipe --machine=test@.host --user /usr/bin/env bash -c tucan_plus")
+                print("g")
+              '';
+              interactive = {
+                sshBackdoor.enable = true; # ssh vsock/3 -o User=root
+              };
+              # https://wiki.nixos.org/wiki/Python
+              # ssh vsock/3 -o User=root
+              # machinectl shell test@
+              # nix-shell -I nixpkgs=channel:nixos-unstable -p gobject-introspection gtk3 'python3.withPackages (ps: with ps; [ dogtail ])' --run python /home/test/tucan_plus/tucan_plus.py
             };
-            testScript = { nodes, ... }: lib.mkForce ''
-              print("a")
-              start_all()
-              print("b")
-              machine.wait_until_succeeds(
-                  "systemd-run --pipe --machine=test@.host --user /usr/bin/env bash -c 'gdbus call --session -d org.gnome.Shell -o /org/gnome/Shell -m org.gnome.Shell.Eval Main.layoutManager._startingUp' | grep -q \"true,..false\"",
-                  timeout=60
-              )
-              print("c")
-              machine.succeed("systemd-run --machine=test@.host --user /usr/bin/env bash -c 'gsettings set org.gnome.desktop.interface toolkit-accessibility true'")
-              print("d")
-              machine.succeed("systemd-run --machine=test@.host --user /usr/bin/env bash -c firefox")
-              print("e")
-              machine.succeed("systemd-run --machine=test@.host --user /usr/bin/env bash -c ponytail")
-              print("f")
-              machine.succeed("systemd-run --pipe --machine=test@.host --user /usr/bin/env bash -c tucan_plus")
-              print("g")
-            '';
-            interactive = {
-              sshBackdoor.enable = true; # ssh vsock/3 -o User=root
-            };
-            # https://wiki.nixos.org/wiki/Python
-            # ssh vsock/3 -o User=root
-            # machinectl shell test@
-            # nix-shell -I nixpkgs=channel:nixos-unstable -p gobject-introspection gtk3 'python3.withPackages (ps: with ps; [ dogtail ])' --run python /home/test/tucan_plus/tucan_plus.py
-          };*/
+          */
         };
         #packages.schema = schema;
         #packages.client = client;
@@ -814,65 +874,65 @@
         #  drv = api;
         #};
 
-  /*
-        packages.publish =
-          let
-            version = (lib.importJSON ./tucan-plus-extension/manifest.json).version;
-          in
-          pkgs.writeShellScriptBin "publish" ''
-            set -ex
-            mkdir -p out
-            cd out
-            # seems like chromium writes into the parent folder of the pack-extension argument
-            chmod -R ug+rw tucan-plus-extension-${version} || true
-            rm -Rf tucan-plus-extension-${version}
-            cp -r ${extension-unpacked} tucan-plus-extension-${version}
-            ${pkgs.chromium}/bin/chromium --no-sandbox --pack-extension=tucan-plus-extension-${version} --pack-extension-key=$CHROMIUM_EXTENSION_SIGNING_KEY
-            chmod 644 tucan-plus-extension-${version}.crx
+        /*
+              packages.publish =
+                let
+                  version = (lib.importJSON ./tucan-plus-extension/manifest.json).version;
+                in
+                pkgs.writeShellScriptBin "publish" ''
+                  set -ex
+                  mkdir -p out
+                  cd out
+                  # seems like chromium writes into the parent folder of the pack-extension argument
+                  chmod -R ug+rw tucan-plus-extension-${version} || true
+                  rm -Rf tucan-plus-extension-${version}
+                  cp -r ${extension-unpacked} tucan-plus-extension-${version}
+                  ${pkgs.chromium}/bin/chromium --no-sandbox --pack-extension=tucan-plus-extension-${version} --pack-extension-key=$CHROMIUM_EXTENSION_SIGNING_KEY
+                  chmod 644 tucan-plus-extension-${version}.crx
 
-            chmod -R ug+rw tucan-plus-extension-${version}
-            rm -Rf tucan-plus-extension-${version}
-            cp -r ${extension-unpacked} tucan-plus-extension-${version}
-            chmod -R ug+rw tucan-plus-extension-${version}
+                  chmod -R ug+rw tucan-plus-extension-${version}
+                  rm -Rf tucan-plus-extension-${version}
+                  cp -r ${extension-unpacked} tucan-plus-extension-${version}
+                  chmod -R ug+rw tucan-plus-extension-${version}
 
-            ${pkgs.web-ext}/bin/web-ext sign --channel unlisted --source-dir tucan-plus-extension-${version} --upload-source-code ${source}
-            chmod 644 web-ext-artifacts/tucan_plus-${version}.xpi
-            cp web-ext-artifacts/tucan_plus-${version}.xpi tucan-plus-extension-${version}.xpi
-          '';
+                  ${pkgs.web-ext}/bin/web-ext sign --channel unlisted --source-dir tucan-plus-extension-${version} --upload-source-code ${source}
+                  chmod 644 web-ext-artifacts/tucan_plus-${version}.xpi
+                  cp web-ext-artifacts/tucan_plus-${version}.xpi tucan-plus-extension-${version}.xpi
+                '';
 
-        packages.test = pkgs.writeShellApplication {
-          name = "test";
+              packages.test = pkgs.writeShellApplication {
+                name = "test";
 
-          runtimeInputs = [
-            pkgs.chromedriver
-            pkgs.geckodriver
-            pkgs.chromium
-            pkgs.firefox
-          ];
+                runtimeInputs = [
+                  pkgs.chromedriver
+                  pkgs.geckodriver
+                  pkgs.chromium
+                  pkgs.firefox
+                ];
 
-          text = ''
-            set -ex
-            EXTENSION_DIR=$(mktemp -d)
-            export EXTENSION_DIR
-            cp -r ${extension-unpacked}/. "$EXTENSION_DIR"/
-            chmod -R ug+rw "$EXTENSION_DIR"
-            cargo test --package tucan-plus-tests -- --nocapture
-          '';
-        };
+                text = ''
+                  set -ex
+                  EXTENSION_DIR=$(mktemp -d)
+                  export EXTENSION_DIR
+                  cp -r ${extension-unpacked}/. "$EXTENSION_DIR"/
+                  chmod -R ug+rw "$EXTENSION_DIR"
+                  cargo test --package tucan-plus-tests -- --nocapture
+                '';
+              };
 
-        packages.test-dev = pkgs.writeShellApplication {
-          name = "test-dev";
+              packages.test-dev = pkgs.writeShellApplication {
+                name = "test-dev";
 
-          text = ''
-            set -ex
-            EXTENSION_DIR=$(mktemp -d)
-            export EXTENSION_DIR
-            cp -r ${extension-unpacked}/. "$EXTENSION_DIR"/
-            chmod -R ug+rw "$EXTENSION_DIR"
-            cargo test --package tucan-plus-tests -- --nocapture
-          '';
-        };
-*/
+                text = ''
+                  set -ex
+                  EXTENSION_DIR=$(mktemp -d)
+                  export EXTENSION_DIR
+                  cp -r ${extension-unpacked}/. "$EXTENSION_DIR"/
+                  chmod -R ug+rw "$EXTENSION_DIR"
+                  cargo test --package tucan-plus-tests -- --nocapture
+                '';
+              };
+        */
         devShells.default = pkgs.mkShell {
           shellHook = ''
             export PATH=~/.cargo/bin/:$PATH
