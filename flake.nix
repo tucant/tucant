@@ -81,7 +81,7 @@
             dioxusMainArgs ? "",
             cargoExtraArgs ? "",
             notBuildDepsOnly ? { },
-            buildDepsOnly ? {},
+            buildDepsOnly ? { },
             dioxusBuildDepsOnlyCommand ? "build",
             ...
           }@origArgs:
@@ -477,9 +477,7 @@
           };
         };
 
-        worker = cargoDioxus craneLib (
-          worker-args
-        );
+        worker = cargoDioxus craneLib (worker-args);
 
         service-worker-args = {
           strictDeps = true;
@@ -557,7 +555,7 @@
                   }
                 ''} $out/crates/tucan-plus-dioxus/src/main.rs
               '';
-              };
+            };
           };
           notBuildDepsOnly = {
             preBuild = ''
@@ -598,9 +596,7 @@
           doNotPostBuildInstallCargoBinaries = true;
         };
 
-        client = cargoDioxus craneLib (
-         client-args
-        );
+        client = cargoDioxus craneLib (client-args);
 
         extension-unpacked = pkgs.stdenv.mkDerivation {
           pname = "tucan-plus-extension";
@@ -654,19 +650,15 @@
           #inherit api schema client;
 
           # todo also clippy the frontend
-          my-app-clippy = craneLib.cargoClippy (
-            {
-              cargoClippyExtraArgs = "--all-targets -- --deny warnings";
-              src = source-with-build-instructions;
-            }
-          );
+          my-app-clippy = craneLib.cargoClippy ({
+            cargoClippyExtraArgs = "--all-targets -- --deny warnings";
+            src = source-with-build-instructions;
+          });
 
-          my-app-fmt = craneLib.cargoFmt (
-            {
-              cargoExtraArgs = "--all";
-              src = source-with-build-instructions;
-            }
-          );
+          my-app-fmt = craneLib.cargoFmt ({
+            cargoExtraArgs = "--all";
+            src = source-with-build-instructions;
+          });
 
           # https://nixos.org/manual/nixos/unstable/index.html#sec-nixos-tests
           # https://github.com/NixOS/nixpkgs/blob/a25a80403e18d80ffb9e5a2047c7936e57fbae68/nixos/tests/installed-tests/default.nix#L15
@@ -674,14 +666,19 @@
           # nix run -L .#checks.x86_64-linux.extension-test.driverInteractive
           # test_script()
           # nix flake check -L
-          
-            extension-test = pkgs.testers.runNixOSTest {
-              name = "extension-test";
-              nodes = {
-                machine = {pkgs, ...}: {
+
+          extension-test = pkgs.testers.runNixOSTest {
+            name = "extension-test";
+            nodes = {
+              machine =
+                { pkgs, ... }:
+                {
                   virtualisation = {
                     sharedDirectories = {
-                      projects = {source="/home/moritz/Documents/tucan-plus/demo-video/"; target="/home/test/tucan_plus";};
+                      projects = {
+                        source = "/home/moritz/Documents/tucan-plus/demo-video/";
+                        target = "/home/test/tucan_plus";
+                      };
                     };
                   };
                   virtualisation.memorySize = 8192;
@@ -712,32 +709,30 @@
                     pkgs.firefox
                     # TODO https://nixos.org/manual/nixpkgs/unstable/#ssec-gnome-common-issues-double-wrapped
                     (pkgs.python3.pkgs.buildPythonApplication {
-                        pname = "run-test";
-                        version = "3.32.2";
-                        pyproject = true;
-                        build-system = with pkgs.python3Packages; [ setuptools ];
+                      pname = "run-test";
+                      version = "3.32.2";
+                      pyproject = true;
+                      build-system = with pkgs.python3Packages; [ setuptools ];
 
-                        dependencies = with pkgs.python3Packages; [
-                          dogtail
-                        ];
+                      dependencies = with pkgs.python3Packages; [
+                        dogtail
+                      ];
 
-                        src = ./demo-video;
+                      src = ./demo-video;
 
-                        nativeBuildInputs = [
-                          pkgs.wrapGAppsHook3
-                          pkgs.gobject-introspection
-                        ];
+                      nativeBuildInputs = [
+                        pkgs.wrapGAppsHook3
+                        pkgs.gobject-introspection
+                      ];
 
-                        dontWrapGApps = true;
+                      dontWrapGApps = true;
 
-                        # Arguments to be passed to `makeWrapper`, only used by buildPython*
-                        preFixup = ''
-                          makeWrapperArgs+=("''${gappsWrapperArgs[@]}")
-                        '';
-                      }
-                    )
-                    (pkgs.writeShellScriptBin "ponytail"
-                    ''
+                      # Arguments to be passed to `makeWrapper`, only used by buildPython*
+                      preFixup = ''
+                        makeWrapperArgs+=("''${gappsWrapperArgs[@]}")
+                      '';
+                    })
+                    (pkgs.writeShellScriptBin "ponytail" ''
                       ${pkgs.gnome-ponytail-daemon}/libexec/gnome-ponytail-daemon
                     '')
                   ];
@@ -770,8 +765,10 @@
 
                   system.stateVersion = "25.11";
                 };
-              };
-              testScript = { nodes, ... }: lib.mkForce ''
+            };
+            testScript =
+              { nodes, ... }:
+              lib.mkForce ''
                 print("a")
                 start_all()
                 print("b")
@@ -789,15 +786,15 @@
                 machine.succeed("systemd-run --pipe --machine=test@.host --user /usr/bin/env bash -c tucan_plus")
                 print("g")
               '';
-              interactive = {
-                sshBackdoor.enable = true; # ssh vsock/3 -o User=root
-              };
-              # https://wiki.nixos.org/wiki/Python
-              # ssh vsock/3 -o User=root
-              # machinectl shell test@
-              # nix-shell -I nixpkgs=channel:nixos-unstable -p gobject-introspection gtk3 'python3.withPackages (ps: with ps; [ dogtail ])' --run python /home/test/tucan_plus/tucan_plus.py
+            interactive = {
+              sshBackdoor.enable = true; # ssh vsock/3 -o User=root
             };
-          
+            # https://wiki.nixos.org/wiki/Python
+            # ssh vsock/3 -o User=root
+            # machinectl shell test@
+            # nix-shell -I nixpkgs=channel:nixos-unstable -p gobject-introspection gtk3 'python3.withPackages (ps: with ps; [ dogtail ])' --run python /home/test/tucan_plus/tucan_plus.py
+          };
+
         };
         packages.schema = schema;
         packages.worker = worker;
@@ -826,63 +823,63 @@
           drv = api-server;
         };
 
-              packages.publish =
-                let
-                  version = (lib.importJSON ./tucan-plus-extension/manifest.json).version;
-                in
-                pkgs.writeShellScriptBin "publish" ''
-                  set -ex
-                  mkdir -p out
-                  cd out
-                  # seems like chromium writes into the parent folder of the pack-extension argument
-                  chmod -R ug+rw tucan-plus-extension-${version} || true
-                  rm -Rf tucan-plus-extension-${version}
-                  cp -r ${extension-unpacked} tucan-plus-extension-${version}
-                  ${pkgs.chromium}/bin/chromium --no-sandbox --pack-extension=tucan-plus-extension-${version} --pack-extension-key=$CHROMIUM_EXTENSION_SIGNING_KEY
-                  chmod 644 tucan-plus-extension-${version}.crx
+        packages.publish =
+          let
+            version = (lib.importJSON ./tucan-plus-extension/manifest.json).version;
+          in
+          pkgs.writeShellScriptBin "publish" ''
+            set -ex
+            mkdir -p out
+            cd out
+            # seems like chromium writes into the parent folder of the pack-extension argument
+            chmod -R ug+rw tucan-plus-extension-${version} || true
+            rm -Rf tucan-plus-extension-${version}
+            cp -r ${extension-unpacked} tucan-plus-extension-${version}
+            ${pkgs.chromium}/bin/chromium --no-sandbox --pack-extension=tucan-plus-extension-${version} --pack-extension-key=$CHROMIUM_EXTENSION_SIGNING_KEY
+            chmod 644 tucan-plus-extension-${version}.crx
 
-                  chmod -R ug+rw tucan-plus-extension-${version}
-                  rm -Rf tucan-plus-extension-${version}
-                  cp -r ${extension-unpacked} tucan-plus-extension-${version}
-                  chmod -R ug+rw tucan-plus-extension-${version}
+            chmod -R ug+rw tucan-plus-extension-${version}
+            rm -Rf tucan-plus-extension-${version}
+            cp -r ${extension-unpacked} tucan-plus-extension-${version}
+            chmod -R ug+rw tucan-plus-extension-${version}
 
-                  ${pkgs.web-ext}/bin/web-ext sign --channel unlisted --source-dir tucan-plus-extension-${version} --upload-source-code ${source}
-                  chmod 644 web-ext-artifacts/tucan_plus-${version}.xpi
-                  cp web-ext-artifacts/tucan_plus-${version}.xpi tucan-plus-extension-${version}.xpi
-                '';
+            ${pkgs.web-ext}/bin/web-ext sign --channel unlisted --source-dir tucan-plus-extension-${version} --upload-source-code ${source}
+            chmod 644 web-ext-artifacts/tucan_plus-${version}.xpi
+            cp web-ext-artifacts/tucan_plus-${version}.xpi tucan-plus-extension-${version}.xpi
+          '';
 
-              packages.test = pkgs.writeShellApplication {
-                name = "test";
+        packages.test = pkgs.writeShellApplication {
+          name = "test";
 
-                runtimeInputs = [
-                  pkgs.chromedriver
-                  pkgs.geckodriver
-                  pkgs.chromium
-                  pkgs.firefox
-                ];
+          runtimeInputs = [
+            pkgs.chromedriver
+            pkgs.geckodriver
+            pkgs.chromium
+            pkgs.firefox
+          ];
 
-                text = ''
-                  set -ex
-                  EXTENSION_DIR=$(mktemp -d)
-                  export EXTENSION_DIR
-                  cp -r ${extension-unpacked}/. "$EXTENSION_DIR"/
-                  chmod -R ug+rw "$EXTENSION_DIR"
-                  cargo test --package tucan-plus-tests -- --nocapture
-                '';
-              };
+          text = ''
+            set -ex
+            EXTENSION_DIR=$(mktemp -d)
+            export EXTENSION_DIR
+            cp -r ${extension-unpacked}/. "$EXTENSION_DIR"/
+            chmod -R ug+rw "$EXTENSION_DIR"
+            cargo test --package tucan-plus-tests -- --nocapture
+          '';
+        };
 
-              packages.test-dev = pkgs.writeShellApplication {
-                name = "test-dev";
+        packages.test-dev = pkgs.writeShellApplication {
+          name = "test-dev";
 
-                text = ''
-                  set -ex
-                  EXTENSION_DIR=$(mktemp -d)
-                  export EXTENSION_DIR
-                  cp -r ${extension-unpacked}/. "$EXTENSION_DIR"/
-                  chmod -R ug+rw "$EXTENSION_DIR"
-                  cargo test --package tucan-plus-tests -- --nocapture
-                '';
-              };
+          text = ''
+            set -ex
+            EXTENSION_DIR=$(mktemp -d)
+            export EXTENSION_DIR
+            cp -r ${extension-unpacked}/. "$EXTENSION_DIR"/
+            chmod -R ug+rw "$EXTENSION_DIR"
+            cargo test --package tucan-plus-tests -- --nocapture
+          '';
+        };
         devShells.default = pkgs.mkShell {
           shellHook = ''
             export PATH=~/.cargo/bin/:$PATH
