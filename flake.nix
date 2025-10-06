@@ -132,6 +132,8 @@
           (craneLib.fileset.commonCargoSources ./crates/tucan-plus-worker)
           (craneLib.fileset.commonCargoSources ./crates/tucan-types)
           ./crates/tucan-plus-worker/migrations
+          ./Cargo.toml
+          ./Cargo.lock
         ];
 
         fileset-service-worker = lib.fileset.unions [
@@ -152,6 +154,8 @@
         ];
 
         fileset-wasm = lib.fileset.unions [
+          ./Cargo.toml
+          ./Cargo.lock
           (craneLib.fileset.commonCargoSources ./crates/html-extractor)
           (craneLib.fileset.commonCargoSources ./crates/tucan-connector)
           (craneLib.fileset.commonCargoSources ./crates/html-handler)
@@ -422,15 +426,6 @@
         );
 
         worker-args = {
-          CARGO_TARGET_DIR = "./crates/tucan-plus-worker/target";
-          cargoToml = ./crates/tucan-plus-worker/Cargo.toml;
-          cargoLock = ./crates/tucan-plus-worker/Cargo.lock;
-          preBuild = ''
-            cd ./crates/tucan-plus-worker
-          '';
-          postBuild = ''
-            cd ../..
-          '';
           strictDeps = true;
           stdenv = p: p.emscriptenStdenv;
           doCheck = false;
@@ -440,7 +435,7 @@
             export CC=emcc
             export CXX=emcc
             rm -R ./target/dx/tucan-plus-worker/release/web/public/assets || true
-            CARGO_TARGET_DIR=target ${dioxus-cli}/bin/dx bundle --verbose --wasm --bundle web --release --out-dir $out --base-path public
+            ${dioxus-cli}/bin/dx bundle --verbose --web --bundle web --release --out-dir $out --base-path public
           '';
           installPhaseCommand = '''';
           checkPhaseCargoCommand = '''';
@@ -469,7 +464,6 @@
                 dummySrc = craneLib.mkDummySrc {
                   src = worker-args.src;
                   extraDummyScript = ''
-                    cp ${worker-args.cargoLock} $out/crates/tucan-plus-worker/Cargo.lock
                     rm $out/crates/tucan-plus-worker/src/main.rs
                     cp ${pkgs.writeText "main.rs" ''
                       use wasm_bindgen::prelude::*;
@@ -487,21 +481,12 @@
         );
 
         service-worker-args = {
-          CARGO_TARGET_DIR = "./crates/tucan-plus-service-worker/target";
-          cargoToml = ./crates/tucan-plus-service-worker/Cargo.toml;
-          cargoLock = ./crates/tucan-plus-service-worker/Cargo.lock;
-          preBuild = ''
-            cd ./crates/tucan-plus-service-worker
-          '';
-          postBuild = ''
-            cd ../..
-          '';
           strictDeps = true;
           doCheck = false;
           cargoExtraArgs = "--package=tucan-plus-service-worker";
           pname = "tucan-plus-workspace-tucan-plus-service-worker";
           buildPhaseCargoCommand = ''
-            CARGO_TARGET_DIR=target cargo build --target wasm32-unknown-unknown
+            cargo build --target wasm32-unknown-unknown
             wasm-bindgen target/wasm32-unknown-unknown/debug/tucan-plus-service-worker.wasm --target no-modules --out-dir ./target/dx/tucan-plus-service-worker/debug/web/public/wasm/ --no-typescript
             echo "wasm_bindgen.initSync({ module: Uint8Array.fromBase64(\"$(base64 -w0 target/dx/tucan-plus-service-worker/debug/web/public/wasm/tucan-plus-service-worker_bg.wasm)\")})" >> ./target/dx/tucan-plus-service-worker/debug/web/public/wasm/tucan-plus-service-worker.js
           '';
@@ -534,7 +519,6 @@
                 dummySrc = craneLib.mkDummySrc {
                   src = service-worker-args.src;
                   extraDummyScript = ''
-                    cp ${service-worker-args.cargoLock} $out/crates/tucan-plus-service-worker/Cargo.lock
                     rm $out/crates/tucan-plus-service-worker/src/main.rs
                     cp ${pkgs.writeText "main.rs" ''
                       use wasm_bindgen::prelude::*;
@@ -552,15 +536,6 @@
         );
 
         client-args = {
-          CARGO_TARGET_DIR = "./crates/tucan-plus-dioxus/target";
-          cargoToml = ./crates/tucan-plus-dioxus/Cargo.toml;
-          cargoLock = ./crates/tucan-plus-dioxus/Cargo.lock;
-          preBuild = ''
-            cd ./crates/tucan-plus-dioxus
-          '';
-          postBuild = ''
-            cd ../..
-          '';
           strictDeps = true;
           stdenv = p: p.emscriptenStdenv;
           doCheck = false;
@@ -576,14 +551,12 @@
             mkdir -p assets/
             cp ${worker}/public/assets/tucan-plus-worker-*.js assets/
             cp ${worker}/public/assets/tucan-plus-worker_bg-*.wasm assets/
-            #cp ${service-worker}/tucan-plus-service-worker.js assets/tucan-plus-service-worker.js
             export WORKER_JS_PATH_ARRAY=(assets/tucan-plus-worker-*.js)
             export WORKER_JS_PATH="/''${WORKER_JS_PATH_ARRAY[@]}"
             export WORKER_WASM_PATH_ARRAY=(assets/tucan-plus-worker_bg-*.wasm)
             export WORKER_WASM_PATH="/''${WORKER_WASM_PATH_ARRAY[@]}"
-            #export SERVICE_WORKER_JS_PATH=/assets/tucan-plus-service-worker.js
             rm -R ./target/dx/tucan-plus-dioxus/release/web/public/assets || true
-            CARGO_TARGET_DIR=target ${dioxus-cli}/bin/dx bundle --web --release --out-dir $out --base-path public --features direct
+            ${dioxus-cli}/bin/dx bundle --web --release --out-dir $out --base-path public --features direct
           '';
           installPhaseCommand = '''';
           checkPhaseCargoCommand = '''';
@@ -832,15 +805,16 @@
             };
           */
         };
-        #packages.schema = schema;
-        #packages.client = client;
+        packages.schema = schema;
+        packages.worker = worker;
+        packages.service-worker = service-worker;
+        packages.client = client;
         packages.api-server = api-server;
         #packages.extension = extension;
         #packages.extension-unpacked = extension-unpacked;
         #packages.extension-source = source;
         #packages.extension-source-unpacked = source-unpacked;
         packages.dioxus-cli = dioxus-cli;
-        #packages.worker = worker;
         packages.nativeLinux = nativeLinux;
         packages.nativeLinuxUnbundled = nativeLinuxUnbundled;
         packages.nativeAndroid = nativeAndroid;
