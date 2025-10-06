@@ -564,12 +564,14 @@
               export CC=emcc
               export CXX=emcc
               mkdir -p assets/
+              cd crates/tucan-plus-dioxus
               cp ${worker}/public/assets/tucan-plus-worker-*.js assets/
               cp ${worker}/public/assets/tucan-plus-worker_bg-*.wasm assets/
               export WORKER_JS_PATH_ARRAY=(assets/tucan-plus-worker-*.js)
               export WORKER_JS_PATH="/''${WORKER_JS_PATH_ARRAY[@]}"
               export WORKER_WASM_PATH_ARRAY=(assets/tucan-plus-worker_bg-*.wasm)
               export WORKER_WASM_PATH="/''${WORKER_WASM_PATH_ARRAY[@]}"
+              cd ../..
               rm -R ./target/dx/tucan-plus-dioxus/release/web/public/assets || true
             '';
           };
