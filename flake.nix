@@ -537,6 +537,42 @@
         );
 
         client-args = {
+          dioxusExtraArgs = "--features direct --web";
+          dioxusMainArgs = "--out-dir $out";
+          buildDepsOnly = {
+            preBuild = ''
+              export CC=emcc
+              export CXX=emcc
+            '';
+            dummySrc = craneLib.mkDummySrc {
+              src = client-args.src;
+              extraDummyScript = ''
+                rm $out/crates/tucan-plus-dioxus/src/main.rs
+                cp ${pkgs.writeText "main.rs" ''
+                  use wasm_bindgen::prelude::*;
+
+                  #[wasm_bindgen(main)]
+                  pub async fn main() {
+
+                  }
+                ''} $out/crates/tucan-plus-dioxus/src/main.rs
+              '';
+              };
+          };
+          notBuildDepsOnly = {
+            preBuild = ''
+              export CC=emcc
+              export CXX=emcc
+              mkdir -p assets/
+              cp ${worker}/public/assets/tucan-plus-worker-*.js assets/
+              cp ${worker}/public/assets/tucan-plus-worker_bg-*.wasm assets/
+              export WORKER_JS_PATH_ARRAY=(assets/tucan-plus-worker-*.js)
+              export WORKER_JS_PATH="/''${WORKER_JS_PATH_ARRAY[@]}"
+              export WORKER_WASM_PATH_ARRAY=(assets/tucan-plus-worker_bg-*.wasm)
+              export WORKER_WASM_PATH="/''${WORKER_WASM_PATH_ARRAY[@]}"
+              rm -R ./target/dx/tucan-plus-dioxus/release/web/public/assets || true
+            '';
+          };
           strictDeps = true;
           stdenv = p: p.emscriptenStdenv;
           doCheck = false;
@@ -546,19 +582,6 @@
           };
           cargoExtraArgs = "--package=tucan-plus-dioxus";
           pname = "tucan-plus-workspace-tucan-plus-dioxus";
-          buildPhaseCargoCommand = ''
-            export CC=emcc
-            export CXX=emcc
-            mkdir -p assets/
-            cp ${worker}/public/assets/tucan-plus-worker-*.js assets/
-            cp ${worker}/public/assets/tucan-plus-worker_bg-*.wasm assets/
-            export WORKER_JS_PATH_ARRAY=(assets/tucan-plus-worker-*.js)
-            export WORKER_JS_PATH="/''${WORKER_JS_PATH_ARRAY[@]}"
-            export WORKER_WASM_PATH_ARRAY=(assets/tucan-plus-worker_bg-*.wasm)
-            export WORKER_WASM_PATH="/''${WORKER_WASM_PATH_ARRAY[@]}"
-            rm -R ./target/dx/tucan-plus-dioxus/release/web/public/assets || true
-            ${dioxus-cli}/bin/dx bundle --web --release --out-dir $out --base-path public --features direct
-          '';
           installPhaseCommand = '''';
           checkPhaseCargoCommand = '''';
           nativeBuildInputs = [
@@ -573,35 +596,8 @@
           doNotPostBuildInstallCargoBinaries = true;
         };
 
-        client = craneLib.buildPackage (
-          client-args
-          // {
-            cargoArtifacts = craneLib.buildDepsOnly (
-              client-args
-              // {
-                buildPhaseCargoCommand = ''
-                  export CC=emcc
-                  export CXX=emcc
-                  CARGO_TARGET_DIR=target ${dioxus-cli}/bin/dx bundle --web --release --out-dir $out --base-path public --features direct
-                '';
-                dummySrc = craneLib.mkDummySrc {
-                  src = client-args.src;
-                  extraDummyScript = ''
-                    cp ${client-args.cargoLock} $out/crates/tucan-plus-dioxus/Cargo.lock
-                    rm $out/crates/tucan-plus-dioxus/src/main.rs
-                    cp ${pkgs.writeText "main.rs" ''
-                      use wasm_bindgen::prelude::*;
-
-                      #[wasm_bindgen(main)]
-                      pub async fn main() {
-
-                      }
-                    ''} $out/crates/tucan-plus-dioxus/src/main.rs
-                  '';
-                };
-              }
-            );
-          }
+        client = cargoDioxus craneLib (
+         client-args
         );
 
         extension-unpacked = pkgs.stdenv.mkDerivation {
