@@ -654,25 +654,19 @@
           #inherit api schema client;
 
           # todo also clippy the frontend
-          #my-app-clippy = craneLib.cargoClippy (
-          #  nativeArgs
-          #  // {
-          #    cargoClippyExtraArgs = "--all-targets -- --deny warnings";
-          #  }
-          #);
+          my-app-clippy = craneLib.cargoClippy (
+            {
+              cargoClippyExtraArgs = "--all-targets -- --deny warnings";
+              src = source-with-build-instructions;
+            }
+          );
 
-          #my-app-fmt = craneLib.cargoFmt (
-          #  nativeArgs
-          #  // {
-          #    cargoToml = ./crates/tucan-plus-dioxus/Cargo.toml;
-          #    cargoLock = ./crates/tucan-plus-dioxus/Cargo.lock;
-          #    preBuild = ''
-          #      cd ./crates/tucan-plus-dioxus
-          #   '';
-          #    cargoExtraArgs = "--all";
-          #    src = source-with-build-instructions;
-          #  }
-          #);
+          my-app-fmt = craneLib.cargoFmt (
+            {
+              cargoExtraArgs = "--all";
+              src = source-with-build-instructions;
+            }
+          );
 
           # https://nixos.org/manual/nixos/unstable/index.html#sec-nixos-tests
           # https://github.com/NixOS/nixpkgs/blob/a25a80403e18d80ffb9e5a2047c7936e57fbae68/nixos/tests/installed-tests/default.nix#L15
@@ -680,7 +674,7 @@
           # nix run -L .#checks.x86_64-linux.extension-test.driverInteractive
           # test_script()
           # nix flake check -L
-          /*
+          
             extension-test = pkgs.testers.runNixOSTest {
               name = "extension-test";
               nodes = {
@@ -803,7 +797,7 @@
               # machinectl shell test@
               # nix-shell -I nixpkgs=channel:nixos-unstable -p gobject-introspection gtk3 'python3.withPackages (ps: with ps; [ dogtail ])' --run python /home/test/tucan_plus/tucan_plus.py
             };
-          */
+          
         };
         packages.schema = schema;
         packages.worker = worker;
@@ -827,12 +821,11 @@
         # https://github.com/tauri-apps/tauri/blob/2e089f6acb854e4d7f8eafb9b2f8242b1c9fa491/crates/tauri-bundler/src/bundle/windows/util.rs#L45
         packages.nativeWindows = nativeWindows; # cross building is broken for dioxus
 
-        #apps.server = flake-utils.lib.mkApp {
-        #  name = "server";
-        #  drv = api;
-        #};
+        apps.api-server = flake-utils.lib.mkApp {
+          name = "api-server";
+          drv = api-server;
+        };
 
-        /*
               packages.publish =
                 let
                   version = (lib.importJSON ./tucan-plus-extension/manifest.json).version;
@@ -890,7 +883,6 @@
                   cargo test --package tucan-plus-tests -- --nocapture
                 '';
               };
-        */
         devShells.default = pkgs.mkShell {
           shellHook = ''
             export PATH=~/.cargo/bin/:$PATH
