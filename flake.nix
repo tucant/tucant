@@ -72,6 +72,43 @@
           };
         };
 
+        cargoDioxusDeps =
+          craneLib:
+          {
+            profile ? "--release",
+            dioxusExtraArgs ? "",
+            cargoExtraArgs ? "",
+            dioxusBuildDepsOnlyCommand ? "build",
+            ...
+          }@origArgs:
+          let
+            args = {
+              pnameSuffix = "-dioxus";
+            }
+            // (builtins.removeAttrs origArgs [
+              "dioxusCommand"
+              "dioxusExtraArgs"
+              "dioxusMainArgs"
+              "cargoExtraArgs"
+              "notBuildDepsOnly"
+              "buildDepsOnly"
+              "dioxusBuildDepsOnlyCommand"
+            ]);
+          in
+          craneLib.buildDepsOnly (
+            {
+              # build, don't bundle
+              # TODO make dx home persistent as it's useful
+              buildPhaseCargoCommand = ''
+                set -x
+                DX_HOME=$(mktemp -d) DIOXUS_LOG=trace,walrus=debug ${dioxus-cli}/bin/dx ${dioxusBuildDepsOnlyCommand} --trace ${profile} --base-path public ${dioxusExtraArgs} ${cargoExtraArgs}
+                set +x
+              '';
+              doCheck = false;
+            }
+            // args
+          );
+
         cargoDioxus =
           craneLib:
           {
@@ -107,26 +144,6 @@
                 DX_HOME=$(mktemp -d) DIOXUS_LOG=trace,walrus=debug ${dioxus-cli}/bin/dx ${dioxusCommand} --trace ${profile} --base-path public ${dioxusExtraArgs} ${dioxusMainArgs} ${cargoExtraArgs}
                 set +x
               '';
-              cargoArtifacts = craneLib.buildDepsOnly (
-                {
-                  # build, don't bundle
-                  # TODO make dx home persistent as it's useful
-                  buildPhaseCargoCommand = ''
-                    set -x
-                    DX_HOME=$(mktemp -d) DIOXUS_LOG=trace,walrus=debug ${dioxus-cli}/bin/dx ${dioxusBuildDepsOnlyCommand} --trace ${profile} --base-path public ${dioxusExtraArgs} ${cargoExtraArgs}
-                    set +x
-                  '';
-                  doCheck = false;
-                  dummySrc = craneLib.mkDummySrc {
-                    src = args.src;
-                    extraDummyScript = ''
-                      cp ${args.src}/crates/tucan-plus-dioxus/Dioxus.toml $out/crates/tucan-plus-dioxus/Dioxus.toml
-                    '';
-                  };
-                }
-                // args
-                // buildDepsOnly
-              );
             }
             // args
             // notBuildDepsOnly
@@ -213,6 +230,13 @@
           (craneLib.fileset.commonCargoSources ./crates/tucan-plus-api)
           fileset-worker
         ];
+
+        dioxus-dummy-src = src: craneLib.mkDummySrc {
+          src = src;
+          extraDummyScript = ''
+            cp ${src}/crates/tucan-plus-dioxus/Dioxus.toml $out/crates/tucan-plus-dioxus/Dioxus.toml
+          '';
+        };
 
         nativeArgs = {
           pname = "tucan-plus-native";
@@ -471,7 +495,9 @@
           };
         };
 
-        worker = cargoDioxus craneLib (worker-args);
+        worker = cargoDioxus craneLib (worker-args // {
+          cargoArtifacts = cargoDioxusDeps craneLib worker-args;
+        });
 
         service-worker-args = {
           strictDeps = true;
