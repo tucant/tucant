@@ -77,18 +77,15 @@
           {
             profile ? "--release",
             dioxusCommand ? "bundle",
-            dioxusExtraArgs ? "", # Arguments that are generally useful default
+            dioxusExtraArgs ? "",
             dioxusMainArgs ? "",
-            cargoExtraArgs ? "", # Other cargo-general flags (e.g. for features or targets)
+            cargoExtraArgs ? "",
             notBuildDepsOnly ? { },
             dioxusBuildDepsOnlyCommand ? "build",
             ...
           }@origArgs:
           let
-            # Clean the original arguments for good hygiene (i.e. so the flags specific
-            # to this helper don't pollute the environment variables of the derivation)
             args = {
-              # A suffix name used by the derivation, useful for logging
               pnameSuffix = "-dioxus";
             }
             // (builtins.removeAttrs origArgs [
@@ -102,7 +99,6 @@
           in
           craneLib.mkCargoDerivation (
             {
-              # Set the cargo command we will use and pass through the flags
               buildPhaseCargoCommand = ''
                 set -x
                 DX_HOME=$(mktemp -d) DIOXUS_LOG=trace ${dioxus-cli}/bin/dx ${dioxusCommand} --trace ${profile} --base-path public ${dioxusExtraArgs} ${dioxusMainArgs} ${cargoExtraArgs}
@@ -112,7 +108,6 @@
                 {
                   # build, don't bundle
                   # TODO make dx home persistent as it's useful
-                  # ${pkgs.strace}/bin/strace --follow-forks
                   buildPhaseCargoCommand = ''
                     set -x
                     DX_HOME=$(mktemp -d) DIOXUS_LOG=trace ${dioxus-cli}/bin/dx ${dioxusBuildDepsOnlyCommand} --trace ${profile} --base-path public ${dioxusExtraArgs} ${cargoExtraArgs}
@@ -189,6 +184,27 @@
           ./tucan-plus-extension/logo.png
         ];
 
+        fileset-native = lib.fileset.unions [
+          ./Cargo.toml
+          ./Cargo.lock
+          (craneLib.fileset.commonCargoSources ./crates/html-extractor)
+          (craneLib.fileset.commonCargoSources ./crates/html-handler)
+          (craneLib.fileset.commonCargoSources ./crates/tucan-connector)
+          (craneLib.fileset.commonCargoSources ./crates/tucan-plus-planning)
+          fileset-dioxus
+          fileset-worker # TODO rename to database
+        ];
+
+        fileset-api = lib.fileset.unions [
+          ./Cargo.toml
+          ./Cargo.lock
+          (craneLib.fileset.commonCargoSources ./crates/html-handler)
+          (craneLib.fileset.commonCargoSources ./crates/html-extractor)
+          (craneLib.fileset.commonCargoSources ./crates/tucan-connector)
+          (craneLib.fileset.commonCargoSources ./crates/tucan-plus-api)
+          fileset-worker
+        ];
+
         nativeArgs = {
           pname = "tucan-plus-native";
           cargoExtraArgs = "--package tucan-plus-dioxus";
@@ -201,16 +217,7 @@
           strictDeps = true;
           src = lib.fileset.toSource {
             root = ./.;
-            fileset = lib.fileset.unions [
-              ./Cargo.toml
-              ./Cargo.lock
-              (craneLib.fileset.commonCargoSources ./crates/html-extractor)
-              (craneLib.fileset.commonCargoSources ./crates/html-handler)
-              (craneLib.fileset.commonCargoSources ./crates/tucan-connector)
-              (craneLib.fileset.commonCargoSources ./crates/tucan-plus-planning)
-              fileset-dioxus
-              fileset-worker # TODO rename to database
-            ];
+            fileset = fileset-native;
           };
           nativeBuildInputs = [
             pkgs.pkg-config
@@ -283,7 +290,6 @@
           ];
         };
 
-        # 9agqghryom9wkf8r80qlhnts3/
         /*
           # https://github.com/gradle/gradle/blob/360f9eab2f6f1595025f746a03ee5895659b0b8c/platforms/core-runtime/wrapper-shared/src/main/java/org/gradle/wrapper/PathAssembler.java#L63
           jshell
@@ -292,17 +298,6 @@
           messageDigest.update(bytes);
           String result = new BigInteger(1, messageDigest.digest()).toString(36);
         */
-
-        # https://github.com/gradle/gradle/blob/360f9eab2f6f1595025f746a03ee5895659b0b8c/platforms/core-runtime/wrapper-shared/src/main/java/org/gradle/wrapper/Install.java
-        # https://github.com/gradle/gradle/blob/master/platforms/ide/tooling-api/src/main/java/org/gradle/tooling/internal/consumer/DistributionFactory.java#L116
-        # https://github.com/gradle/gradle/blob/360f9eab2f6f1595025f746a03ee5895659b0b8c/platforms/core-runtime/wrapper-shared/src/main/java/org/gradle/wrapper/WrapperExecutor.java#L41
-        # https://github.com/gradle/gradle/blob/master/platforms/core-runtime/wrapper-shared/src/main/java/org/gradle/wrapper/PathAssembler.java#L38
-
-        # https://github.com/NixOS/nixpkgs/blob/master/doc/languages-frameworks/gradle.section.md
-        # https://github.com/NixOS/nixpkgs/pull/383115
-        # /build/source/target/dx/tucan-plus-dioxus/release/android/app/gradlew
-        # https://github.com/NixOS/nixpkgs/blob/master/doc/languages-frameworks/android.section.md?plain=1
-        # https://github.com/NixOS/nixpkgs/issues/402297
         nativeAndroid = cargoDioxus craneLibAarch64Android (
           nativeAndroidArgs
           // rec {
@@ -388,12 +383,7 @@
           }
         );
 
-        api = craneLib.buildPackage {
-          cargoToml = ./crates/tucan-plus-api/Cargo.toml;
-          cargoLock = ./crates/tucan-plus-api/Cargo.lock;
-          preBuild = ''
-            cd ./crates/tucan-plus-api
-          '';
+        api-server = craneLib.buildPackage {
           strictDeps = true;
           buildInputs = [
             pkgs.sqlite
@@ -401,15 +391,7 @@
           pname = "tucan-plus-workspace-native-api";
           src = lib.fileset.toSource {
             root = ./.;
-            fileset = lib.fileset.unions [
-              (craneLib.fileset.commonCargoSources ./crates/tucan-types)
-              (craneLib.fileset.commonCargoSources ./crates/html-extractor)
-              (craneLib.fileset.commonCargoSources ./crates/tucan-connector)
-              (craneLib.fileset.commonCargoSources ./crates/tucan-plus-api)
-              (craneLib.fileset.commonCargoSources ./crates/tucan-plus-worker)
-              ./crates/tucan-plus-worker/migrations
-              (craneLib.fileset.commonCargoSources ./crates/html-handler)
-            ];
+            fileset = fileset-api;
           };
           cargoTestExtraArgs = "--no-run";
           cargoExtraArgs = "--package=tucan-plus-api";
@@ -420,7 +402,7 @@
             {
             }
             ''
-              ${api}/bin/schema > $out
+              ${api-server}/bin/schema > $out
             '';
 
         wasm-bindgen = (
@@ -852,7 +834,7 @@
         };
         #packages.schema = schema;
         #packages.client = client;
-        #packages.server = api;
+        packages.api-server = api-server;
         #packages.extension = extension;
         #packages.extension-unpacked = extension-unpacked;
         #packages.extension-source = source;
