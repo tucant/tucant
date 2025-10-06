@@ -102,8 +102,9 @@
           craneLib.mkCargoDerivation (
             {
               buildPhaseCargoCommand = ''
+                ls -R
                 set -x
-                DX_HOME=$(mktemp -d) DIOXUS_LOG=trace ${dioxus-cli}/bin/dx ${dioxusCommand} --trace ${profile} --base-path public ${dioxusExtraArgs} ${dioxusMainArgs} ${cargoExtraArgs}
+                DX_HOME=$(mktemp -d) DIOXUS_LOG=trace,walrus=debug ${dioxus-cli}/bin/dx ${dioxusCommand} --trace ${profile} --base-path public ${dioxusExtraArgs} ${dioxusMainArgs} ${cargoExtraArgs}
                 set +x
               '';
               cargoArtifacts = craneLib.buildDepsOnly (
@@ -112,7 +113,7 @@
                   # TODO make dx home persistent as it's useful
                   buildPhaseCargoCommand = ''
                     set -x
-                    DX_HOME=$(mktemp -d) DIOXUS_LOG=trace ${dioxus-cli}/bin/dx ${dioxusBuildDepsOnlyCommand} --trace ${profile} --base-path public ${dioxusExtraArgs} ${cargoExtraArgs}
+                    DX_HOME=$(mktemp -d) DIOXUS_LOG=trace,walrus=debug ${dioxus-cli}/bin/dx ${dioxusBuildDepsOnlyCommand} --trace ${profile} --base-path public ${dioxusExtraArgs} ${cargoExtraArgs}
                     set +x
                   '';
                   doCheck = false;
@@ -135,6 +136,7 @@
           (craneLib.fileset.commonCargoSources ./crates/tucan-plus-worker)
           (craneLib.fileset.commonCargoSources ./crates/tucan-types)
           ./crates/tucan-plus-worker/migrations
+          ./.cargo/config.toml
           ./Cargo.toml
           ./Cargo.lock
         ];
@@ -429,7 +431,7 @@
         );
 
         worker-args = {
-          dioxusCommand = "build";
+          dioxusMainArgs = "--bundle web --out-dir $out";
           dioxusExtraArgs = "--target wasm32-unknown-unknown";
           strictDeps = true;
           stdenv = p: p.emscriptenStdenv;
