@@ -628,6 +628,7 @@
           root = ./.;
           fileset = lib.fileset.unions [
             fileset-wasm
+            fileset-worker
             fileset-extension
             ./flake.nix
             ./flake.lock
@@ -809,10 +810,12 @@
         packages.service-worker = service-worker;
         packages.client = client;
         packages.api-server = api-server;
-        #packages.extension = extension;
-        #packages.extension-unpacked = extension-unpacked;
-        #packages.extension-source = source;
-        #packages.extension-source-unpacked = source-unpacked;
+
+        packages.extension = extension;
+        packages.extension-unpacked = extension-unpacked;
+        packages.extension-source = source;
+        packages.extension-source-unpacked = source-unpacked;
+
         packages.dioxus-cli = dioxus-cli;
         packages.nativeLinux = nativeLinux;
         packages.nativeLinuxUnbundled = nativeLinuxUnbundled;
