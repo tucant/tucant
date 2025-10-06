@@ -81,6 +81,7 @@
             dioxusMainArgs ? "",
             cargoExtraArgs ? "",
             notBuildDepsOnly ? { },
+            buildDepsOnly ? {},
             dioxusBuildDepsOnlyCommand ? "build",
             ...
           }@origArgs:
@@ -94,6 +95,7 @@
               "dioxusMainArgs"
               "cargoExtraArgs"
               "notBuildDepsOnly"
+              "buildDepsOnly"
               "dioxusBuildDepsOnlyCommand"
             ]);
           in
@@ -122,6 +124,7 @@
                   };
                 }
                 // args
+                // buildDepsOnly
               );
             }
             // args
@@ -426,16 +429,17 @@
         );
 
         worker-args = {
+          dioxusCommand = "build";
+          dioxusExtraArgs = "--target wasm32-unknown-unknown";
           strictDeps = true;
           stdenv = p: p.emscriptenStdenv;
           doCheck = false;
           cargoExtraArgs = "--package=tucan-plus-worker";
           pname = "tucan-plus-workspace-tucan-plus-worker";
-          buildPhaseCargoCommand = ''
+          preBuild = ''
             export CC=emcc
             export CXX=emcc
             rm -R ./target/dx/tucan-plus-worker/release/web/public/assets || true
-            ${dioxus-cli}/bin/dx bundle --verbose --web --bundle web --release --out-dir $out --base-path public
           '';
           installPhaseCommand = '''';
           checkPhaseCargoCommand = '''';
@@ -453,31 +457,26 @@
             root = ./.;
             fileset = fileset-worker;
           };
+          buildDepsOnly = {
+            dummySrc = craneLib.mkDummySrc {
+              src = worker-args.src;
+              extraDummyScript = ''
+                rm $out/crates/tucan-plus-worker/src/main.rs
+                cp ${pkgs.writeText "main.rs" ''
+                  use wasm_bindgen::prelude::*;
+
+                  #[wasm_bindgen(main)]
+                  pub async fn main() {
+
+                  }
+                ''} $out/crates/tucan-plus-worker/src/main.rs
+              '';
+            };
+          };
         };
 
-        worker = craneLib.buildPackage (
+        worker = cargoDioxus craneLib (
           worker-args
-          // {
-            cargoArtifacts = craneLib.buildDepsOnly (
-              worker-args
-              // {
-                dummySrc = craneLib.mkDummySrc {
-                  src = worker-args.src;
-                  extraDummyScript = ''
-                    rm $out/crates/tucan-plus-worker/src/main.rs
-                    cp ${pkgs.writeText "main.rs" ''
-                      use wasm_bindgen::prelude::*;
-
-                      #[wasm_bindgen(main)]
-                      pub async fn main() {
-
-                      }
-                    ''} $out/crates/tucan-plus-worker/src/main.rs
-                  '';
-                };
-              }
-            );
-          }
         );
 
         service-worker-args = {
