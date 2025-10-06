@@ -217,12 +217,6 @@
         nativeArgs = {
           pname = "tucan-plus-native";
           cargoExtraArgs = "--package tucan-plus-dioxus";
-          preBuild = ''
-            cd ./crates/tucan-plus-dioxus
-          '';
-          postBuild = ''
-            cd ../..
-          '';
           strictDeps = true;
           src = lib.fileset.toSource {
             root = ./.;
