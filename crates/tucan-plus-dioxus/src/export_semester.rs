@@ -3,7 +3,6 @@ use js_sys::{Array, Uint8Array};
 use time::{Month, macros::offset};
 use tucan_plus_planning::{compress, recursive_anmeldung};
 use tucan_types::{LoginResponse, RevalidationStrategy, Tucan, registration::AnmeldungRequest};
-use web_sys::{Blob, Url};
 
 use crate::RcTucanType;
 
@@ -92,14 +91,19 @@ pub fn FetchAnmeldung() -> Element {
             for entry in result() {
                 a {
                     href: {
-                        let blob_properties = web_sys::BlobPropertyBag::new();
-                        blob_properties.set_type("octet/stream");
-                        let bytes = Array::new();
-                        bytes.push(&Uint8Array::from(&entry.1[..]));
-                        let blob =
-                            Blob::new_with_blob_sequence_and_options(&bytes, &blob_properties)
-                                .unwrap();
-                        Url::create_object_url_with_blob(&blob).unwrap()
+                        #[cfg(target_arch = "wasm32")]
+                        {
+                            let blob_properties = web_sys::BlobPropertyBag::new();
+                            blob_properties.set_type("octet/stream");
+                            let bytes = Array::new();
+                            bytes.push(&Uint8Array::from(&entry.1[..]));
+                            let blob =
+                                Blob::new_with_blob_sequence_and_options(&bytes, &blob_properties)
+                                    .unwrap();
+                            Url::create_object_url_with_blob(&blob).unwrap()
+                        }
+                        #[cfg(not(target_arch = "wasm32"))]
+                        "/todo"
                     },
                     download: entry.0.clone(),
                     { format!("Download {}", entry.0.clone()) }

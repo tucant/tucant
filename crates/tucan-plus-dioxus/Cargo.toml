@@ -44,6 +44,10 @@ wasm-bindgen = { version = "0.2.104" }
 wasm-bindgen-futures = "0.4"
 android-native-keyring-store = { version = "0.3", optional = true }
 
+# extension: target wasm and feature direct
+# native: target native and feature direct
+# dev: target wasm and feature api
+
 [features]
 direct = ["web", "dep:tucan-connector", "dep:web-extensions-sys"]
 api = ["web"]
