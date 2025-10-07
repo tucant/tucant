@@ -35,7 +35,7 @@ pub fn recursive_anmeldung<'a, 'b: 'a>(
         futures::stream::iter(element
             .submenus.clone()
             .into_iter())
-            .flat_map(move |entry| {
+            .flat_map_unordered(None, move |entry| {
                 recursive_anmeldung(tucan, login_response, factor.clone() / BigRational::from_integer(element.submenus.len().into()), atomic_current, entry.1.clone())
             })
     }).boxed()
