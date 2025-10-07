@@ -431,8 +431,8 @@
         );
 
         worker-args = {
-          dioxusMainArgs = "--bundle web --out-dir $out";
-          dioxusExtraArgs = "--target wasm32-unknown-unknown";
+          dioxusMainArgs = "--out-dir $out";
+          dioxusExtraArgs = "--bundle web --target wasm32-unknown-unknown";
           strictDeps = true;
           stdenv = p: p.emscriptenStdenv;
           doCheck = false;
