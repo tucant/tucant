@@ -35,6 +35,7 @@ impl ApiServerTucan {
                     "https://github.com/tucan-plus/tucan-plus \
                      6d824ead1b932515a84995cafd92f97c40c53bc5 Moritz.Hedtke@t-online.de",
                 )
+                .connector_layer(tower::limit::concurrency::ConcurrencyLimitLayer::new(2))
                 .build()
                 .unwrap(),
         }

@@ -16,15 +16,14 @@ pub fn ExportDatabase() -> Element {
                 href: {
                     #[cfg(target_arch = "wasm32")]
                     {
-                        use js_sys::{Array, Uint8Array};
                         // data:text/plain;charset=utf-8,?
                         let blob_properties = web_sys::BlobPropertyBag::new();
                         blob_properties.set_type("octet/stream");
-                        let bytes = Array::new();
-                        bytes.push(&Uint8Array::from(&database[..]));
+                        let bytes = js_sys::Array::new();
+                        bytes.push(&js_sys::Uint8Array::from(&database[..]));
                         let blob =
-                            Blob::new_with_blob_sequence_and_options(&bytes, &blob_properties).unwrap();
-                        Url::create_object_url_with_blob(&blob).unwrap()
+                            web_sys::Blob::new_with_blob_sequence_and_options(&bytes, &blob_properties).unwrap();
+                        web_sys::Url::create_object_url_with_blob(&blob).unwrap()
                     }
                     #[cfg(not(target_arch = "wasm32"))]
                     "/todo"

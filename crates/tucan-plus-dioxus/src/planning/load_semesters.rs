@@ -44,13 +44,14 @@ pub async fn handle_semester(
         worker.send_message(FEwefweewf { inserts }).await;
         let inserts: Vec<AnmeldungEntry> = futures::stream::iter(result.iter())
             .flat_map(|anmeldung| {
-                futures::stream::iter(anmeldung.entries.iter()).map(async |entry| AnmeldungEntry {
+                futures::stream::iter(anmeldung.entries.iter()).map(async |entry: &tucan_types::registration::AnmeldungEntry| AnmeldungEntry {
                     course_of_study: course_of_study.to_owned(),
                     available_semester: semester,
                     anmeldung: anmeldung.path.last().unwrap().1.inner().to_owned(),
                     module_url: entry.module.as_ref().unwrap().url.inner().to_owned(),
                     id: entry.module.as_ref().unwrap().id.clone(),
                     name: entry.module.as_ref().unwrap().name.clone(),
+                    // this here should be in the store
                     credits: tucan
                         .module_details(
                             login_response,

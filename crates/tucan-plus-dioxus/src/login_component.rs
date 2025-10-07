@@ -113,6 +113,8 @@ pub fn LoginComponent() -> Element {
 
             #[cfg(target_arch = "wasm32")]
             {
+                use wasm_bindgen::JsCast as _;
+
                 let window = web_sys::window().unwrap();
                 let document = window.document().unwrap();
                 let html_document = document.dyn_into::<web_sys::HtmlDocument>().unwrap();

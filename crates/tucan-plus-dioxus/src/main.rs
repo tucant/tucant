@@ -7,6 +7,8 @@ use tucan_plus_dioxus::{
 };
 use tucan_plus_worker::MyDatabase;
 use tucan_types::LoginResponse;
+#[cfg(target_arch = "wasm32")]
+use wasm_bindgen::prelude::*;
 
 #[cfg(target_arch = "wasm32")]
 #[wasm_bindgen]
@@ -39,7 +41,7 @@ pub async fn main() {
         msg.push('\n');
         msg.push_str(&info.to_string());
         msg.push_str("\n\nStack:\n\n");
-        let e = js_sys::Error::new();
+        let e = Error::new();
         let stack = e.stack();
         msg.push_str(&stack);
         msg.push_str("\n\n");
