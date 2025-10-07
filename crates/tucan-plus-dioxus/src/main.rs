@@ -46,7 +46,7 @@ pub async fn main() {
         error(msg.clone());
         alert(msg.as_str());
     }));
-    #[cfg(feature = "web")]
+    #[cfg(target_arch = "wasm32")]
     console_log::init().unwrap();
 
     dioxus::logger::init(Level::INFO).expect("logger failed to init");
