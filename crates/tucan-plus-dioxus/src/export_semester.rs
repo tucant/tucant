@@ -1,3 +1,5 @@
+use std::{rc::Rc, sync::atomic::{AtomicUsize, Ordering}};
+
 use dioxus::prelude::*;
 use futures::StreamExt;
 use time::{Month, macros::offset};
@@ -12,6 +14,7 @@ pub fn FetchAnmeldung() -> Element {
     let tucan: RcTucanType = use_context();
     let current_session_handle = use_context::<Signal<Option<LoginResponse>>>();
     let mut loading = use_signal(|| false);
+    let mut progresses = use_signal(Vec::<(Rc<AtomicUsize>, Rc<AtomicUsize>)>::new);
 
     let onclick = move |_event| {
         let tucan = tucan.clone();
@@ -31,29 +34,43 @@ pub fn FetchAnmeldung() -> Element {
             let registration_sose = Month::March <= date.month() && date.month() <= Month::August;
             let semester = if registration_sose { "sose" } else { "wise" };
 
-            let mut output = Vec::new();
             for course_of_study in anmeldung_response.studiumsauswahl {
                 log::info!("start");
                 let session = current_session_handle().unwrap();
-                let result = recursive_anmeldung(
-                    &tucan.0,
-                    &session,
-                    course_of_study.value.clone(),
-                );
-                let result = result.collect::<Vec<AnmeldungResponse>>().await;
+                let atomic_current = Rc::new(AtomicUsize::new(0));
+                let atomic_total = Rc::new(AtomicUsize::new(1));
+                spawn({
+                    let mut result = result.clone();
+                    let tucan = tucan.clone();
+                    let atomic_current = atomic_current.clone();
+                    let atomic_total = atomic_total.clone();
+                    async move {
+                        let atomic_current = atomic_current.clone();
+                        let atomic_total = atomic_total.clone();
+                        let response = recursive_anmeldung(
+                            &tucan.0,
+                            &session,
+                            &atomic_current,
+                            &atomic_total,
+                            course_of_study.value.clone(),
+                        );
+                        let response = response.collect::<Vec<AnmeldungResponse>>().await;
+
+                        log::info!("downloaded done");
+                        let content = serde_json::to_string(&response).unwrap();
+                        result.push((
+                            format!(
+                                "registration{}_{}.{semester}.v1.tucan",
+                                course_of_study.value, course_of_study.name
+                            ),
+                            compress(content.as_bytes()).await.unwrap(),
+                        ));
+                    }
+                });
+                progresses.push((atomic_current, atomic_total));
                 // now extract the modules in there?
 
-                log::info!("downloaded done");
-                let content = serde_json::to_string(&result).unwrap();
-                output.push((
-                    format!(
-                        "registration{}_{}.{semester}.v1.tucan",
-                        course_of_study.value, course_of_study.name
-                    ),
-                    compress(content.as_bytes()).await.unwrap(),
-                ));
             }
-            result.set(output);
             loading.set(false);
         }
     };
@@ -113,6 +130,11 @@ pub fn FetchAnmeldung() -> Element {
                 }
                 br {
                 }
+            }
+            for progress in progresses() {
+                { progress.0.load(Ordering::Relaxed).to_string() }
+                "/"
+                { progress.1.load(Ordering::Relaxed).to_string() }
             }
         }
     }
