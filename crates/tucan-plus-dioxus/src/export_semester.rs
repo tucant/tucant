@@ -1,5 +1,4 @@
 use dioxus::prelude::*;
-use js_sys::{Array, Uint8Array};
 use time::{Month, macros::offset};
 use tucan_plus_planning::{compress, recursive_anmeldung};
 use tucan_types::{LoginResponse, RevalidationStrategy, Tucan, registration::AnmeldungRequest};
@@ -93,6 +92,7 @@ pub fn FetchAnmeldung() -> Element {
                     href: {
                         #[cfg(target_arch = "wasm32")]
                         {
+                            use js_sys::{Array, Uint8Array};
                             let blob_properties = web_sys::BlobPropertyBag::new();
                             blob_properties.set_type("octet/stream");
                             let bytes = Array::new();

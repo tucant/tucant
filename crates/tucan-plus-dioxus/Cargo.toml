@@ -15,8 +15,6 @@ log = { version = "0.4", features = ["max_level_debug", "release_max_level_warn"
 reqwest = { version = "0.12.9", default-features = false, features = ["rustls-tls", "http2", "charset", "json"] }
 serde_json = "1"
 url = "2"
-console_log = { version = "1", features = ["color"] }
-js-sys = "0.3"
 tucan-connector = { optional = true, path = "../tucan-connector" }
 tucan-plus-planning = { path = "../tucan-plus-planning" }
 tracing = "0.1.41"
@@ -43,6 +41,8 @@ web-sys = { version = "0.3", features = ["Document", "Window", "HtmlDocument", "
 wasm-bindgen = { version = "0.2.104" }
 wasm-bindgen-futures = "0.4"
 android-native-keyring-store = { version = "0.3", optional = true }
+js-sys = "0.3"
+console_log = { version = "1", features = ["color"] }
 
 # extension: target wasm and feature direct
 # native: target native and feature direct
