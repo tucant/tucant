@@ -885,6 +885,7 @@
             export PATH=~/.cargo/bin/:$PATH
             export WORKER_JS_PATH=/assets/wasm/tucan-plus-worker.js
             export WORKER_WASM_PATH=/assets/wasm/tucan-plus-worker_bg.wasm
+            export CC_wasm32_unknown_emscripten=emcc
             #export SERVICE_WORKER_JS_PATH=/assets/wasm/tucan-plus-service-worker.js
           '';
           buildInputs = [

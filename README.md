@@ -65,15 +65,15 @@ export WORKER_JS_PATH=/assets/wasm/tucan-plus-worker.js
 export WORKER_WASM_PATH=/assets/wasm/tucan-plus-worker_bg.wasm
 export SERVICE_WORKER_JS_PATH=/assets/wasm/tucan-plus-service-worker.js
 export SERVICE_WORKER_WASM_PATH=/assets/wasm/tucan-plus-service-worker_bg.wasm
-dx serve --platform web --features api --verbose
+dx serve --web --features api --verbose
 
-cargo run --manifest-path ~/Documents/dioxus/packages/cli/Cargo.toml serve --platform web --features api --verbose
+cargo run --manifest-path ~/Documents/dioxus/packages/cli/Cargo.toml serve --web --features api --verbose
 
 cargo install wasm-bindgen-cli@0.2.104
 
 cd crates/tucan-plus-worker/
-dx serve --wasm --bundle web --base-path assets # --hot-patch this lets everything explode with "env" imports and sqlite import stuff broken
-cp -r ./target/dx/tucan-plus-worker/debug/web/public/wasm/. ../tucan-plus-dioxus/assets/wasm/
+dx serve --bundle web --target wasm32-unknown-unknown --base-path assets # --hot-patch this lets everything explode with "env" imports and sqlite import stuff broken
+cp -r ../../target/dx/tucan-plus-worker/debug/web/public/wasm/. ../tucan-plus-dioxus/assets/wasm/
 
 # in second tab
 cargo install --locked bacon

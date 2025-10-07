@@ -5976,6 +5976,7 @@ version = "0.1.2"
 dependencies = [
  "android-native-keyring-store",
  "console_log",
+ "cookie",
  "dbus-secret-service-keyring-store",
  "dioxus",
  "dioxus-desktop",
