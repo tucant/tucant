@@ -437,7 +437,7 @@ pub trait Tucan: Send + Sync {
         login_response: &LoginResponse,
         revalidation_strategy: RevalidationStrategy,
         request: AnmeldungRequest,
-    ) -> impl std::future::Future<Output = Result<AnmeldungResponse, TucanError>>;
+    ) -> impl std::future::Future<Output = Result<AnmeldungResponse, TucanError>> + Send;
 
     fn module_details(
         &self,

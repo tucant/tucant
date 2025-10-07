@@ -1,6 +1,7 @@
 use futures_util::stream::FuturesOrdered;
 use futures_util::{FutureExt as _, StreamExt as _};
 use tokio::io::AsyncWriteExt as _;
+use tucan_types::TucanError;
 use tucan_types::{
     DynTucan, LoginResponse, RevalidationStrategy, Tucan as _,
     registration::{AnmeldungRequest, AnmeldungResponse},
@@ -28,18 +29,22 @@ pub fn recursive_anmeldung<'a, 'b>(
     tucan: &'a DynTucan<'static>,
     login_response: &'b LoginResponse,
     anmeldung_request: AnmeldungRequest,
-) -> impl futures_util::Stream<Item = Vec<AnmeldungResponse>> + use<'a, 'b> {
+) -> impl futures_util::Stream<Item = AnmeldungResponse> + Send + use<'a, 'b> {
      tucan.anmeldung(
         login_response,
         RevalidationStrategy::cache(),
         anmeldung_request.clone(),
-    ).into_stream().flat_map(|element| {
+    ).into_stream().flat_map(|element: Result<AnmeldungResponse, TucanError>| {
         let element = element.unwrap();
         futures_util::stream::iter(element
-            .submenus
+            .submenus.clone()
             .into_iter())
             .flat_map(|entry| {
-                recursive_anmeldung(tucan, login_response, entry.1.clone())
+                futures_util::stream::once(move {
+                let value = element.clone();
+                    async move { value.clone() }
+                })
+                //recursive_anmeldung(tucan, login_response, entry.1.clone()).boxed()
             })
     })
 }
