@@ -33,16 +33,16 @@ pub fn FetchAnmeldung() -> Element {
             let mut output = Vec::new();
             for course_of_study in anmeldung_response.studiumsauswahl {
                 log::info!("start");
+                let session = current_session_handle().unwrap();
                 let result = recursive_anmeldung(
                     &tucan.0,
-                    &current_session_handle().unwrap(),
+                    &session,
                     course_of_study.value.clone(),
-                )
-                .await;
+                );
                 // now extract the modules in there?
 
                 log::info!("downloaded done");
-                let content = serde_json::to_string(&result).unwrap();
+                let content = serde_json::to_string(&"result").unwrap();
                 output.push((
                     format!(
                         "registration{}_{}.{semester}.v1.tucan",
