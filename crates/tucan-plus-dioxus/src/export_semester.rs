@@ -1,7 +1,8 @@
 use std::{ops::Add, rc::Rc, sync::atomic::{AtomicUsize, Ordering}};
 
-use dioxus::prelude::*;
+use dioxus::{html::geometry::euclid::num::Zero, prelude::*};
 use futures::{FutureExt as _, StreamExt, stream::BoxStream};
+use num::{BigRational, One};
 use time::{Month, macros::offset};
 use tucan_plus_planning::{compress};
 use tucan_types::{DynTucan, LoginResponse, RevalidationStrategy, Tucan, TucanError, registration::{AnmeldungRequest, AnmeldungResponse}};
@@ -15,8 +16,8 @@ use crate::RcTucanType;
 pub fn recursive_anmeldung<'a, 'b: 'a>(
     tucan: &'a DynTucan<'static>,
     login_response: &'b LoginResponse,
-    mut atomic_current: SyncSignal<usize>,
-    mut atomic_total: SyncSignal<usize>,
+    factor: BigRational,
+    mut atomic_current: SyncSignal<BigRational>,
     anmeldung_request: AnmeldungRequest,
 ) -> BoxStream<'a, AnmeldungResponse> {
     tucan.anmeldung(
@@ -24,14 +25,18 @@ pub fn recursive_anmeldung<'a, 'b: 'a>(
         RevalidationStrategy::cache(),
         anmeldung_request.clone(),
     ).into_stream().flat_map(move |element: Result<AnmeldungResponse, TucanError>| {
+        let factor = factor.clone();
         let element = element.unwrap();
-        atomic_total += element.submenus.len();
-        atomic_current += 1;
+        if element.submenus.is_empty()  {
+            atomic_current.with_mut(|value| {
+                *value += factor.clone();
+            });
+        }
         futures::stream::iter(element
             .submenus.clone()
             .into_iter())
             .flat_map(move |entry| {
-                recursive_anmeldung(tucan, login_response, atomic_current, atomic_total, entry.1.clone())
+                recursive_anmeldung(tucan, login_response, factor.clone() / BigRational::from_integer(element.submenus.len().into()), atomic_current, entry.1.clone())
             })
     }).boxed()
 }
@@ -42,7 +47,7 @@ pub fn FetchAnmeldung() -> Element {
     let tucan: RcTucanType = use_context();
     let current_session_handle = use_context::<Signal<Option<LoginResponse>>>();
     let mut loading = use_signal(|| false);
-    let mut progresses = use_signal(Vec::<(SyncSignal<usize>, SyncSignal<usize>)>::new);
+    let mut progresses = use_signal(Vec::<SyncSignal<BigRational>>::new);
 
     let onclick = move |_event| {
         let tucan = tucan.clone();
@@ -65,21 +70,18 @@ pub fn FetchAnmeldung() -> Element {
             for course_of_study in anmeldung_response.studiumsauswahl {
                 log::info!("start");
                 let session = current_session_handle().unwrap();
-                let atomic_current = use_signal_sync(|| 0);
-                let atomic_total = use_signal_sync(|| 1);
+                let atomic_current = use_signal_sync(|| BigRational::zero());
                 spawn({
                     let mut result = result.clone();
                     let tucan = tucan.clone();
                     let atomic_current = atomic_current.clone();
-                    let atomic_total = atomic_total.clone();
                     async move {
                         let atomic_current = atomic_current.clone();
-                        let atomic_total = atomic_total.clone();
                         let response = recursive_anmeldung(
                             &tucan.0,
                             &session,
+                            BigRational::one(),
                             atomic_current,
-                            atomic_total,
                             course_of_study.value.clone(),
                         );
                         let response = response.collect::<Vec<AnmeldungResponse>>().await;
@@ -95,7 +97,7 @@ pub fn FetchAnmeldung() -> Element {
                         ));
                     }
                 });
-                progresses.push((atomic_current, atomic_total));
+                progresses.push(atomic_current);
                 // now extract the modules in there?
 
             }
@@ -163,12 +165,10 @@ pub fn FetchAnmeldung() -> Element {
                 div {
                 class: "progress", role:"progressbar", "aria-label": "Basic example", "aria-valuenow": "25",
                 "aria-valuemin": "0", "aria-valuemax": "100",
-                        div { class: "progress-bar", style: "width: {progress.0()*100/progress.1()}%"
+                        div { class: "progress-bar", style: "width: {progress()}%"
                         }
                 }
-                { progress.0().to_string() }
-                "/"
-                { progress.1().to_string() }
+                { progress().to_string() }
             }
         }
     }

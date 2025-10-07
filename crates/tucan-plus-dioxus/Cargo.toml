@@ -30,6 +30,7 @@ rand = "0.9.2"
 time = { version = "0.3.41", features = ["serde-human-readable", "wasm-bindgen", "macros"] }
 # https://github.com/mitsuhiko/fragile/commit/47bb7220f4d1c422350bd95b5c43bf8e4a51f30f
 fragile = { git = "https://github.com/mitsuhiko/fragile.git", features = ["future"], optional = true }
+num = "0.4"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 tokio = { features = ["macros", "rt", "rt-multi-thread"], version = "1" }
