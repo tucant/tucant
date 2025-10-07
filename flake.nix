@@ -981,6 +981,7 @@
             pkgs.jdk
             pkgs.android-tools
             dioxus-cli
+            pkgs.cargo-hakari
           ];
         };
       }
