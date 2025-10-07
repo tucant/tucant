@@ -20,7 +20,7 @@ sqlite-wasm-rs = { version = "0.4", default-features = false, features = ["bundl
 getrandom = { version = "0.3", features = ["wasm_js"] }
 wasm-bindgen-futures = "0.4"
 serde-wasm-bindgen = "0.6"
-wasm-bindgen = { version = "0.2.101" }
+wasm-bindgen = { version = "0.2.104" }
 web-sys = { version = "0.3", features = ["DedicatedWorkerGlobalScope", "MessageEvent", "Worker", "BroadcastChannel", "Document", "Window", "HtmlDocument", "NodeList", "HtmlSelectElement", "Blob", "Url", "BlobPropertyBag", "Worker", "WorkerOptions", "WorkerType", "AddEventListenerOptions", "EventTarget", "ErrorEvent", "FileList", "HtmlInputElement", "Navigator", "ServiceWorkerContainer", "ServiceWorker", "LockManager", "Lock", "BroadcastChannel"] }
 js-sys = "0.3"
 console_log = { version = "1", features = ["color"] }
@@ -29,3 +29,4 @@ erased-serde = "0.4"
 enum_dispatch = "0.3.13"
 fragile = "2"
 derive_more = { version = "2.0.1", features = ["from"] }
+rand = "0.9.2"
