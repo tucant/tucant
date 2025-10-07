@@ -72,43 +72,6 @@
           };
         };
 
-        cargoDioxusDeps =
-          craneLib:
-          {
-            profile ? "--release",
-            dioxusExtraArgs ? "",
-            cargoExtraArgs ? "",
-            dioxusBuildDepsOnlyCommand ? "build",
-            ...
-          }@origArgs:
-          let
-            args = {
-              pnameSuffix = "-dioxus";
-            }
-            // (builtins.removeAttrs origArgs [
-              "dioxusCommand"
-              "dioxusExtraArgs"
-              "dioxusMainArgs"
-              "cargoExtraArgs"
-              "notBuildDepsOnly"
-              "buildDepsOnly"
-              "dioxusBuildDepsOnlyCommand"
-            ]);
-          in
-          craneLib.buildDepsOnly (
-            {
-              # build, don't bundle
-              # TODO make dx home persistent as it's useful
-              buildPhaseCargoCommand = ''
-                set -x
-                DX_HOME=$(mktemp -d) DIOXUS_LOG=trace,walrus=debug ${dioxus-cli}/bin/dx ${dioxusBuildDepsOnlyCommand} --trace ${profile} --base-path public ${dioxusExtraArgs} ${cargoExtraArgs}
-                set +x
-              '';
-              doCheck = false;
-            }
-            // args
-          );
-
         cargoDioxus =
           craneLib:
           {
@@ -139,10 +102,31 @@
           craneLib.mkCargoDerivation (
             {
               buildPhaseCargoCommand = ''
+                ls -R
                 set -x
                 DX_HOME=$(mktemp -d) DIOXUS_LOG=trace,walrus=debug ${dioxus-cli}/bin/dx ${dioxusCommand} --trace ${profile} --base-path public ${dioxusExtraArgs} ${dioxusMainArgs} ${cargoExtraArgs}
                 set +x
               '';
+              cargoArtifacts = craneLib.buildDepsOnly (
+                {
+                  # build, don't bundle
+                  # TODO make dx home persistent as it's useful
+                  buildPhaseCargoCommand = ''
+                    set -x
+                    DX_HOME=$(mktemp -d) DIOXUS_LOG=trace,walrus=debug ${dioxus-cli}/bin/dx ${dioxusBuildDepsOnlyCommand} --trace ${profile} --base-path public ${dioxusExtraArgs} ${cargoExtraArgs}
+                    set +x
+                  '';
+                  doCheck = false;
+                  dummySrc = craneLib.mkDummySrc {
+                    src = args.src;
+                    extraDummyScript = ''
+                      cp ${args.src}/crates/tucan-plus-dioxus/Dioxus.toml $out/crates/tucan-plus-dioxus/Dioxus.toml
+                    '';
+                  };
+                }
+                // args
+                // buildDepsOnly
+              );
             }
             // args
             // notBuildDepsOnly
@@ -230,66 +214,15 @@
           fileset-worker
         ];
 
-        dioxus-dummy-src = src: craneLib.mkDummySrc {
-          src = src;
-          extraDummyScript = ''
-            cp ${src}/crates/tucan-plus-dioxus/Dioxus.toml $out/crates/tucan-plus-dioxus/Dioxus.toml
-          '';
-        };
-
-        # TODO try building with cargo directly as dioxus can't build a workspace?
-        deps-wasm = craneLib.buildDepsOnly {
-          DIOXUS_ASSET_ROOT="public";
-          DIOXUS_APP_TITLE="TUCaN Plus";
-          DIOXUS_PRODUCT_NAME="TucanPlusDioxus";
-          CARGO_BUILD_TARGET = "wasm32-unknown-unknown";
-          CARGO_PROFILE = "wasm-release";
-          buildPhaseCargoCommand = ''
-            cargo build --verbose --profile $CARGO_PROFILE --package tucan-plus-dioxus --config profile.wasm-release.inherits=\"release\" --config profile.wasm-release.opt-level=\"s\"
-            cargo build --verbose --profile $CARGO_PROFILE --package tucan-plus-worker --config profile.wasm-release.inherits=\"release\" --config profile.wasm-release.opt-level=\"s\"
-          '';
-          strictDeps = true;
-          stdenv = p: p.emscriptenStdenv;
-          doCheck = false;
-          pname = "tucan-plus-deps-wasm";
-          preBuild = ''
-            export CC=emcc
-            export CXX=emcc
-          '';
-          installPhaseCommand = '''';
-          checkPhaseCargoCommand = '''';
-          nativeBuildInputs = [
-            pkgs.which
-            pkgs.emscripten
-            wasm-bindgen
-            pkgs.binaryen
-            (pkgs.writeShellScriptBin "git" ''
-              echo ${self.rev or "dirty"}
-            '')
-          ];
-          doNotPostBuildInstallCargoBinaries = true;
-          dummySrc = craneLib.mkDummySrc {
-            src = lib.fileset.toSource {
-              root = ./.;
-              fileset = lib.fileset.unions [fileset-wasm fileset-worker];
-            };
-            extraDummyScript = ''
-              rm $out/crates/tucan-plus-worker/src/main.rs
-              cp ${pkgs.writeText "main.rs" ''
-                use wasm_bindgen::prelude::*;
-
-                #[wasm_bindgen(main)]
-                pub async fn main() {
-
-                }
-              ''} $out/crates/tucan-plus-worker/src/main.rs
-            '';
-          };
-        };
-
         nativeArgs = {
           pname = "tucan-plus-native";
           cargoExtraArgs = "--package tucan-plus-dioxus";
+          preBuild = ''
+            cd ./crates/tucan-plus-dioxus
+          '';
+          postBuild = ''
+            cd ../..
+          '';
           strictDeps = true;
           src = lib.fileset.toSource {
             root = ./.;
@@ -499,7 +432,7 @@
 
         worker-args = {
           dioxusMainArgs = "--bundle web --out-dir $out";
-          dioxusExtraArgs = "--target wasm32-unknown-unknown --wasm-js-cfg false";
+          dioxusExtraArgs = "--target wasm32-unknown-unknown";
           strictDeps = true;
           stdenv = p: p.emscriptenStdenv;
           doCheck = false;
@@ -544,9 +477,7 @@
           };
         };
 
-        worker = cargoDioxus craneLib (worker-args // {
-          cargoArtifacts = deps-wasm;
-        });
+        worker = cargoDioxus craneLib (worker-args);
 
         service-worker-args = {
           strictDeps = true;
@@ -604,7 +535,7 @@
         );
 
         client-args = {
-          dioxusExtraArgs = "--features direct --web --wasm-js-cfg false";
+          dioxusExtraArgs = "--features direct --web";
           dioxusMainArgs = "--out-dir $out";
           buildDepsOnly = {
             preBuild = ''
@@ -665,9 +596,7 @@
           doNotPostBuildInstallCargoBinaries = true;
         };
 
-        client = cargoDioxus craneLib (client-args // {
-          cargoArtifacts = deps-wasm;
-        });
+        client = cargoDioxus craneLib (client-args);
 
         extension-unpacked = pkgs.stdenv.mkDerivation {
           pname = "tucan-plus-extension";
@@ -984,7 +913,6 @@
             pkgs.jdk
             pkgs.android-tools
             dioxus-cli
-            pkgs.cargo-hakari
           ];
         };
       }
