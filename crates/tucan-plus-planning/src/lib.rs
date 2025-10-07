@@ -1,4 +1,4 @@
-use futures_util::stream::FuturesOrdered;
+use futures_util::stream::{BoxStream, FuturesOrdered};
 use futures_util::{FutureExt as _, StreamExt as _};
 use tokio::io::AsyncWriteExt as _;
 use tucan_types::TucanError;
@@ -25,28 +25,24 @@ pub async fn decompress(in_data: &[u8]) -> std::io::Result<Vec<u8>> {
 }
 
 #[expect(clippy::manual_async_fn)]
-pub fn recursive_anmeldung<'a, 'b>(
+pub fn recursive_anmeldung<'a, 'b: 'a>(
     tucan: &'a DynTucan<'static>,
     login_response: &'b LoginResponse,
     anmeldung_request: AnmeldungRequest,
-) -> impl futures_util::Stream<Item = AnmeldungResponse> + Send + use<'a, 'b> {
+) -> BoxStream<'a, AnmeldungResponse> {
      tucan.anmeldung(
         login_response,
         RevalidationStrategy::cache(),
         anmeldung_request.clone(),
-    ).into_stream().flat_map(|element: Result<AnmeldungResponse, TucanError>| {
+    ).into_stream().flat_map(move |element: Result<AnmeldungResponse, TucanError>| {
         let element = element.unwrap();
         futures_util::stream::iter(element
             .submenus.clone()
             .into_iter())
             .flat_map(move |entry| {
-                futures_util::stream::once({
-                let value = element.clone();
-                    async move { value.clone() }
-                })
-                //recursive_anmeldung(tucan, login_response, entry.1.clone()).boxed()
+                recursive_anmeldung(tucan, login_response, entry.1.clone())
             })
-    })
+    }).boxed()
 }
 
 pub fn abc(anmeldung_responses: Vec<AnmeldungResponse>) {
