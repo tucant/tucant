@@ -28,31 +28,22 @@ pub fn recursive_anmeldung<'a, 'b>(
     tucan: &'a DynTucan<'static>,
     login_response: &'b LoginResponse,
     anmeldung_request: AnmeldungRequest,
-) -> impl Future<Output = Vec<AnmeldungResponse>> + use<'a, 'b> {
-    async move {
-        let anmeldung_response = tucan
-            .anmeldung(
-                login_response,
-                RevalidationStrategy::cache(),
-                anmeldung_request.clone(),
-            )
-            .await
-            .unwrap();
-
-        let results: FuturesOrdered<_> = anmeldung_response
+) -> impl futures_util::Stream<Item = Vec<AnmeldungResponse>> + use<'a, 'b> {
+     tucan.anmeldung(
+        login_response,
+        RevalidationStrategy::cache(),
+        anmeldung_request.clone(),
+    ).into_stream().flat_map(|element| {
+        let element = element.unwrap();
+        futures_util::stream::iter(element
             .submenus
-            .iter()
-            .map(|entry| {
-                async { recursive_anmeldung(tucan, login_response, entry.1.clone()).await }
-                    .boxed_local()
+            .into_iter())
+            .flat_map(|entry| {
+                recursive_anmeldung(tucan, login_response, entry.1.clone())
             })
-            .collect();
-        let results = results.collect::<Vec<Vec<AnmeldungResponse>>>().await;
-
-        std::iter::once(anmeldung_response)
-            .chain(results.into_iter().flatten())
-            .collect()
-    }
+    })
 }
 
-pub fn abc() {}
+pub fn abc(anmeldung_responses: Vec<AnmeldungResponse>) {
+    
+}
