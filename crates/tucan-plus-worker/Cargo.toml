@@ -9,7 +9,6 @@ diesel = { version = "2.3.2", features = ["sqlite", "returning_clauses_for_sqlit
 diesel_migrations = { version = "2.3.0", features = ["sqlite"] }
 tucan-types = { path = "../tucan-types" }
 tokio = { features = [], version = "1" }
-rand = "0.9.2"
 time = { version = "0.3.41", features = ["serde-human-readable", "wasm-bindgen", "macros"] }
 serde = { version = "1", features = ["derive"] }
 

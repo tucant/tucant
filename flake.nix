@@ -244,7 +244,10 @@
           DIOXUS_PRODUCT_NAME="TucanPlusDioxus";
           CARGO_BUILD_TARGET = "wasm32-unknown-unknown";
           CARGO_PROFILE = "wasm-release";
-          cargoExtraArgs = "--config profile.wasm-release.inherits=\\\"release\\\" --config profile.wasm-release.opt-level=\\\"s\\\"";
+          buildPhaseCargoCommand = ''
+            cargo build --verbose --profile $CARGO_PROFILE --package tucan-plus-dioxus --config profile.wasm-release.inherits=\"release\" --config profile.wasm-release.opt-level=\"s\"
+            cargo build --verbose --profile $CARGO_PROFILE --package tucan-plus-worker --config profile.wasm-release.inherits=\"release\" --config profile.wasm-release.opt-level=\"s\"
+          '';
           strictDeps = true;
           stdenv = p: p.emscriptenStdenv;
           doCheck = false;
