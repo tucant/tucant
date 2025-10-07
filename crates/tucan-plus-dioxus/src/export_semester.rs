@@ -165,10 +165,10 @@ pub fn FetchAnmeldung() -> Element {
                 div {
                 class: "progress", role:"progressbar", "aria-label": "Basic example", "aria-valuenow": "25",
                 "aria-valuemin": "0", "aria-valuemax": "100",
-                        div { class: "progress-bar", style: format!("width: {}%", progress().to_f64().unwrap()*100.0)
+                        div { class: "progress-bar", style: format!("width: {}%", progress().to_f64().unwrap()*100.0),
+                            { format!("{:.2}%", progress().to_f64().unwrap()*100.0) }
                         }
                 }
-                { progress().to_string() }
             }
         }
     }
