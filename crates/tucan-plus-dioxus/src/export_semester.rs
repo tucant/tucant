@@ -6,7 +6,7 @@ use num::{BigRational, One};
 use time::{Month, macros::offset};
 use tucan_plus_planning::{compress};
 use tucan_types::{DynTucan, LoginResponse, RevalidationStrategy, Tucan, TucanError, registration::{AnmeldungRequest, AnmeldungResponse}};
-
+use num::ToPrimitive;
 use crate::RcTucanType;
 
 // breath first for progress?
@@ -165,7 +165,7 @@ pub fn FetchAnmeldung() -> Element {
                 div {
                 class: "progress", role:"progressbar", "aria-label": "Basic example", "aria-valuenow": "25",
                 "aria-valuemin": "0", "aria-valuemax": "100",
-                        div { class: "progress-bar", style: "width: {progress()}%"
+                        div { class: "progress-bar", style: format!("width: {}%", progress().to_f64().unwrap()*100.0)
                         }
                 }
                 { progress().to_string() }
