@@ -43,6 +43,7 @@ wasm-bindgen-futures = "0.4"
 android-native-keyring-store = { version = "0.3", optional = true }
 js-sys = "0.3"
 console_log = { version = "1", features = ["color"] }
+fragile = { version = "2", features = ["future"] }
 
 # extension: target wasm and feature direct
 # native: target native and feature direct

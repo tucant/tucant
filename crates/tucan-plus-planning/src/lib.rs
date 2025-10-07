@@ -39,8 +39,8 @@ pub fn recursive_anmeldung<'a, 'b>(
         futures_util::stream::iter(element
             .submenus.clone()
             .into_iter())
-            .flat_map(|entry| {
-                futures_util::stream::once(move {
+            .flat_map(move |entry| {
+                futures_util::stream::once({
                 let value = element.clone();
                     async move { value.clone() }
                 })

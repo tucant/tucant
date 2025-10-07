@@ -1,3 +1,4 @@
+use fragile::Fragile;
 use reqwest::Client;
 use tokio::sync::Semaphore;
 use tucan_types::{
@@ -47,29 +48,31 @@ impl Tucan for ApiServerTucan {
         Ok(response)
     }
 
-    async fn anmeldung(
+    fn anmeldung(
         &self,
         _login_response: &LoginResponse,
         revalidation_strategy: RevalidationStrategy,
         request: AnmeldungRequest,
-    ) -> Result<tucan_types::registration::AnmeldungResponse, TucanError> {
-        let _permit = self.semaphore.acquire().await.unwrap();
-        let mut url = Url::parse("http://127.0.0.1:8080/api/v1/registration").unwrap();
-        url.path_segments_mut().unwrap().push(request.inner());
-        let response = self
-            .client
-            .get(url)
-            .fetch_credentials_include()
-            .header(
-                "X-Revalidation-Strategy",
-                serde_json::to_string(&revalidation_strategy).unwrap(),
-            )
-            .send()
-            .await?
-            .error_for_status()?
-            .json()
-            .await?;
-        Ok(response)
+    ) -> impl Future<Output = Result<tucan_types::registration::AnmeldungResponse, TucanError>> + Send {
+        Fragile::new(async move {
+            let _permit = self.semaphore.acquire().await.unwrap();
+            let mut url = Url::parse("http://127.0.0.1:8080/api/v1/registration").unwrap();
+            url.path_segments_mut().unwrap().push(request.inner());
+            let response = self
+                .client
+                .get(url)
+                .fetch_credentials_include()
+                .header(
+                    "X-Revalidation-Strategy",
+                    serde_json::to_string(&revalidation_strategy).unwrap(),
+                )
+                .send()
+                .await?
+                .error_for_status()?
+                .json()
+                .await?;
+            Ok(response)
+        })
     }
 
     async fn module_details(
