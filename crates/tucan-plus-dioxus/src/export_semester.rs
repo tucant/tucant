@@ -1,7 +1,8 @@
 use dioxus::prelude::*;
+use futures::StreamExt;
 use time::{Month, macros::offset};
 use tucan_plus_planning::{compress, recursive_anmeldung};
-use tucan_types::{LoginResponse, RevalidationStrategy, Tucan, registration::AnmeldungRequest};
+use tucan_types::{LoginResponse, RevalidationStrategy, Tucan, registration::{AnmeldungRequest, AnmeldungResponse}};
 
 use crate::RcTucanType;
 
@@ -39,10 +40,11 @@ pub fn FetchAnmeldung() -> Element {
                     &session,
                     course_of_study.value.clone(),
                 );
+                let result = result.collect::<Vec<AnmeldungResponse>>().await;
                 // now extract the modules in there?
 
                 log::info!("downloaded done");
-                let content = serde_json::to_string(&"result").unwrap();
+                let content = serde_json::to_string(&result).unwrap();
                 output.push((
                     format!(
                         "registration{}_{}.{semester}.v1.tucan",
