@@ -1,4 +1,4 @@
-use std::{collections::HashSet, ops::Add, rc::Rc, sync::atomic::{AtomicUsize, Ordering}};
+use std::{collections::HashSet, ops::Add, pin::pin, rc::Rc, sync::atomic::{AtomicUsize, Ordering}};
 
 use dioxus::{html::geometry::euclid::num::Zero, prelude::*};
 use futures::{FutureExt as _, StreamExt, stream::BoxStream};
@@ -6,7 +6,7 @@ use itertools::Itertools as _;
 use num::{BigInt, BigRational, FromPrimitive, One};
 use time::{Month, macros::offset};
 use tucan_plus_planning::{compress};
-use tucan_types::{DynTucan, LoginResponse, RevalidationStrategy, Tucan, TucanError, registration::{AnmeldungRequest, AnmeldungResponse}};
+use tucan_types::{DynTucan, LoginResponse, RevalidationStrategy, Tucan, TucanError, moduledetails::ModuleDetailsResponse, registration::{AnmeldungRequest, AnmeldungResponse}};
 use num::ToPrimitive;
 use crate::RcTucanType;
 
@@ -97,18 +97,21 @@ pub fn FetchAnmeldung() -> Element {
                             course_of_study.value.clone(),
                         );
                         let response = response.collect::<Vec<AnmeldungResponse>>().await;
-                        log::info!("{response:?}");
                         let modules: HashSet<_> = response.iter().flat_map(|anmeldung| anmeldung.entries.iter()).flat_map(|entry| entry.module.iter()).map(|module| module.url.clone()).collect();
-                        log::info!("{modules:?}");
                         let modules_len = 2*modules.len();
-                        let stream = futures::stream::iter(modules).then(|module| {
+                        let module_stream = futures::stream::iter(modules).flat_map_unordered(None, |module| {
                             let tucan = tucan.clone();
                             let session = session.clone();
-                            async move {
-                            let change = BigRational::new(BigInt::from(1), BigInt::from(modules_len));
-                            let module = tucan.0.module_details(&session, RevalidationStrategy::cache(), module).await.unwrap();
-                            atomic_current.with_mut(|current| *current += change.clone());
-                    }});
+                            let future = async move {
+                                let change = BigRational::new(BigInt::from(1), BigInt::from(modules_len));
+                                let module = tucan.0.module_details(&session, RevalidationStrategy::cache(), module).await.unwrap();
+                                atomic_current.with_mut(|current| *current += change.clone());
+                                module
+                            };
+                            Box::pin(future).into_stream()
+                        });
+                        let module_response = module_stream.collect::<Vec<ModuleDetailsResponse>>().await;
+
                         log::info!("downloaded done");
                         let content = serde_json::to_string(&response).unwrap();
                         result.push((
