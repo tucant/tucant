@@ -29,14 +29,15 @@ pub fn recursive_anmeldung<'a, 'b: 'a>(
         let factor = factor.clone();
         let element = element.unwrap();
         if element.submenus.is_empty()  {
-            atomic_current.with_mut(|value| {
-                if factor > BigRational::from_f64(0.05).unwrap() {
-                    let factor = factor.clone();
-                    atomic_total.with_mut(|total| *total -= factor );
-                } else {
-                    *value += factor.clone();
-                }
-            });
+            if factor > BigRational::from_f64(0.01).unwrap() {
+                let factor = factor.clone();
+                atomic_total.with_mut(|total| *total -= factor );
+            } else {
+                let factor = factor.clone();
+                atomic_current.with_mut(|value| {
+                    *value += factor;
+                })
+            }
         }
         futures::stream::iter(element
             .submenus.clone()
