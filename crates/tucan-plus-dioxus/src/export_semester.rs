@@ -101,11 +101,14 @@ pub fn FetchAnmeldung() -> Element {
                         let modules: HashSet<_> = response.iter().flat_map(|anmeldung| anmeldung.entries.iter()).flat_map(|entry| entry.module.iter()).map(|module| module.url.clone()).collect();
                         log::info!("{modules:?}");
                         let modules_len = 2*modules.len();
-                        for module in modules {
+                        let stream = futures::stream::iter(modules).then(|module| {
+                            let tucan = tucan.clone();
+                            let session = session.clone();
+                            async move {
                             let change = BigRational::new(BigInt::from(1), BigInt::from(modules_len));
                             let module = tucan.0.module_details(&session, RevalidationStrategy::cache(), module).await.unwrap();
                             atomic_current.with_mut(|current| *current += change.clone());
-                        }
+                    }});
                         log::info!("downloaded done");
                         let content = serde_json::to_string(&response).unwrap();
                         result.push((
