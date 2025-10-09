@@ -40,12 +40,12 @@ pub fn recursive_anmeldung<'a, 'b: 'a>(
                 })
             }
         }
-        futures::stream::iter(element
+        futures::stream::once({let element = element.clone(); async move { element.clone() }}).chain(futures::stream::iter(element
             .submenus.clone()
             .into_iter())
             .flat_map_unordered(None, move |entry| {
                 recursive_anmeldung(tucan, login_response, factor.clone() / BigRational::from_integer(element.submenus.len().into()), atomic_current, atomic_total, entry.1.clone())
-            })
+            }))
     }).boxed()
 }
 
@@ -97,13 +97,15 @@ pub fn FetchAnmeldung() -> Element {
                             course_of_study.value.clone(),
                         );
                         let response = response.collect::<Vec<AnmeldungResponse>>().await;
+                        log::info!("{response:?}");
                         let modules: HashSet<_> = response.iter().flat_map(|anmeldung| anmeldung.entries.iter()).flat_map(|entry| entry.module.iter()).map(|module| module.url.clone()).collect();
-                        let change = BigRational::new(BigInt::from(1), BigInt::from(2*modules.len()));
+                        log::info!("{modules:?}");
+                        let modules_len = 2*modules.len();
                         for module in modules {
+                            let change = BigRational::new(BigInt::from(1), BigInt::from(modules_len));
                             let module = tucan.0.module_details(&session, RevalidationStrategy::cache(), module).await.unwrap();
                             atomic_current.with_mut(|current| *current += change.clone());
                         }
-                        
                         log::info!("downloaded done");
                         let content = serde_json::to_string(&response).unwrap();
                         result.push((
