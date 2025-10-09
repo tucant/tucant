@@ -90,6 +90,23 @@ echo "wasm_bindgen.initSync({ module: Uint8Array.fromBase64(\"$(base64 -w0 targe
 cp -r ./target/dx/tucan-plus-service-worker/debug/web/public/wasm/. ../tucan-plus-dioxus/assets/wasm/
 
 # http://localhost:8080/#/
+
+
+wasm-tools addr2line ./target/dx/tucan-plus-dioxus/debug/web/public/wasm/tucan-plus-dioxus_bg.wasm 0xc3d99e 0xb4c65d 0x86d66e 0xbcf4cf 0x8bd9d
+
+nix shell nixpkgs#llvmPackages_21.bintools
+whereis llvm-dwarfdump
+
+git clone https://github.com/emscripten-core/emsdk.git
+cd emsdk
+git pull
+./emsdk install latest
+./emsdk activate latest
+source ./emsdk_env.sh
+
+emsymbolizer
+
+EMCC_DEBUG=1 ./upstream/emscripten/tools/wasm-sourcemap.py ~/Documents/tucan-plus/target/dx/tucan-plus-dioxus/debug/web/public/wasm/tucan-plus-dioxus_bg.wasm --dwarfdump /nix/store/47pcjmrcaq81frqyg66gf95f5cy2bzjl-llvm-binutils-21.1.1/bin/llvm-dwarfdump --output test.map --source-map-url http://127.0.0.1:8080/assets/tucan-plus-dioxus_bg.wasm.map -w tucan-plus-dioxus_bg.wasm
 ```
 
 ### Developing the extension

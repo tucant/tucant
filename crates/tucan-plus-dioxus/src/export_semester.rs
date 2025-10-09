@@ -1,8 +1,9 @@
-use std::{ops::Add, rc::Rc, sync::atomic::{AtomicUsize, Ordering}};
+use std::{collections::HashSet, ops::Add, rc::Rc, sync::atomic::{AtomicUsize, Ordering}};
 
 use dioxus::{html::geometry::euclid::num::Zero, prelude::*};
 use futures::{FutureExt as _, StreamExt, stream::BoxStream};
-use num::{BigRational, FromPrimitive, One};
+use itertools::Itertools as _;
+use num::{BigInt, BigRational, FromPrimitive, One};
 use time::{Month, macros::offset};
 use tucan_plus_planning::{compress};
 use tucan_types::{DynTucan, LoginResponse, RevalidationStrategy, Tucan, TucanError, registration::{AnmeldungRequest, AnmeldungResponse}};
@@ -85,18 +86,24 @@ pub fn FetchAnmeldung() -> Element {
                     let atomic_current = atomic_current.clone();
                     let atomic_total = atomic_total.clone();
                     async move {
-                        let atomic_current = atomic_current.clone();
+                        let mut atomic_current = atomic_current.clone();
                         let atomic_total = atomic_total.clone();
                         let response = recursive_anmeldung(
                             &tucan.0,
                             &session,
-                            BigRational::one(),
+                            BigRational::new(BigInt::from(1), BigInt::from(2)),
                             atomic_current,
                             atomic_total,
                             course_of_study.value.clone(),
                         );
                         let response = response.collect::<Vec<AnmeldungResponse>>().await;
-
+                        let modules: HashSet<_> = response.iter().flat_map(|anmeldung| anmeldung.entries.iter()).flat_map(|entry| entry.module.iter()).map(|module| module.url.clone()).collect();
+                        let change = BigRational::new(BigInt::from(1), BigInt::from(2*modules.len()));
+                        for module in modules {
+                            let module = tucan.0.module_details(&session, RevalidationStrategy::cache(), module).await.unwrap();
+                            atomic_current.with_mut(|current| *current += change.clone());
+                        }
+                        
                         log::info!("downloaded done");
                         let content = serde_json::to_string(&response).unwrap();
                         result.push((
@@ -109,8 +116,6 @@ pub fn FetchAnmeldung() -> Element {
                     }
                 });
                 progresses.push((atomic_current, atomic_total));
-                // now extract the modules in there?
-
             }
             loading.set(false);
         }

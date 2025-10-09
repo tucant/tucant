@@ -5992,6 +5992,7 @@ dependencies = [
  "futures",
  "getrandom 0.3.3",
  "git-version",
+ "itertools",
  "js-sys",
  "keyring-core",
  "log",
