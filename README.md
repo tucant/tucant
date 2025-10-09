@@ -106,7 +106,8 @@ source ./emsdk_env.sh
 
 emsymbolizer
 
-EMCC_DEBUG=1 ./upstream/emscripten/tools/wasm-sourcemap.py ~/Documents/tucan-plus/target/dx/tucan-plus-dioxus/debug/web/public/wasm/tucan-plus-dioxus_bg.wasm --dwarfdump /nix/store/47pcjmrcaq81frqyg66gf95f5cy2bzjl-llvm-binutils-21.1.1/bin/llvm-dwarfdump --output test.map --source-map-url http://127.0.0.1:8080/assets/tucan-plus-dioxus_bg.wasm.map -w tucan-plus-dioxus_bg.wasm
+EMCC_DEBUG=1 ./upstream/emscripten/tools/wasm-sourcemap.py ~/Documents/tucan-plus/target/dx/tucan-plus-dioxus/debug/web/public/wasm/tucan-plus-dioxus_bg.wasm --dwarfdump /nix/store/47pcjmrcaq81frqyg66gf95f5cy2bzjl-llvm-binutils-21.1.1/bin/llvm-dwarfdump --output /home/moritz/Documents/tucan-plus/target/dx/tucan-plus-dioxus/debug/web/public/wasm/tucan-plus-dioxus_bg.wasm.map -w /home/moritz/Documents/tucan-plus/target/dx/tucan-plus-dioxus/debug/web/public/wasm/tucan-plus-dioxus_bg.wasm --source-map-url http://127.0.0.1:8080/wasm/tucan-plus-dioxus_bg.wasm.map --sources --load-prefix /rustc/fa3155a644dd62e865825087b403646be01d4cef=/home/moritz/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/lib/rustlib/src/rust
+
 ```
 
 ### Developing the extension
