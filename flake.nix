@@ -848,6 +848,7 @@
           ];
           packages = [
             pkgs.bashInteractive
+            pkgs.wasm-tools
             pkgs.nodejs
             pkgs.bun
             pkgs.pkg-config
@@ -856,6 +857,7 @@
             pkgs.jdk
             pkgs.android-tools
             pkgs.binaryen
+            pkgs.llvmPackages_21.bintools
             dioxus-cli
           ];
         };

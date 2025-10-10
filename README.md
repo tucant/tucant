@@ -63,6 +63,12 @@ cargo install --git https://github.com/mohe2015/dioxus --branch my dioxus-cli
 cd crates/tucan-plus-dioxus/
 dx serve --web --features api --verbose
 
+rm -R /home/moritz/Documents/tucan-plus/target/dx/tucan-plus-dioxus/release/web/public/assets/
+rm -R /home/moritz/Documents/tucan-plus/target/dx/tucan-plus-dioxus/debug/web/public/assets/
+dx build --web --features api --verbose
+llvm-dwarfdump /home/moritz/Documents/tucan-plus/target/dx/tucan-plus-dioxus/release/web/public/assets/tucan-plus-dioxus_bg-*.wasm
+llvm-dwarfdump /home/moritz/Documents/tucan-plus/target/dx/tucan-plus-dioxus/debug/web/public/wasm/tucan-plus-dioxus_bg.wasm 
+
 cargo run --manifest-path ~/Documents/dioxus/packages/cli/Cargo.toml serve --web --features api --verbose
 
 cargo install wasm-bindgen-cli@0.2.104
