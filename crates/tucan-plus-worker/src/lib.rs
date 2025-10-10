@@ -1,4 +1,7 @@
 
+#[cfg(target_arch = "wasm32")]
+use std::time::Duration;
+
 #[cfg(not(target_arch = "wasm32"))]
 use diesel::r2d2::CustomizeConnection;
 use diesel::{prelude::*, upsert::excluded};
@@ -385,6 +388,20 @@ impl RequestResponse for ExportDatabaseRequest {
     }
 }
 
+
+#[cfg_attr(target_arch = "wasm32", derive(Serialize, Deserialize))]
+#[derive(Debug)]
+pub struct PingRequest {
+}
+
+impl RequestResponse for PingRequest {
+    type Response = ();
+
+    fn execute(&self, connection: &mut SqliteConnection) -> Self::Response {
+        ()
+    }
+}
+
 #[cfg(target_arch = "wasm32")]
 #[derive(Serialize, Deserialize, Debug, derive_more::From)]
 pub enum RequestResponseEnum {
@@ -401,7 +418,8 @@ pub enum RequestResponseEnum {
     StoreCacheRequest(StoreCacheRequest),
     ExportDatabaseRequest(ExportDatabaseRequest),
     UpdateAnmeldungEntry(UpdateAnmeldungEntry),
-    AnmeldungenEntriesInSemester(AnmeldungenEntriesInSemester)
+    AnmeldungenEntriesInSemester(AnmeldungenEntriesInSemester),
+    PingRequest(PingRequest)
 }
 
 #[cfg(target_arch = "wasm32")]
@@ -448,6 +466,9 @@ impl RequestResponseEnum {
                 serde_wasm_bindgen::to_value(&value.execute(connection)).unwrap()
             }
             RequestResponseEnum::AnmeldungenEntriesInSemester(value) => {
+                serde_wasm_bindgen::to_value(&value.execute(connection)).unwrap()
+            }
+            RequestResponseEnum::PingRequest(value) => {
                 serde_wasm_bindgen::to_value(&value.execute(connection)).unwrap()
             }
         }
@@ -555,6 +576,7 @@ pub fn shim_url() -> String {
 impl MyDatabase {
     pub async fn wait_for_worker(worker_js: String) -> Self {
         use js_sys::Promise;
+        use log::info;
         use wasm_bindgen::{JsCast as _, prelude::Closure};
 
         let lock_manager = web_sys::window().unwrap().navigator().locks();
@@ -596,15 +618,36 @@ impl MyDatabase {
 
         let broadcast_channel = Fragile::new(BroadcastChannel::new("global").unwrap());
 
-        // TODO FIXME add wait for worker to be alive
+        // TODO FIXME add wait for worker to be aliv
 
-        Self { broadcast_channel }
+        let this = Self { broadcast_channel };
+
+        while this.send_message_with_timeout(PingRequest {}, Duration::from_millis(100)).await.is_err() {
+            use log::info;
+
+            info!("retry ping");
+        }
+
+        info!("got pong");
+
+        this
     }
 
     pub async fn send_message<R: RequestResponse + std::fmt::Debug>(
         &self,
         message: R,
     ) -> R::Response
+    where
+        RequestResponseEnum: std::convert::From<R>,
+    {
+        self.send_message_with_timeout(message, Duration::from_secs(10)).await.unwrap()
+    }
+
+    pub async fn send_message_with_timeout<R: RequestResponse + std::fmt::Debug>(
+        &self,
+        message: R,
+        timeout: Duration
+    ) -> Result<R::Response, ()>
     where
         RequestResponseEnum: std::convert::From<R>,
     {
@@ -616,7 +659,7 @@ impl MyDatabase {
 
         let temporary_broadcast_channel = Fragile::new(BroadcastChannel::new(&id).unwrap());
 
-        let mut cb = |resolve: js_sys::Function, _reject: js_sys::Function| {
+        let mut cb = |resolve: js_sys::Function, reject: js_sys::Function| {
             use wasm_bindgen::{JsCast as _, prelude::Closure};
 
             let temporary_message_closure: Closure<dyn Fn(_)> = {
@@ -631,6 +674,14 @@ impl MyDatabase {
                 )
                 .unwrap();
             temporary_message_closure.forget();
+
+            web_sys::window()
+            .unwrap()
+            .set_timeout_with_callback_and_timeout_and_arguments_0(
+                &reject,
+                timeout.as_millis().try_into().unwrap(),
+            )
+            .unwrap();
         };
 
         let promise = js_sys::Promise::new(&mut cb);
@@ -649,7 +700,8 @@ impl MyDatabase {
             info!("send a message to worker");
         }
 
-        serde_wasm_bindgen::from_value(Fragile::new(wasm_bindgen_futures::JsFuture::from(promise)).await.unwrap())
-            .unwrap()
+        let result = Fragile::new(wasm_bindgen_futures::JsFuture::from(promise)).await.map_err(|_| ());
+        Ok(serde_wasm_bindgen::from_value(result?)
+            .unwrap())
     }
 }
