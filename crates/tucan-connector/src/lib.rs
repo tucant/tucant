@@ -101,6 +101,8 @@ pub async fn fetch_with_cache<Request, Response>(
 
 #[cfg(target_arch = "wasm32")]
 pub async fn sleep(duration: Duration) {
+    use fragile::Fragile;
+
     let mut cb = |resolve: js_sys::Function, _reject: js_sys::Function| {
         web_sys::window()
             .unwrap()
@@ -113,7 +115,7 @@ pub async fn sleep(duration: Duration) {
 
     let p = js_sys::Promise::new(&mut cb);
 
-    wasm_bindgen_futures::JsFuture::from(p).await.unwrap();
+    Fragile::new(wasm_bindgen_futures::JsFuture::from(p)).await.unwrap();
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -187,9 +189,11 @@ pub async fn authenticated_retryable_get(
                 .send()
                 .await?
                 .error_for_status()?;
-            let date = &response.headers()["Date"];
+            #[cfg(target_arch = "wasm32")]
+            let response = fragile::Fragile::new(response);
+            let date = &response.get().headers()["Date"];
             let date = OffsetDateTime::parse(date.to_str().unwrap(), &Rfc2822).unwrap();
-            Ok((response.text().await?, date))
+            Ok((response.into_inner().text().await?, date))
         }
         .await;
         drop(permit);
@@ -489,7 +493,7 @@ impl Tucan for TucanConnector {
             )
             .collect();
         tucan.database.remove_many(keys).await; */
-        fetch_with_cache(
+        let future = fetch_with_cache(
             self,
             login_response,
             revalidation_strategy,
@@ -497,8 +501,10 @@ impl Tucan for TucanConnector {
             key,
             url,
             anmeldung_internal,
-        )
-        .await
+        );
+        #[cfg(target_arch = "wasm32")]
+        let future = fragile::Fragile::new(future);
+        future.await
     }
 
     async fn module_details(

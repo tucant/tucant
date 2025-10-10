@@ -593,11 +593,11 @@ impl MyDatabase {
     {
         use rand::distr::{Alphanumeric, SampleString as _};
 
-        // TODO FIXME add retry rger
+        // TODO FIXME add retry
 
         let id = Alphanumeric.sample_string(&mut rand::rng(), 16);
 
-        let temporary_broadcast_channel = BroadcastChannel::new(&id).unwrap();
+        let temporary_broadcast_channel = Fragile::new(BroadcastChannel::new(&id).unwrap());
 
         let mut cb = |resolve: js_sys::Function, _reject: js_sys::Function| {
             use wasm_bindgen::{JsCast as _, prelude::Closure};
@@ -607,7 +607,7 @@ impl MyDatabase {
                     resolve.call1(&JsValue::undefined(), &event.data()).unwrap();
                 })
             };
-            temporary_broadcast_channel
+            temporary_broadcast_channel.get()
                 .add_event_listener_with_callback(
                     "message",
                     temporary_message_closure.as_ref().unchecked_ref(),
@@ -618,15 +618,17 @@ impl MyDatabase {
 
         let promise = js_sys::Promise::new(&mut cb);
 
-        let value = serde_wasm_bindgen::to_value(&MessageWithId {
-            id: id.clone(),
-            message: RequestResponseEnum::from(message),
-        })
-        .unwrap();
+        {
+            let value = serde_wasm_bindgen::to_value(&MessageWithId {
+                id: id.clone(),
+                message: RequestResponseEnum::from(message),
+            })
+            .unwrap();
 
-        self.broadcast_channel.get().post_message(&value).unwrap();
+            self.broadcast_channel.get().post_message(&value).unwrap();
+        }
 
-        serde_wasm_bindgen::from_value(wasm_bindgen_futures::JsFuture::from(promise).await.unwrap())
+        serde_wasm_bindgen::from_value(Fragile::new(wasm_bindgen_futures::JsFuture::from(promise)).await.unwrap())
             .unwrap()
     }
 }

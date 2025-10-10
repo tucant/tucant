@@ -2061,12 +2061,6 @@ dependencies = [
 [[package]]
 name = "fragile"
 version = "2.0.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "28dd6caf6059519a65843af8fe2a3ae298b14b80179855aeb4adc2c1934ee619"
-
-[[package]]
-name = "fragile"
-version = "2.0.1"
 source = "git+https://github.com/mitsuhiko/fragile.git#7631a72b0a4a47fb8251cc2ad641f3db8fd1b565"
 dependencies = [
  "futures-core",
@@ -5934,6 +5928,7 @@ dependencies = [
  "data-encoding",
  "dotenvy",
  "ego-tree",
+ "fragile",
  "futures-core",
  "futures-util",
  "getrandom 0.3.3",
@@ -5989,7 +5984,7 @@ dependencies = [
  "dbus-secret-service-keyring-store",
  "dioxus",
  "dioxus-desktop",
- "fragile 2.0.1 (git+https://github.com/mitsuhiko/fragile.git)",
+ "fragile",
  "futures",
  "getrandom 0.3.3",
  "git-version",
@@ -6057,7 +6052,7 @@ dependencies = [
  "diesel_migrations",
  "enum_dispatch",
  "erased-serde",
- "fragile 2.0.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "fragile",
  "getrandom 0.3.3",
  "js-sys",
  "libsqlite3-sys",
