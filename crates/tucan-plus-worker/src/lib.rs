@@ -636,6 +636,8 @@ impl MyDatabase {
         let promise = js_sys::Promise::new(&mut cb);
 
         {
+            use log::info;
+
             let value = serde_wasm_bindgen::to_value(&MessageWithId {
                 id: id.clone(),
                 message: RequestResponseEnum::from(message),
@@ -643,6 +645,8 @@ impl MyDatabase {
             .unwrap();
 
             self.broadcast_channel.get().post_message(&value).unwrap();
+
+            info!("send a message to worker");
         }
 
         serde_wasm_bindgen::from_value(Fragile::new(wasm_bindgen_futures::JsFuture::from(promise)).await.unwrap())
