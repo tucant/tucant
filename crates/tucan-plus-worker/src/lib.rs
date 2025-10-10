@@ -574,7 +574,7 @@ pub fn shim_url() -> String {
 
 #[cfg(target_arch = "wasm32")]
 impl MyDatabase {
-    pub async fn wait_for_worker(worker_js: String) -> Self {
+    pub async fn wait_for_worker() -> Self {
         use js_sys::Promise;
         use log::info;
         use wasm_bindgen::{JsCast as _, prelude::Closure};
