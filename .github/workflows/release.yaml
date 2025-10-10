@@ -1,6 +1,11 @@
 name: Release extension
 
-on: workflow_dispatch
+on:
+  workflow_dispatch:
+    inputs:
+      publish:
+        required: true
+        type: boolean
 
 permissions:
   contents: write # write tags
@@ -57,8 +62,9 @@ jobs:
     - env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        gh release create v${{ steps.version.outputs.VERSION }} out/tucan-plus-extension-${{ steps.version.outputs.VERSION }}.xpi out/tucan-plus-extension-${{ steps.version.outputs.VERSION }}.crx
-    - run: |
+        gh release create --generate-notes ${{ !inputs.publish && '--prerelease' }} v${{ steps.version.outputs.VERSION }} out/tucan-plus-extension-${{ steps.version.outputs.VERSION }}.xpi out/tucan-plus-extension-${{ steps.version.outputs.VERSION }}.crx
+    - if: ${{ inputs.publish }}
+      run: |
         mkdir pages
         cp out/tucan-plus-extension-${{ steps.version.outputs.VERSION }}.crx pages/
         cp out/tucan-plus-extension-${{ steps.version.outputs.VERSION }}.xpi pages/
@@ -118,6 +124,7 @@ jobs:
       uses: actions/upload-pages-artifact@v3
 
   deploy:
+    if: ${{ inputs.publish }}
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
