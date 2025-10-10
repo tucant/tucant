@@ -8,7 +8,7 @@ use tucan_types::{
     CONCURRENCY, LoginResponse, RevalidationStrategy, Tucan as _, registration::AnmeldungResponse,
 };
 
-use crate::{RcTucanType, decompress};
+use crate::{RcTucanType, decompress, export_semester::SemesterExportV1};
 
 pub async fn handle_semester(
     course_of_study: &str,
@@ -20,11 +20,11 @@ pub async fn handle_semester(
     let worker: MyDatabase = use_context();
     for file in file_names() {
         let decompressed = decompress(&file.read_bytes().await.unwrap()).await.unwrap();
-        let mut result: Vec<AnmeldungResponse> =
+        let mut result: SemesterExportV1 =
             serde_json::from_reader(decompressed.as_slice()).unwrap();
-        result.sort_by_key(|e| e.path.len());
+        result.anmeldungen.sort_by_key(|e| e.path.len());
         let inserts: Vec<_> = result
-            .iter()
+            .anmeldungen.iter()
             .map(|e| Anmeldung {
                 course_of_study: course_of_study.to_owned(),
                 url: e.path.last().unwrap().1.inner().to_owned(),
@@ -41,7 +41,7 @@ pub async fn handle_semester(
             })
             .collect();
         worker.send_message(FEwefweewf { inserts }).await;
-        let inserts: Vec<AnmeldungEntry> = futures::stream::iter(result.iter())
+        let inserts: Vec<AnmeldungEntry> = futures::stream::iter(result.anmeldungen.iter())
             .flat_map(|anmeldung| {
                 futures::stream::iter(anmeldung.entries.iter()).map(async |entry: &tucan_types::registration::AnmeldungEntry| AnmeldungEntry {
                     course_of_study: course_of_study.to_owned(),

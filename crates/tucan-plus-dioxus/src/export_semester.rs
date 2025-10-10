@@ -56,8 +56,8 @@ pub fn recursive_anmeldung<'a, 'b: 'a>(
 
 #[derive(Serialize, Deserialize)]
 pub struct SemesterExportV1 {
-    anmeldungen: Vec<AnmeldungResponse>,
-    modules: Vec<ModuleDetailsResponse>
+    pub anmeldungen: Vec<AnmeldungResponse>,
+    pub modules: Vec<ModuleDetailsResponse>
 }
 
 #[component]
@@ -147,7 +147,7 @@ pub fn FetchAnmeldung() -> Element {
                         let compressed = encoder.into_inner();
                         result.push((
                             format!(
-                                "registration{}_{}.{semester}.v1.tucan",
+                                "registration{}_{}.{semester}-v1-tucan",
                                 course_of_study.value, course_of_study.name
                             ),
                             compressed,
