@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use dioxus::{hooks::use_context, html::FileData, signals::Signal};
 use futures::StreamExt as _;
 use log::warn;
@@ -6,7 +8,7 @@ use tucan_plus_worker::{
     models::{Anmeldung, AnmeldungEntry, Semester, State},
 };
 use tucan_types::{
-    CONCURRENCY, LoginResponse, RevalidationStrategy, Tucan as _, registration::AnmeldungResponse,
+    CONCURRENCY, LoginResponse, RevalidationStrategy, Tucan as _, moduledetails::{ModuleDetailsRequest, ModuleDetailsResponse}, registration::AnmeldungResponse
 };
 
 use crate::{RcTucanType, decompress, export_semester::SemesterExportV1};
@@ -50,30 +52,21 @@ pub async fn handle_semester(
                         return false
                     }
                     true
-                })).map(async |entry: &tucan_types::registration::AnmeldungEntry| AnmeldungEntry {
+                })).map(async |entry: &tucan_types::registration::AnmeldungEntry| {
+                    let module_id = entry.module.as_ref().unwrap().url.clone();
+                    let credits = result.modules[&module_id].credits.unwrap();
+                    AnmeldungEntry {
                     course_of_study: course_of_study.to_owned(),
                     available_semester: semester,
                     anmeldung: anmeldung.path.last().unwrap().1.inner().to_owned(),
                     module_url: entry.module.as_ref().unwrap().url.inner().to_owned(),
                     id: entry.module.as_ref().unwrap().id.clone(),
                     name: entry.module.as_ref().unwrap().name.clone(),
-                    // this here should be in the store
-                    credits: tucan
-                        .module_details(
-                            login_response,
-                            RevalidationStrategy::cache(),
-                            entry.module.as_ref().unwrap().url.clone(),
-                        )
-                        .await
-                        .unwrap()
-                        .credits
-                        .unwrap_or_default()
-                        .try_into()
-                        .unwrap(),
+                    credits: credits.try_into().unwrap(),
                     state: State::NotPlanned,
                     year: None,
                     semester: None,
-                })
+                }})
             })
             .buffer_unordered(CONCURRENCY)
             .collect()

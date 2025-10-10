@@ -1,6 +1,6 @@
 #[cfg(target_arch = "wasm32")]
 use std::time::Duration;
-use std::{collections::HashSet, ops::Add, pin::pin, rc::Rc, sync::atomic::{AtomicUsize, Ordering}};
+use std::{collections::{HashMap, HashSet}, ops::Add, pin::pin, rc::Rc, sync::atomic::{AtomicUsize, Ordering}};
 
 use dioxus::{html::geometry::euclid::num::Zero, prelude::*};
 use futures::{FutureExt as _, StreamExt, stream::BoxStream};
@@ -9,7 +9,7 @@ use num::{BigInt, BigRational, FromPrimitive, One};
 use serde::{Deserialize, Serialize};
 use time::{Month, macros::offset};
 use tokio::io::AsyncWriteExt as _;
-use tucan_types::{DynTucan, LoginResponse, RevalidationStrategy, Tucan, TucanError, moduledetails::ModuleDetailsResponse, registration::{AnmeldungRequest, AnmeldungResponse}};
+use tucan_types::{DynTucan, LoginResponse, RevalidationStrategy, Tucan, TucanError, moduledetails::{ModuleDetailsRequest, ModuleDetailsResponse}, registration::{AnmeldungRequest, AnmeldungResponse}};
 use num::ToPrimitive;
 use crate::{RcTucanType, compress};
 
@@ -57,7 +57,7 @@ pub fn recursive_anmeldung<'a, 'b: 'a>(
 #[derive(Serialize, Deserialize)]
 pub struct SemesterExportV1 {
     pub anmeldungen: Vec<AnmeldungResponse>,
-    pub modules: Vec<ModuleDetailsResponse>
+    pub modules: HashMap<ModuleDetailsRequest, ModuleDetailsResponse>
 }
 
 #[component]
@@ -110,18 +110,18 @@ pub fn FetchAnmeldung() -> Element {
                         let response = response.collect::<Vec<AnmeldungResponse>>().await;
                         let modules: HashSet<_> = response.iter().flat_map(|anmeldung| anmeldung.entries.iter()).flat_map(|entry| entry.module.iter()).map(|module| module.url.clone()).collect();
                         let modules_len = 3*modules.len();
-                        let module_stream = futures::stream::iter(modules).flat_map_unordered(None, |module| {
+                        let module_stream = futures::stream::iter(modules).flat_map_unordered(None, |module_id| {
                             let tucan = tucan.clone();
                             let session = session.clone();
                             let future = async move {
                                 let change = BigRational::new(BigInt::from(1), BigInt::from(modules_len));
-                                let module = tucan.0.module_details(&session, RevalidationStrategy::cache(), module).await.unwrap();
+                                let module = tucan.0.module_details(&session, RevalidationStrategy::cache(), module_id.clone()).await.unwrap();
                                 atomic_current.with_mut(|current| *current += change.clone());
-                                module
+                                (module_id, module)
                             };
                             Box::pin(future).into_stream()
                         });
-                        let module_response = module_stream.collect::<Vec<ModuleDetailsResponse>>().await;
+                        let module_response = module_stream.collect().await;
 
                         log::info!("downloaded done 2");
                         let content = serde_json::to_string(&SemesterExportV1 {
