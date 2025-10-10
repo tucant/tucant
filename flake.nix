@@ -486,6 +486,7 @@
         );
 
         client-args = {
+          profile = ""; # temporary https://github.com/DioxusLabs/dioxus/issues/4758
           dioxusExtraArgs = "--features direct --web";
           dioxusMainArgs = "--out-dir $out";
           buildDepsOnly = {
