@@ -51,6 +51,65 @@ pub async fn main() {
     #[cfg(target_arch = "wasm32")]
     console_log::init().unwrap();
 
+    if (web_sys::window().is_some()) {
+        frontend_main().await
+    } else {
+
+    }
+}
+
+async fn worker_main() {
+    use std::cell::RefCell;
+
+    use diesel::{Connection as _, SqliteConnection};
+    use diesel_migrations::MigrationHarness as _;
+    use tucan_plus_worker::MIGRATIONS;
+    use wasm_bindgen::{JsCast as _, JsValue, prelude::Closure};
+    use web_sys::{BroadcastChannel, MessageEvent};
+
+    let global = js_sys::global().unchecked_into::<web_sys::DedicatedWorkerGlobalScope>();
+
+    let _util = sqlite_wasm_rs::sahpool_vfs::install(
+        &sqlite_wasm_rs::sahpool_vfs::OpfsSAHPoolCfg::default(),
+        true,
+    )
+    .await
+    .unwrap();
+
+    let mut connection = SqliteConnection::establish("sqlite://tucan-plus.db?mode=rwc").unwrap();
+
+    connection.run_pending_migrations(MIGRATIONS).unwrap();
+
+    let connection = RefCell::new(connection);
+
+    let broadcast_channel = BroadcastChannel::new("global").unwrap();
+
+    let closure: Closure<dyn Fn(MessageEvent)> = Closure::new(move |event: MessageEvent| {
+        use log::info;
+        use tucan_plus_worker::MessageWithId;
+
+        info!("Got message at worker {:?}", event.data());
+
+        let value: MessageWithId = serde_wasm_bindgen::from_value(event.data()).unwrap();
+        let result = value.message.execute(&mut connection.borrow_mut());
+
+        let temporary_broadcast_channel = BroadcastChannel::new(&value.id).unwrap();
+
+        info!("Sent result at worker {:?}", result);
+
+        temporary_broadcast_channel.post_message(&result).unwrap();
+    });
+    broadcast_channel
+        .add_event_listener_with_callback("message", closure.as_ref().unchecked_ref())
+        .unwrap();
+
+    //util.export_db("tucan-plus.db").unwrap();
+    closure.forget();
+
+    global.post_message(&JsValue::from_str("ready")).unwrap();
+}
+
+async fn frontend_main() {
     dioxus::logger::init(Level::INFO).expect("logger failed to init");
 
     let anonymize = {

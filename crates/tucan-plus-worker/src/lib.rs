@@ -535,6 +535,23 @@ pub struct MyDatabase {
 }
 
 #[cfg(target_arch = "wasm32")]
+#[wasm_bindgen::prelude::wasm_bindgen]
+extern "C" {
+    // Getters can only be declared on classes, so we need a fake type to declare it on.
+    #[wasm_bindgen]
+    type meta;
+
+    #[wasm_bindgen(js_namespace = import, static_method_of = meta, getter)]
+    fn url() -> String;
+}
+
+#[cfg(target_arch = "wasm32")]
+#[wasm_bindgen::prelude::wasm_bindgen]
+pub fn shim_url() -> String {
+    meta::url()
+}
+
+#[cfg(target_arch = "wasm32")]
 impl MyDatabase {
     pub async fn wait_for_worker(worker_js: String) -> Self {
         use js_sys::Promise;
@@ -548,7 +565,7 @@ impl MyDatabase {
 
                     let options = WorkerOptions::new();
                     options.set_type(WorkerType::Module);
-                    let worker = web_sys::Worker::new_with_options(&worker_js, &options).unwrap();
+                    let worker = web_sys::Worker::new_with_options(&shim_url(), &options).unwrap();
                     let error_closure: Closure<dyn Fn(_)> =
                         Closure::new(move |event: web_sys::ErrorEvent| {
                             use log::info;
