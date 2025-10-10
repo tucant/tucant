@@ -8,4 +8,5 @@ version = "0.1.0"
 
 [profile.wasm-release]
 inherits = "release"
-debug = "line-tables-only"
+#debug = "line-tables-only"
+lto = true
