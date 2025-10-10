@@ -189,11 +189,9 @@ pub async fn authenticated_retryable_get(
                 .send()
                 .await?
                 .error_for_status()?;
-            #[cfg(target_arch = "wasm32")]
-            let response = fragile::Fragile::new(response);
-            let date = &response.get().headers()["Date"];
+            let date = &response.headers()["Date"];
             let date = OffsetDateTime::parse(date.to_str().unwrap(), &Rfc2822).unwrap();
-            Ok((response.into_inner().text().await?, date))
+            Ok((response.text().await?, date))
         }
         .await;
         drop(permit);
