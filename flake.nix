@@ -58,8 +58,8 @@
           src = pkgs.fetchFromGitHub {
             owner = "mohe2015";
             repo = "dioxus";
-            rev = "e1cf37c7427813726af7456f2ba31791e3957e43";
-            hash = "sha256-YtDbd0S2z1P3NCFvQeJn6foKj0A/uygTF8BudNHSpUU=";
+            rev = "07e1315b3e10a901d81a18be7ce6976f17ffb0be";
+            hash = "sha256-JGT+hkNGLHvDPRaSGO94TfJzxrWSBOw4hCOmno+LqE8=";
           };
           doCheck = false;
           strictDeps = true;
@@ -908,6 +908,7 @@
           ];
           packages = [
             pkgs.bashInteractive
+            pkgs.bun
             pkgs.pkg-config
             pkgs.emscripten
             pkgs.gobject-introspection
