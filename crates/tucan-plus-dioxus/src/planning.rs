@@ -6,7 +6,7 @@ use dioxus::prelude::*;
 use futures::StreamExt;
 use log::info;
 use tucan_plus_worker::models::{Anmeldung, AnmeldungEntry, Semester, State};
-use tucan_plus_worker::{AnmeldungenEntriesInSemester, AnmeldungenRequest, AnmeldungenRequest2, Fewe, MyDatabase, UpdateAnmeldungEntry};
+use tucan_plus_worker::{AnmeldungenEntriesInSemester, AnmeldungenRootRequest, AnmeldungChildrenRequest, AnmeldungEntriesRequest, MyDatabase, UpdateAnmeldungEntry};
 use tucan_types::student_result::StudentResultResponse;
 use tucan_types::{
     LoginResponse, RevalidationStrategy, Tucan,
@@ -70,7 +70,7 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
                 // TODO FIXME I think based on course of study we can create an
                 // anmeldung_request and then this here is not special cased any more?
                 let result = worker
-                    .send_message(AnmeldungenRequest {
+                    .send_message(AnmeldungenRootRequest {
                         course_of_study: course_of_study.clone(),
                     })
                     .await;
@@ -465,13 +465,13 @@ async fn prep_planning(
 ) -> PrepPlanningReturn {
     let worker: MyDatabase = use_context();
     let results = worker
-        .send_message(AnmeldungenRequest2 {
+        .send_message(AnmeldungChildrenRequest {
             course_of_study: course_of_study.to_owned(),
             anmeldung: anmeldung.clone(),
         })
         .await;
     let entries = worker
-        .send_message(Fewe {
+        .send_message(AnmeldungEntriesRequest {
             course_of_study: course_of_study.to_owned(),
             anmeldung: anmeldung.clone(),
         })

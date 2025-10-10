@@ -78,11 +78,11 @@ impl RequestResponse for StoreCacheRequest {
 
 #[cfg_attr(target_arch = "wasm32", derive(Serialize, Deserialize))]
 #[derive(Debug)]
-pub struct AnmeldungenRequest {
+pub struct AnmeldungenRootRequest {
     pub course_of_study: String,
 }
 
-impl RequestResponse for AnmeldungenRequest {
+impl RequestResponse for AnmeldungenRootRequest {
     type Response = Vec<Anmeldung>;
 
     fn execute(&self, connection: &mut SqliteConnection) -> Self::Response {
@@ -100,12 +100,12 @@ impl RequestResponse for AnmeldungenRequest {
 
 #[cfg_attr(target_arch = "wasm32", derive(Serialize, Deserialize))]
 #[derive(Debug)]
-pub struct AnmeldungenRequest2 {
+pub struct AnmeldungChildrenRequest {
     pub course_of_study: String,
     pub anmeldung: Anmeldung,
 }
 
-impl RequestResponse for AnmeldungenRequest2 {
+impl RequestResponse for AnmeldungChildrenRequest {
     type Response = Vec<Anmeldung>;
 
     fn execute(&self, connection: &mut SqliteConnection) -> Self::Response {
@@ -123,12 +123,12 @@ impl RequestResponse for AnmeldungenRequest2 {
 
 #[cfg_attr(target_arch = "wasm32", derive(Serialize, Deserialize))]
 #[derive(Debug)]
-pub struct Fewe {
+pub struct AnmeldungEntriesRequest {
     pub course_of_study: String,
     pub anmeldung: Anmeldung,
 }
 
-impl RequestResponse for Fewe {
+impl RequestResponse for AnmeldungEntriesRequest {
     type Response = Vec<AnmeldungEntry>;
 
     fn execute(&self, connection: &mut SqliteConnection) -> Self::Response {
@@ -146,11 +146,11 @@ impl RequestResponse for Fewe {
 
 #[cfg_attr(target_arch = "wasm32", derive(Serialize, Deserialize))]
 #[derive(Debug)]
-pub struct FEwefweewf {
+pub struct InsertOrUpdateAnmeldungenRequest {
     pub inserts: Vec<Anmeldung>,
 }
 
-impl RequestResponse for FEwefweewf {
+impl RequestResponse for InsertOrUpdateAnmeldungenRequest {
     type Response = ();
 
     fn execute(&self, connection: &mut SqliteConnection) -> Self::Response {
@@ -166,11 +166,11 @@ impl RequestResponse for FEwefweewf {
 
 #[cfg_attr(target_arch = "wasm32", derive(Serialize, Deserialize))]
 #[derive(Debug)]
-pub struct Wlewifhewefwef {
+pub struct UpdateAnmeldungEntryRequest {
     pub insert: AnmeldungEntry,
 }
 
-impl RequestResponse for Wlewifhewefwef {
+impl RequestResponse for UpdateAnmeldungEntryRequest {
     type Response = ();
 
     fn execute(&self, connection: &mut SqliteConnection) -> Self::Response {
@@ -388,11 +388,11 @@ impl RequestResponse for ExportDatabaseRequest {
 #[cfg(target_arch = "wasm32")]
 #[derive(Serialize, Deserialize, Debug, derive_more::From)]
 pub enum RequestResponseEnum {
-    AnmeldungenRequest(AnmeldungenRequest),
-    AnmeldungenRequest2(AnmeldungenRequest2),
-    Fewe(Fewe),
-    FEwefweewf(FEwefweewf),
-    Wlewifhewefwef(Wlewifhewefwef),
+    AnmeldungenRequest(AnmeldungenRootRequest),
+    AnmeldungenRequest2(AnmeldungChildrenRequest),
+    Fewe(AnmeldungEntriesRequest),
+    FEwefweewf(InsertOrUpdateAnmeldungenRequest),
+    Wlewifhewefwef(UpdateAnmeldungEntryRequest),
     ChildUrl(ChildUrl),
     UpdateModule(UpdateModule),
     SetStateAndCredits(SetStateAndCredits),
