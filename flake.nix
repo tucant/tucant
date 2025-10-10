@@ -848,6 +848,7 @@
           ];
           packages = [
             pkgs.bashInteractive
+            pkgs.nodejs
             pkgs.bun
             pkgs.pkg-config
             pkgs.emscripten
