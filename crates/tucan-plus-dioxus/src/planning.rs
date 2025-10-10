@@ -197,6 +197,7 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
                     input {
                         type: "file",
                         class: "form-control",
+                        accept: ".sose-v1-tucan",
                         id: "sommersemester-file",
                         onchange: move |event| {
                             sommersemester.set(event.files());
@@ -213,6 +214,7 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
                     input {
                         type: "file",
                         class: "form-control",
+                        accept: ".wise-v1-tucan",
                         id: "wintersemester-file",
                         onchange: move |event| {
                             wintersemester.set(event.files());

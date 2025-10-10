@@ -7,8 +7,10 @@ use tucan_plus_dioxus::{
 };
 use tucan_plus_worker::MyDatabase;
 use tucan_types::LoginResponse;
+#[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::*;
 
+#[cfg(target_arch = "wasm32")]
 #[wasm_bindgen]
 extern "C" {
     #[wasm_bindgen(js_namespace = console)]
@@ -32,7 +34,7 @@ extern "C" {
 #[cfg_attr(not(target_arch = "wasm32"), tokio::main)]
 pub async fn main() {
     // From https://github.com/rustwasm/console_error_panic_hook, licensed under MIT and Apache 2.0
-    #[cfg(feature = "web")]
+    #[cfg(target_arch = "wasm32")]
     panic::set_hook(Box::new(|info| {
         let mut msg = "Version: ".to_string();
         msg.push_str(git_version::git_version!());
@@ -46,7 +48,7 @@ pub async fn main() {
         error(msg.clone());
         alert(msg.as_str());
     }));
-    #[cfg(feature = "web")]
+    #[cfg(target_arch = "wasm32")]
     console_log::init().unwrap();
 
     dioxus::logger::init(Level::INFO).expect("logger failed to init");

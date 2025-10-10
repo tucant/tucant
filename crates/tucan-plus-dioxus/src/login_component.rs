@@ -1,6 +1,5 @@
 use dioxus::prelude::*;
 use tucan_types::{LoginRequest, LoginResponse, Tucan};
-use wasm_bindgen::JsCast as _;
 
 use crate::{Anonymize, RcTucanType};
 
@@ -112,18 +111,23 @@ pub fn LoginComponent() -> Element {
                 })
                 .await;
 
-            let window = web_sys::window().unwrap();
-            let document = window.document().unwrap();
-            let html_document = document.dyn_into::<web_sys::HtmlDocument>().unwrap();
+            #[cfg(target_arch = "wasm32")]
+            {
+                use wasm_bindgen::JsCast as _;
 
-            // this probably is a long timeout, it seems like tucan will at some point
-            // forget that a session is a timeout
-            html_document
-                .set_cookie("id=544780631865356; Path=/")
-                .unwrap();
-            html_document
-                .set_cookie("cnsc=84BC747762F472B5A7507EB9F5CE2330; Path=/")
-                .unwrap();
+                let window = web_sys::window().unwrap();
+                let document = window.document().unwrap();
+                let html_document = document.dyn_into::<web_sys::HtmlDocument>().unwrap();
+
+                // this probably is a long timeout, it seems like tucan will at some point
+                // forget that a session is a timeout
+                html_document
+                    .set_cookie("id=544780631865356; Path=/")
+                    .unwrap();
+                html_document
+                    .set_cookie("cnsc=84BC747762F472B5A7507EB9F5CE2330; Path=/")
+                    .unwrap();
+            }
 
             current_session.set(Some(LoginResponse {
                 id: 544780631865356,

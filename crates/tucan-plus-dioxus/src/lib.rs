@@ -29,8 +29,11 @@ use crate::navbar::Navbar;
 use crate::overview::Overview;
 use crate::planning::Planning;
 use dioxus::prelude::*;
+use tokio::io::AsyncWriteExt as _;
 use std::ops::Deref;
 use std::sync::Arc;
+#[cfg(target_arch = "wasm32")]
+use std::time::Duration;
 use tucan_types::DynTucan;
 use tucan_types::gradeoverview::GradeOverviewRequest;
 use tucan_types::{
@@ -322,3 +325,47 @@ impl<T: ?Sized> Deref for MyRc<T> {
 }
 
 pub type RcTucanType = MyRc<DynTucan<'static>>;
+
+
+#[cfg(target_arch = "wasm32")]
+pub async fn sleep(duration: Duration) {
+    let mut cb = |resolve: js_sys::Function, _reject: js_sys::Function| {
+        use wasm_bindgen::JsCast as _;
+
+        let global = js_sys::global().unchecked_into::<web_sys::DedicatedWorkerGlobalScope>();
+        global
+            .set_timeout_with_callback_and_timeout_and_arguments_0(
+                &resolve,
+                duration.as_millis().try_into().unwrap(),
+            )
+            .unwrap();
+    };
+
+    let p = js_sys::Promise::new(&mut cb);
+
+    wasm_bindgen_futures::JsFuture::from(p).await.unwrap();
+}
+
+pub async fn compress(in_data: &[u8]) -> std::io::Result<Vec<u8>> {
+    let mut encoder = async_compression::tokio::write::BrotliEncoder::with_quality(
+        Vec::new(),
+        async_compression::Level::Best,
+    );
+    // https://github.com/DioxusLabs/dioxus/blob/09c1de7574abb36b11a2c8c825ac30d7398de948/packages/core/src/tasks.rs#L288
+    info!("file chunks: {}", in_data.len()/10/1024);
+    for chunk in in_data.chunks(10*1024).enumerate() {
+        encoder.write_all(chunk.1).await?; // hangs, move to worker?
+        #[cfg(target_arch = "wasm32")]
+        sleep(Duration::from_millis(0)).await;
+        info!("{}/{}", chunk.0, in_data.len()/10/1024);
+    }
+    encoder.shutdown().await?;
+    Ok(encoder.into_inner())
+}
+
+pub async fn decompress(in_data: &[u8]) -> std::io::Result<Vec<u8>> {
+    let mut decoder = async_compression::tokio::write::BrotliDecoder::new(Vec::new());
+    decoder.write_all(in_data).await?;
+    decoder.shutdown().await?;
+    Ok(decoder.into_inner())
+}

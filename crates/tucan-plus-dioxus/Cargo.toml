@@ -13,40 +13,56 @@ dioxus-desktop = { git = "https://github.com/mohe2015/dioxus.git", branch = "my"
 tucan-types = { path = "../tucan-types" }
 log = { version = "0.4", features = ["max_level_debug", "release_max_level_warn"] }
 reqwest = { version = "0.12.9", default-features = false, features = ["rustls-tls", "http2", "charset", "json"] }
-wasm-bindgen-futures = "0.4"
 serde_json = "1"
 url = "2"
-console_log = { version = "1", features = ["color"] }
-js-sys = "0.3"
-wasm-bindgen = { version = "=0.2.101" }
-web-sys = { version = "0.3", features = ["Document", "Window", "HtmlDocument", "NodeList", "HtmlSelectElement", "Blob", "Url", "BlobPropertyBag", "Worker", "WorkerOptions", "WorkerType", "AddEventListenerOptions", "EventTarget", "ErrorEvent", "FileList", "HtmlInputElement", "Navigator", "ServiceWorkerContainer", "ServiceWorker", "LockManager", "Lock", "BroadcastChannel"] }
-cookie = "0.18"
-web-extensions-sys = { optional = true, git = "https://github.com/mohe2015/web-extensions-sys", branch = "cookies" }
 tucan-connector = { optional = true, path = "../tucan-connector" }
 tucan-plus-planning = { path = "../tucan-plus-planning" }
 tracing = "0.1.41"
 plotters = { version = "0.3.7", default-features = false, features = ["svg_backend", "histogram"] }
 keyring-core = { version = "0.5", optional = true }
-android-native-keyring-store = { version = "0.3", optional = true }
-dbus-secret-service-keyring-store = { version = "0.2", features = ["crypto-rust"], optional = true }
 git-version = "0.3"
 futures = "0.3.31"
 serde-wasm-bindgen = "0.6"
 serde = { version = "1", features = ["derive"] }
-fragile = "2"
 tucan-plus-worker = { path = "../tucan-plus-worker" }
 tokio = { version = "1" }
 rand = "0.9.2"
-getrandom = { version = "0.3", features = ["wasm_js"] }
 time = { version = "0.3.41", features = ["serde-human-readable", "wasm-bindgen", "macros"] }
+# https://github.com/mitsuhiko/fragile/commit/47bb7220f4d1c422350bd95b5c43bf8e4a51f30f
+fragile = { git = "https://github.com/mitsuhiko/fragile.git", features = ["future"], optional = true }
+num = "0.4"
+itertools = "0.14"
+async-compression = { version = "0.4.27", features = ["brotli", "all-implementations"] }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 tokio = { features = ["macros", "rt", "rt-multi-thread"], version = "1" }
+dbus-secret-service-keyring-store = { version = "0.2", features = ["crypto-rust"], optional = true }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+cookie = "0.18"
+getrandom = { version = "0.3", features = ["wasm_js"] }
+web-extensions-sys = { optional = true, git = "https://github.com/mohe2015/web-extensions-sys", branch = "cookies" }
+web-sys = { version = "0.3", features = ["Document", "Window", "HtmlDocument", "NodeList", "HtmlSelectElement", "Blob", "Url", "BlobPropertyBag", "Worker", "WorkerOptions", "WorkerType", "AddEventListenerOptions", "EventTarget", "ErrorEvent", "FileList", "HtmlInputElement", "Navigator", "ServiceWorkerContainer", "ServiceWorker", "LockManager", "Lock", "BroadcastChannel"] }
+wasm-bindgen = { version = "0.2.104" }
+wasm-bindgen-futures = "0.4"
+android-native-keyring-store = { version = "0.3", optional = true }
+js-sys = "0.3"
+console_log = { version = "1", features = ["color"] }
+
+# extension: target wasm and feature direct
+# native: target native and feature direct
+# dev: target wasm and feature api
 
 [features]
 direct = ["web", "dep:tucan-connector", "dep:web-extensions-sys"]
-api = ["web"]
+api = ["web", "dep:fragile"]
 default = ["web"]
 web = ["dioxus/web"]
 desktop = ["dioxus/desktop", "dep:dioxus-desktop", "dep:tucan-connector", "dep:keyring-core", "dep:dbus-secret-service-keyring-store"]
 mobile = ["dioxus/mobile", "dep:dioxus-desktop", "dep:tucan-connector", "dep:keyring-core", "dep:android-native-keyring-store"]
+
+[profile.wasm-dev.package.async-compression]
+opt-level = 3
+
+[profile.wasm-dev.package.brotli]
+opt-level = 3

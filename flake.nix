@@ -418,21 +418,21 @@
           pkgs.buildWasmBindgenCli rec {
             src = pkgs.fetchCrate {
               pname = "wasm-bindgen-cli";
-              version = "0.2.101";
-              hash = "sha256-txpbTzlrPSEktyT9kSpw4RXQoiSZHm9t3VxeRn//9JI=";
+              version = "0.2.104";
+              hash = "sha256-9kW+a7IreBcZ3dlUdsXjTKnclVW1C1TocYfY8gUgewE=";
             };
 
             cargoDeps = pkgs.rustPlatform.fetchCargoVendor {
               inherit src;
               inherit (src) pname version;
-              hash = "sha256-J+F9SqTpH3T0MbvlNKVyKnMachgn8UXeoTF0Pk3Xtnc=";
+              hash = "sha256-V0AV5jkve37a5B/UvJ9B3kwOW72vWblST8Zxs8oDctE=";
             };
           }
         );
 
         worker-args = {
-          dioxusMainArgs = "--bundle web --out-dir $out";
-          dioxusExtraArgs = "--target wasm32-unknown-unknown";
+          dioxusMainArgs = "--out-dir $out";
+          dioxusExtraArgs = "--bundle web --target wasm32-unknown-unknown";
           strictDeps = true;
           stdenv = p: p.emscriptenStdenv;
           doCheck = false;
@@ -885,6 +885,7 @@
             export PATH=~/.cargo/bin/:$PATH
             export WORKER_JS_PATH=/assets/wasm/tucan-plus-worker.js
             export WORKER_WASM_PATH=/assets/wasm/tucan-plus-worker_bg.wasm
+            export CC_wasm32_unknown_emscripten=emcc
             #export SERVICE_WORKER_JS_PATH=/assets/wasm/tucan-plus-service-worker.js
           '';
           buildInputs = [
@@ -912,6 +913,7 @@
             pkgs.gobject-introspection
             pkgs.jdk
             pkgs.android-tools
+            pkgs.binaryen
             dioxus-cli
           ];
         };

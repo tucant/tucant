@@ -63,17 +63,15 @@ cargo install --git https://github.com/mohe2015/dioxus --branch my dioxus-cli
 cd crates/tucan-plus-dioxus/
 export WORKER_JS_PATH=/assets/wasm/tucan-plus-worker.js
 export WORKER_WASM_PATH=/assets/wasm/tucan-plus-worker_bg.wasm
-export SERVICE_WORKER_JS_PATH=/assets/wasm/tucan-plus-service-worker.js
-export SERVICE_WORKER_WASM_PATH=/assets/wasm/tucan-plus-service-worker_bg.wasm
-dx serve --platform web --features api --verbose
+dx serve --web --features api --verbose
 
-cargo run --manifest-path ~/Documents/dioxus/packages/cli/Cargo.toml serve --platform web --features api --verbose
+cargo run --manifest-path ~/Documents/dioxus/packages/cli/Cargo.toml serve --web --features api --verbose
 
-cargo install wasm-bindgen-cli@0.2.101
+cargo install wasm-bindgen-cli@0.2.104
 
 cd crates/tucan-plus-worker/
-dx serve --wasm --bundle web --base-path assets # --hot-patch this lets everything explode with "env" imports and sqlite import stuff broken
-cp -r ./target/dx/tucan-plus-worker/debug/web/public/wasm/. ../tucan-plus-dioxus/assets/wasm/
+dx serve --bundle web --target wasm32-unknown-unknown --base-path assets # --hot-patch this lets everything explode with "env" imports and sqlite import stuff broken
+cp -r ../../target/dx/tucan-plus-worker/debug/web/public/wasm/. ../tucan-plus-dioxus/assets/wasm/
 
 # in second tab
 cargo install --locked bacon
@@ -92,6 +90,24 @@ echo "wasm_bindgen.initSync({ module: Uint8Array.fromBase64(\"$(base64 -w0 targe
 cp -r ./target/dx/tucan-plus-service-worker/debug/web/public/wasm/. ../tucan-plus-dioxus/assets/wasm/
 
 # http://localhost:8080/#/
+
+
+wasm-tools addr2line ./target/dx/tucan-plus-dioxus/debug/web/public/wasm/tucan-plus-dioxus_bg.wasm 0xc3d99e 0xb4c65d 0x86d66e 0xbcf4cf 0x8bd9d
+
+nix shell nixpkgs#llvmPackages_21.bintools
+whereis llvm-dwarfdump
+
+git clone https://github.com/emscripten-core/emsdk.git
+cd emsdk
+git pull
+./emsdk install latest
+./emsdk activate latest
+source ./emsdk_env.sh
+
+emsymbolizer
+
+EMCC_DEBUG=1 ./upstream/emscripten/tools/wasm-sourcemap.py ~/Documents/tucan-plus/target/dx/tucan-plus-dioxus/debug/web/public/wasm/tucan-plus-dioxus_bg.wasm --dwarfdump /nix/store/47pcjmrcaq81frqyg66gf95f5cy2bzjl-llvm-binutils-21.1.1/bin/llvm-dwarfdump --output /home/moritz/Documents/tucan-plus/target/dx/tucan-plus-dioxus/debug/web/public/wasm/tucan-plus-dioxus_bg.wasm.map -w /home/moritz/Documents/tucan-plus/target/dx/tucan-plus-dioxus/debug/web/public/wasm/tucan-plus-dioxus_bg.wasm --source-map-url http://127.0.0.1:8080/wasm/tucan-plus-dioxus_bg.wasm.map --sources --load-prefix /rustc/fa3155a644dd62e865825087b403646be01d4cef=/home/moritz/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/lib/rustlib/src/rust
+
 ```
 
 ### Developing the extension
@@ -103,55 +119,6 @@ dx bundle --platform web --out-dir ../../tucan-plus-extension/ --base-path publi
 
 Go to Firefox Extensions, click settings, debug addons. Then click load temporary add-on and select ./tucan-plus-extension/manifest.json
 See https://extensionworkshop.com/documentation/develop/debugging/.
-
-### VSCode
-
-https://github.com/rust-lang/cargo/issues/16038
-https://github.com/rust-lang/cargo/issues/15177
-https://github.com/rust-lang/cargo/issues/1197
-
-Does not work but one by one works:
-```
-cargo check --target wasm32-unknown-unknown --target x86_64-unknown-linux-gnu
-```
-
-```
-tucan-plus-multi-target
-    tucan-plus
-    wasm32-unknown-unknown
-        .vscode/settings.json
-        .cargo/config.toml
-        Cargo.toml # workspace with subset of crates
-        -> tucan-plus
-    x86_64-unknown-linux-gnu
-        .vscode/settings.json
-        .cargo/config.toml
-        Cargo.toml # workspace with subset of crates
-        -> tucan-plus
-```
-
-```toml
-[workspace]
-members = [
-    "./tucan-plus/crates/tucan-plus-dioxus/",
-    "./tucan-plus/crates/tucan-connector/",
-    "./tucan-plus/crates/tucan-plus-worker/",
-    "./tucan-plus/crates/tucan-plus-service-worker/"
-]
-resolver = "3"
-```
-
-```toml
-[target.wasm32-unknown-unknown]
-rustflags = ["--cfg=web_sys_unstable_apis", "--cfg=getrandom_backend=\"wasm_js\""]
-```
-
-```json
-{
-    "rust-analyzer.cargo.target": "wasm32-unknown-unknown",
-    "rust-analyzer.files.watcher": "server",
-}
-```
 
 ## Building extension (not for development)
 

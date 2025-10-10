@@ -1,15 +1,17 @@
+use std::collections::HashMap;
+
 use dioxus::{hooks::use_context, html::FileData, signals::Signal};
 use futures::StreamExt as _;
-use tucan_plus_planning::decompress;
+use log::warn;
 use tucan_plus_worker::{
     FEwefweewf, MyDatabase, Wlewifhewefwef,
     models::{Anmeldung, AnmeldungEntry, Semester, State},
 };
 use tucan_types::{
-    CONCURRENCY, LoginResponse, RevalidationStrategy, Tucan as _, registration::AnmeldungResponse,
+    CONCURRENCY, LoginResponse, RevalidationStrategy, Tucan as _, moduledetails::{ModuleDetailsRequest, ModuleDetailsResponse}, registration::AnmeldungResponse
 };
 
-use crate::RcTucanType;
+use crate::{RcTucanType, decompress, export_semester::SemesterExportV1};
 
 pub async fn handle_semester(
     course_of_study: &str,
@@ -21,11 +23,11 @@ pub async fn handle_semester(
     let worker: MyDatabase = use_context();
     for file in file_names() {
         let decompressed = decompress(&file.read_bytes().await.unwrap()).await.unwrap();
-        let mut result: Vec<AnmeldungResponse> =
+        let mut result: SemesterExportV1 =
             serde_json::from_reader(decompressed.as_slice()).unwrap();
-        result.sort_by_key(|e| e.path.len());
+        result.anmeldungen.sort_by_key(|e| e.path.len());
         let inserts: Vec<_> = result
-            .iter()
+            .anmeldungen.iter()
             .map(|e| Anmeldung {
                 course_of_study: course_of_study.to_owned(),
                 url: e.path.last().unwrap().1.inner().to_owned(),
@@ -42,31 +44,35 @@ pub async fn handle_semester(
             })
             .collect();
         worker.send_message(FEwefweewf { inserts }).await;
-        let inserts: Vec<AnmeldungEntry> = futures::stream::iter(result.iter())
+        let inserts: Vec<AnmeldungEntry> = futures::stream::iter(result.anmeldungen.iter())
             .flat_map(|anmeldung| {
-                futures::stream::iter(anmeldung.entries.iter()).map(async |entry| AnmeldungEntry {
+                futures::stream::iter(anmeldung.entries.iter().filter(|entry| {
+                    if entry.module.is_none() {
+                        warn!("entry with no module {entry:?}");
+                        return false
+                    }
+                    true
+                })).map(async |entry: &tucan_types::registration::AnmeldungEntry| {
+                    let module_id = entry.module.as_ref().unwrap().url.clone();
+                    let credits = result.modules[&module_id].credits;
+                    let credits = if let Some(credits) = credits {
+                        credits
+                    } else {
+                        warn!("module with no credits {:?}", entry.module);
+                        0
+                    };
+                    AnmeldungEntry {
                     course_of_study: course_of_study.to_owned(),
                     available_semester: semester,
                     anmeldung: anmeldung.path.last().unwrap().1.inner().to_owned(),
                     module_url: entry.module.as_ref().unwrap().url.inner().to_owned(),
                     id: entry.module.as_ref().unwrap().id.clone(),
                     name: entry.module.as_ref().unwrap().name.clone(),
-                    credits: tucan
-                        .module_details(
-                            login_response,
-                            RevalidationStrategy::cache(),
-                            entry.module.as_ref().unwrap().url.clone(),
-                        )
-                        .await
-                        .unwrap()
-                        .credits
-                        .unwrap_or_default()
-                        .try_into()
-                        .unwrap(),
+                    credits: credits.try_into().unwrap(),
                     state: State::NotPlanned,
                     year: None,
                     semester: None,
-                })
+                }})
             })
             .buffer_unordered(CONCURRENCY)
             .collect()

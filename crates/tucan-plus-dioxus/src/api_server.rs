@@ -1,24 +1,14 @@
+use fragile::Fragile;
 use reqwest::Client;
+use tokio::sync::Semaphore;
 use tucan_types::{
-    LoginRequest, LoginResponse, RevalidationStrategy, SemesterId, Tucan, TucanError,
-    coursedetails::{CourseDetailsRequest, CourseDetailsResponse},
-    courseresults::ModuleResultsResponse,
-    examresults::ExamResultsResponse,
-    gradeoverview::{GradeOverviewRequest, GradeOverviewResponse},
-    mlsstart::MlsStart,
-    moduledetails::{ModuleDetailsRequest, ModuleDetailsResponse},
-    mycourses::MyCoursesResponse,
-    mydocuments::MyDocumentsResponse,
-    myexams::MyExamsResponse,
-    mymodules::MyModulesResponse,
-    registration::AnmeldungRequest,
-    student_result::StudentResultResponse,
-    vv::{ActionRequest, Vorlesungsverzeichnis},
+    CONCURRENCY, LoginRequest, LoginResponse, RevalidationStrategy, SemesterId, Tucan, TucanError, coursedetails::{CourseDetailsRequest, CourseDetailsResponse}, courseresults::ModuleResultsResponse, examresults::ExamResultsResponse, gradeoverview::{GradeOverviewRequest, GradeOverviewResponse}, mlsstart::MlsStart, moduledetails::{ModuleDetailsRequest, ModuleDetailsResponse}, mycourses::MyCoursesResponse, mydocuments::MyDocumentsResponse, myexams::MyExamsResponse, mymodules::MyModulesResponse, registration::AnmeldungRequest, student_result::StudentResultResponse, vv::{ActionRequest, Vorlesungsverzeichnis}
 };
 use url::Url;
 
 pub struct ApiServerTucan {
     client: Client,
+    semaphore: Semaphore,
 }
 
 impl Default for ApiServerTucan {
@@ -37,12 +27,14 @@ impl ApiServerTucan {
                 )
                 .build()
                 .unwrap(),
+            semaphore: Semaphore::new(CONCURRENCY)
         }
     }
 }
 
 impl Tucan for ApiServerTucan {
     async fn login(&self, request: LoginRequest) -> Result<LoginResponse, TucanError> {
+        let _permit = self.semaphore.acquire().await.unwrap();
         let response = self
             .client
             .post("http://127.0.0.1:8080/api/v1/login")
@@ -56,28 +48,31 @@ impl Tucan for ApiServerTucan {
         Ok(response)
     }
 
-    async fn anmeldung(
+    fn anmeldung(
         &self,
         _login_response: &LoginResponse,
         revalidation_strategy: RevalidationStrategy,
         request: AnmeldungRequest,
-    ) -> Result<tucan_types::registration::AnmeldungResponse, TucanError> {
-        let mut url = Url::parse("http://127.0.0.1:8080/api/v1/registration").unwrap();
-        url.path_segments_mut().unwrap().push(request.inner());
-        let response = self
-            .client
-            .get(url)
-            .fetch_credentials_include()
-            .header(
-                "X-Revalidation-Strategy",
-                serde_json::to_string(&revalidation_strategy).unwrap(),
-            )
-            .send()
-            .await?
-            .error_for_status()?
-            .json()
-            .await?;
-        Ok(response)
+    ) -> impl Future<Output = Result<tucan_types::registration::AnmeldungResponse, TucanError>> + Send {
+        Fragile::new(async move {
+            let _permit = self.semaphore.acquire().await.unwrap();
+            let mut url = Url::parse("http://127.0.0.1:8080/api/v1/registration").unwrap();
+            url.path_segments_mut().unwrap().push(request.inner());
+            let response = self
+                .client
+                .get(url)
+                .fetch_credentials_include()
+                .header(
+                    "X-Revalidation-Strategy",
+                    serde_json::to_string(&revalidation_strategy).unwrap(),
+                )
+                .send()
+                .await?
+                .error_for_status()?
+                .json()
+                .await?;
+            Ok(response)
+        })
     }
 
     async fn module_details(
@@ -86,6 +81,7 @@ impl Tucan for ApiServerTucan {
         revalidation_strategy: RevalidationStrategy,
         request: ModuleDetailsRequest,
     ) -> Result<ModuleDetailsResponse, TucanError> {
+        let _permit = self.semaphore.acquire().await.unwrap();
         let mut url = Url::parse("http://127.0.0.1:8080/api/v1/module-details").unwrap();
         url.path_segments_mut().unwrap().push(request.inner());
         let response = self
@@ -110,6 +106,7 @@ impl Tucan for ApiServerTucan {
         revalidation_strategy: RevalidationStrategy,
         request: CourseDetailsRequest,
     ) -> Result<CourseDetailsResponse, TucanError> {
+        let _permit = self.semaphore.acquire().await.unwrap();
         let mut url = Url::parse("http://127.0.0.1:8080/api/v1/course-details").unwrap();
         url.path_segments_mut().unwrap().push(request.inner());
         let response = self
@@ -129,6 +126,7 @@ impl Tucan for ApiServerTucan {
     }
 
     async fn logout(&self, _request: &LoginResponse) -> Result<(), TucanError> {
+        let _permit = self.semaphore.acquire().await.unwrap();
         self.client
             .post("http://127.0.0.1:8080/api/v1/logout")
             .fetch_credentials_include()
@@ -144,6 +142,7 @@ impl Tucan for ApiServerTucan {
         _request: &LoginResponse,
         revalidation_strategy: RevalidationStrategy,
     ) -> Result<MlsStart, TucanError> {
+        let _permit = self.semaphore.acquire().await.unwrap();
         let url = Url::parse("http://127.0.0.1:8080/api/v1/after-login").unwrap();
         let response = self
             .client
@@ -167,6 +166,7 @@ impl Tucan for ApiServerTucan {
         revalidation_strategy: RevalidationStrategy,
         semester: SemesterId,
     ) -> Result<MyModulesResponse, TucanError> {
+        let _permit = self.semaphore.acquire().await.unwrap();
         let url = Url::parse(&format!(
             "http://127.0.0.1:8080/api/v1/my-modules/{}",
             semester.inner()
@@ -194,6 +194,7 @@ impl Tucan for ApiServerTucan {
         revalidation_strategy: RevalidationStrategy,
         semester: SemesterId,
     ) -> Result<MyCoursesResponse, TucanError> {
+        let _permit = self.semaphore.acquire().await.unwrap();
         let url = Url::parse(&format!(
             "http://127.0.0.1:8080/api/v1/my-courses/{}",
             semester.inner()
@@ -221,6 +222,7 @@ impl Tucan for ApiServerTucan {
         revalidation_strategy: RevalidationStrategy,
         semester: SemesterId,
     ) -> Result<MyExamsResponse, TucanError> {
+        let _permit = self.semaphore.acquire().await.unwrap();
         let url = Url::parse(&format!(
             "http://127.0.0.1:8080/api/v1/my-exams/{}",
             semester.inner()
@@ -248,6 +250,7 @@ impl Tucan for ApiServerTucan {
         revalidation_strategy: RevalidationStrategy,
         semester: SemesterId,
     ) -> Result<ExamResultsResponse, TucanError> {
+        let _permit = self.semaphore.acquire().await.unwrap();
         let url = Url::parse(&format!(
             "http://127.0.0.1:8080/api/v1/exam-results/{}",
             semester.inner()
@@ -275,6 +278,7 @@ impl Tucan for ApiServerTucan {
         revalidation_strategy: RevalidationStrategy,
         semester: SemesterId,
     ) -> Result<ModuleResultsResponse, TucanError> {
+        let _permit = self.semaphore.acquire().await.unwrap();
         let url = Url::parse(&format!(
             "http://127.0.0.1:8080/api/v1/course-results/{}",
             semester.inner()
@@ -301,6 +305,7 @@ impl Tucan for ApiServerTucan {
         _request: &tucan_types::LoginResponse,
         revalidation_strategy: RevalidationStrategy,
     ) -> Result<MyDocumentsResponse, TucanError> {
+        let _permit = self.semaphore.acquire().await.unwrap();
         let url = Url::parse("http://127.0.0.1:8080/api/v1/my-documents").unwrap();
         let response = self
             .client
@@ -324,6 +329,7 @@ impl Tucan for ApiServerTucan {
         revalidation_strategy: RevalidationStrategy,
         action: ActionRequest,
     ) -> Result<Vorlesungsverzeichnis, TucanError> {
+        let _permit = self.semaphore.acquire().await.unwrap();
         let mut url = Url::parse("http://127.0.0.1:8080/api/v1/vv").unwrap();
         url.path_segments_mut().unwrap().push(action.inner());
         let response = self
@@ -348,6 +354,7 @@ impl Tucan for ApiServerTucan {
         revalidation_strategy: RevalidationStrategy,
         course_of_study: u64,
     ) -> Result<StudentResultResponse, TucanError> {
+        let _permit = self.semaphore.acquire().await.unwrap();
         let mut url = Url::parse("http://127.0.0.1:8080/api/v1/student-result").unwrap();
         url.path_segments_mut()
             .unwrap()
@@ -369,6 +376,7 @@ impl Tucan for ApiServerTucan {
     }
 
     async fn welcome(&self) -> Result<tucan_types::LoggedOutHead, TucanError> {
+        let _permit = self.semaphore.acquire().await.unwrap();
         todo!()
     }
 
@@ -378,6 +386,7 @@ impl Tucan for ApiServerTucan {
         revalidation_strategy: RevalidationStrategy,
         gradeoverview: GradeOverviewRequest,
     ) -> Result<GradeOverviewResponse, TucanError> {
+        let _permit = self.semaphore.acquire().await.unwrap();
         let url = Url::parse(&format!(
             "http://127.0.0.1:8080/api/v1/gradeoverview/{}",
             gradeoverview.inner()
