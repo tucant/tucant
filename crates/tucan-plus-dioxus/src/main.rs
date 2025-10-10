@@ -48,10 +48,10 @@ pub async fn main() {
         error(msg.clone());
         alert(msg.as_str());
     }));
+    #[cfg(target_arch = "wasm32")]
+    console_log::init().unwrap();
 
     if web_sys::window().is_some()  {
-        #[cfg(target_arch = "wasm32")]
-        console_log::init().unwrap();
         frontend_main().await
     } else {
         worker_main().await
