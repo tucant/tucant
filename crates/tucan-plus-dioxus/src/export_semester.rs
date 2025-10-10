@@ -1,14 +1,19 @@
+#[cfg(target_arch = "wasm32")]
+use std::time::Duration;
 use std::{collections::HashSet, ops::Add, pin::pin, rc::Rc, sync::atomic::{AtomicUsize, Ordering}};
 
 use dioxus::{html::geometry::euclid::num::Zero, prelude::*};
 use futures::{FutureExt as _, StreamExt, stream::BoxStream};
 use itertools::Itertools as _;
 use num::{BigInt, BigRational, FromPrimitive, One};
+use serde::{Deserialize, Serialize};
 use time::{Month, macros::offset};
-use tucan_plus_planning::{compress};
+use tokio::io::AsyncWriteExt as _;
 use tucan_types::{DynTucan, LoginResponse, RevalidationStrategy, Tucan, TucanError, moduledetails::ModuleDetailsResponse, registration::{AnmeldungRequest, AnmeldungResponse}};
 use num::ToPrimitive;
-use crate::RcTucanType;
+use crate::{RcTucanType, compress};
+
+
 
 // breath first for progress?
 // maybe us a channel?
@@ -47,6 +52,12 @@ pub fn recursive_anmeldung<'a, 'b: 'a>(
                 recursive_anmeldung(tucan, login_response, factor.clone() / BigRational::from_integer(element.submenus.len().into()), atomic_current, atomic_total, entry.1.clone())
             }))
     }).boxed()
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct SemesterExportV1 {
+    anmeldungen: Vec<AnmeldungResponse>,
+    modules: Vec<ModuleDetailsResponse>
 }
 
 #[component]
@@ -112,8 +123,11 @@ pub fn FetchAnmeldung() -> Element {
                         });
                         let module_response = module_stream.collect::<Vec<ModuleDetailsResponse>>().await;
 
-                        log::info!("downloaded done");
-                        let content = serde_json::to_string(&response).unwrap();
+                        log::info!("downloaded done 2");
+                        let content = serde_json::to_string(&SemesterExportV1 {
+                            anmeldungen: response,
+                            modules: module_response
+                        }).unwrap();
                         result.push((
                             format!(
                                 "registration{}_{}.{semester}.v1.tucan",

@@ -913,6 +913,7 @@
             pkgs.gobject-introspection
             pkgs.jdk
             pkgs.android-tools
+            pkgs.binaryen
             dioxus-cli
           ];
         };

@@ -5983,6 +5983,7 @@ name = "tucan-plus-dioxus"
 version = "0.1.2"
 dependencies = [
  "android-native-keyring-store",
+ "async-compression",
  "console_log",
  "cookie",
  "dbus-secret-service-keyring-store",

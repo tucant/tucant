@@ -1,6 +1,5 @@
 use dioxus::{hooks::use_context, html::FileData, signals::Signal};
 use futures::StreamExt as _;
-use tucan_plus_planning::decompress;
 use tucan_plus_worker::{
     FEwefweewf, MyDatabase, Wlewifhewefwef,
     models::{Anmeldung, AnmeldungEntry, Semester, State},
@@ -9,7 +8,7 @@ use tucan_types::{
     CONCURRENCY, LoginResponse, RevalidationStrategy, Tucan as _, registration::AnmeldungResponse,
 };
 
-use crate::RcTucanType;
+use crate::{RcTucanType, decompress};
 
 pub async fn handle_semester(
     course_of_study: &str,
