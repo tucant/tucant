@@ -1,5 +1,6 @@
 use dioxus::{hooks::use_context, html::FileData, signals::Signal};
 use futures::StreamExt as _;
+use log::warn;
 use tucan_plus_worker::{
     FEwefweewf, MyDatabase, Wlewifhewefwef,
     models::{Anmeldung, AnmeldungEntry, Semester, State},
@@ -43,7 +44,13 @@ pub async fn handle_semester(
         worker.send_message(FEwefweewf { inserts }).await;
         let inserts: Vec<AnmeldungEntry> = futures::stream::iter(result.anmeldungen.iter())
             .flat_map(|anmeldung| {
-                futures::stream::iter(anmeldung.entries.iter()).map(async |entry: &tucan_types::registration::AnmeldungEntry| AnmeldungEntry {
+                futures::stream::iter(anmeldung.entries.iter().filter(|entry| {
+                    if entry.module.is_none() {
+                        warn!("entry with no module {entry:?}");
+                        return false
+                    }
+                    true
+                })).map(async |entry: &tucan_types::registration::AnmeldungEntry| AnmeldungEntry {
                     course_of_study: course_of_study.to_owned(),
                     available_semester: semester,
                     anmeldung: anmeldung.path.last().unwrap().1.inner().to_owned(),
