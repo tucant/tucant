@@ -102,14 +102,14 @@ pub fn FetchAnmeldung() -> Element {
                         let response = recursive_anmeldung(
                             &tucan.0,
                             &session,
-                            BigRational::new(BigInt::from(1), BigInt::from(2)),
+                            BigRational::new(BigInt::from(1), BigInt::from(3)),
                             atomic_current,
                             atomic_total,
                             course_of_study.value.clone(),
                         );
                         let response = response.collect::<Vec<AnmeldungResponse>>().await;
                         let modules: HashSet<_> = response.iter().flat_map(|anmeldung| anmeldung.entries.iter()).flat_map(|entry| entry.module.iter()).map(|module| module.url.clone()).collect();
-                        let modules_len = 2*modules.len();
+                        let modules_len = 3*modules.len();
                         let module_stream = futures::stream::iter(modules).flat_map_unordered(None, |module| {
                             let tucan = tucan.clone();
                             let session = session.clone();
@@ -128,12 +128,29 @@ pub fn FetchAnmeldung() -> Element {
                             anmeldungen: response,
                             modules: module_response
                         }).unwrap();
+                        let in_data = content.as_bytes();
+                        let mut encoder = async_compression::tokio::write::BrotliEncoder::with_quality(
+                            Vec::new(),
+                            async_compression::Level::Best,
+                        );
+                        info!("file chunks: {}", in_data.len()/10/1024);
+                        let chunk_part = 3*in_data.len()/10/1024;
+                        for chunk in in_data.chunks(10*1024).enumerate() {
+                            let change = BigRational::new(BigInt::from(1), BigInt::from(chunk_part));
+                            encoder.write_all(chunk.1).await.unwrap(); // hangs, move to worker?
+                            info!("{}/{}", chunk.0, in_data.len()/10/1024);
+                            atomic_current.with_mut(|current| *current += change.clone());
+                            #[cfg(target_arch = "wasm32")]
+                            crate::sleep(Duration::from_millis(1)).await;
+                        }
+                        encoder.shutdown().await.unwrap();
+                        let compressed = encoder.into_inner();
                         result.push((
                             format!(
                                 "registration{}_{}.{semester}.v1.tucan",
                                 course_of_study.value, course_of_study.name
                             ),
-                            compress(content.as_bytes()).await.unwrap(),
+                            compressed,
                         ));
                     }
                 });
