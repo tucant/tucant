@@ -54,7 +54,13 @@ pub async fn handle_semester(
                     true
                 })).map(async |entry: &tucan_types::registration::AnmeldungEntry| {
                     let module_id = entry.module.as_ref().unwrap().url.clone();
-                    let credits = result.modules[&module_id].credits.unwrap();
+                    let credits = result.modules[&module_id].credits;
+                    let credits = if let Some(credits) = credits {
+                        credits
+                    } else {
+                        warn!("module with no credits {:?}", entry.module);
+                        0
+                    };
                     AnmeldungEntry {
                     course_of_study: course_of_study.to_owned(),
                     available_semester: semester,
