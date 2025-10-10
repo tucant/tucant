@@ -120,7 +120,7 @@
                   dummySrc = craneLib.mkDummySrc {
                     src = args.src;
                     extraDummyScript = ''
-                      cp ${args.src}/crates/tucan-plus-dioxus/Dioxus.toml $out/crates/tucan-plus-dioxus/Dioxus.toml
+                      cp ${./crates/tucan-plus-dioxus/Dioxus.toml} $out/crates/tucan-plus-dioxus/Dioxus.toml
                     '';
                   };
                 }

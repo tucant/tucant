@@ -6051,7 +6051,6 @@ dependencies = [
 name = "tucan-plus-worker"
 version = "0.1.0"
 dependencies = [
- "console_log",
  "derive_more 2.0.1",
  "diesel",
  "diesel_migrations",

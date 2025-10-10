@@ -598,7 +598,7 @@ impl MyDatabase {
                                 event.error()
                             );
 
-                            reject.call0(&JsValue::undefined()).unwrap();
+                            reject.call1(&JsValue::undefined(), &event).unwrap();
                         });
                     let error_closure_ref = error_closure.as_ref().clone();
                     worker

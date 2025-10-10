@@ -51,6 +51,11 @@ pub async fn main() {
     #[cfg(target_arch = "wasm32")]
     console_log::init().unwrap();
 
+    dioxus::logger::init(Level::INFO).expect("logger failed to init");
+    
+    tracing::info!("tracing works");
+    log::info!("logging works");
+
     if web_sys::window().is_some()  {
         frontend_main().await
     } else {
@@ -110,8 +115,6 @@ async fn worker_main() {
 }
 
 async fn frontend_main() {
-    dioxus::logger::init(Level::INFO).expect("logger failed to init");
-
     let anonymize = {
         #[cfg(feature = "direct")]
         {

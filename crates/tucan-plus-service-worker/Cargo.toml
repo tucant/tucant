@@ -7,6 +7,6 @@ edition = "2024"
 js-sys = "0.3"
 wasm-bindgen = { version = "0.2.104" }
 web-sys = { version = "0.3", features = ["ServiceWorkerGlobalScope", "ExtendableMessageEvent"] }
-console_log = { version = "1", features = ["color"] }
-log = { version = "0.4", features = ["max_level_debug", "release_max_level_warn"] }
+console_log = { version = "1" }
+log = { version = "0.4" }
 wasm-bindgen-futures = "0.4"
