@@ -8,4 +8,4 @@ version = "0.1.0"
 
 [profile.wasm-release]
 inherits = "release"
-debug = "full"
+#debug = "full"

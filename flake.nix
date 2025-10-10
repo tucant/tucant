@@ -486,7 +486,6 @@
         );
 
         client-args = {
-          profile = ""; # temporary https://github.com/DioxusLabs/dioxus/issues/4758
           dioxusExtraArgs = "--features direct --web";
           dioxusMainArgs = "--out-dir $out";
           buildDepsOnly = {
@@ -517,6 +516,10 @@
               rm -R ./target/dx/tucan-plus-dioxus/release/web/public/assets || true
             '';
           };
+          # # temporary https://github.com/DioxusLabs/dioxus/issues/4758
+          postBuild = ''
+            substituteInPlace ./target/dx/tucan-plus-dioxus/release/web/public/assets/tucan-plus-dioxus-*.js --replace-fail "importMeta.url" "import.meta.url"
+          '';
           strictDeps = true;
           stdenv = p: p.emscriptenStdenv;
           doCheck = false;
