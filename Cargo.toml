@@ -8,8 +8,13 @@ version = "0.1.0"
 
 [profile.wasm-release]
 inherits = "release"
-#debug = "line-tables-only"
+opt-level = "z"
+debug = false
 lto = true
+codegen-units = 1
+panic = "abort"
+strip = true
+incremental = false
 
 [profile.wasm-dev]
 inherits = "dev"
