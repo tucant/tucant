@@ -177,10 +177,17 @@ async fn frontend_main() {
 
     let launcher = launcher.with_context(Anonymize(anonymize));
 
-    launcher.launch(App);
+    launcher.launch(AppOuter);
 }
 
 #[component]
+fn AppOuter() -> Element {
+    rsx! {
+        App {}
+    }
+}
+
+#[component(lazy)]
 fn App() -> Element {
     let login_response: Option<LoginResponse> = use_context();
     let login_response = use_signal(|| login_response);
