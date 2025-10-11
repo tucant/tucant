@@ -1,16 +1,2 @@
 [target.wasm32-unknown-unknown]
 rustflags = ["--cfg=web_sys_unstable_apis", "--cfg=getrandom_backend=\"wasm_js\""]
-
-[unstable]
-build-std = ["std", "panic_abort", "core", "alloc"]
-build-std-features = ["optimize_for_size"]
-
-[build]
-rustflags = [
-    "-Clto",
-    "-Zvirtual-function-elimination",
-    "-Zlocation-detail=none",
-    "-Zfmt-debug=none",
-    "-Zunstable-options",
-    "-Cpanic=immediate-abort"
-]

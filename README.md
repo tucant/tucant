@@ -70,7 +70,9 @@ dx bundle --web --features direct --release
 ls -lh /home/moritz/Documents/tucan-plus/target/dx/tucan-plus-dioxus/release/web/public/assets/*.wasm
 
 # 8.7 MB original size
-# 4.9 M
+# 4.8 MB seems absolute minimum
+
+twiggy dominators /home/moritz/Documents/tucan-plus/target/dx/tucan-plus-dioxus/release/web/public/assets/tucan-plus-dioxus_bg-*.wasm
 
 llvm-dwarfdump /home/moritz/Documents/tucan-plus/target/dx/tucan-plus-dioxus/release/web/public/assets/tucan-plus-dioxus_bg-*.wasm
 llvm-dwarfdump /home/moritz/Documents/tucan-plus/target/dx/tucan-plus-dioxus/debug/web/public/wasm/tucan-plus-dioxus_bg.wasm 
