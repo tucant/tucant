@@ -9,6 +9,7 @@ version = "0.1.0"
 [profile.wasm-release]
 inherits = "release"
 opt-level = "z"
+debug = true
 lto = true
 codegen-units = 1
 panic = "abort"

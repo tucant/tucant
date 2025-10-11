@@ -66,7 +66,7 @@ dx serve --web --features api --verbose
 rm -R /home/moritz/Documents/tucan-plus/target/dx/tucan-plus-dioxus/debug/web/public/assets/
 
 rm -R /home/moritz/Documents/tucan-plus/target/dx/tucan-plus-dioxus/release/web/public/assets/
-dx bundle --web --features direct --release
+dx bundle --web --features direct --release --wasm-split
 ls -lh /home/moritz/Documents/tucan-plus/target/dx/tucan-plus-dioxus/release/web/public/assets/*.wasm
 
 # 8.7 MB original size
