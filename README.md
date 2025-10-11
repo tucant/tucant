@@ -72,6 +72,8 @@ ls -lh /home/moritz/Documents/tucan-plus/target/dx/tucan-plus-dioxus/release/web
 # 8.7 MB original size
 # 4.8 MB seems absolute minimum
 
+RUST_BACKTRACE=1 DIOXUS_LOG=trace,walrus::module::functions::local_function=debug,walrus::ir::traversals=debug cargo run --manifest-path ~/Documents/dioxus/packages/cli/Cargo.toml bundle --web --features direct --release --trace --wasm-split
+
 twiggy dominators /home/moritz/Documents/tucan-plus/target/dx/tucan-plus-dioxus/release/web/public/assets/tucan-plus-dioxus_bg-*.wasm
 
 llvm-dwarfdump /home/moritz/Documents/tucan-plus/target/dx/tucan-plus-dioxus/release/web/public/assets/tucan-plus-dioxus_bg-*.wasm
