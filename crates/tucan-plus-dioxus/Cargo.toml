@@ -41,7 +41,7 @@ tokio = { features = ["macros", "rt", "rt-multi-thread"], version = "1" }
 dbus-secret-service-keyring-store = { version = "0.2", features = ["crypto-rust"], optional = true }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
-sqlite-wasm-rs = { version = "0.4", default-features = false, features = ["bundled"] }
+sqlite-wasm-rs = { git = "https://github.com/mohe2015/sqlite-wasm-rs.git", branch = "sqlite3_os_end", default-features = false, features = ["bundled"] }
 cookie = "0.18"
 getrandom = { version = "0.3", features = ["wasm_js"] }
 web-extensions-sys = { optional = true, git = "https://github.com/mohe2015/web-extensions-sys", branch = "cookies" }

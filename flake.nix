@@ -853,6 +853,7 @@
           ];
           packages = [
             pkgs.bashInteractive
+            pkgs.wabt
             pkgs.wasm-tools
             pkgs.nodejs
             pkgs.bun

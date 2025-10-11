@@ -73,6 +73,9 @@ cargo run --manifest-path ~/Documents/dioxus/packages/cli/Cargo.toml serve --web
 
 cargo install wasm-bindgen-cli@0.2.104
 
+# https://github.com/DioxusLabs/dioxus/issues/4237
+wasm2wat /home/moritz/Documents/tucan-plus/target/dx/tucan-plus-dioxus/debug/web/public/wasm/tucan-plus-dioxus_bg.wasm | grep --color '"env"'
+
 cd crates/tucan-plus-worker/
 dx serve --bundle web --target wasm32-unknown-unknown --base-path assets # --hot-patch this lets everything explode with "env" imports and sqlite import stuff broken
 cp -r ../../target/dx/tucan-plus-worker/debug/web/public/wasm/. ../tucan-plus-dioxus/assets/wasm/
