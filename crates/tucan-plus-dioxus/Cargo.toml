@@ -63,9 +63,3 @@ default = ["web"]
 web = ["dioxus/web"]
 desktop = ["dioxus/desktop", "dep:dioxus-desktop", "dep:tucan-connector", "dep:keyring-core", "dep:dbus-secret-service-keyring-store"]
 mobile = ["dioxus/mobile", "dep:dioxus-desktop", "dep:tucan-connector", "dep:keyring-core", "dep:android-native-keyring-store"]
-
-[profile.wasm-dev.package.async-compression]
-opt-level = 3
-
-[profile.wasm-dev.package.brotli]
-opt-level = 3

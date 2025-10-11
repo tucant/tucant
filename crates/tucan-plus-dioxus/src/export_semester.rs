@@ -133,12 +133,12 @@ pub fn FetchAnmeldung() -> Element {
                             Vec::new(),
                             async_compression::Level::Best,
                         );
-                        info!("file chunks: {}", in_data.len()/100/1024);
-                        let chunk_part = 3*in_data.len()/100/1024;
-                        for chunk in in_data.chunks(100*1024).enumerate() {
+                        info!("file chunks: {}", in_data.len()/10/1024);
+                        let chunk_part = 3*in_data.len()/10/1024;
+                        for chunk in in_data.chunks(10*1024).enumerate() {
                             let change = BigRational::new(BigInt::from(1), BigInt::from(chunk_part));
                             encoder.write_all(chunk.1).await.unwrap(); // hangs, move to worker?
-                            info!("{}/{}", chunk.0, in_data.len()/100/1024);
+                            info!("{}/{}", chunk.0, in_data.len()/10/1024);
                             atomic_current.with_mut(|current| *current += change.clone());
                             #[cfg(target_arch = "wasm32")]
                             crate::sleep(Duration::from_millis(0)).await;
