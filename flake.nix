@@ -487,7 +487,7 @@
 
         client-args = {
           dioxusExtraArgs = "--features direct --web";
-          dioxusMainArgs = "--out-dir $out";
+          dioxusMainArgs = "--out-dir $out --wasm-split";
           buildDepsOnly = {
             preBuild = ''
               export CC=emcc
