@@ -589,13 +589,11 @@ impl MyDatabase {
                     options.set_type(WorkerType::Module);
                     let worker = web_sys::Worker::new_with_options(&shim_url(), &options).unwrap();
                     let error_closure: Closure<dyn Fn(_)> =
-                        Closure::new(move |event: web_sys::ErrorEvent| {
+                        Closure::new(move |event: web_sys::Event| {
                             use log::info;
 
                             info!(
-                                "error at client {event:?} {:?} {:?}",
-                                event.message(),
-                                event.error()
+                                "error at client {event:?}",
                             );
 
                             reject.call1(&JsValue::undefined(), &event).unwrap();
