@@ -4,7 +4,7 @@ use dioxus::{hooks::use_context, html::FileData, signals::Signal};
 use futures::StreamExt as _;
 use log::warn;
 use tucan_plus_worker::{
-    FEwefweewf, MyDatabase, Wlewifhewefwef,
+    InsertOrUpdateAnmeldungenRequest, MyDatabase, UpdateAnmeldungEntryRequest,
     models::{Anmeldung, AnmeldungEntry, Semester, State},
 };
 use tucan_types::{
@@ -43,7 +43,7 @@ pub async fn handle_semester(
                 max_modules: None,
             })
             .collect();
-        worker.send_message(FEwefweewf { inserts }).await;
+        worker.send_message(InsertOrUpdateAnmeldungenRequest { inserts }).await;
         let inserts: Vec<AnmeldungEntry> = futures::stream::iter(result.anmeldungen.iter())
             .flat_map(|anmeldung| {
                 futures::stream::iter(anmeldung.entries.iter().filter(|entry| {
@@ -79,7 +79,7 @@ pub async fn handle_semester(
             .await;
         // prevent too many variable error, TODO maybe batching
         for insert in inserts {
-            worker.send_message(Wlewifhewefwef { insert }).await;
+            worker.send_message(UpdateAnmeldungEntryRequest { insert }).await;
         }
     }
 }

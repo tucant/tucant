@@ -58,8 +58,8 @@
           src = pkgs.fetchFromGitHub {
             owner = "mohe2015";
             repo = "dioxus";
-            rev = "e1cf37c7427813726af7456f2ba31791e3957e43";
-            hash = "sha256-YtDbd0S2z1P3NCFvQeJn6foKj0A/uygTF8BudNHSpUU=";
+            rev = "10baa108f7f8df5ee1f08e99bdc900dd459c05ae";
+            hash = "sha256-A9cod9tevPzH/QcRWOc4IzDSBoFMEgmB3A3dy5QAbzk=";
           };
           doCheck = false;
           strictDeps = true;
@@ -120,7 +120,7 @@
                   dummySrc = craneLib.mkDummySrc {
                     src = args.src;
                     extraDummyScript = ''
-                      cp ${args.src}/crates/tucan-plus-dioxus/Dioxus.toml $out/crates/tucan-plus-dioxus/Dioxus.toml
+                      cp ${./crates/tucan-plus-dioxus/Dioxus.toml} $out/crates/tucan-plus-dioxus/Dioxus.toml
                     '';
                   };
                 }
@@ -430,55 +430,6 @@
           }
         );
 
-        worker-args = {
-          dioxusMainArgs = "--out-dir $out";
-          dioxusExtraArgs = "--bundle web --target wasm32-unknown-unknown";
-          strictDeps = true;
-          stdenv = p: p.emscriptenStdenv;
-          doCheck = false;
-          cargoExtraArgs = "--package=tucan-plus-worker";
-          pname = "tucan-plus-workspace-tucan-plus-worker";
-          preBuild = ''
-            export CC=emcc
-            export CXX=emcc
-            rm -R ./target/dx/tucan-plus-worker/release/web/public/assets || true
-          '';
-          installPhaseCommand = '''';
-          checkPhaseCargoCommand = '''';
-          nativeBuildInputs = [
-            pkgs.which
-            pkgs.emscripten
-            wasm-bindgen
-            pkgs.binaryen
-            (pkgs.writeShellScriptBin "git" ''
-              echo ${self.rev or "dirty"}
-            '')
-          ];
-          doNotPostBuildInstallCargoBinaries = true;
-          src = lib.fileset.toSource {
-            root = ./.;
-            fileset = fileset-worker;
-          };
-          buildDepsOnly = {
-            dummySrc = craneLib.mkDummySrc {
-              src = worker-args.src;
-              extraDummyScript = ''
-                rm $out/crates/tucan-plus-worker/src/main.rs
-                cp ${pkgs.writeText "main.rs" ''
-                  use wasm_bindgen::prelude::*;
-
-                  #[wasm_bindgen(main)]
-                  pub async fn main() {
-
-                  }
-                ''} $out/crates/tucan-plus-worker/src/main.rs
-              '';
-            };
-          };
-        };
-
-        worker = cargoDioxus craneLib (worker-args);
-
         service-worker-args = {
           strictDeps = true;
           doCheck = false;
@@ -562,17 +513,14 @@
               export CC=emcc
               export CXX=emcc
               mkdir -p assets/
-              cd crates/tucan-plus-dioxus
-              cp ${worker}/public/assets/tucan-plus-worker-*.js assets/
-              cp ${worker}/public/assets/tucan-plus-worker_bg-*.wasm assets/
-              export WORKER_JS_PATH_ARRAY=(assets/tucan-plus-worker-*.js)
-              export WORKER_JS_PATH="/''${WORKER_JS_PATH_ARRAY[@]}"
-              export WORKER_WASM_PATH_ARRAY=(assets/tucan-plus-worker_bg-*.wasm)
-              export WORKER_WASM_PATH="/''${WORKER_WASM_PATH_ARRAY[@]}"
-              cd ../..
               rm -R ./target/dx/tucan-plus-dioxus/release/web/public/assets || true
             '';
+            # temporary https://github.com/DioxusLabs/dioxus/issues/4758
+            postBuild = ''
+              substituteInPlace $out/public/assets/tucan-plus-dioxus-*.js --replace-fail "importMeta.url" "import.meta.url"
+            '';
           };
+          
           strictDeps = true;
           stdenv = p: p.emscriptenStdenv;
           doCheck = false;
@@ -797,7 +745,6 @@
 
         };
         packages.schema = schema;
-        packages.worker = worker;
         packages.service-worker = service-worker;
         packages.client = client;
         packages.api-server = api-server;
@@ -883,8 +830,6 @@
         devShells.default = pkgs.mkShell {
           shellHook = ''
             export PATH=~/.cargo/bin/:$PATH
-            export WORKER_JS_PATH=/assets/wasm/tucan-plus-worker.js
-            export WORKER_WASM_PATH=/assets/wasm/tucan-plus-worker_bg.wasm
             export CC_wasm32_unknown_emscripten=emcc
             #export SERVICE_WORKER_JS_PATH=/assets/wasm/tucan-plus-service-worker.js
           '';
@@ -908,12 +853,16 @@
           ];
           packages = [
             pkgs.bashInteractive
+            pkgs.wasm-tools
+            pkgs.nodejs
+            pkgs.bun
             pkgs.pkg-config
             pkgs.emscripten
             pkgs.gobject-introspection
             pkgs.jdk
             pkgs.android-tools
             pkgs.binaryen
+            pkgs.llvmPackages_21.bintools
             dioxus-cli
           ];
         };

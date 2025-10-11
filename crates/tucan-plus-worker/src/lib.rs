@@ -1,4 +1,7 @@
 
+#[cfg(target_arch = "wasm32")]
+use std::time::Duration;
+
 #[cfg(not(target_arch = "wasm32"))]
 use diesel::r2d2::CustomizeConnection;
 use diesel::{prelude::*, upsert::excluded};
@@ -78,11 +81,11 @@ impl RequestResponse for StoreCacheRequest {
 
 #[cfg_attr(target_arch = "wasm32", derive(Serialize, Deserialize))]
 #[derive(Debug)]
-pub struct AnmeldungenRequest {
+pub struct AnmeldungenRootRequest {
     pub course_of_study: String,
 }
 
-impl RequestResponse for AnmeldungenRequest {
+impl RequestResponse for AnmeldungenRootRequest {
     type Response = Vec<Anmeldung>;
 
     fn execute(&self, connection: &mut SqliteConnection) -> Self::Response {
@@ -100,12 +103,12 @@ impl RequestResponse for AnmeldungenRequest {
 
 #[cfg_attr(target_arch = "wasm32", derive(Serialize, Deserialize))]
 #[derive(Debug)]
-pub struct AnmeldungenRequest2 {
+pub struct AnmeldungChildrenRequest {
     pub course_of_study: String,
     pub anmeldung: Anmeldung,
 }
 
-impl RequestResponse for AnmeldungenRequest2 {
+impl RequestResponse for AnmeldungChildrenRequest {
     type Response = Vec<Anmeldung>;
 
     fn execute(&self, connection: &mut SqliteConnection) -> Self::Response {
@@ -123,12 +126,12 @@ impl RequestResponse for AnmeldungenRequest2 {
 
 #[cfg_attr(target_arch = "wasm32", derive(Serialize, Deserialize))]
 #[derive(Debug)]
-pub struct Fewe {
+pub struct AnmeldungEntriesRequest {
     pub course_of_study: String,
     pub anmeldung: Anmeldung,
 }
 
-impl RequestResponse for Fewe {
+impl RequestResponse for AnmeldungEntriesRequest {
     type Response = Vec<AnmeldungEntry>;
 
     fn execute(&self, connection: &mut SqliteConnection) -> Self::Response {
@@ -146,11 +149,11 @@ impl RequestResponse for Fewe {
 
 #[cfg_attr(target_arch = "wasm32", derive(Serialize, Deserialize))]
 #[derive(Debug)]
-pub struct FEwefweewf {
+pub struct InsertOrUpdateAnmeldungenRequest {
     pub inserts: Vec<Anmeldung>,
 }
 
-impl RequestResponse for FEwefweewf {
+impl RequestResponse for InsertOrUpdateAnmeldungenRequest {
     type Response = ();
 
     fn execute(&self, connection: &mut SqliteConnection) -> Self::Response {
@@ -166,11 +169,11 @@ impl RequestResponse for FEwefweewf {
 
 #[cfg_attr(target_arch = "wasm32", derive(Serialize, Deserialize))]
 #[derive(Debug)]
-pub struct Wlewifhewefwef {
+pub struct UpdateAnmeldungEntryRequest {
     pub insert: AnmeldungEntry,
 }
 
-impl RequestResponse for Wlewifhewefwef {
+impl RequestResponse for UpdateAnmeldungEntryRequest {
     type Response = ();
 
     fn execute(&self, connection: &mut SqliteConnection) -> Self::Response {
@@ -385,14 +388,28 @@ impl RequestResponse for ExportDatabaseRequest {
     }
 }
 
+
+#[cfg_attr(target_arch = "wasm32", derive(Serialize, Deserialize))]
+#[derive(Debug)]
+pub struct PingRequest {
+}
+
+impl RequestResponse for PingRequest {
+    type Response = ();
+
+    fn execute(&self, connection: &mut SqliteConnection) -> Self::Response {
+        ()
+    }
+}
+
 #[cfg(target_arch = "wasm32")]
 #[derive(Serialize, Deserialize, Debug, derive_more::From)]
 pub enum RequestResponseEnum {
-    AnmeldungenRequest(AnmeldungenRequest),
-    AnmeldungenRequest2(AnmeldungenRequest2),
-    Fewe(Fewe),
-    FEwefweewf(FEwefweewf),
-    Wlewifhewefwef(Wlewifhewefwef),
+    AnmeldungenRequest(AnmeldungenRootRequest),
+    AnmeldungenRequest2(AnmeldungChildrenRequest),
+    Fewe(AnmeldungEntriesRequest),
+    FEwefweewf(InsertOrUpdateAnmeldungenRequest),
+    Wlewifhewefwef(UpdateAnmeldungEntryRequest),
     ChildUrl(ChildUrl),
     UpdateModule(UpdateModule),
     SetStateAndCredits(SetStateAndCredits),
@@ -401,7 +418,8 @@ pub enum RequestResponseEnum {
     StoreCacheRequest(StoreCacheRequest),
     ExportDatabaseRequest(ExportDatabaseRequest),
     UpdateAnmeldungEntry(UpdateAnmeldungEntry),
-    AnmeldungenEntriesInSemester(AnmeldungenEntriesInSemester)
+    AnmeldungenEntriesInSemester(AnmeldungenEntriesInSemester),
+    PingRequest(PingRequest)
 }
 
 #[cfg(target_arch = "wasm32")]
@@ -448,6 +466,9 @@ impl RequestResponseEnum {
                 serde_wasm_bindgen::to_value(&value.execute(connection)).unwrap()
             }
             RequestResponseEnum::AnmeldungenEntriesInSemester(value) => {
+                serde_wasm_bindgen::to_value(&value.execute(connection)).unwrap()
+            }
+            RequestResponseEnum::PingRequest(value) => {
                 serde_wasm_bindgen::to_value(&value.execute(connection)).unwrap()
             }
         }
@@ -535,9 +556,27 @@ pub struct MyDatabase {
 }
 
 #[cfg(target_arch = "wasm32")]
+#[wasm_bindgen::prelude::wasm_bindgen]
+extern "C" {
+    // Getters can only be declared on classes, so we need a fake type to declare it on.
+    #[wasm_bindgen]
+    type meta;
+
+    #[wasm_bindgen(js_namespace = import, static_method_of = meta, getter)]
+    fn url() -> String;
+}
+
+#[cfg(target_arch = "wasm32")]
+#[wasm_bindgen::prelude::wasm_bindgen]
+pub fn shim_url() -> String {
+    meta::url()
+}
+
+#[cfg(target_arch = "wasm32")]
 impl MyDatabase {
-    pub async fn wait_for_worker(worker_js: String) -> Self {
+    pub async fn wait_for_worker() -> Self {
         use js_sys::Promise;
+        use log::info;
         use wasm_bindgen::{JsCast as _, prelude::Closure};
 
         let lock_manager = web_sys::window().unwrap().navigator().locks();
@@ -548,18 +587,16 @@ impl MyDatabase {
 
                     let options = WorkerOptions::new();
                     options.set_type(WorkerType::Module);
-                    let worker = web_sys::Worker::new_with_options(&worker_js, &options).unwrap();
+                    let worker = web_sys::Worker::new_with_options(&shim_url(), &options).unwrap();
                     let error_closure: Closure<dyn Fn(_)> =
-                        Closure::new(move |event: web_sys::ErrorEvent| {
+                        Closure::new(move |event: web_sys::Event| {
                             use log::info;
 
                             info!(
-                                "error at client {event:?} {:?} {:?}",
-                                event.message(),
-                                event.error()
+                                "error at client {event:?}",
                             );
 
-                            reject.call0(&JsValue::undefined()).unwrap();
+                            reject.call1(&JsValue::undefined(), &event).unwrap();
                         });
                     let error_closure_ref = error_closure.as_ref().clone();
                     worker
@@ -579,15 +616,36 @@ impl MyDatabase {
 
         let broadcast_channel = Fragile::new(BroadcastChannel::new("global").unwrap());
 
-        // TODO FIXME add wait for worker to be alive
+        // TODO FIXME add wait for worker to be aliv
 
-        Self { broadcast_channel }
+        let this = Self { broadcast_channel };
+
+        while this.send_message_with_timeout(PingRequest {}, Duration::from_millis(100)).await.is_err() {
+            use log::info;
+
+            info!("retry ping");
+        }
+
+        info!("got pong");
+
+        this
     }
 
     pub async fn send_message<R: RequestResponse + std::fmt::Debug>(
         &self,
         message: R,
     ) -> R::Response
+    where
+        RequestResponseEnum: std::convert::From<R>,
+    {
+        self.send_message_with_timeout(message, Duration::from_secs(10)).await.unwrap()
+    }
+
+    pub async fn send_message_with_timeout<R: RequestResponse + std::fmt::Debug>(
+        &self,
+        message: R,
+        timeout: Duration
+    ) -> Result<R::Response, ()>
     where
         RequestResponseEnum: std::convert::From<R>,
     {
@@ -599,7 +657,7 @@ impl MyDatabase {
 
         let temporary_broadcast_channel = Fragile::new(BroadcastChannel::new(&id).unwrap());
 
-        let mut cb = |resolve: js_sys::Function, _reject: js_sys::Function| {
+        let mut cb = |resolve: js_sys::Function, reject: js_sys::Function| {
             use wasm_bindgen::{JsCast as _, prelude::Closure};
 
             let temporary_message_closure: Closure<dyn Fn(_)> = {
@@ -614,11 +672,21 @@ impl MyDatabase {
                 )
                 .unwrap();
             temporary_message_closure.forget();
+
+            web_sys::window()
+            .unwrap()
+            .set_timeout_with_callback_and_timeout_and_arguments_0(
+                &reject,
+                timeout.as_millis().try_into().unwrap(),
+            )
+            .unwrap();
         };
 
         let promise = js_sys::Promise::new(&mut cb);
 
         {
+            use log::info;
+
             let value = serde_wasm_bindgen::to_value(&MessageWithId {
                 id: id.clone(),
                 message: RequestResponseEnum::from(message),
@@ -626,9 +694,12 @@ impl MyDatabase {
             .unwrap();
 
             self.broadcast_channel.get().post_message(&value).unwrap();
+
+            info!("send a message to worker");
         }
 
-        serde_wasm_bindgen::from_value(Fragile::new(wasm_bindgen_futures::JsFuture::from(promise)).await.unwrap())
-            .unwrap()
+        let result = Fragile::new(wasm_bindgen_futures::JsFuture::from(promise)).await.map_err(|_| ());
+        Ok(serde_wasm_bindgen::from_value(result?)
+            .unwrap())
     }
 }

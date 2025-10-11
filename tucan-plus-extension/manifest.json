@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
     "name": "TUCaN Plus",
-    "version": "0.42.1",
+    "version": "0.43.3",
     "description": "Quality of life improvements for TUCaN",
     "update_url": "https://tucan-plus.github.io/tucan-plus/updates.xml",
     "declarative_net_request": {
@@ -23,7 +23,7 @@
         "notifications"
     ],
     "omnibox": {
-        "keyword": "tucan"
+        "keyword": "tucanplus"
     },
     "host_permissions": [
         "https://www.tucan.tu-darmstadt.de/*",
