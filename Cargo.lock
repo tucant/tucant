@@ -179,6 +179,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "async-once-cell"
+version = "0.5.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4288f83726785267c6f2ef073a3d83dc3f9b81464e9f99898240cced85fce35a"
+
+[[package]]
 name = "async-recursion"
 version = "1.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1145,6 +1151,7 @@ dependencies = [
  "manganis",
  "subsecond",
  "warnings",
+ "wasm-splitter",
 ]
 
 [[package]]
@@ -5290,8 +5297,7 @@ checksum = "6980e8d7511241f8acf4aebddbb1ff938df5eebe98691418c4468d0b72a96a67"
 [[package]]
 name = "sqlite-wasm-rs"
 version = "0.4.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9aead1c279716985b981b7940ef9b652d3f93d70a7296853c633b7ce8fa8088a"
+source = "git+https://github.com/mohe2015/sqlite-wasm-rs.git?branch=sqlite3_os_end#8cdf7c28f38c629e3c311f37cca212b4598d383c"
 dependencies = [
  "cc",
  "js-sys",
@@ -5988,6 +5994,7 @@ dependencies = [
  "diesel_migrations",
  "dioxus",
  "dioxus-desktop",
+ "dioxus-router",
  "fragile",
  "futures",
  "getrandom 0.3.3",
@@ -6455,6 +6462,28 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bad67dc8b2a1a6e5448428adec4c3e84c43e561d8c9ee8a9e5aabeb193ec41d1"
 dependencies = [
  "unicode-ident",
+]
+
+[[package]]
+name = "wasm-split-macro"
+version = "0.7.0-rc.1"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=my#10baa108f7f8df5ee1f08e99bdc900dd459c05ae"
+dependencies = [
+ "base16",
+ "digest",
+ "proc-macro2",
+ "quote",
+ "sha2",
+ "syn 2.0.106",
+]
+
+[[package]]
+name = "wasm-splitter"
+version = "0.7.0-rc.1"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=my#10baa108f7f8df5ee1f08e99bdc900dd459c05ae"
+dependencies = [
+ "async-once-cell",
+ "wasm-split-macro",
 ]
 
 [[package]]

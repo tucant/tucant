@@ -8,8 +8,9 @@ rust-version = "1.86"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-dioxus = { git = "https://github.com/mohe2015/dioxus.git", branch = "my", features = ["launch", "devtools", "logger", "lib", "router" ] }
+dioxus = { git = "https://github.com/mohe2015/dioxus.git", branch = "my", features = ["launch", "devtools", "logger", "lib", "router", "wasm-split" ] }
 dioxus-desktop = { git = "https://github.com/mohe2015/dioxus.git", branch = "my", optional = true }
+dioxus-router = { git = "https://github.com/mohe2015/dioxus.git", branch = "my", features = ["wasm-split"] }
 tucan-types = { path = "../tucan-types" }
 log = { version = "0.4" }
 reqwest = { version = "0.12.9", default-features = false, features = ["rustls-tls", "http2", "charset", "json"] }
@@ -41,7 +42,7 @@ tokio = { features = ["macros", "rt", "rt-multi-thread"], version = "1" }
 dbus-secret-service-keyring-store = { version = "0.2", features = ["crypto-rust"], optional = true }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
-sqlite-wasm-rs = { version = "0.4", default-features = false, features = ["bundled"] }
+sqlite-wasm-rs = { git = "https://github.com/mohe2015/sqlite-wasm-rs.git", branch = "sqlite3_os_end", default-features = false, features = ["bundled"] }
 cookie = "0.18"
 getrandom = { version = "0.3", features = ["wasm_js"] }
 web-extensions-sys = { optional = true, git = "https://github.com/mohe2015/web-extensions-sys", branch = "cookies" }
@@ -63,9 +64,3 @@ default = ["web"]
 web = ["dioxus/web"]
 desktop = ["dioxus/desktop", "dep:dioxus-desktop", "dep:tucan-connector", "dep:keyring-core", "dep:dbus-secret-service-keyring-store"]
 mobile = ["dioxus/mobile", "dep:dioxus-desktop", "dep:tucan-connector", "dep:keyring-core", "dep:android-native-keyring-store"]
-
-[profile.wasm-dev.package.async-compression]
-opt-level = 3
-
-[profile.wasm-dev.package.brotli]
-opt-level = 3
