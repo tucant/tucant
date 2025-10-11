@@ -152,11 +152,11 @@ pub fn FetchAnmeldung() -> Element {
                             ),
                             compressed,
                         ));
+                        loading.set(false);
                     }
                 });
                 progresses.push((atomic_current, atomic_total));
             }
-            loading.set(false);
         }
     };
 
