@@ -123,7 +123,7 @@ pub fn FetchAnmeldung() -> Element {
                         });
                         let module_response = module_stream.collect().await;
 
-                        log::info!("downloaded done 2");
+                        log::info!("downloaded done 3");
                         let content = serde_json::to_string(&SemesterExportV1 {
                             anmeldungen: response,
                             modules: module_response
@@ -131,14 +131,14 @@ pub fn FetchAnmeldung() -> Element {
                         let in_data = content.as_bytes();
                         let mut encoder = async_compression::tokio::write::BrotliEncoder::with_quality(
                             Vec::new(),
-                            async_compression::Level::Best,
+                            async_compression::Level::Precise(9),
                         );
-                        info!("file chunks: {}", in_data.len()/10/1024);
-                        let chunk_part = 3*in_data.len()/10/1024;
-                        for chunk in in_data.chunks(10*1024).enumerate() {
+                        info!("file chunks: {}", in_data.len()/100/1024);
+                        let chunk_part = 3*in_data.len()/100/1024;
+                        for chunk in in_data.chunks(100*1024).enumerate() {
                             let change = BigRational::new(BigInt::from(1), BigInt::from(chunk_part));
                             encoder.write_all(chunk.1).await.unwrap(); // hangs, move to worker?
-                            info!("{}/{}", chunk.0, in_data.len()/10/1024);
+                            info!("{}/{}", chunk.0, in_data.len()/100/1024);
                             atomic_current.with_mut(|current| *current += change.clone());
                             #[cfg(target_arch = "wasm32")]
                             crate::sleep(Duration::from_millis(0)).await;
