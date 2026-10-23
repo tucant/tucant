@@ -927,7 +927,7 @@ dependencies = [
  "url",
  "wasm-bindgen",
  "wasm-bindgen-futures",
- "wasm-streams 0.5.0",
+ "wasm-streams 0.5.0 (git+https://github.com/guybedford/wasm-streams.git?rev=c4035580f31a1f3c907d361d8e43ebac6c738a26)",
  "web-sys",
  "xxhash-rust",
 ]
@@ -1166,7 +1166,7 @@ dependencies = [
  "tracing",
  "wasm-bindgen",
  "wasm-bindgen-futures",
- "wasm-streams 0.5.0",
+ "wasm-streams 0.5.0 (git+https://github.com/guybedford/wasm-streams.git?rev=c4035580f31a1f3c907d361d8e43ebac6c738a26)",
  "web-sys",
 ]
 
@@ -1340,7 +1340,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "39cab71617ae0d63f51a36d69f866391735b51691dbda63cf6f96d042b63efeb"
 dependencies = [
  "libc",
- "windows-sys 0.52.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -1382,7 +1382,8 @@ dependencies = [
 [[package]]
 name = "fragile"
 version = "3.0.0"
-source = "git+https://github.com/mitsuhiko/fragile.git#d5aa305dd574a196543b8cdf40d88f3c4aad767c"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fdb2ef9571de3fe79fb6b3b7f0567ddcce6b6c9cefdbc76af63895cf97b54649"
 dependencies = [
  "futures-core",
 ]
@@ -2828,7 +2829,7 @@ dependencies = [
  "once_cell",
  "socket2",
  "tracing",
- "windows-sys 0.52.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -3046,7 +3047,7 @@ dependencies = [
  "url",
  "wasm-bindgen",
  "wasm-bindgen-futures",
- "wasm-streams 0.5.0",
+ "wasm-streams 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "web-sys",
 ]
 
@@ -3104,7 +3105,7 @@ dependencies = [
  "errno",
  "libc",
  "linux-raw-sys",
- "windows-sys 0.52.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -3162,7 +3163,7 @@ dependencies = [
  "security-framework",
  "security-framework-sys",
  "webpki-root-certs",
- "windows-sys 0.52.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -4396,6 +4397,19 @@ dependencies = [
 [[package]]
 name = "wasm-streams"
 version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9d1ec4f6517c9e11ae630e200b2b65d193279042e28edd4a2cda233e46670bbb"
+dependencies = [
+ "futures-util",
+ "js-sys",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+ "web-sys",
+]
+
+[[package]]
+name = "wasm-streams"
+version = "0.5.0"
 source = "git+https://github.com/guybedford/wasm-streams.git?rev=c4035580f31a1f3c907d361d8e43ebac6c738a26#c4035580f31a1f3c907d361d8e43ebac6c738a26"
 dependencies = [
  "futures-util",
@@ -4498,7 +4512,7 @@ version = "0.1.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c2a7b1c03c876122aa43f3020e6c3c3ee5c05081c9a00739faf7503aeba10d22"
 dependencies = [
- "windows-sys 0.52.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -4799,8 +4813,3 @@ name = "zmij"
 version = "1.0.23"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "29666d0abbfad1e3dc4dcf6144730dd3a3ab225bbbdac83319345b1b44ccfc1b"
-
-[[patch.unused]]
-name = "indexed_db_futures"
-version = "0.6.4"
-source = "git+https://github.com/mohe2015/rust-indexed-db?branch=wasm-unwind#a8b30ea0097cccbbbfab2ad0bdb4b5d04ce355f1"

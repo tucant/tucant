@@ -19,7 +19,7 @@ dotenvy = "0.15"
 dynosaur = "0.3"
 ego-tree = "0.11"
 env_logger = "0.11.11"
-fragile = { git = "https://github.com/mitsuhiko/fragile.git", features = ["future"] }
+fragile = { version = "3", features = ["future"] }
 futures = "0.3.34"
 futures-core = "0.3"
 futures-util = { version = "0.3", features = ["io"] }
@@ -75,6 +75,4 @@ tucan-plus-worker = { path = "crates/tucan-plus-worker" }
 tucan-types = { path = "crates/tucan-types" }
 
 [patch.crates-io]
-indexed_db_futures = { git = "https://github.com/mohe2015/rust-indexed-db", branch = "wasm-unwind" }
 web-extensions-sys = { git = "https://github.com/mohe2015/web-extensions-sys.git", branch = "mohe2015-patch-1" }
-wasm-streams = { git = "https://github.com/guybedford/wasm-streams.git", rev = "c4035580f31a1f3c907d361d8e43ebac6c738a26" }
