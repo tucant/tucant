@@ -56,6 +56,14 @@ Recommended: VSCodium with rust-analyzer extension
 
 Just open the project in VSCodium.
 
+### Updating
+
+```bash
+npx npm-check-updates
+cargo install cargo-edit
+cargo upgrade --ignore-rust-version --incompatible allow --pinned allow
+```
+
 ### Run on Android
 
 ```
@@ -189,3 +197,4 @@ Important: Enable "Require approval for all outside collaborators"
 https://docs.github.com/en/actions/reference/security/secure-use#hardening-for-self-hosted-runners
 
 Install gh, jq and docker on the runner.
+
