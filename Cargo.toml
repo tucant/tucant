@@ -26,8 +26,8 @@ futures-util = { version = "0.3", features = ["io"] }
 getrandom = { version = "0.4", features = ["wasm_js"] }
 getrandom2 = { version = "0.2", features = ["wasm_js"] }
 git-version = "0.3"
-html5ever = "0.39"
-itertools = "0.14"
+html5ever = "0.40"
+itertools = "0.15"
 js-sys = "0.3"
 log = { version = "0.4" }
 num = "0.4"
@@ -37,32 +37,32 @@ quote = "1"
 rand = "0.10.3"
 regex = { version = "1" }
 reqwest = { version = "0.13", default-features = false, features = ["rustls", "http2", "charset"] }
-scraper = { version = "0.27", features = ["deterministic"] }
+scraper = { version = "0.29", features = ["deterministic"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 serde-wasm-bindgen = "0.6"
 sha3 = "0.12"
-sqlite-wasm-rs = { version = "0.5.5" }
-sqlite-wasm-vfs = "0.2.0"
-syn = { version = "2", features = ["full", "parsing", "extra-traits"] }
+sqlite-wasm-rs = { version = "0.6.2" }
+sqlite-wasm-vfs = "0.3.0"
+syn = { version = "3", features = ["full", "parsing", "extra-traits"] }
 thiserror = "2"
 time = { version = "0.3.55", features = ["serde-human-readable", "wasm-bindgen", "macros"] }
 tokio = { version = "1", default-features = false }
 tokio-util = "0.7"
 tower = "0.5.3"
-tower-http = { version = "0.6.11", features = ["cors"] }
+tower-http = { version = "0.7.1", features = ["cors"] }
 tracing = "0.1.44"
 url = "2"
-utoipa = "5"
-utoipa-axum = "0.2"
-utoipa-swagger-ui = { version = "9", features = ["axum", "vendored"] }
+utoipa = "6"
+utoipa-axum = "0.3"
+utoipa-swagger-ui = { version = "10", features = ["axum", "vendored"] }
 wasm-bindgen = { version = "0.2.129" }
 wasm-bindgen-futures = "0.4"
 web-sys = { version = "0.3" }
 derive_more = { version = "2.1.1", features = ["from"] }
 enum_dispatch = "0.3.13"
 erased-serde = "0.4"
-keyring-core = { version = "0.7" }
+keyring-core = { version = "1.0" }
 typetag = "0.2"
 # https://github.com/web-extensions-rs/web-extensions/pull/19/changes?w=1
 web-extensions = { git = "https://github.com/mohe2015/web-extensions", branch = "fix-closure-unwind" }
