@@ -4,23 +4,23 @@ exclude = ["./crates/tucan-plus-tests"]
 resolver = "3"
 
 [workspace.dependencies]
-async-compression = { version = "0.4.27", features = ["brotli", "all-implementations"] }
-axum = { version = "0.8.1", features = ["macros"] }
-axum-core = "0.5.0"
-axum-extra = { version = "0.12.5", features = ["cookie"] }
+async-compression = { version = "0.4.51", features = ["brotli", "all-implementations"] }
+axum = { version = "0.8.9", features = ["macros"] }
+axum-core = "0.5.6"
+axum-extra = { version = "0.12.6", features = ["cookie"] }
 bytes = "1"
 console_log = { version = "1" }
 cookie = "0.18"
 data-encoding = "2"
-diesel = { version = "2.3.10", features = ["sqlite", "returning_clauses_for_sqlite_3_35", "time", "r2d2"] }
-diesel_migrations = { version = "2.3.1", features = ["sqlite"] }
+diesel = { version = "2.3.14", features = ["sqlite", "returning_clauses_for_sqlite_3_35", "time", "r2d2"] }
+diesel_migrations = { version = "2.3.2", features = ["sqlite"] }
 dioxus = { git = "https://github.com/mohe2015/dioxus.git", branch = "wip", features = ["launch", "devtools", "logger", "lib", "router", "web"] }
 dotenvy = "0.15"
 dynosaur = "0.3"
 ego-tree = "0.11"
-env_logger = "0.11.8"
+env_logger = "0.11.11"
 fragile = { git = "https://github.com/mitsuhiko/fragile.git", features = ["future"] }
-futures = "0.3.31"
+futures = "0.3.34"
 futures-core = "0.3"
 futures-util = { version = "0.3", features = ["io"] }
 getrandom = { version = "0.4", features = ["wasm_js"] }
@@ -34,7 +34,7 @@ num = "0.4"
 plotters = { version = "0.3.7", default-features = false, features = ["svg_backend", "histogram"] }
 proc-macro2 = "1"
 quote = "1"
-rand = "0.10.0"
+rand = "0.10.3"
 regex = { version = "1" }
 reqwest = { version = "0.13", default-features = false, features = ["rustls", "http2", "charset"] }
 scraper = { version = "0.27", features = ["deterministic"] }
@@ -42,24 +42,24 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 serde-wasm-bindgen = "0.6"
 sha3 = "0.12"
-sqlite-wasm-rs = { version = "0.5.2" }
+sqlite-wasm-rs = { version = "0.5.5" }
 sqlite-wasm-vfs = "0.2.0"
 syn = { version = "2", features = ["full", "parsing", "extra-traits"] }
 thiserror = "2"
-time = { version = "0.3.47", features = ["serde-human-readable", "wasm-bindgen", "macros"] }
+time = { version = "0.3.55", features = ["serde-human-readable", "wasm-bindgen", "macros"] }
 tokio = { version = "1", default-features = false }
 tokio-util = "0.7"
-tower = "0.5.2"
-tower-http = { version = "0.6.6", features = ["cors"] }
-tracing = "0.1.41"
+tower = "0.5.3"
+tower-http = { version = "0.6.11", features = ["cors"] }
+tracing = "0.1.44"
 url = "2"
 utoipa = "5"
 utoipa-axum = "0.2"
 utoipa-swagger-ui = { version = "9", features = ["axum", "vendored"] }
-wasm-bindgen = { version = "0.2.115" }
+wasm-bindgen = { version = "0.2.129" }
 wasm-bindgen-futures = "0.4"
 web-sys = { version = "0.3" }
-derive_more = { version = "2.0.1", features = ["from"] }
+derive_more = { version = "2.1.1", features = ["from"] }
 enum_dispatch = "0.3.13"
 erased-serde = "0.4"
 keyring-core = { version = "0.7" }
