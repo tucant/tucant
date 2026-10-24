@@ -71,13 +71,13 @@
           src = pkgs.fetchFromGitHub {
             owner = "mohe2015";
             repo = "dioxus";
-            rev = "ade0698ce2df82e5242585e2946f7606c373b424";
-            hash = "sha256-97HYCQ/s1frjwF9ARgJKB5i36TpE0yAMa0K96I4pdi4=";
+            rev = "9a20e3cf505889144247b80d6cf291184e376112";
+            hash = "";
           };
           cargoBuildFlags = [ "-p" "dioxus-cli" ];
           cargoTestFlags = [ "-p" "dioxus-cli" ];
 
-          cargoHash = "sha256-wYUEKdLhchd6w7Tgjufy3gVNW/3iT+5hyotrTvFfh1c=";
+          cargoHash = "";
 
           doCheck = false;
 
