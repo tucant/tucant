@@ -116,6 +116,7 @@ export VARIANT=release
 # dioxus serve and --release seems to not be a valid configuration currently
 
 mkdir -p /home/moritz/Documents/tucan-plus/tucan-plus-extension/public
+mkdir -p /home/moritz/Documents/tucan-plus/target/dx/tucan-plus-dioxus/$VARIANT/web/public
 sudo mount --bind /home/moritz/Documents/tucan-plus/target/dx/tucan-plus-dioxus/$VARIANT/web/public/ /home/moritz/Documents/tucan-plus/tucan-plus-extension/public
 # restart browser to inherit mounts?
 dx serve --web --verbose --base-path public --hot-patch=false
