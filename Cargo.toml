@@ -14,8 +14,8 @@ cookie = "0.18"
 data-encoding = "2"
 diesel = { version = "2.3.14", features = ["sqlite", "returning_clauses_for_sqlite_3_35", "time", "r2d2"] }
 diesel_migrations = { version = "2.3.2", features = ["sqlite"] }
-# wasm-streams 0.7 for panic=unwind
-dioxus = { git = "https://github.com/mohe2015/dioxus.git", rev = "1a7c1c23faabf96e4587e39ec828265f50fdc30b", features = ["launch", "devtools", "logger", "lib", "router", "web"] }
+# wasm-streams 0.7 for panic=unwind, closures with panic=unwind
+dioxus = { git = "https://github.com/mohe2015/dioxus.git", branch = "new-wip", features = ["launch", "devtools", "logger", "lib", "router", "web"] }
 dotenvy = "0.15"
 dynosaur = "0.3"
 ego-tree = "0.11"
