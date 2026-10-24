@@ -72,12 +72,12 @@
             owner = "mohe2015";
             repo = "dioxus";
             rev = "9a20e3cf505889144247b80d6cf291184e376112";
-            hash = "";
+            hash = "sha256-H5PlXyHyV2+IHDOxJ11y2qlbnRAsk3j5zL6vpzeKYjM=";
           };
           cargoBuildFlags = [ "-p" "dioxus-cli" ];
           cargoTestFlags = [ "-p" "dioxus-cli" ];
 
-          cargoHash = "";
+          cargoHash = "sha256-wYUEKdLhchd6w7Tgjufy3gVNW/3iT+5hyotrTvFfh1c=";
 
           doCheck = false;
 
