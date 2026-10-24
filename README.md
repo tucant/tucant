@@ -103,7 +103,7 @@ rustup toolchain install nightly-2025-09-08 --component rustfmt
 
 ```bash
 # https://github.com/dioxuslabs/dioxus/issues/5322
-cargo install --git https://github.com/mohe2015/dioxus.git --branch wip dioxus-cli # --debug
+cargo install --git https://github.com/mohe2015/dioxus.git --branch new-wip dioxus-cli # --debug
 
 TODO try dioxus build first, probably simpler than serve
 omg it was somehow using two different versions of that crate, wtf
